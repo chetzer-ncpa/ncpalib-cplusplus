@@ -9,6 +9,7 @@
 #include <cstring>
 #include <limits>
 #include <random>
+#include <concepts>
 
 
 namespace NCPA::math {
@@ -47,20 +48,28 @@ namespace NCPA::math {
 	@param v The array to free.
 	@param nr The first dimension of the array.
 	@param nc The second dimension of the array.
-	@param delete_contents If true, call delete on each element as well.
 	*/
 	template<typename T>
-	void free_array2d( T **v, size_t nr, size_t nc, bool delete_contents = false ) {
+	requires std::destructible<T>
+	void free_array2d( T **v, size_t nr, size_t nc ) {
 		for (size_t i = 0; i < nr; i++) {
-			if (delete_contents) {
-				for (size_t j = 0; j < nc; j++) {
-					delete v[ i ][ j ];
-				}
+			for (size_t j = 0; j < nc; j++) {
+				delete v[ i ][ j ];
 			}
 			delete [] v[ i ];
 		}
 		delete [] v;
 	}
+
+	template<typename T>
+	requires std::integral<T> || std::floating_point<T>
+	void free_array2d( T **v, size_t nr, size_t nc ) {
+		for (size_t i = 0; i < nr; i++) {
+			delete [] v[ i ];
+		}
+		delete [] v;
+	}
+
 
 
 	/**
