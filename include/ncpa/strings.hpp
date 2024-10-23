@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <algorithm>
 
 namespace NCPA::strings {
 
@@ -76,57 +77,73 @@ namespace NCPA::strings {
 	    return s;
 	}
 
-	/**
-	Converts the supplied string to lower case.
-	@brief Converts to lower case.
-	@param in The string to convert.
-	@returns The input string converted into all lower case.
-	*/
-	void toLowerCase( char *in ) {
-		unsigned int len = std::strlen(in);
-		for (unsigned int i = 0; i < len; i++) {
-			in[ i ] = (char)std::tolower( in[ i ] );
-		}
+	// Taken from https://en.cppreference.com/w/cpp/string/byte/tolower
+	std::string to_lower( std::string s ) {
+		std::transform( s.begin(), s.end(), s.begin(),
+						[](unsigned char c){ return std::tolower(c); }
+		);
+		return s;
 	}
 
-	/**
-	Converts the supplied string to lower case.
-	@brief Converts to lower case.
-	@param in The string to convert.
-	@returns The input string converted into all lower case.
-	*/
-	std::string toLowerCase( const std::string in ) {
-		std::ostringstream oss("");
-		for (unsigned int i = 0; i < in.length(); i++) {
-			oss << (char)std::tolower( in[ i ] );
-		}
-		return oss.str();
+	// Taken from https://en.cppreference.com/w/cpp/string/byte/tolower
+	std::string to_upper( std::string s ) {
+		std::transform( s.begin(), s.end(), s.begin(),
+						[](unsigned char c){ return std::toupper(c); }
+		);
+		return s;
 	}
 
-	/**
-	Converts the supplied string to upper case.
-	@brief Converts to upper case.
-	@param in The string to convert.
-	@returns The input string converted into all upper case.
-	*/
-	void toUpperCase( char *in ) {
-		unsigned int len = std::strlen(in);
-		for (unsigned int i = 0; i < len; i++) {
-			in[ i ] = (char)std::toupper( in[ i ] );
-		}
-	}
-
-	/**
-	Converts the supplied string to upper case.
-	@brief Converts to upper case.
-	@param in The string to convert.
-	@returns The input string converted into all upper case.
-	*/
-	std::string toUpperCase( const std::string in ) {
-		std::ostringstream oss("");
-		for (unsigned int i = 0; i < in.length(); i++) {
-			oss << (char)std::toupper( in[ i ] );
-		}
-		return oss.str();
-	}
+//	/**
+//	Converts the supplied string to lower case.
+//	@brief Converts to lower case.
+//	@param in The string to convert.
+//	@returns The input string converted into all lower case.
+//	*/
+//	void toLowerCase( char *in ) {
+//		unsigned int len = std::strlen(in);
+//		for (unsigned int i = 0; i < len; i++) {
+//			in[ i ] = (char)std::tolower( in[ i ] );
+//		}
+//	}
+//
+//	/**
+//	Converts the supplied string to lower case.
+//	@brief Converts to lower case.
+//	@param in The string to convert.
+//	@returns The input string converted into all lower case.
+//	*/
+//	std::string toLowerCase( const std::string in ) {
+//		std::ostringstream oss("");
+//		for (unsigned int i = 0; i < in.length(); i++) {
+//			oss << (char)std::tolower( in[ i ] );
+//		}
+//		return oss.str();
+//	}
+//
+//	/**
+//	Converts the supplied string to upper case.
+//	@brief Converts to upper case.
+//	@param in The string to convert.
+//	@returns The input string converted into all upper case.
+//	*/
+//	void toUpperCase( char *in ) {
+//		unsigned int len = std::strlen(in);
+//		for (unsigned int i = 0; i < len; i++) {
+//			in[ i ] = (char)std::toupper( in[ i ] );
+//		}
+//	}
+//
+//	/**
+//	Converts the supplied string to upper case.
+//	@brief Converts to upper case.
+//	@param in The string to convert.
+//	@returns The input string converted into all upper case.
+//	*/
+//	std::string toUpperCase( const std::string in ) {
+//		std::ostringstream oss("");
+//		for (unsigned int i = 0; i < in.length(); i++) {
+//			oss << (char)std::toupper( in[ i ] );
+//		}
+//		return oss.str();
+//	}
 }
