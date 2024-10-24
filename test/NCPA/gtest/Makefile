@@ -11,12 +11,10 @@ TARGET=gtestTest
 test: build clean
 
 build: $(OBJECTS)
-	#g++ -o $(TARGET) $^ $(patsubst test_%.o,%.o,$^) $(LDFLAGS) && ./$(TARGET)
 	g++ -o $(TARGET) $^ $(LDFLAGS) && ./$(TARGET)
 	
 %.o: %.cpp
 	${CXX} $^ $(CXXFLAGS) -o $@
-	#${CXX} $(patsubst test_%.cpp,../src/%.cpp,$^) $(CXXFLAGS) -o $(patsubst test_%.cpp,%.o,$^)
 	
 clean:
-	-rm $(OBJECTS) $(patsubst test_%.o,%.o,$(OBJECTS)) $(TARGET)
+	-rm $(OBJECTS) $(TARGET)

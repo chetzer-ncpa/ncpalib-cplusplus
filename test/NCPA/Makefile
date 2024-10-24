@@ -1,4 +1,4 @@
-parts=math gtest
+parts=gtest math
 test-parts=$(addprefix test-, $(parts))
 get_target = $(subst $(2)-,,$(1))
 define test-lib =

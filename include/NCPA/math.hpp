@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cmath>
 #include <cstddef>
 #include <complex>
@@ -10,6 +9,7 @@
 #include <limits>
 #include <random>
 #include <concepts>
+#include <numbers>
 
 template <typename T>
 concept deleteable = std::destructible<T> && (!std::is_fundamental_v<T>);
@@ -290,7 +290,7 @@ namespace NCPA::math {
 		if (NZ == 1) {
 			return 0;
 		}
-		double diff = 0.0, mindiff = std::numeric_limits<double>::max();
+		double diff = 0.0, mindiff = std::numeric_limits<T>::max();
 		size_t tmpind = 0;
 
 		for (size_t i = 0; i < NZ; i++) {
@@ -317,7 +317,7 @@ namespace NCPA::math {
 		if (z.size() == 1) {
 			return 0;
 		}
-		T diff = 0.0, mindiff = 9999999999999;
+		T diff = 0.0, mindiff = std::numeric_limits<T>::max();
 		size_t tmpind = 0, i;
 		for (i = 0; i < z.size(); i++) {
 			diff = std::abs( z[i] - zs );
@@ -334,12 +334,16 @@ namespace NCPA::math {
 	@param x The x Cartesian input coordinate.
 	@param y The y Cartesian input coordinate.
 	@param r The r polar output coordinate.
-	@param theta_rad The theta output polar coordinate, in radians.
+	@param theta_rad The theta output polar coordinate, in radians.  Will return 0.0 if x==0 and y==0
 	*/
 	template<typename T>
 	void cart2pol( T x, T y, T &r, T &theta_rad ) {
 		r = std::sqrt( x * x + y * y );
-		theta_rad = std::atan2( y, x );
+		try {
+			theta_rad = std::atan2( y, x );
+		} catch (std::domain_error e) {
+			theta_rad = 0.0;
+		}
 	}
 
 	/**
@@ -362,7 +366,7 @@ namespace NCPA::math {
 	*/
 	template<typename T>
 	T deg2rad( T deg_in ) {
-		return (T)(((double)deg_in) * M_PI / 180.0);
+		return (T)(((double)deg_in) * std::numbers::pi / 180.0);
 	}
 
 	/**
@@ -372,9 +376,86 @@ namespace NCPA::math {
 	*/
 	template<typename T>
 	T rad2deg( T rad_in ) {
-		return (T)(((double)rad_in) * 180.0 / M_PI);
+		return (T)(((double)rad_in) * 180.0 / std::numbers::pi);
 	}
 
+	
+
+	/**
+	@brief Returns the maximum value from a vector.
+	@param vals The vector holding the values to check.
+	@returns The maximum value found in the vector.
+	*/
+	template<typename T>
+	T max( std::vector< T > vals ) {
+		T maxval = vals.front();
+		for (auto cit = vals.cbegin(); cit != vals.cend(); ++cit) {
+			maxval = std::max( *cit, maxval );
+		}
+		return maxval;
+	}
+
+	/**
+	@brief Returns the maximum value from an array.
+	@param vals The array holding the values to check.
+	@param size The size of the array.
+	@returns The maximum value found in the array.
+	*/
+	template<typename T>
+	T max( const T *vals, size_t size ) {
+		T maxval = vals[ 0 ];
+		for (size_t i = 1; i < size; i++) {
+			maxval = std::max( vals[i], maxval );
+		}
+		return maxval;
+	}
+
+
+	/**
+	@brief Returns the minimum value from an array.
+	@param vals The array holding the values to check.
+	@param size The size of the array.
+	@returns The minimum value found in the array.
+	*/
+	template<typename T>
+	T min( const T *vals, size_t size ) {
+		T minval = vals[ 0 ];
+		for (size_t i = 1; i < size; i++) {
+			minval = std::min( vals[ i ], minval );
+		}
+		return minval;
+	}
+
+	/**
+	@brief Returns the maximum value from a vector.
+	@param vals The vector holding the values to check.
+	@returns The maximum value found in the vector.
+	*/
+	template<typename T>
+	T min( std::vector< T > vals ) {
+		T minval = vals.front();
+		for (auto cit = vals.cbegin(); cit != vals.cend(); ++cit) {
+			minval = std::min( *cit, minval );
+		}
+		return minval;
+	}
+
+
+	/**
+	 * Converts a vector of doubles into the equivalent vector of complex<double>s
+	 * with the imaginary value set to zero.
+	 * @brief Converts a double vector to a complex<double> vector
+	 * @param real The double vector to convert
+	 * @returns The complex<double> vector to return
+	 */
+	std::vector<std::complex<double>> double2complex( const std::vector<double> &in ) {
+		std::vector<std::complex<double>> out;
+		out.reserve( in.size() );
+		for (auto it = in.cbegin(); it != in.cend(); ++it) {
+			out.push_back( std::complex<double>( *it, 0.0 ) );
+		}
+		return out;
+	}
 
 	/**
 	 * Converts an array of doubles into the equivalent array of complex<double>s
@@ -391,6 +472,28 @@ namespace NCPA::math {
 	}
 
 	/**
+	 * Converts two vectors of doubles into the equivalent vector of complex<double>s
+	 * where one vector represents the real parts and the other the imaginary parts.
+	 * @brief Converts two double vectors to a complex<double> vector
+	 * @param real The double vector to convert as the real parts
+	 * @param imag The double vector to convert as the real parts
+	 */
+	std::vector<std::complex<double>> double2complex( const std::vector<double> &real, 
+			const std::vector<double> &imag ) {
+		std::vector<std::complex<double>> out;
+		out.reserve(std::max( real.size(), imag.size() ));
+		auto rit = real.cbegin();
+		auto iit = imag.cbegin();
+		while (rit != real.cend() || iit != imag.cend()) {
+			out.push_back( std::complex<double>(
+				rit != real.cbegin() ? *(rit++) : 0.0,
+				iit != imag.cbegin() ? *(iit++) : 0.0
+			));	
+		}
+		return out;
+	}
+
+	/**
 	 * Converts two arrays of doubles into the equivalent array of complex<double>s
 	 * where one array represents the real parts and the other the imaginary parts.
 	 * @brief Converts a double array to a complex<double> array
@@ -403,6 +506,24 @@ namespace NCPA::math {
 			std::complex<double> *out ) {
 		for (size_t i = 0; i < n; i++) {
 			out[i] = std::complex<double>( real[i], imag[i] );
+		}
+	}
+
+	/**
+	 * Converts a vector of complex<double>s into the equivalent vectors of doubles
+	 * where one vector represents the real parts and the other the imaginary parts.
+	 * @brief Converts a complex<double> vector to two double vectors
+	 * @param in The complex array to decompose
+	 * @param real The real parts
+	 * @param imag The imaginary parts
+	 */
+	void complex2double( const std::vector<std::complex<double>> &in,
+			std::vector<double> &real, std::vector<double> &imag ) {
+		real.resize( in.size() );
+		imag.resize( in.size() );
+		for (size_t i = 0; i < in.size(); i++) {
+			real[i] = in[i].real();
+			imag[i] = in[i].imag();
 		}
 	}
 
@@ -424,20 +545,33 @@ namespace NCPA::math {
 	}
 
 	/**
-	@brief Evaluate a polynomial from its coefficients.
-	@param N the number of coefficients (not its degree).
-	@param coeffs The coefficients in increasing order starting with power 0 (i.e. the constant).
-	@param x The value at which to evaluate the polynomial.
-	@returns The calculated value of the polynomial at x.
+	Generates a vector of N random numbers in the range [0,scale).
+	@brief Generates a vector of random numbers.
+	@param N Number of random values to generate.
+	@param scale The upper end of the range.  Defaults to 1.0.
+	@returns A vector of random numbers.
 	*/
-	template<typename T>
-	T evalpoly( size_t N, const T *coeffs, T x ) {
-		T val = 0.0;
+	std::vector<double> random_numbers( size_t N, double scale = 1.0 ) {
+		std::vector<double> randn;
+		randn.reserve( N );
+		std::random_device rd;
+		std::mt19937 generator(rd());
+		std::uniform_real_distribution<> distribution(0.0, scale);
 		for (size_t i = 0; i < N; i++) {
-			val += coeffs[i] * std::pow( x, (double)i );
+			double r = distribution( generator );
+			randn.push_back( r );
 		}
-		return val;
+		return randn;
 	}
+
+	std::vector<std::complex<double>> complex_random_numbers( size_t N, 
+			double real_scale = 1.0, double imag_scale = 1.0 ) {
+		std::vector<double> rand_r = random_numbers( N, real_scale );
+		std::vector<double> rand_i = random_numbers( N, imag_scale );
+		
+		std::vector<std::complex<double>> rand_c;
+	}
+
 
 	/**
 	@brief Evaluate a polynomial from its coefficients.
@@ -453,6 +587,26 @@ namespace NCPA::math {
 		}
 		return val;
 	}
+
+	/**
+	@brief Evaluate a polynomial from its coefficients.
+	@param N the number of coefficients (not its degree).
+	@param coeffs The coefficients in increasing order starting with power 0 (i.e. the constant).
+	@param x The value at which to evaluate the polynomial.
+	@returns The calculated value of the polynomial at x.
+	*/
+	template<typename T>
+	T evalpoly( size_t N, const T *coeffs, T x ) {
+		std::vector<T> v( coeffs, coeffs+N );
+		return evalpoly<T>( v, x );
+		// T val = 0.0;
+		// for (size_t i = 0; i < N; i++) {
+		// 	val += coeffs[i] * std::pow( x, (double)i );
+		// }
+		// return val;
+	}
+
+	
 
 	/**
 	Dynamically allocates a new array and sets the elements to
@@ -604,47 +758,6 @@ namespace NCPA::math {
 	}
 
 	/**
-	@brief Returns the greater of two values.
-	@param a First value.
-	@param b Second value.
-	@returns a if a > b, b otherwise.
-	*/
-	template<typename T>
-	T max( T a, T b ) {
-		return a > b ? a : b;
-	}
-
-	/**
-	@brief Returns the minimum value from a vector.
-	@param vals The vector holding the values to check.
-	@returns The minimum value found in the vector.
-	*/
-	template<typename T>
-	T max( std::vector< T > vals ) {
-		T maxval = vals.front();
-		for (typename std::vector<T>::const_iterator cit = vals.cbegin();
-				cit != vals.cend(); ++cit) {
-			maxval = NCPA::math::max( *cit, maxval );
-		}
-		return maxval;
-	}
-
-	/**
-	@brief Returns the maximum value from an array.
-	@param vals The array holding the values to check.
-	@param size The size of the array.
-	@returns The maximum value found in the array.
-	*/
-	template<typename T>
-	T max( const T *vals, size_t size ) {
-		T maxval = vals[ 0 ];
-		for (size_t i = 1; i < size; i++) {
-			maxval = NCPA::math::max( vals[i], maxval );
-		}
-		return maxval;
-	}
-
-	/**
 	Computes the mean of an array.
 	@brief Computes the mean of an array.
 	@param d The array to average.
@@ -661,49 +774,7 @@ namespace NCPA::math {
 		return m;
 	}
 
-	/**
-	@brief Returns the lesser of two values.
-	@param a First value.
-	@param b Second value.
-	@returns a if a < b, b otherwise.
-	*/
-	template<typename T>
-	T min( T a, T b ) {
-		return a < b ? a : b;
-	}
-
-	/**
-	@brief Returns the minimum value from an array.
-	@param vals The array holding the values to check.
-	@param size The size of the array.
-	@returns The minimum value found in the array.
-	*/
-	template<typename T>
-	T min( const T *vals, size_t size ) {
-		T minval = vals[ 0 ];
-		for (size_t i = 1; i < size; i++) {
-			minval = NCPA::math::min( vals[ i ], minval );
-		}
-		return minval;
-	}
-
-
-
-	/**
-	@brief Returns the maximum value from a vector.
-	@param vals The vector holding the values to check.
-	@returns The maximum value found in the vector.
-	*/
-	template<typename T>
-	T min( std::vector< T > vals ) {
-		T minval = vals.front();
-		for (typename std::vector<T>::const_iterator cit = vals.cbegin();
-				cit != vals.cend(); ++cit) {
-			minval = NCPA::math::min( *cit, minval );
-		}
-		return minval;
-	}
-
+	
 	/**
 	Shifts a point in Cartesian coordinates to a new position
 	relative to a different origin.
@@ -761,25 +832,7 @@ namespace NCPA::math {
 		return p;
 	}
 
-	/**
-	Generates a vector of N random numbers in the range [0,scale).
-	@brief Generates a vector of random numbers.
-	@param N Number of random values to generate.
-	@param scale The upper end of the range.  Defaults to 1.0.
-	@returns A vector of random numbers.
-	*/
-	std::vector<double> random_numbers( size_t N, double scale = 1.0 ) {
-		std::vector<double> randn;
-		randn.reserve( N );
-		std::random_device rd;
-		std::mt19937 generator(rd());
-		std::uniform_real_distribution<> distribution(0.0, scale);
-		for (size_t i = 0; i < N; i++) {
-			double r = distribution( generator );
-			randn.push_back( r );
-		}
-		return randn;
-	}
+	
 
 	/**
 	@brief Reverses the order of an array.
