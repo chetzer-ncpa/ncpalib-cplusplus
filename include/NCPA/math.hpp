@@ -11,6 +11,9 @@
 #include <random>
 #include <concepts>
 
+template <typename T>
+concept deleteable = std::destructible<T> && (!std::is_fundamental_v<T>);
+
 
 namespace NCPA::math {
 
@@ -49,9 +52,18 @@ namespace NCPA::math {
 	@param nr The first dimension of the array.
 	@param nc The second dimension of the array.
 	*/
-	template<typename T>
-	requires std::destructible<T>
-	void free_array2d( T **v, size_t nr, size_t nc ) {
+	template <typename T>
+	requires std::is_fundamental_v<T> || (!std::destructible<T>)
+	void free_array2d (T **&v, size_t nr, size_t nc) {
+		for (size_t i = 0; i < nr; i++) {
+			delete[] v[i];
+		}
+		delete[] v;
+		v = nullptr;
+	}
+
+    template<typename T>
+	void free_array2d( T **&v, size_t nr, size_t nc )  {
 		for (size_t i = 0; i < nr; i++) {
 			for (size_t j = 0; j < nc; j++) {
 				delete v[ i ][ j ];
@@ -59,18 +71,45 @@ namespace NCPA::math {
 			delete [] v[ i ];
 		}
 		delete [] v;
+		v = nullptr;
 	}
 
+	/**
+	 * Returns -1, 0, or 1 depending on the sign of the argument.
+	 * @brief Returns -1, 0, or 1 depending on the sign of the argument.
+	 * @param n The value to test for sign
+	 * @returns -1 if n<0, 1 if n>0, 0 otherwise
+	 */
 	template<typename T>
-	requires std::integral<T> || std::floating_point<T>
-	void free_array2d( T **v, size_t nr, size_t nc ) {
-		for (size_t i = 0; i < nr; i++) {
-			delete [] v[ i ];
+	int sign( T n ) {
+		if (n > 0) {
+			return 1;
+		} else if (n < 0) {
+			return -1;
+		} else {
+			return 0;
 		}
-		delete [] v;
 	}
 
-
+	/**
+	@brief Dynamically allocates and returns a three-dimensional array.
+	@param nr The first dimension of the array.
+	@param nc The second dimension of the array.
+	@param nd The third dimension of the array
+	@returns A pointer to the newly-allocated array.
+	*/
+	template<typename T>
+	T*** zeros3d( size_t nr, size_t nc, size_t nd ) {
+		T ***v;
+		v = new T**[ nr ];
+		for (size_t i = 0; i < nr; i++) {
+			v[ i ] = new T*[ nc ];
+			for (size_t j = 0; j < nc; j++) {
+				v[ i ][ j ] = new T[ nd ]();
+			}
+		}
+		return v;
+	}
 
 	/**
 	Frees a dynamically-allocated three-dimensional array, and calls
@@ -80,26 +119,40 @@ namespace NCPA::math {
 	@param nd1 The first dimension of the array.
 	@param nd2 The second dimension of the array.
 	@param nd3 The third dimension of the array.
-	@param delete_contents If true, call delete on each element as well.
 	*/
 	template<typename T>
-	void free_array3d( T ***data,
-				size_t nd1, size_t nd2, size_t nd3, bool delete_contents = false ) {
+	requires std::is_fundamental_v<T> || (!std::destructible<T>)
+	void free_array3d( T ***&data, size_t nd1, size_t nd2, size_t nd3 ) {
 		size_t i, j, k;
 		for (i=0; i < nd1; ++i) {
 		  if (data[i] != NULL) {
 			  for (j=0; j < nd2; ++j) {
-				  if (delete_contents) {
-					  for (k = 0; i < nd3; k++) {
-						  delete data[i][j][k];
-					  }
-				  }
 				  delete [] data[i][j];
 			  }
 		      delete [] data[i];
 		  }
 		}
 		delete [] data;
+		data = nullptr;
+	}
+
+	template<typename T>
+	void free_array3d( T ***&data,
+				size_t nd1, size_t nd2, size_t nd3 ) {
+		size_t i, j, k;
+		for (i=0; i < nd1; ++i) {
+		  if (data[i] != NULL) {
+			  for (j=0; j < nd2; ++j) {
+					for (k = 0; i < nd3; k++) {
+						delete data[i][j][k];
+					}
+				  delete [] data[i][j];
+			  }
+		      delete [] data[i];
+		  }
+		}
+		delete [] data;
+		data = nullptr;
 	}
 
 
@@ -116,9 +169,10 @@ namespace NCPA::math {
     @param out The shifted array.  Can be the same as either input to perform in-place.
     */
 	template<typename T>
-	void circshift( T *X, size_t N, int K,
-			T *out ) {
-		assert(((size_t)std::abs(K)) < N);
+	void circshift( T *X, size_t N, int K, T *&out ) {
+		while (std::abs(K) > N) {
+			K -= ((int)N) * sign<int>(K);
+		}
 		size_t i;
 		T *tempvec = zeros<T>( N );
 		if (K < 0) {
@@ -146,6 +200,9 @@ namespace NCPA::math {
 		}
 
 		// copy over so it can be done in place if desired
+		if (out == nullptr) {
+			out = zeros<T>( N );
+		}
 		std::memcpy( out, tempvec, N*sizeof(T) );
 		delete [] tempvec;
 	}
@@ -406,7 +463,7 @@ namespace NCPA::math {
 	*/
 	template<typename T>
 	T *index_vector( size_t n ) {
-		T *ivec = new T[ n ];
+		T *ivec = zeros<T>( n );
 		for (size_t i = 0; i < n; i++) {
 			ivec[ i ] = (T)i;
 		}
@@ -423,7 +480,7 @@ namespace NCPA::math {
 	*/
 	template<typename T>
 	T *index_vector( size_t n, T a ) {
-		T *ivec = new T[ n ];
+		T *ivec = zeros<T>( n );
 		for (size_t i = 0; i < n; i++) {
 			ivec[ i ] = (T)i + a;
 		}
@@ -742,22 +799,7 @@ namespace NCPA::math {
 		delete [] tempvec;
 	}
 
-	/**
-	 * Returns -1, 0, or 1 depending on the sign of the argument.
-	 * @brief Returns -1, 0, or 1 depending on the sign of the argument.
-	 * @param n The value to test for sign
-	 * @returns -1 if n<0, 1 if n>0, 0 otherwise
-	 */
-	template<typename T>
-	int sign( T n ) {
-		if (n > 0) {
-			return 1;
-		} else if (n < 0) {
-			return -1;
-		} else {
-			return 0;
-		}
-	}
+
 
 	/**
 	@brief Peforms a simple trapezoidal integration.
