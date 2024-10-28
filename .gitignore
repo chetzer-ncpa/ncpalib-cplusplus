@@ -1,0 +1,7 @@
+/build/
+*.o
+.settings
+.git
+.cproject
+.project
+*Test
