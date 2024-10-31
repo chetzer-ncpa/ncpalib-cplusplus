@@ -2,6 +2,6 @@
 *.o
 .settings
 .git
-.cproject
-.project
 *Test
+.vscode/*
+
