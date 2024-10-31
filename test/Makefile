@@ -15,7 +15,8 @@ all: test
 test: $(test-parts)
 
 $(test-parts):
+	$(MAKE) -C $(call get_target,$@,test) clean
 	$(MAKE) -C $(call get_target,$@,test) test
-#	$(MAKE) -C $(call get_target,$@,test) test INCLUDE_FLAGS="$(INCLUDE_FLAGS)"  LIBRARY_FLAGS="$(LIBRARY_FLAGS)"
+	$(MAKE) -C $(call get_target,$@,test) clean
 
 .PHONY:  $(test-parts)

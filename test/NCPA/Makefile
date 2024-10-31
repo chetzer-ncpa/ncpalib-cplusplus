@@ -7,7 +7,7 @@ SOURCES=$(wildcard test_*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTest
 
-test: clean build clean
+test: build
 
 build: $(OBJECTS)
 	g++ -o $(TARGET) $^ $(LDFLAGS) && ./$(TARGET)
