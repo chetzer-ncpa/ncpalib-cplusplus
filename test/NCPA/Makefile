@@ -1,16 +1,19 @@
-parts=concepts
-test-parts=$(addprefix test-, $(parts))
-get_target = $(subst $(2)-,,$(1))
-define test-lib =
-$(MAKE) -C $(call get_target,$@,test) test INCLUDE_FLAGS=$(INCLUDE_FLAGS)
-endef
+GTESTLIBS=-lgtest_main -lgtest
+LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS)
+INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
+CXXFLAGS=-c -fPIC -std=${STANDARD} $(INCFLAGS)
 
-all: test
+SOURCES=$(wildcard test_*.cpp)
+OBJECTS=$(SOURCES:.cpp=.o)
+TARGET=ncpalibTest
 
-test: $(test-parts)
+test: clean build clean
 
-$(test-parts):
-	$(MAKE) -C $(call get_target,$@,test) test INCLUDE_FLAGS="$(INCLUDE_FLAGS)"  LIBRARY_FLAGS="$(LIBRARY_FLAGS)"
-
-
-.PHONY: $(test-parts) $(parts)
+build: $(OBJECTS)
+	g++ -o $(TARGET) $^ $(LDFLAGS) && ./$(TARGET)
+	
+%.o: %.cpp
+	${CXX} $^ $(CXXFLAGS) -o $@
+	
+clean:
+	-rm $(OBJECTS) $(TARGET)
