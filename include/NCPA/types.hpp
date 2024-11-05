@@ -43,7 +43,7 @@
  * define a default template trait that inherits from false_type, such that it
  * always evaluates as false.  Then, define a specialized template with a
  * second parameter that only evaluates validly if the condition is met, i.e.
- * the method in question can be validly called.  For example, to test if the
+ * the method in question can be validly called.  This is called SFINAE.  For example, to test if the
  * dereference (*) operator is valid, we do:
  *
  * template<typename T, typename = void>
@@ -119,6 +119,12 @@
 
 #define ENABLE_IF( CONDITION ) \
     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
+#define NO_DEFAULT_ENABLE_IF( CONDITION ) \
+    typename std::enable_if<CONDITION::value, int>::type ENABLER
+#define ENABLE_IF_T( CONDITION, T ) \
+    typename std::enable_if<CONDITION<T>::value, int>::type ENABLER = 0
+#define ENABLE_IF_TU( CONDITION, T, U ) \
+    typename std::enable_if<CONDITION<T,U>::value, int>::type ENABLER = 0
 
 namespace NCPA {
     namespace types {

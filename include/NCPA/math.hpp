@@ -447,52 +447,58 @@ namespace NCPA {
         }
 
         /**
-         * Converts a vector of doubles into the equivalent vector of
-         * complex<double>s with the imaginary value set to zero.
-         * @brief Converts a double vector to a complex<double> vector
-         * @param real The double vector to convert
-         * @returns The complex<double> vector to return
+         * Converts a vector of reals into the equivalent vector of
+         * complex<>s with the imaginary value set to zero.
+         * @brief Converts a real vector to a complex<> vector
+         * @param real The real vector to convert
+         * @returns The complex<> vector to return
          */
-        std::vector<std::complex<double>> double2complex(
-            const std::vector<double> &in ) {
-            std::vector<std::complex<double>> out;
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        std::vector<std::complex<T>> real2complex(
+            const std::vector<T> &in ) {
+            std::vector<std::complex<T>> out;
             out.reserve( in.size() );
             for ( auto it = in.cbegin(); it != in.cend(); ++it ) {
-                out.push_back( std::complex<double>( *it, 0.0 ) );
+                out.push_back( std::complex<T>( *it, 0.0 ) );
             }
             return out;
         }
 
         /**
-         * Converts an array of doubles into the equivalent array of
-         * complex<double>s with the imaginary value set to zero.
-         * @brief Converts a double array to a complex<double> array
+         * Converts an array of reals into the equivalent array of
+         * complex<>s with the imaginary value set to zero.
+         * @brief Converts a real array to a complex<> array
          * @param n The size of the arrays
-         * @param real The double array to convert
-         * @param out The complex<double> array to return
+         * @param real The real array to convert
+         * @param out The complex<> array to return
          */
-        void double2complex( size_t n, const double *in,
-                             std::complex<double> *out ) {
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        void real2complex( size_t n, const T *in,
+                             std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
-                out[ i ] = std::complex<double>( in[ i ], 0.0 );
+                out[ i ] = std::complex<T>( in[ i ], 0.0 );
             }
         }
 
         /**
-         * Converts two vectors of doubles into the equivalent vector of
-         * complex<double>s where one vector represents the real parts and the
+         * Converts two vectors of real values into the equivalent vector of
+         * complex<>s where one vector represents the real parts and the
          * other the imaginary parts.
-         * @brief Converts two double vectors to a complex<double> vector
-         * @param real The double vector to convert as the real parts
-         * @param imag The double vector to convert as the real parts
+         * @brief Converts two real vectors to a complex<> vector
+         * @param real The real vector to convert as the real parts
+         * @param imag The real vector to convert as the imaginary parts
          */
-        std::vector<std::complex<double>> double2complex(
-            const std::vector<double> &real,
-            const std::vector<double> &imag ) {
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        std::vector<std::complex<T>> real2complex(
+            const std::vector<T> &real,
+            const std::vector<T> &imag ) {
             size_t Nr = real.size();
             size_t Ni = imag.size();
             size_t N  = std::max( Nr, Ni );
-            std::vector<std::complex<double>> out( N );
+            std::vector<std::complex<T>> out( N );
             for ( size_t i = 0; i < N; i++ ) {
                 if ( i < Nr ) {
                     out[ i ].real( real[ i ] );
@@ -505,34 +511,38 @@ namespace NCPA {
         }
 
         /**
-         * Converts two arrays of doubles into the equivalent array of
-         * complex<double>s where one array represents the real parts and the
+         * Converts two arrays of reals into the equivalent array of
+         * complex<>s where one array represents the real parts and the
          * other the imaginary parts.
-         * @brief Converts a double array to a complex<double> array
+         * @brief Converts a real array to a complex<> array
          * @param n The size of the arrays
-         * @param real The double array to convert as the real parts
-         * @param imag The double array to convert as the real parts
-         * @param out The complex<double> array to return
+         * @param real The real array to convert as the real parts
+         * @param imag The real array to convert as the real parts
+         * @param out The complex<> array to return
          */
-        void double2complex( size_t n, const double *real, const double *imag,
-                             std::complex<double> *out ) {
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        void real2complex( size_t n, const T *real, const T *imag,
+                             std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
-                out[ i ] = std::complex<double>( real[ i ], imag[ i ] );
+                out[ i ] = std::complex<T>( real[ i ], imag[ i ] );
             }
         }
 
         /**
-         * Converts a vector of complex<double>s into the equivalent vectors of
-         * doubles where one vector represents the real parts and the other the
+         * Converts a vector of complex<>s into the equivalent vectors of
+         * reals where one vector represents the real parts and the other the
          * imaginary parts.
-         * @brief Converts a complex<double> vector to two double vectors
+         * @brief Converts a complex<> vector to two real vectors
          * @param in The complex array to decompose
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        void complex2double( const std::vector<std::complex<double>> &in,
-                             std::vector<double> &real,
-                             std::vector<double> &imag ) {
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        void complex2real( const std::vector<std::complex<T>> &in,
+                             std::vector<T> &real,
+                             std::vector<T> &imag ) {
             real.resize( in.size() );
             imag.resize( in.size() );
             for ( size_t i = 0; i < in.size(); i++ ) {
@@ -542,17 +552,19 @@ namespace NCPA {
         }
 
         /**
-         * Converts an array of complex<double>s into the equivalent arrays of
-         * doubles where one array represents the real parts and the other the
+         * Converts an array of complex<>s into the equivalent arrays of
+         * reals where one array represents the real parts and the other the
          * imaginary parts.
-         * @brief Converts a complex<double> array to two double arrays
+         * @brief Converts a complex<> array to two real arrays
          * @param n The size of the arrays
          * @param in The complex array to decompose
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        void complex2double( size_t n, const std::complex<double> *in,
-                             double *real, double *imag ) {
+        template<typename T = double,
+                ENABLE_IF( std::is_floating_point<T> )>
+        void complex2real( size_t n, const std::complex<T> *in,
+                             T *real, T *imag ) {
             for ( size_t i = 0; i < n; i++ ) {
                 real[ i ] = in[ i ].real();
                 imag[ i ] = in[ i ].imag();
@@ -568,12 +580,8 @@ namespace NCPA {
         @returns A vector of random numbers.
         */
         template<typename T>
-        // requires std::integral<T>
         std::vector<T> random_numbers( size_t N, T minrange, T maxrange,
                                        ENABLE_IF( std::is_integral<T> ) ) {
-            // static_assert( std::integral<T>, "This template is for integer
-            // types" );
-
             std::vector<T> randn;
             randn.reserve( N );
             std::random_device rd;
@@ -587,7 +595,6 @@ namespace NCPA {
         }
 
         template<typename T>
-        // requires std::floating_point<T>
         std::vector<T> random_numbers(
             size_t N, T minrange, T maxrange,
             ENABLE_IF( std::is_floating_point<T> ) ) {
@@ -621,7 +628,7 @@ namespace NCPA {
                                                      T maximag ) {
             std::vector<T> randr = random_numbers<T>( N, minreal, maxreal ),
                            randi = random_numbers<T>( N, minimag, maximag );
-            return double2complex( randr, randi );
+            return real2complex( randr, randi );
         }
 
         /**
@@ -888,7 +895,6 @@ namespace NCPA {
         @returns The array holding the sum.
         */
         template<typename T>
-        // requires NCPA::types::iterable<T>
         T add_vectors( T &v1, T &v2,
                        ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             size_t N = std::min<size_t>( v1.size(), v2.size() );
@@ -925,7 +931,6 @@ namespace NCPA {
         @returns The array holding the quotient.
         */
         template<typename T>
-        // requires NCPA::types::iterable<T>
         T divide_vectors( T &v1, T &v2,
                           ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
@@ -966,7 +971,6 @@ namespace NCPA {
         @returns The array holding the product.
         */
         template<typename T>
-        // requires NCPA::types::iterable<T>
         T multiply_vectors( T &v1, T &v2,
                             ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
@@ -1024,7 +1028,6 @@ namespace NCPA {
         @returns The scaled array.
         */
         template<typename T, typename U>
-        // requires NCPA::types::iterable_of<T,U>
         T scale_vector(
             T &v1, U scalar,
             typename std::enable_if<
@@ -1057,7 +1060,6 @@ namespace NCPA {
         @returns The array holding the sum.
         */
         template<typename T>
-        // requires NCPA::types::iterable<T>
         T subtract_vectors(
             T &v1, T &v2,
             typename std::enable_if<NCPA::types::is_iterable<T>::value,

@@ -16,72 +16,22 @@ using namespace std;
 using namespace testing;
 using namespace NCPA::types;
 
-// #if __cplusplus >= 202002L
-// template<typename T>
-// requires NCPA::concepts::deleteable<T>
-// void test_deleteable( T obj ) {}
-
-// template<typename T>
-// void test_deleteable( T obj ) {
-//     throw std::invalid_argument( "Does not satisfy deleteable" );
-// }
-
-// template<typename T>
-// requires NCPA::concepts::iterable<T>
-// void test_iterable( T obj ) {}
-
-// template<typename T>
-// void test_iterable( T obj ) {
-//     throw std::invalid_argument( "Does not satisfy iterable" );
-// }
-
-// template<typename T, typename U>
-// requires NCPA::concepts::iterable_of<T, U>
-// void test_iterable_of( T obj, U prim ) {}
-
-// template<typename T, typename U>
-// void test_iterable_of( T obj, U prim ) {
-//     throw std::invalid_argument( "Does not satisfy iterable_of" );
-// }
-// #else
-
-// template<typename T, typename Enable >
-// void test_deleteable( T obj ) {
-//   static_assert(always_false<T>::value, "Does not satisfy deleteable" );
-// }
-
-
-// template<typename T, typename = IsDeleteable<T>>
 template<typename T>
-// void test_deleteable( IsDeleteable<T> = 0 ) {}
 void test_deleteable(
     T obj, typename std::enable_if<is_deleteable<T>::value, int>::type ENABLER
            = 0 ) {}
-
-// void test_deleteable() {}
-
 
 template<typename T>
 void test_deleteable(
     T obj, typename std::enable_if<!is_deleteable<T>::value, int>::type ENABLER
            = 0 ) {
-    // void test_deleteable() {
     throw std::invalid_argument( "Does not satisfy is_deleteable" );
 }
-
-// template<typename T>
-// void test_iterable( typename
-// std::enable_if<!is_iterable<T>::value,int>::type ENABLER = 0 ) {
-//     throw std::invalid_argument( "Does not satisfy iterable" );
-// }
 
 template<typename T>
 void test_iterable(
     T obj,
     typename std::enable_if<is_iterable<T>::value, int>::type ENABLER = 0 ) {}
-
-// template<typename T>
-// void test_iterable( IsIterable<T> = 0 ) {}
 
 template<typename T>
 void test_iterable(
@@ -117,18 +67,6 @@ void test_iterable_of(
     T obj, U prim,
     typename std::enable_if<is_iterable_of<T, U>::value, int>::type ENABLER
     = 0 ) {}
-
-// template<typename Container,typename Element>
-// void test_iterable_of( IsIterableOf<Container,Element> = 0 ) {}
-
-// template<typename Container,typename Element>
-// void test_iterable_of() {
-//     throw std::invalid_argument( "Does not satisfy iterable_of" );
-// }
-
-
-// #endif
-
 
 TEST( NCPAtypesTest, IsIterableAcceptsVector ) {
     std::vector<double> v;
@@ -220,36 +158,36 @@ TEST( NCPAtypesTest, IsDereferenceableAllowsPointers ) {
     float *f;
     std::string *s;
     std::list<double> *ld;
-    EXPECT_NO_THROW( { test_dereferenceable(i); } );
-    EXPECT_NO_THROW( { test_dereferenceable(d); } );
-    EXPECT_NO_THROW( { test_dereferenceable(f); } );
-    EXPECT_NO_THROW( { test_dereferenceable(s); } );
-    EXPECT_NO_THROW( { test_dereferenceable(ld); } );
+    EXPECT_NO_THROW( { test_dereferenceable( i ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( d ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( f ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( s ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( ld ); } );
 }
 
 TEST( NCPAtypesTest, IsDereferenceableDoesNotAllowFundamentalTypes ) {
     int i;
     double d;
     float f;
-    EXPECT_THROW( { test_dereferenceable(i); }, std::invalid_argument );
-    EXPECT_THROW( { test_dereferenceable(d); }, std::invalid_argument );
-    EXPECT_THROW( { test_dereferenceable(f); }, std::invalid_argument );
+    EXPECT_THROW( { test_dereferenceable( i ); }, std::invalid_argument );
+    EXPECT_THROW( { test_dereferenceable( d ); }, std::invalid_argument );
+    EXPECT_THROW( { test_dereferenceable( f ); }, std::invalid_argument );
 }
 
 TEST( NCPAtypesTest, IsDereferenceableDoesNotAllowObjects ) {
     std::string s;
     std::list<double> ld;
-    std::map<std::string,int> m;
-    EXPECT_THROW( { test_dereferenceable(s); }, std::invalid_argument );
-    EXPECT_THROW( { test_dereferenceable(ld); }, std::invalid_argument );
-    EXPECT_THROW( { test_dereferenceable(m); }, std::invalid_argument );
+    std::map<std::string, int> m;
+    EXPECT_THROW( { test_dereferenceable( s ); }, std::invalid_argument );
+    EXPECT_THROW( { test_dereferenceable( ld ); }, std::invalid_argument );
+    EXPECT_THROW( { test_dereferenceable( m ); }, std::invalid_argument );
 }
 
 TEST( NCPAtypesTest, IsDereferenceableAllowsIterators ) {
     std::string s;
     std::list<double> ld;
-    std::map<std::string,int> m;
-    EXPECT_NO_THROW( { test_dereferenceable(s.begin()); } );
-    EXPECT_NO_THROW( { test_dereferenceable(ld.end()); } );
-    EXPECT_NO_THROW( { test_dereferenceable(m.begin()); } );
+    std::map<std::string, int> m;
+    EXPECT_NO_THROW( { test_dereferenceable( s.begin() ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( ld.end() ); } );
+    EXPECT_NO_THROW( { test_dereferenceable( m.begin() ); } );
 }

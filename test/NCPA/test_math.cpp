@@ -311,46 +311,46 @@ TEST( NCPAmathTest, Rad2DegConvertsCorrectly ) {
     }
 }
 
-TEST( NCPAmathTest, Double2ComplexConvertsRealVectorsCorrectly ) {
+TEST( NCPAmathTest, Real2ComplexConvertsRealVectorsCorrectly ) {
     vector<double> d;
     for ( int i = 0; i < 9; i++ ) {
         d.push_back( (double)i * NCPA::math::PI / 4.0 - NCPA::math::PI );
     }
-    vector<complex<double>> c = double2complex( d );
+    vector<complex<double>> c = real2complex( d );
     for ( int i = 0; i < 9; i++ ) {
         EXPECT_EQ( d[ i ], c[ i ].real() );
         EXPECT_EQ( c[ i ].imag(), 0.0 );
     }
 }
 
-TEST( NCPAmathTest, Double2ComplexConvertsRealArraysCorrectly ) {
+TEST( NCPAmathTest, real2complexConvertsRealArraysCorrectly ) {
     double          *d = zeros<double>( 9 );
     complex<double> *c = zeros<complex<double>>( 9 );
 
     for ( int i = 0; i < 9; i++ ) {
         d[ i ] = (double)i * NCPA::math::PI / 4.0 - NCPA::math::PI;
     }
-    double2complex( 9, d, c );
+    real2complex( 9, d, c );
     for ( int i = 0; i < 9; i++ ) {
         EXPECT_EQ( d[ i ], c[ i ].real() );
         EXPECT_EQ( c[ i ].imag(), 0.0 );
     }
 }
 
-TEST( NCPAmathTest, Double2ComplexConvertsRealAndImagVectorsCorrectly ) {
+TEST( NCPAmathTest, real2complexConvertsRealAndImagVectorsCorrectly ) {
     vector<double> r, i;
     for ( int ii = 0; ii < 9; ii++ ) {
         r.push_back( (double)ii * NCPA::math::PI / 4.0 - NCPA::math::PI );
         i.push_back( (double)ii * NCPA::math::PI );
     }
-    vector<complex<double>> c = double2complex( r, i );
+    vector<complex<double>> c = real2complex( r, i );
     for ( int ii = 0; ii < 9; ii++ ) {
         EXPECT_EQ( c[ ii ].real(), r[ ii ] );
         EXPECT_EQ( c[ ii ].imag(), i[ ii ] );
     }
 }
 
-TEST( NCPAmathTest, Double2ComplexConvertsRealAndImagArraysCorrectly ) {
+TEST( NCPAmathTest, real2complexConvertsRealAndImagArraysCorrectly ) {
     double          *r = zeros<double>( 9 );
     double          *i = zeros<double>( 9 );
     complex<double> *c = zeros<complex<double>>( 9 );
@@ -359,14 +359,14 @@ TEST( NCPAmathTest, Double2ComplexConvertsRealAndImagArraysCorrectly ) {
         r[ ii ] = (double)ii * NCPA::math::PI / 4.0 - NCPA::math::PI;
         i[ ii ] = (double)ii * NCPA::math::PI;
     }
-    double2complex( 9, r, i, c );
+    real2complex( 9, r, i, c );
     for ( int ii = 0; ii < 9; ii++ ) {
         EXPECT_EQ( c[ ii ].real(), r[ ii ] );
         EXPECT_EQ( c[ ii ].imag(), i[ ii ] );
     }
 }
 
-TEST( NCPAmathTest, Complex2DoubleConvertsVectorsCorrectly ) {
+TEST( NCPAmathTest, complex2realConvertsVectorsCorrectly ) {
     vector<complex<double>> c;
     for ( int ii = 0; ii < 9; ii++ ) {
         c.push_back(
@@ -374,14 +374,14 @@ TEST( NCPAmathTest, Complex2DoubleConvertsVectorsCorrectly ) {
                              (double)ii * NCPA::math::PI ) );
     }
     vector<double> r, i;
-    complex2double( c, r, i );
+    complex2real( c, r, i );
     for ( int ii = 0; ii < 9; ii++ ) {
         EXPECT_EQ( c[ ii ].real(), r[ ii ] );
         EXPECT_EQ( c[ ii ].imag(), i[ ii ] );
     }
 }
 
-TEST( NCPAmathTest, Complex2DoubleConvertsArraysCorrectly ) {
+TEST( NCPAmathTest, complex2realConvertsArraysCorrectly ) {
     double          *r = zeros<double>( 9 );
     double          *i = zeros<double>( 9 );
     complex<double> *c = zeros<complex<double>>( 9 );
@@ -390,7 +390,7 @@ TEST( NCPAmathTest, Complex2DoubleConvertsArraysCorrectly ) {
         c[ ii ].real( (double)ii * NCPA::math::PI / 4.0 - NCPA::math::PI );
         c[ ii ].imag( (double)ii * NCPA::math::PI );
     }
-    complex2double( 9, c, r, i );
+    complex2real( 9, c, r, i );
     for ( int ii = 0; ii < 9; ii++ ) {
         EXPECT_EQ( c[ ii ].real(), r[ ii ] );
         EXPECT_EQ( c[ ii ].imag(), i[ ii ] );

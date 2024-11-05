@@ -17,6 +17,6 @@ test: $(test-parts)
 $(test-parts):
 	$(MAKE) -C $(call get_target,$@,test) clean
 	$(MAKE) -C $(call get_target,$@,test) test
-	$(MAKE) -C $(call get_target,$@,test) clean
+#	$(MAKE) -C $(call get_target,$@,test) clean
 
 .PHONY:  $(test-parts)

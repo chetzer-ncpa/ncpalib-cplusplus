@@ -5,7 +5,7 @@ CXXFLAGS=-c -fPIC -std=${STANDARD} $(INCFLAGS)
 
 SOURCES=$(wildcard test_*.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
-TARGET=ncpalibTest
+TARGET=ncpalibTestSuite
 
 test: build
 

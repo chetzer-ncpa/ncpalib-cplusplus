@@ -99,7 +99,7 @@ PPIndentWidth: 2
 PackConstructorInitializers: NextLine
 PointerAlignment: Right
 QualifierAlignment: Leave
-ReferenceAlignment: Right
+ReferenceAlignment: Left
 ReflowComments: true
 RemoveEmptyLinesInUnwrappedLines: true
 RequiresClausePosition: OwnLine

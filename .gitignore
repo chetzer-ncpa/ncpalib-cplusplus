@@ -2,6 +2,9 @@
 *.o
 .settings
 .git
-*Test
 .vscode/*
-
+*TestSuite
+*orig.hpp
+*orig.cpp
+*.orig
+*/.vscode
