@@ -1,6 +1,7 @@
 #include "NCPA/gtest.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/units.hpp"
+#include "NCPA/arrays.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -34,9 +35,9 @@ class UnitsTest : public ::testing::Test {
 
             Cvec = { 0.0, 100.0, 200.0 };
             Fvec = { 32.0, 212.0, 392.0 };
-            Carr = NCPA::math::zeros<double>( 3 );
+            Carr = NCPA::arrays::zeros<double>( 3 );
             std::memcpy( Carr, &Cvec[ 0 ], 3 * sizeof( double ) );
-            Farr = NCPA::math::zeros<double>( 3 );
+            Farr = NCPA::arrays::zeros<double>( 3 );
             std::memcpy( Farr, &Fvec[ 0 ], 3 * sizeof( double ) );
 
             freezing  = ScalarWithUnits<>( 0.0, CELSIUS );
@@ -183,8 +184,8 @@ TEST_F( UnitsTest, ConvertingToWorksWithVectors ) {
 }
 
 TEST_F( UnitsTest, ConvertingToWorksWithArrays ) {
-    double *Ftest = NCPA::math::zeros<double>( 3 );
-    double *Ctest = NCPA::math::zeros<double>( 3 );
+    double *Ftest = NCPA::arrays::zeros<double>( 3 );
+    double *Ctest = NCPA::arrays::zeros<double>( 3 );
     F.convert_to( 3, Farr, C, Ctest );
     C.convert_to( 3, Carr, F, Ftest );
     EXPECT_ARRAY_DOUBLE_EQ( 3, Ftest, Farr );

@@ -21,7 +21,7 @@ namespace NCPA {
         @returns The original string with leading and trailing whitespace
         removed.
         */
-        std::string deblank( const std::string& str,
+        static inline std::string deblank( const std::string& str,
                              const std::string& whitespace = " \t\n\r" ) {
             const size_t strBegin = str.find_first_not_of( whitespace );
             if ( strBegin == std::string::npos ) {
@@ -42,7 +42,7 @@ namespace NCPA {
         @param delimiters The delimiter characters.  Defaults to whitespace.
         @returns A vector of the string tokens.
          */
-        std::vector<std::string> split( std::string input,
+        static inline std::vector<std::string> split( std::string input,
                                         std::string delimiters = " \t\n\r" ) {
             std::vector<std::string> tokens;
             tokens.clear();
@@ -65,14 +65,14 @@ namespace NCPA {
         @param d The time to print, as an epoch time_t value.
         @returns The string representation of the time.
         */
-        std::string timeAsString( double d ) {
+        static inline std::string time_as_string( double d ) {
             time_t temptime = (time_t)d;
             tm *uttime      = std::gmtime( &temptime );
             double ipart, fpart;
             fpart = std::modf( d, &ipart );
-            char holder[ 28 ];
+            char holder[ 25 ];
 
-            std::snprintf( holder, 28, "%4d-%02d-%02d %02d:%02d:%06.3f GMT",
+            std::snprintf( holder, 25, "%4d-%02d-%02dT%02d:%02d:%06.3fZ",
                            (unsigned char)( uttime->tm_year ) + 1900,
                            (unsigned char)( uttime->tm_mon + 1 ),
                            (unsigned char)( uttime->tm_mday ),
@@ -84,7 +84,7 @@ namespace NCPA {
         }
 
         // Taken from https://en.cppreference.com/w/cpp/string/byte/tolower
-        std::string to_lower( std::string s ) {
+        static inline std::string to_lower( std::string s ) {
             std::transform(
                 s.begin(), s.end(), s.begin(),
                 []( unsigned char c ) { return std::tolower( c ); } );
@@ -92,7 +92,7 @@ namespace NCPA {
         }
 
         // Taken from https://en.cppreference.com/w/cpp/string/byte/tolower
-        std::string to_upper( std::string s ) {
+        static inline std::string to_upper( std::string s ) {
             std::transform(
                 s.begin(), s.end(), s.begin(),
                 []( unsigned char c ) { return std::toupper( c ); } );

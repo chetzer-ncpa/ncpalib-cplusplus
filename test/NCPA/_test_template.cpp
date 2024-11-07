@@ -6,6 +6,7 @@
 #include <gtest/gtest-spi.h>
 
 using namespace testing;
+using namespace std;
 
 class TestSuiteName : public ::testing::Test {
     protected:

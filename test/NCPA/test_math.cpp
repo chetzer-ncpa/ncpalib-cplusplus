@@ -1,4 +1,5 @@
 #include "NCPA/gtest.hpp"
+#include "NCPA/arrays.hpp"
 #include "NCPA/math.hpp"
 
 #include <gmock/gmock.h>
@@ -12,70 +13,6 @@ using namespace std;
 using namespace NCPA::math;
 using namespace testing;
 
-TEST( NCPAmathTest, ZerosCreatesArray ) {
-    double *testArray     = zeros<double>( 5 );
-    double  shouldBe[ 5 ] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
-    ASSERT_ARRAY_EQ( 5, testArray, shouldBe );
-    // for (auto i = 0; i < 10; i++) {
-    // 	EXPECT_EQ( testArray[i], 0.0 );
-    // }
-    delete[] testArray;
-}
-
-TEST( NCPAmathTest, ZerosCreates2DArray ) {
-    double **testArray = zeros<double>( 10, 5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            EXPECT_EQ( testArray[ i ][ j ], 0.0 );
-        }
-    }
-}
-
-TEST( NCPAmathTest, FreeArray2DFreesArrayWithoutError ) {
-    double **testArray = zeros<double>( 10, 5 );
-    free_array<double>( testArray, 10, 5 );
-    EXPECT_EQ( testArray, nullptr );
-}
-
-TEST( NCPAmathTest, ZerosCreates3DArray ) {
-    double ***testArray = zeros<double>( 10, 5, 3 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            for ( auto k = 0; k < 3; k++ ) {
-                EXPECT_EQ( testArray[ i ][ j ][ k ], 0.0 );
-            }
-        }
-    }
-}
-
-TEST( NCPAmathTest, FreeArray3DFreesArrayWithoutError ) {
-    double ***testArray = zeros<double>( 10, 5, 3 );
-    free_array<double>( testArray, 10, 5, 3 );
-    ASSERT_EQ( testArray, nullptr );
-}
-
-TEST( NCPAmathTest, IndexVectorCreatesExpectedVectors ) {
-    int *testArray = index_vector<int>( 5 );
-    for ( int i = 0; i < 5; i++ ) {
-        EXPECT_EQ( i, testArray[ i ] );
-    }
-    double *testArray2 = index_vector<double>( 5 );
-    for ( int i = 0; i < 5; i++ ) {
-        EXPECT_DOUBLE_EQ( (double)i, testArray2[ i ] );
-    }
-}
-
-TEST( NCPAmathTest, IndexVectorCreatesExpectedVectorsWithOffset ) {
-    int  offset    = 2;
-    int *testArray = index_vector<int>( 5, offset );
-    for ( int i = 0; i < 5; i++ ) {
-        EXPECT_EQ( i + offset, testArray[ i ] );
-    }
-    double *testArray2 = index_vector<double>( 5, (double)offset );
-    for ( int i = 0; i < 5; i++ ) {
-        EXPECT_DOUBLE_EQ( (double)( i + offset ), testArray2[ i ] );
-    }
-}
 
 TEST( NCPAmathTest, SignIsCorrect ) {
     EXPECT_EQ( sign<int>( 3 ), 1 );
@@ -85,53 +22,8 @@ TEST( NCPAmathTest, SignIsCorrect ) {
     EXPECT_EQ( sign<double>( -3.2 ), -1 );
 }
 
-TEST( NCPAmathTest, CircShiftShiftsForward ) {
-    int *testArray     = index_vector<int>( 5 );
-    int  shouldBe[ 5 ] = { 2, 3, 4, 0, 1 };
-    circshift( testArray, 5, 2, testArray );
-    EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
-}
-
-TEST( NCPAmathTest, CircShiftShiftsBackward ) {
-    int *testArray     = index_vector<int>( 5 );
-    int  shouldBe[ 5 ] = { 3, 4, 0, 1, 2 };
-    circshift( testArray, 5, -2, testArray );
-    EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
-}
-
-TEST( NCPAmathTest, CircShiftZeroDoesNotShift ) {
-    int *testArray     = index_vector<int>( 5 );
-    int  shouldBe[ 5 ] = { 0, 1, 2, 3, 4 };
-    circshift( testArray, 5, 0, testArray );
-    EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
-}
-
-TEST( NCPAmathTest, FillArray2DSetsValuesCorrectly ) {
-    double **testArray = zeros<double>( 10, 5 );
-    fill_array2d<double>( testArray, 10, 5, 4.5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            EXPECT_DOUBLE_EQ( testArray[ i ][ j ], 4.5 );
-        }
-    }
-    free_array( testArray, 10, 5 );
-}
-
-TEST( NCPAmathTest, FillArray3DSetsValuesCorrectly ) {
-    double ***testArray = zeros<double>( 10, 5, 3 );
-    fill_array3d<double>( testArray, 10, 5, 3, 4.5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            for ( auto k = 0; k < 3; k++ ) {
-                EXPECT_DOUBLE_EQ( testArray[ i ][ j ][ k ], 4.5 );
-            }
-        }
-    }
-    free_array( testArray, 10, 5, 3 );
-}
-
 TEST( NCPAmathTest, FindIntervalInclusiveFindsInterval ) {
-    double *testArray = index_vector<double>( 5 );
+    double *testArray = NCPA::arrays::index_vector<double>( 5 );
     size_t  below, above;
     for ( size_t i = 1; i < 5; i++ ) {
         double target = 0.5 * ( (double)i + (double)( i - 1 ) );
@@ -143,7 +35,7 @@ TEST( NCPAmathTest, FindIntervalInclusiveFindsInterval ) {
 }
 
 TEST( NCPAmathTest, FindIntervalInclusiveRecognizesOutOfRangeBelow ) {
-    double *testArray = index_vector<double>( 5 );
+    double *testArray = NCPA::arrays::index_vector<double>( 5 );
     size_t  below, above;
     double  target = testArray[ 0 ] - 1.0;
     EXPECT_FALSE( find_interval_inclusive<double>( testArray, 5, target, below,
@@ -153,7 +45,7 @@ TEST( NCPAmathTest, FindIntervalInclusiveRecognizesOutOfRangeBelow ) {
 }
 
 TEST( NCPAmathTest, FindIntervalInclusiveRecognizesOutOfRangeAbove ) {
-    double *testArray = index_vector<double>( 5 );
+    double *testArray = NCPA::arrays::index_vector<double>( 5 );
     size_t  below, above;
     double  target = testArray[ 4 ] + 1.0;
     EXPECT_FALSE( find_interval_inclusive<double>( testArray, 5, target, below,
@@ -163,7 +55,7 @@ TEST( NCPAmathTest, FindIntervalInclusiveRecognizesOutOfRangeAbove ) {
 }
 
 TEST( NCPAmathTest, FindClosestIndexWorksCorrectlyForArrays ) {
-    double *testArray = index_vector<double>( 5 );
+    double *testArray = NCPA::arrays::index_vector<double>( 5 );
     for ( size_t i = 0; i < 5; i++ ) {
         double target = testArray[ i ];
         EXPECT_EQ( find_closest_index<double>( testArray, 5, target ), i );
@@ -189,7 +81,7 @@ TEST( NCPAmathTest, FindClosestIndexWorksCorrectlyForArrays ) {
 }
 
 TEST( NCPAmathTest, FindClosestIndexWorksCorrectlyForVectors ) {
-    double        *tempArray = index_vector<double>( 5 );
+    double        *tempArray = NCPA::arrays::index_vector<double>( 5 );
     vector<double> testArray( tempArray, tempArray + 5 );
     for ( size_t i = 0; i < 5; i++ ) {
         double target = testArray[ i ];
@@ -324,8 +216,8 @@ TEST( NCPAmathTest, Real2ComplexConvertsRealVectorsCorrectly ) {
 }
 
 TEST( NCPAmathTest, real2complexConvertsRealArraysCorrectly ) {
-    double          *d = zeros<double>( 9 );
-    complex<double> *c = zeros<complex<double>>( 9 );
+    double          *d = NCPA::arrays::zeros<double>( 9 );
+    complex<double> *c = NCPA::arrays::zeros<complex<double>>( 9 );
 
     for ( int i = 0; i < 9; i++ ) {
         d[ i ] = (double)i * NCPA::math::PI / 4.0 - NCPA::math::PI;
@@ -351,9 +243,9 @@ TEST( NCPAmathTest, real2complexConvertsRealAndImagVectorsCorrectly ) {
 }
 
 TEST( NCPAmathTest, real2complexConvertsRealAndImagArraysCorrectly ) {
-    double          *r = zeros<double>( 9 );
-    double          *i = zeros<double>( 9 );
-    complex<double> *c = zeros<complex<double>>( 9 );
+    double          *r = NCPA::arrays::zeros<double>( 9 );
+    double          *i = NCPA::arrays::zeros<double>( 9 );
+    complex<double> *c = NCPA::arrays::zeros<complex<double>>( 9 );
 
     for ( int ii = 0; ii < 9; ii++ ) {
         r[ ii ] = (double)ii * NCPA::math::PI / 4.0 - NCPA::math::PI;
@@ -382,9 +274,9 @@ TEST( NCPAmathTest, complex2realConvertsVectorsCorrectly ) {
 }
 
 TEST( NCPAmathTest, complex2realConvertsArraysCorrectly ) {
-    double          *r = zeros<double>( 9 );
-    double          *i = zeros<double>( 9 );
-    complex<double> *c = zeros<complex<double>>( 9 );
+    double          *r = NCPA::arrays::zeros<double>( 9 );
+    double          *i = NCPA::arrays::zeros<double>( 9 );
+    complex<double> *c = NCPA::arrays::zeros<complex<double>>( 9 );
 
     for ( int ii = 0; ii < 9; ii++ ) {
         c[ ii ].real( (double)ii * NCPA::math::PI / 4.0 - NCPA::math::PI );
@@ -398,14 +290,14 @@ TEST( NCPAmathTest, complex2realConvertsArraysCorrectly ) {
 }
 
 TEST( NCPAmathTest, MaxWorksProperlyOnArrays ) {
-    int *testArray = index_vector<int>( 10 );
+    int *testArray = NCPA::arrays::index_vector<int>( 10 );
     EXPECT_EQ( NCPA::math::max<int>( testArray, 10 ), 9 );
     testArray[ 5 ] *= 3;
     EXPECT_EQ( NCPA::math::max<int>( testArray, 10 ), 15 );
 }
 
 TEST( NCPAmathTest, MaxWorksProperlyOnVectors ) {
-    int        *testArray = index_vector<int>( 10 );
+    int        *testArray = NCPA::arrays::index_vector<int>( 10 );
     vector<int> testVector( testArray, testArray + 10 );
     EXPECT_EQ( NCPA::math::max<int>( testVector ), 9 );
     testVector[ 5 ] *= 3;
@@ -413,14 +305,14 @@ TEST( NCPAmathTest, MaxWorksProperlyOnVectors ) {
 }
 
 TEST( NCPAmathTest, MinWorksProperlyOnArrays ) {
-    int *testArray = index_vector<int>( 10 );
+    int *testArray = NCPA::arrays::index_vector<int>( 10 );
     EXPECT_EQ( NCPA::math::min<int>( testArray, 10 ), 0 );
     testArray[ 5 ] *= -2;
     EXPECT_EQ( NCPA::math::min<int>( testArray, 10 ), -10 );
 }
 
 TEST( NCPAmathTest, MinWorksProperlyOnVectors ) {
-    int        *testArray = index_vector<int>( 10 );
+    int        *testArray = NCPA::arrays::index_vector<int>( 10 );
     vector<int> testVector( testArray, testArray + 10 );
     EXPECT_EQ( NCPA::math::min<int>( testVector ), 0 );
     testVector[ 5 ] *= -2;
@@ -528,7 +420,7 @@ TEST( NCPAmathTest, LinearInterpWorksCorrectly ) {
 
 TEST( NCPAmathTest, LinspaceWorksAsExpectedForDoubles ) {
     vector<double> tester   = linspace<double>( 0.0, 5.0, 21 );
-    double        *shouldBe = zeros<double>( 21 );
+    double        *shouldBe = NCPA::arrays::zeros<double>( 21 );
     for ( size_t i = 0; i < 21; i++ ) {
         shouldBe[ i ] = (double)i * 0.25;
     }
@@ -539,7 +431,7 @@ TEST( NCPAmathTest, LinspaceWorksAsExpectedForDoubles ) {
 
 TEST( NCPAmathTest, LinspaceWorksAsExpectedForIntegers ) {
     vector<int> tester   = linspace<int>( 0, 10, 11 );
-    int        *shouldBe = zeros<int>( 11 );
+    int        *shouldBe = NCPA::arrays::zeros<int>( 11 );
     for ( size_t i = 0; i < 11; i++ ) {
         shouldBe[ i ] = (int)i;
     }
@@ -550,7 +442,7 @@ TEST( NCPAmathTest, LinspaceWorksAsExpectedForIntegers ) {
 
 TEST( NCPAmathTest, LogspaceWorksAsExpected ) {
     vector<double> tester   = logspace<double>( 1.0, 1000.0, 21 );
-    double        *shouldBe = zeros<double>( 21 );
+    double        *shouldBe = NCPA::arrays::zeros<double>( 21 );
     linspace<double>( 0.0, 3.0, 21, shouldBe );
     for ( size_t i = 0; i < 21; i++ ) {
         shouldBe[ i ] = std::pow( 10.0, shouldBe[ i ] );
@@ -584,22 +476,6 @@ TEST(NCPAmathTest, NextPow2ReturnsNaNForNonPositiveArgument) {
 	EXPECT_TRUE( std::isnan( nextpow2<double>( -1.0 )));
 }
 
-TEST(NCPAmathTest, ReverseReversesOrder) {
-	double *testArray = index_vector<double>( 11 );
-	vector<double> testVector( testArray, testArray + 11 );
-	std::reverse( testVector.begin(), testVector.end() );
-	NCPA::math::reverse( testArray, 11, testArray );
-	EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
-}
-
-TEST(NCPAmathTest, ReverseReversesOrderPartially) {
-	double *testArray = index_vector<double>( 11 );
-	vector<double> testVector( testArray, testArray + 11 );
-	std::reverse( testVector.begin(), testVector.begin() + 5 );
-	NCPA::math::reverse( testArray, 5, testArray );
-	EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
-}
-
 TEST(NCPAmathTest,TrapzComputesIntegralCorrectly) {
 	double x[ 5 ] = {0, 1, 3, 4, 5 };
 	double y[ 5 ] = { 0, 2, 6, 0, -2 };
@@ -630,7 +506,7 @@ TEST( NCPAmathTest, AddVectorsCommutesForVectors ) {
 TEST( NCPAmathTest, AddArraysWorksCorrectly ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, 0.0, 1.0 );
-    double *z = zeros<double>( 5 );
+    double *z = NCPA::arrays::zeros<double>( 5 );
     add_arrays( 5, &x[0], &y[0], z );
     for ( auto i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( x[ i ] + y[ i ], z[ i ] );
@@ -640,8 +516,8 @@ TEST( NCPAmathTest, AddArraysWorksCorrectly ) {
 TEST( NCPAmathTest, AddArraysCommutes ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, 0.0, 1.0 );
-    double *z1 = zeros<double>( 5 );
-    double *z2 = zeros<double>( 5 );
+    double *z1 = NCPA::arrays::zeros<double>( 5 );
+    double *z2 = NCPA::arrays::zeros<double>( 5 );
     add_arrays( 5, &x[0], &y[0], z1 );
     add_arrays( 5, &y[0], &x[0], z2 );
     EXPECT_ARRAY_DOUBLE_EQ( 5, z1, z2 );
@@ -663,7 +539,7 @@ TEST( NCPAmathTest, DivideVectorsWorksCorrectly ) {
 TEST( NCPAmathTest, DivideArraysWorksCorrectly ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, 0.1, 1.0 );
-    double *z = zeros<double>( 5 );
+    double *z = NCPA::arrays::zeros<double>( 5 );
     divide_arrays( 5, &x[0], &y[0], z );
     for ( auto i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( x[ i ] / y[ i ], z[ i ] );
@@ -685,7 +561,7 @@ TEST( NCPAmathTest, MultiplyVectorsWorksCorrectly ) {
 TEST( NCPAmathTest, MultiplyArraysWorksCorrectly ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, -1.0, 1.0 );
-    double *z = zeros<double>( 5 );
+    double *z = NCPA::arrays::zeros<double>( 5 );
     multiply_arrays( 5, &x[0], &y[0], z );
     for ( auto i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( x[ i ] * y[ i ], z[ i ] );
@@ -704,8 +580,8 @@ TEST( NCPAmathTest, MultiplyVectorsCommutes ) {
 TEST( NCPAmathTest, MultiplyArraysCommutes ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, 0.0, 1.0 );
-    double *z1 = zeros<double>( 5 );
-    double *z2 = zeros<double>( 5 );
+    double *z1 = NCPA::arrays::zeros<double>( 5 );
+    double *z2 = NCPA::arrays::zeros<double>( 5 );
     multiply_arrays<double>( 5, &x[0], &y[0], z1 );
     multiply_arrays<double>( 5, &y[0], &x[0], z2 );
     EXPECT_ARRAY_DOUBLE_EQ( 5, z1, z2 );
@@ -723,7 +599,7 @@ TEST( NCPAmathTest, ScaleVectorWorksProperly) {
 TEST( NCPAmathTest, ScaleArrayWorksProperly) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 );
     double scalar = random_number<double>(-3.0, 3.0);
-    double *y = zeros<double>( 5 );
+    double *y = NCPA::arrays::zeros<double>( 5 );
     scale_array(5, &x[0], scalar, y );
     for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( y[i], x[i] * scalar );
@@ -731,7 +607,7 @@ TEST( NCPAmathTest, ScaleArrayWorksProperly) {
 }
 
 TEST( NCPAmathTest, ScaleArrayWorksProperlyInPlace) {
-    double *x = zeros<double>( 5 );
+    double *x = NCPA::arrays::zeros<double>( 5 );
     vector<double> xv = random_numbers<double>( 5, 0.0, 1.0 );
     std::copy( xv.cbegin(), xv.cend(), x );
     double scalar = random_number<double>(-3.0, 3.0);
@@ -756,7 +632,7 @@ TEST( NCPAmathTest, SubtractVectorsWorksCorrectly ) {
 TEST( NCPAmathTest, SubtractArraysWorksCorrectly ) {
     vector<double> x = random_numbers<double>( 5, 0.0, 1.0 ),
                    y = random_numbers<double>( 5, 0.0, 1.0 );
-    double *z = zeros<double>( 5 );
+    double *z = NCPA::arrays::zeros<double>( 5 );
     subtract_arrays( 5, &x[0], &y[0], z );
     for ( auto i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( x[ i ] - y[ i ], z[ i ] );

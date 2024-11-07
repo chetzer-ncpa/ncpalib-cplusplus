@@ -43,8 +43,8 @@
  * define a default template trait that inherits from false_type, such that it
  * always evaluates as false.  Then, define a specialized template with a
  * second parameter that only evaluates validly if the condition is met, i.e.
- * the method in question can be validly called.  This is called SFINAE.  For example, to test if the
- * dereference (*) operator is valid, we do:
+ * the method in question can be validly called.  This is called SFINAE.  For
+ * example, to test if the dereference (*) operator is valid, we do:
  *
  * template<typename T, typename = void>
  *      struct is_dereferenceable : std::false_type {};
@@ -101,13 +101,15 @@
  * =================
  * template<typename T>
  * void test_dereferenceable( T obj,
- *    typename std::enable_if<is_dereferenceable<T>::value, int>::type ENABLER = 0 ) 
+ *    typename std::enable_if<is_dereferenceable<T>::value, int>::type ENABLER
+ * = 0 )
  * {}
  *
  * template<typename T>
  * void test_dereferenceable( T obj,
- *    typename std::enable_if<!is_dereferenceable<T>::value, int>::type ENABLER = 0 ) {
- *    throw std::invalid_argument( "Does not satisfy is_dereferenceable" );
+ *    typename std::enable_if<!is_dereferenceable<T>::value, int>::type ENABLER
+ * = 0 ) { throw std::invalid_argument( "Does not satisfy is_dereferenceable"
+ * );
  * }
  */
 
@@ -119,12 +121,15 @@
 
 #define ENABLE_IF( CONDITION ) \
     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
+#define ENABLE_AND( CONDITION1, CONDITION2 ) \
+    typename std::enable_if<CONDITION1::value, int>::type ENABLER1 = 0, \
+    typename std::enable_if<CONDITION2::value, int>::type ENABLER2 = 0
 #define NO_DEFAULT_ENABLE_IF( CONDITION ) \
     typename std::enable_if<CONDITION::value, int>::type ENABLER
 #define ENABLE_IF_T( CONDITION, T ) \
     typename std::enable_if<CONDITION<T>::value, int>::type ENABLER = 0
 #define ENABLE_IF_TU( CONDITION, T, U ) \
-    typename std::enable_if<CONDITION<T,U>::value, int>::type ENABLER = 0
+    typename std::enable_if<CONDITION<T, U>::value, int>::type ENABLER = 0
 
 namespace NCPA {
     namespace types {
@@ -169,7 +174,31 @@ namespace NCPA {
             T, details::void_t<decltype( *std::declval<T>() )>>
             : std::true_type {};
 
+        template<typename T, typename = void, typename = void>
+        struct is_complex : std::false_type {};
+
+        template<typename T>
+        struct is_complex<T, details::void_t<decltype( std::declval<T>().real() )>,
+        details::void_t<decltype( std::declval<T>().imag() )>>
+            : std::true_type {};
+
+
         namespace details {
+            // // Testers for complex: is a class, and has real() and imag()
+            // // methods
+            // template<typename T>
+            // constexpr bool _hasComplexFunctions( std::true_type ) {
+            //     return std::is_object<
+            //                decltype( std::declval<T>().real() )>::value
+            //         && std::is_object<
+            //                decltype( std::declval<T>().imag() )>::value;
+            // }
+
+            // template<typename T>
+            // constexpr bool _hasComplexFunctions( std::false_type ) {
+            //     return false;
+            // }
+
             // Testers for iterables: is a class, and has begin(), end(), and
             // operator*() methods
             template<typename T>
@@ -180,8 +209,6 @@ namespace NCPA {
                            decltype( std::declval<T>().end() )>::value
                     && is_dereferenceable<
                            decltype( std::declval<T>().begin() )>::value;
-                // && std::is_compound<decltype( *(
-                //     std::declval<T>().begin() ) )>::value
             }
 
             template<typename T>
@@ -190,6 +217,21 @@ namespace NCPA {
             }
         }  // namespace details
 
+        // // Complex type
+        // template<typename T>
+        // struct is_complex {
+        //         static constexpr bool value
+        //             = details::_hasComplexFunctions<T>( std::is_class<T> {} );
+        // };
+
+        // Numeric type: is_integral() or is_floating_point()
+        template<typename T>
+        struct is_numeric {
+                static constexpr bool value
+                    = std::is_arithmetic<T>::value || is_complex<T>::value;
+        };
+
+        
         template<class T>
         struct is_iterable {
                 static constexpr bool value

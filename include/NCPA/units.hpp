@@ -266,47 +266,47 @@ namespace NCPA {
         };
 
         // Standard units
-        const Unit METERS( "m", { "meters" } );
-        const Unit KELVIN( "K", { "Kelvin", "degK" } );
-        const Unit METERS_PER_SECOND( "m/s", { "meters per second", "mps",
+        const static Unit METERS( "m", { "meters" } );
+        const static Unit KELVIN( "K", { "Kelvin", "degK" } );
+        const static Unit METERS_PER_SECOND( "m/s", { "meters per second", "mps",
                                                "meters/second", "m/sec" } );
-        const Unit PASCALS( "Pa", { "Pascals" } );
-        const Unit KILOGRAMS_PER_CUBIC_METER( "kg/m3",
+        const static Unit PASCALS( "Pa", { "Pascals" } );
+        const static Unit KILOGRAMS_PER_CUBIC_METER( "kg/m3",
                                               { "kilograms per cubic meter",
                                                 "kgpm3" } );
-        const Unit DECIBELS_PER_METER( "dB/m",
+        const static Unit DECIBELS_PER_METER( "dB/m",
                                        { "decibels per meter", "dB/meter" } );
-        const Unit KILOGRAMS( "kg", { "kilograms" } );
-        const Unit SECONDS( "s", { "seconds", "sec" } );
+        const static Unit KILOGRAMS( "kg", { "kilograms" } );
+        const static Unit SECONDS( "s", { "seconds", "sec" } );
 
         // derived units
-        const Unit KILOMETERS( "km", { "kilometers" }, &METERS, 1000.0 );
-        const Unit MILLIMETERS( "mm", { "millimeters" }, &METERS, 0.001 );
-        const Unit CELSIUS( "C", { "Celsius", "degrees C", "degC" }, &KELVIN,
+        const static Unit KILOMETERS( "km", { "kilometers" }, &METERS, 1000.0 );
+        const static Unit MILLIMETERS( "mm", { "millimeters" }, &METERS, 0.001 );
+        const static Unit CELSIUS( "C", { "Celsius", "degrees C", "degC" }, &KELVIN,
                             1.0, 273.15 );
-        const Unit FAHRENHEIT( "F", { "degrees F", "Fahrenheit", "degF" },
+        const static Unit FAHRENHEIT( "F", { "degrees F", "Fahrenheit", "degF" },
                                &CELSIUS, 5.0 / 9.0, -32.0 );
-        const Unit KILOMETERS_PER_SECOND( "km/s",
+        const static Unit KILOMETERS_PER_SECOND( "km/s",
                                           { "kilometers per second", "kmps",
                                             "km/sec", "kilometers/second" },
                                           &METERS_PER_SECOND, 1000.0 );
-        const Unit HECTOPASCALS( "hPa", { "hectopascals" }, &PASCALS, 100.0 );
-        const Unit MILLIBARS( "mbar", { "millibars" }, &HECTOPASCALS, 1.0 );
-        const Unit ATMOSPHERES( "atm", { "atmospheres" }, &PASCALS, 101325.0 );
-        const Unit GRAMS_PER_CUBIC_CENTIMETER(
+        const static Unit HECTOPASCALS( "hPa", { "hectopascals" }, &PASCALS, 100.0 );
+        const static Unit MILLIBARS( "mbar", { "millibars" }, &HECTOPASCALS, 1.0 );
+        const static Unit ATMOSPHERES( "atm", { "atmospheres" }, &PASCALS, 101325.0 );
+        const static Unit GRAMS_PER_CUBIC_CENTIMETER(
             "g/cm3", { "grams per cubic centimeter", "gpcm3" },
             &KILOGRAMS_PER_CUBIC_METER, 1000.0 );
-        const Unit NEPERS_PER_METER( "np/m",
+        const static Unit NEPERS_PER_METER( "np/m",
                                      { "nepers/meter", "nepers per meter" },
                                      &DECIBELS_PER_METER, 8.685889638 );
-        const Unit DECIBELS_PER_KILOMETER( "dB/km",
+        const static Unit DECIBELS_PER_KILOMETER( "dB/km",
                                            { "dB/kilometer",
                                              "dB per kilometer" },
                                            &DECIBELS_PER_METER, 1000.0 );
-        const Unit GRAMS( "g", { "grams" }, &KILOGRAMS, 0.001 );
-        const Unit DAYS( "day", {}, &SECONDS, 86400.0 );
-        const Unit MINUTES( "min", { "minutes" }, &SECONDS, 60.0 );
-        const Unit HOURS( "hour", { "hr" }, &SECONDS, 3600.0 );
+        const static Unit GRAMS( "g", { "grams" }, &KILOGRAMS, 0.001 );
+        const static Unit DAYS( "day", {}, &SECONDS, 86400.0 );
+        const static Unit MINUTES( "min", { "minutes" }, &SECONDS, 60.0 );
+        const static Unit HOURS( "hour", { "hr" }, &SECONDS, 3600.0 );
 
         namespace details {
             std::unordered_map<std::string, const Unit *> _units_map;
