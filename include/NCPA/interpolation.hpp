@@ -61,17 +61,6 @@ claus@olemiss.edu
 #endif
 
 // Convenience #defines
-#define DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _CLASSNAME_,           \
-                                               _SUPERCLASSNAME_ )     \
-    template<typename INDEPTYPE, typename DEPTYPE, \
-            typename = void, typename = void>                                         \
-    class _CLASSNAME_ : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> { \
-            static_assert( false, "Invalid types for interpolator" ); \
-    }
-
-#define _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION \
-    template<typename INDEPTYPE, typename DEPTYPE>
-
 #define _ENABLE_IF_INDEP_IS_REAL \
     typename std::enable_if<std::is_floating_point<INDEPTYPE>::value>::type
 #define _ENABLE_IF_DEP_IS_REAL \
@@ -83,35 +72,117 @@ claus@olemiss.edu
 #define _SUBSPLINE_T( _CLASSNAME_ ) \
     _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
 
-#define DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(       \
-    _CLASSNAME_, _SUPERCLASSNAME_ )                                 \
-    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                  \
-    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL, \
-                      _ENABLE_IF_DEP_IS_COMPLEX>                    \
-        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {             \
-        public:                                                     \
-            ~_CLASSNAME_() {}                                       \
+#define DECLARE_GENERIC_INTERPOLATOR_TEMPLATE_WITH_PARAMS(            \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                      \
+    template<typename INDEPTYPE, typename DEPTYPE,                    \
+             typename PARAMTYPE = _PARAMTYPE_, typename = void,       \
+             typename = void>                                         \
+    class _CLASSNAME_ : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> { \
+            static_assert( false, "Invalid types for interpolator" ); \
+    }
+#define DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _CLASSNAME_,           \
+                                               _SUPERCLASSNAME_ )     \
+    template<typename INDEPTYPE, typename DEPTYPE, typename = void,   \
+             typename = void, typename = void>                        \
+    class _CLASSNAME_ : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> { \
+            static_assert( false, "Invalid types for interpolator" ); \
+    }
+
+
+#define _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAMS \
+    template<typename INDEPTYPE, typename DEPTYPE, typename PARAMTYPE>
+#define _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION \
+    template<typename INDEPTYPE, typename DEPTYPE>
+
+#define DECLARE_REAL_VERSION_OF_INTERPOLATOR( _CLASSNAME_, _SUPERCLASSNAME_ ) \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                            \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL,     \
+                      _ENABLE_IF_DEP_IS_REAL>                                 \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE>
+
+#define DECLARE_REAL_VERSION_OF_INTERPOLATOR_WITH_PARAMS(               \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                        \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAMS          \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _PARAMTYPE_,                  \
+                      _ENABLE_IF_INDEP_IS_REAL, _ENABLE_IF_DEP_IS_REAL> \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE, _PARAMTYPE_>
+
+#define DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,             \
+                                                 _SUPERCLASSNAME_ )       \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                        \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL, \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                          \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE>
+
+#define DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAMS(               \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                           \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAMS             \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _PARAMTYPE_,                     \
+                      _ENABLE_IF_INDEP_IS_REAL, _ENABLE_IF_DEP_IS_COMPLEX> \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE, _PARAMTYPE_>
+
+#define DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAMS( \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                         \
+    DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAMS(                 \
+        _CLASSNAME_, _SUPERCLASSNAME_,                                   \
+        _PARAMTYPE_ ) { public: ~_CLASSNAME_() {} };
+
+#define DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR( \
+    _CLASSNAME_, _SUPERCLASSNAME_ )                          \
+    DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(                 \
+        _CLASSNAME_, _SUPERCLASSNAME_ ) { public: ~_CLASSNAME_() {} };
+
+
+#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAMS(                 \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                            \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAMS              \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, PARAMTYPE,                        \
+                      _ENABLE_IF_INDEP_IS_REAL, _ENABLE_IF_DEP_IS_COMPLEX>  \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                     \
+        public:                                                             \
+            _CLASSNAME_() {}                                                \
+            _CLASSNAME_( PARAMTYPE param ) {                                \
+                _real_spline                                                \
+                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>( \
+                        param );                                            \
+                _imag_spline                                                \
+                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>( \
+                        param );                                            \
+            }                                                               \
+            virtual ~_CLASSNAME_() {                                        \
+                this->clear();                                              \
+            }                                                               \
+            virtual _SUBSPLINE_PTR_T real() override {                      \
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );      \
+            }                                                               \
+            virtual _SUBSPLINE_PTR_T imag() override {                      \
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );      \
+            }                                                               \
+                                                                            \
+        private:                                                            \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>            \
+                _real_spline, _imag_spline;                                 \
     };
-#define DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,          \
-                                                 _SUPERCLASSNAME_ )    \
-    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                     \
-    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,    \
-                      _ENABLE_IF_DEP_IS_COMPLEX>                       \
-        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                \
-        public:                                                        \
-            virtual ~_CLASSNAME_() {                                   \
-                this->clear();                                         \
-            }                                                          \
-            virtual _SUBSPLINE_PTR_T real() override {                 \
-                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline ); \
-            }                                                          \
-            virtual _SUBSPLINE_PTR_T imag() override {                 \
-                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline ); \
-            }                                                          \
-                                                                       \
-        private:                                                       \
-            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>       \
-                _real_spline, _imag_spline;                            \
+#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,              \
+                                                _SUPERCLASSNAME_ )        \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                        \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL, \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                          \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                   \
+        public:                                                           \
+            virtual ~_CLASSNAME_() {                                      \
+                this->clear();                                            \
+            }                                                             \
+            virtual _SUBSPLINE_PTR_T real() override {                    \
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );    \
+            }                                                             \
+            virtual _SUBSPLINE_PTR_T imag() override {                    \
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );    \
+            }                                                             \
+                                                                          \
+        private:                                                          \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>          \
+                _real_spline, _imag_spline;                               \
     };
 
 // _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
@@ -131,10 +202,10 @@ Then declare the specialized templates for real and complex interpolants, as:
         : public SUPERCLASS<INDEPTYPE,DEPTYPE> { ... };
 
     // If a pure virtual class, use this
-    DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
+    DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
 
     // If concrete, but you're not adding any methods, use this
-    DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
+    DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
 
     // If concrete and you're adding methods, use this, and change _CLASSNAME_
     // and _SUPERCLASSNAME_ as appropriate.  The other macros should still
@@ -336,7 +407,7 @@ namespace NCPA {
                     _lanl_spline_1d, NCPA::interpolation::_spline_1d );
 
                 _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-                    class _lanl_spline_1d<INDEPTYPE, DEPTYPE,
+                    class _lanl_spline_1d<INDEPTYPE, DEPTYPE, void,
                                           _ENABLE_IF_INDEP_IS_REAL,
                                           _ENABLE_IF_DEP_IS_REAL>
                     : public NCPA::interpolation::_spline_1d<INDEPTYPE,
@@ -413,7 +484,7 @@ namespace NCPA {
                                         // natural cubic spline solution
                 };
 
-                DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
+                DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
                     _lanl_spline_1d, NCPA::interpolation::_spline_1d );
 
             }  // namespace details
@@ -422,7 +493,7 @@ namespace NCPA {
                                                    details::_lanl_spline_1d );
 
             _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-                class linear_spline_1d<INDEPTYPE, DEPTYPE,
+                class linear_spline_1d<INDEPTYPE, DEPTYPE, void,
                                        _ENABLE_IF_INDEP_IS_REAL,
                                        _ENABLE_IF_DEP_IS_REAL>
                 : public details::_lanl_spline_1d<INDEPTYPE, DEPTYPE> {
@@ -470,19 +541,17 @@ namespace NCPA {
                     }
             };
 
-            DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(
-                linear_spline_1d, details::_lanl_spline_1d );
+            DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( linear_spline_1d,
+                                                    details::_lanl_spline_1d );
 
 
             DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( natural_cubic_spline_1d,
                                                    details::_lanl_spline_1d );
 
-
-            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION
-
-            class natural_cubic_spline_1d<INDEPTYPE, DEPTYPE,
-                                          _ENABLE_IF_INDEP_IS_REAL,
-                                          _ENABLE_IF_DEP_IS_REAL>
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+                class natural_cubic_spline_1d<INDEPTYPE, DEPTYPE, void,
+                                              _ENABLE_IF_INDEP_IS_REAL,
+                                              _ENABLE_IF_DEP_IS_REAL>
                 : public details::_lanl_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
                     virtual ~natural_cubic_spline_1d() { this->clear(); }
@@ -647,8 +716,8 @@ namespace NCPA {
                     }
             };
 
-            DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(
-                natural_cubic_spline_1d, details::_lanl_spline_1d );
+            DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( natural_cubic_spline_1d,
+                                                    details::_lanl_spline_1d );
 
 
         }  // namespace LANL
@@ -656,11 +725,12 @@ namespace NCPA {
 #ifdef HAVE_GSL_INTERPOLATION_LIBRARY
         namespace GSL {
 
-            DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( gsl_spline_1d,
-                                                   NCPA::interpolation::_spline_1d );
+            DECLARE_GENERIC_INTERPOLATOR_TEMPLATE_WITH_PARAMS(
+                gsl_spline_1d, NCPA::interpolation::_spline_1d,
+                const gsl_interp_type * );
 
-            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-                class gsl_spline_1d<INDEPTYPE, DEPTYPE,
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAMS  //
+                class gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE,
                                     _ENABLE_IF_INDEP_IS_REAL,
                                     _ENABLE_IF_DEP_IS_REAL>
                 : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
@@ -673,15 +743,14 @@ namespace NCPA {
                         _xmin { 0.0 },
                         _xmax { 0.0 } {}
 
-                    gsl_spline_1d( const gsl_interp_type *interptype ) :
-                        gsl_spline_1d() {
+                    gsl_spline_1d( PARAMTYPE interptype ) : gsl_spline_1d() {
                         set_interpolation_type( interptype );
                     }
 
                     virtual ~gsl_spline_1d() { clear(); }
 
                     virtual void set_interpolation_type(
-                        const gsl_interp_type *interptype ) {
+                        PARAMTYPE interptype ) {
                         _interptype = interptype;
                     }
 
@@ -834,70 +903,20 @@ namespace NCPA {
 
 
                 private:
-                    const gsl_interp_type *_interptype = nullptr;
-                    gsl_spline *_spline                = nullptr;
-                    gsl_interp_accel *_accel           = nullptr;
-                    bool _ready                        = false;
+                    PARAMTYPE _interptype    = nullptr;
+                    gsl_spline *_spline      = nullptr;
+                    gsl_interp_accel *_accel = nullptr;
+                    bool _ready              = false;
                     INDEPTYPE _xmin = 0.0, _xmax = 0.0;
                     size_t _size = 0;
             };
 
-            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-                class gsl_spline_1d<INDEPTYPE, DEPTYPE,
-                                    _ENABLE_IF_INDEP_IS_REAL,
-                                    _ENABLE_IF_DEP_IS_COMPLEX>
-                : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
-                public:
-                    gsl_spline_1d() {}
-
-                    gsl_spline_1d( const gsl_interp_type *interptype ) {
-                        set_interpolation_type( interptype );
-                    }
-
-                    virtual ~gsl_spline_1d() { this->clear(); }
-
-                    virtual _SUBSPLINE_PTR_T real() override {
-                        return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );
-                    }
-
-                    virtual _SUBSPLINE_PTR_T imag() override {
-                        return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );
-                    }
-
-                    // any new methods can be added here
-                    virtual void set_interpolation_type(
-                        const gsl_interp_type *interptype ) {
-                        dynamic_cast<gsl_spline_1d<
-                            INDEPTYPE, typename DEPTYPE::value_type> *>(
-                            real() )
-                            ->set_interpolation_type( interptype );
-                        dynamic_cast<gsl_spline_1d<
-                            INDEPTYPE, typename DEPTYPE::value_type> *>(
-                            imag() )
-                            ->set_interpolation_type( interptype );
-                    }
-
-                private:
-                    gsl_spline_1d<INDEPTYPE, typename DEPTYPE::value_type>
-                        _real_spline, _imag_spline;
-            };
+            DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAMS(
+                gsl_spline_1d, NCPA::interpolation::_spline_1d,
+                const gsl_interp_type * );
 
         }  // namespace GSL
 #endif
-
-        // HERE'S HOW WE'LL DO COMPLEX: EACH TYPE OF INTERPOLATOR JUST HAS THE
-        // REAL PART. WE'LL CALL THOSE INTERPOLATION ENGINES.  THE ACTUAL
-        // INTERPOLATOR OBJECT WILL HAVE REAL AND COMPLEX VERSIONS, WHICH WILL
-        // HAVE ONE OR TWO OF THE ENGINES, RESPECTIVELY.
-        //
-        // MIGHT COULD HAVE A TEMPLATED FUNCTION LIKE
-        // set_parameter( const std::string &paramName, const char *bytes )
-        //
-        // leave it to the individual engines to parse any necessary parameter
-        // objects; use template<typename T> void to_bytes( T obj, char *&
-        // bytes );  // allocate inside here template<typename T> void
-        // from_bytes( T &obj, char *& bytes );  // delete inside here
-
 
     }  // namespace interpolation
 }  // namespace NCPA
