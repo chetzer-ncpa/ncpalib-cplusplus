@@ -60,33 +60,215 @@ claus@olemiss.edu
 #  include "gsl/gsl_version.h"
 #endif
 
-#define _NCPA_INTERPOLATION_DIMENSION_MIN 1
-#define _NCPA_INTERPOLATION_DIMENSION_MAX 3
+// Convenience #defines
+#define DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _CLASSNAME_,           \
+                                               _SUPERCLASSNAME_ )     \
+    template<typename INDEPTYPE, typename DEPTYPE, \
+            typename = void, typename = void>                                         \
+    class _CLASSNAME_ : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> { \
+            static_assert( false, "Invalid types for interpolator" ); \
+    }
+
+#define _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION \
+    template<typename INDEPTYPE, typename DEPTYPE>
+
+#define _ENABLE_IF_INDEP_IS_REAL \
+    typename std::enable_if<std::is_floating_point<INDEPTYPE>::value>::type
+#define _ENABLE_IF_DEP_IS_REAL \
+    typename std::enable_if<std::is_floating_point<DEPTYPE>::value>::type
+#define _ENABLE_IF_DEP_IS_COMPLEX \
+    typename std::enable_if<NCPA::types::is_complex<DEPTYPE>::value>::type
+#define _SUBSPLINE_PTR_T \
+    NCPA::interpolation::_spline_1d<INDEPTYPE, typename DEPTYPE::value_type> *
+#define _SUBSPLINE_T( _CLASSNAME_ ) \
+    _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
+
+#define DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(       \
+    _CLASSNAME_, _SUPERCLASSNAME_ )                                 \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                  \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL, \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                    \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {             \
+        public:                                                     \
+            ~_CLASSNAME_() {}                                       \
+    };
+#define DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,          \
+                                                 _SUPERCLASSNAME_ )    \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                     \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,    \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                       \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                \
+        public:                                                        \
+            virtual ~_CLASSNAME_() {                                   \
+                this->clear();                                         \
+            }                                                          \
+            virtual _SUBSPLINE_PTR_T real() override {                 \
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline ); \
+            }                                                          \
+            virtual _SUBSPLINE_PTR_T imag() override {                 \
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline ); \
+            }                                                          \
+                                                                       \
+        private:                                                       \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>       \
+                _real_spline, _imag_spline;                            \
+    };
+
+// _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
+
+
+/*
+Structure for declaring real and complex interpolators:
+First, declare the default, invalid template, as:
+
+    DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( CLASSNAME, SUPERCLASS );
+
+Then declare the specialized templates for real and complex interpolants, as:
+
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION //
+    class CLASSNAME<INDEPTYPE, DEPTYPE,
+        _ENABLE_IF_INDEP_IS_REAL,_ENABLE_IF_DEP_IS_REAL>
+        : public SUPERCLASS<INDEPTYPE,DEPTYPE> { ... };
+
+    // If a pure virtual class, use this
+    DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
+
+    // If concrete, but you're not adding any methods, use this
+    DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(CLASSNAME,SUPERCLASSNAME)
+
+    // If concrete and you're adding methods, use this, and change _CLASSNAME_
+    // and _SUPERCLASSNAME_ as appropriate.  The other macros should still
+work. _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION class
+_CLASSNAME_<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
+                      _ENABLE_IF_DEP_IS_COMPLEX>
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {
+        public:
+            virtual ~_CLASSNAME_() {
+                this->clear();
+            }
+            virtual _SUBSPLINE_PTR_T real() override {
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );
+            }
+            virtual _SUBSPLINE_PTR_T imag() override {
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );
+            }
+
+            // any new methods can be added here
+        private:
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
+                _real_spline, _imag_spline;
+    };
+
+*/
+
 
 namespace NCPA {
     namespace interpolation {
         namespace details {
-            template<size_t NDIMS>
-            struct _is_valid_interpolator_dimension {
-                    static constexpr bool value
-                        = NDIMS >= _NCPA_INTERPOLATION_DIMENSION_MIN
-                       && NDIMS <= _NCPA_INTERPOLATION_DIMENSION_MAX;
-            };
+            template<typename INDEPTYPE, typename DEPTYPE>
+            class _abstract_spline_1d {
+                public:
+                    virtual ~_abstract_spline_1d() {}
 
-            template<size_t NDIMS, typename T>
-            struct _is_valid_real_interpolator {
-                    static constexpr bool value
-                        = _is_valid_interpolator_dimension<NDIMS>::value
-                       && std::is_floating_point<T>::value;
-            };
-
-            template<size_t NDIMS, typename T>
-            struct _is_valid_complex_interpolator {
-                    static constexpr bool value
-                        = _is_valid_interpolator_dimension<NDIMS>::value
-                       && NCPA::types::is_complex<T>::value;
+                    virtual void fill( size_t N, const INDEPTYPE *x,
+                                       const DEPTYPE *f )
+                        = 0;
+                    virtual void fill( const std::vector<INDEPTYPE>& x,
+                                       const std::vector<DEPTYPE>& f )
+                        = 0;
+                    virtual void init( size_t N )            = 0;
+                    virtual void clear()                     = 0;
+                    virtual void ready()                     = 0;
+                    virtual DEPTYPE eval_f( INDEPTYPE x )    = 0;
+                    virtual DEPTYPE eval_df( INDEPTYPE x )   = 0;
+                    virtual DEPTYPE eval_ddf( INDEPTYPE x )  = 0;
+                    virtual DEPTYPE eval_dddf( INDEPTYPE x ) = 0;
             };
         }  // namespace details
+
+        // 1-D interpolation engines
+        DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_1d,
+                                               details::_abstract_spline_1d );
+
+        _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+            class _spline_1d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
+                             _ENABLE_IF_DEP_IS_REAL>
+            : public details::_abstract_spline_1d<INDEPTYPE, DEPTYPE> {
+            public:
+                virtual ~_spline_1d() {}
+        };
+
+        _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+            class _spline_1d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
+                             _ENABLE_IF_DEP_IS_COMPLEX>
+            : public details::_abstract_spline_1d<INDEPTYPE, DEPTYPE> {
+            public:
+                virtual ~_spline_1d() {}
+
+                virtual void fill( size_t N, const INDEPTYPE *x,
+                                   const DEPTYPE *f ) override {
+                    auto *r
+                        = NCPA::arrays::zeros<typename DEPTYPE::value_type>(
+                            N ),
+                        *i = NCPA::arrays::zeros<typename DEPTYPE::value_type>(
+                            N );
+                    NCPA::math::complex2real( N, f, r, i );
+                    real()->fill( N, x, r );
+                    imag()->fill( N, x, i );
+                    delete[] r;
+                    delete[] i;
+                }
+
+                virtual void fill( const std::vector<INDEPTYPE>& x,
+                                   const std::vector<DEPTYPE>& f ) override {
+                    size_t N = x.size();
+                    if ( N != f.size() ) {
+                        throw std::invalid_argument(
+                            "Vectors must be same size" );
+                    }
+                    std::vector<typename DEPTYPE::value_type> r, i;
+                    NCPA::math::complex2real( f, r, i );
+                    real()->fill( x, r );
+                    imag()->fill( x, i );
+                }
+
+                virtual void init( size_t N ) override {
+                    real()->init( N );
+                    imag()->init( N );
+                }
+
+                virtual void clear() override {
+                    real()->clear();
+                    imag()->clear();
+                }
+
+                virtual void ready() override {
+                    real()->ready();
+                    imag()->ready();
+                }
+
+                virtual DEPTYPE eval_f( INDEPTYPE x ) override {
+                    return DEPTYPE( real()->eval_f( x ), imag()->eval_f( x ) );
+                }
+
+                virtual DEPTYPE eval_df( INDEPTYPE x ) override {
+                    return DEPTYPE( real()->eval_df( x ),
+                                    imag()->eval_df( x ) );
+                }
+
+                virtual DEPTYPE eval_ddf( INDEPTYPE x ) override {
+                    return DEPTYPE( real()->eval_ddf( x ),
+                                    imag()->eval_ddf( x ) );
+                }
+
+                virtual DEPTYPE eval_dddf( INDEPTYPE x ) override {
+                    return DEPTYPE( real()->eval_dddf( x ),
+                                    imag()->eval_dddf( x ) );
+                }
+
+                virtual _SUBSPLINE_PTR_T real() = 0;
+                virtual _SUBSPLINE_PTR_T imag() = 0;
+        };
 
         namespace LANL {
             namespace details {
@@ -150,57 +332,25 @@ namespace NCPA {
                     return std::min( std::max( x, x_min ), x_max );
                 }
 
-                template<typename INDEPTYPE, typename DEPTYPE>
-                class _abstract_spline_1D {
+                DECLARE_GENERIC_INTERPOLATOR_TEMPLATE(
+                    _lanl_spline_1d, NCPA::interpolation::_spline_1d );
+
+                _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+                    class _lanl_spline_1d<INDEPTYPE, DEPTYPE,
+                                          _ENABLE_IF_INDEP_IS_REAL,
+                                          _ENABLE_IF_DEP_IS_REAL>
+                    : public NCPA::interpolation::_spline_1d<INDEPTYPE,
+                                                             DEPTYPE> {
                     public:
-                        virtual ~_abstract_spline_1D() {}
-
-                        virtual void fill( size_t N, const INDEPTYPE *x,
-                                           const DEPTYPE *f )
-                            = 0;
-                        virtual void fill( const std::vector<INDEPTYPE>& x,
-                                           const std::vector<DEPTYPE>& f )
-                            = 0;
-                        virtual void prep( size_t N )            = 0;
-                        virtual void clear()                     = 0;
-                        virtual void set()                       = 0;
-                        virtual DEPTYPE eval_f( INDEPTYPE x )    = 0;
-                        virtual DEPTYPE eval_df( INDEPTYPE x )   = 0;
-                        virtual DEPTYPE eval_ddf( INDEPTYPE x )  = 0;
-                        virtual DEPTYPE eval_dddf( INDEPTYPE x ) = 0;
-                };
-
-                // template<typename INDEPTYPE, typename DEPTYPE>
-                // class _spline_1D
-                //     : public _abstract_spline_1D<INDEPTYPE, DEPTYPE> {
-                //         static_assert( false, "invalid types" );
-                // };
-
-                template<typename INDEPTYPE, typename DEPTYPE, typename = void,
-                         typename = void>
-                class _spline_1D
-                    : public details::_abstract_spline_1D<INDEPTYPE, DEPTYPE> {
-                };
-
-                template<typename INDEPTYPE, typename DEPTYPE>
-                class _spline_1D<
-                    INDEPTYPE, DEPTYPE,
-                    typename std::enable_if<
-                        std::is_floating_point<INDEPTYPE>::value>::type,
-                    typename std::enable_if<
-                        std::is_floating_point<DEPTYPE>::value>::type>
-                    : public details::_abstract_spline_1D<INDEPTYPE, DEPTYPE> {
-                    public:
-                        virtual ~_spline_1D() { clear(); }
+                        virtual ~_lanl_spline_1d() { clear(); }
 
                         virtual void fill( size_t N, const INDEPTYPE *x,
                                            const DEPTYPE *f ) override {
                             if ( _length != N ) {
-                                prep( N );
+                                init( N );
                             }
                             std::memcpy( _x_vals, x, N * sizeof( INDEPTYPE ) );
                             std::memcpy( _f_vals, f, N * sizeof( DEPTYPE ) );
-                            // return *this;
                         }
 
                         virtual void fill(
@@ -212,17 +362,15 @@ namespace NCPA {
                                     "Vectors must be same size" );
                             }
                             fill( N, &x[ 0 ], &f[ 0 ] );
-                            // return *this;
                         }
 
-                        virtual void prep( size_t N ) override {
+                        virtual void init( size_t N ) override {
                             clear();
                             _length = N;
                             _accel  = 0;
                             _x_vals = NCPA::arrays::zeros<DEPTYPE>( N );
                             _f_vals = NCPA::arrays::zeros<INDEPTYPE>( N );
                             _slopes = NCPA::arrays::zeros<INDEPTYPE>( N );
-                            // return *this;
                         }
 
                         virtual void clear() override {
@@ -238,12 +386,8 @@ namespace NCPA {
                                 delete[] _slopes;
                                 _slopes = nullptr;
                             }
-                            // return *this;
                         }
 
-                        virtual DEPTYPE eval_ddf( INDEPTYPE x ) override = 0;
-
-                        virtual DEPTYPE eval_dddf( INDEPTYPE x ) override = 0;
 
                     protected:
                         size_t& _get_length() { return _length; }
@@ -269,104 +413,23 @@ namespace NCPA {
                                         // natural cubic spline solution
                 };
 
-                // COMPLEX FUNCTION OF REAL INPUT
-                template<typename INDEPTYPE, typename DEPTYPE>
-                class _spline_1D<
-                    INDEPTYPE, DEPTYPE,
-                    typename std::enable_if<
-                        std::is_floating_point<INDEPTYPE>::value>::type,
-                    typename std::enable_if<
-                        NCPA::types::is_complex<DEPTYPE>::value>::type>
-                    : public details::_abstract_spline_1D<INDEPTYPE, DEPTYPE> {
-                    public:
-                        virtual ~_spline_1D() {}
-
-                        virtual void prep( size_t N ) override {
-                            real()->prep( N );
-                            imag()->prep( N );
-                        }
-
-                        virtual _spline_1D<INDEPTYPE,
-                                           typename DEPTYPE::value_type> *
-                            real()
-                            = 0;
-                        virtual _spline_1D<INDEPTYPE,
-                                           typename DEPTYPE::value_type> *
-                            imag()
-                            = 0;
-
-                        virtual void fill( size_t N, const INDEPTYPE *x,
-                                           const DEPTYPE *f ) override {
-                            auto *r = NCPA::arrays::zeros<
-                                     typename DEPTYPE::value_type>( N ),
-                                 *i = NCPA::arrays::zeros<
-                                     typename DEPTYPE::value_type>( N );
-                            NCPA::math::complex2real( N, f, r, i );
-                            real()->fill( N, x, r );
-                            imag()->fill( N, x, i );
-                            delete[] r;
-                            delete[] i;
-                        }
-
-                        virtual void fill(
-                            const std::vector<INDEPTYPE>& x,
-                            const std::vector<DEPTYPE>& f ) override {
-                            size_t N = x.size();
-                            if ( N != f.size() ) {
-                                throw std::invalid_argument(
-                                    "Vectors must be same size" );
-                            }
-                            std::vector<typename DEPTYPE::value_type> r, i;
-                            NCPA::math::complex2real( f, r, i );
-                            real()->fill( x, r );
-                            imag()->fill( x, i );
-                        }
-
-                        virtual void set() override {
-                            real()->set();
-                            imag()->set();
-                        }
-
-                        virtual DEPTYPE eval_f( INDEPTYPE x ) override {
-                            return DEPTYPE( real()->eval_f( x ),
-                                            imag()->eval_f( x ) );
-                        }
-
-                        virtual DEPTYPE eval_df( INDEPTYPE x ) override {
-                            return DEPTYPE( real()->eval_df( x ),
-                                            imag()->eval_df( x ) );
-                        }
-
-                        virtual DEPTYPE eval_ddf( INDEPTYPE x ) override {
-                            return DEPTYPE( real()->eval_ddf( x ),
-                                            imag()->eval_ddf( x ) );
-                        }
-
-                        virtual DEPTYPE eval_dddf( INDEPTYPE x ) override {
-                            return DEPTYPE( real()->eval_dddf( x ),
-                                            imag()->eval_dddf( x ) );
-                        }
-                };
+                DECLARE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
+                    _lanl_spline_1d, NCPA::interpolation::_spline_1d );
 
             }  // namespace details
 
-            template<typename INDEPTYPE, typename DEPTYPE, typename = void,
-                     typename = void>
-            class linear_spline_1D
-                : public details::_spline_1D<INDEPTYPE, DEPTYPE> {};
+            DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( linear_spline_1d,
+                                                   details::_lanl_spline_1d );
 
-            template<typename INDEPTYPE, typename DEPTYPE>
-            class linear_spline_1D<
-                INDEPTYPE, DEPTYPE,
-                typename std::enable_if<
-                    std::is_floating_point<INDEPTYPE>::value>::type,
-                typename std::enable_if<
-                    std::is_floating_point<DEPTYPE>::value>::type>
-                : public details::_spline_1D<INDEPTYPE, DEPTYPE> {
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+                class linear_spline_1d<INDEPTYPE, DEPTYPE,
+                                       _ENABLE_IF_INDEP_IS_REAL,
+                                       _ENABLE_IF_DEP_IS_REAL>
+                : public details::_lanl_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~linear_spline_1D() {}
+                    virtual ~linear_spline_1d() {}
 
-                    virtual void set() override {
+                    virtual void ready() override {
                         DEPTYPE *slopes   = this->_get_slopes();
                         INDEPTYPE *x_vals = this->_get_x_vals();
                         DEPTYPE *f_vals   = this->_get_f_vals();
@@ -407,65 +470,24 @@ namespace NCPA {
                     }
             };
 
-            template<typename INDEPTYPE, typename DEPTYPE>
-            class linear_spline_1D<
-                INDEPTYPE, DEPTYPE,
-                typename std::enable_if<
-                    std::is_floating_point<INDEPTYPE>::value>::type,
-                typename std::enable_if<
-                    NCPA::types::is_complex<DEPTYPE>::value>::type>
-                : public details::_spline_1D<INDEPTYPE, DEPTYPE> {
+            DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(
+                linear_spline_1d, details::_lanl_spline_1d );
+
+
+            DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( natural_cubic_spline_1d,
+                                                   details::_lanl_spline_1d );
+
+
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION
+
+            class natural_cubic_spline_1d<INDEPTYPE, DEPTYPE,
+                                          _ENABLE_IF_INDEP_IS_REAL,
+                                          _ENABLE_IF_DEP_IS_REAL>
+                : public details::_lanl_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~linear_spline_1D() { clear(); }
+                    virtual ~natural_cubic_spline_1d() { this->clear(); }
 
-                    virtual void clear() override {
-                        real()->clear();
-                        imag()->clear();
-                    }
-
-                    virtual details::_spline_1D<INDEPTYPE,
-                                                typename DEPTYPE::value_type> *
-                        real() override {
-                        details::_spline_1D<INDEPTYPE,
-                                            typename DEPTYPE::value_type> *base
-                            = static_cast<details::_spline_1D<
-                                INDEPTYPE, typename DEPTYPE::value_type> *>(
-                                &_real_spline );
-                        return base;
-                    }
-
-                    virtual details::_spline_1D<INDEPTYPE,
-                                                typename DEPTYPE::value_type> *
-                        imag() override {
-                        details::_spline_1D<INDEPTYPE,
-                                            typename DEPTYPE::value_type> *base
-                            = static_cast<details::_spline_1D<
-                                INDEPTYPE, typename DEPTYPE::value_type> *>(
-                                &_imag_spline );
-                        return base;
-                    }
-
-                private:
-                    linear_spline_1D<INDEPTYPE, typename DEPTYPE::value_type>
-                        _real_spline, _imag_spline;
-            };
-
-            template<typename INDEPTYPE, typename DEPTYPE, typename = void,
-                     typename = void>
-            class natural_cubic_spline_1D {};
-
-            template<typename INDEPTYPE, typename DEPTYPE>
-            class natural_cubic_spline_1D<
-                INDEPTYPE, DEPTYPE,
-                typename std::enable_if<
-                    std::is_floating_point<INDEPTYPE>::value>::type,
-                typename std::enable_if<
-                    std::is_floating_point<DEPTYPE>::value>::type>
-                : public details::_spline_1D<INDEPTYPE, DEPTYPE> {
-                public:
-                    virtual ~natural_cubic_spline_1D() { this->clear(); }
-
-                    virtual void set() override {
+                    virtual void ready() override {
                         DEPTYPE *_f_vals   = this->_get_f_vals();
                         INDEPTYPE *_x_vals = this->_get_x_vals();
                         DEPTYPE *_slopes   = this->_get_slopes();
@@ -625,30 +647,256 @@ namespace NCPA {
                     }
             };
 
+            DECLARE_COMPLEX_VERSION_OF_INTERPOLATOR(
+                natural_cubic_spline_1d, details::_lanl_spline_1d );
+
 
         }  // namespace LANL
 
-        // template<size_t NDIMS, typename T = double,
-        //          ENABLE_IF_TU( details::_is_valid_complex_interpolator,
-        //          NDIMS,
-        //                        T )>
-        // class Interpolator {
-        //     public:
-        //         Interpolator() {}
+#ifdef HAVE_GSL_INTERPOLATION_LIBRARY
+        namespace GSL {
 
-        //         virtual ~Interpolator() {}
+            DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( gsl_spline_1d,
+                                                   NCPA::interpolation::_spline_1d );
 
-        //         virtual T f( std::tuple<...> coords ) = 0;
-        //         virtual T df( std::tuple<...> wrt, std::tuple<...> coords );
-        // };
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+                class gsl_spline_1d<INDEPTYPE, DEPTYPE,
+                                    _ENABLE_IF_INDEP_IS_REAL,
+                                    _ENABLE_IF_DEP_IS_REAL>
+                : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
+                public:
+                    gsl_spline_1d() :
+                        _interptype { nullptr },
+                        _spline { nullptr },
+                        _accel { nullptr },
+                        _ready { false },
+                        _xmin { 0.0 },
+                        _xmax { 0.0 } {}
 
-        // template<typename T = double, ENABLE_IF( std::is_floating_point<T>
-        // )> class Interpolator1D {
-        //     public:
-        //         Interpolator1D() : Interpolator<1, T>() {}
+                    gsl_spline_1d( const gsl_interp_type *interptype ) :
+                        gsl_spline_1d() {
+                        set_interpolation_type( interptype );
+                    }
 
-        //         virtual ~Interpolator1D() {}
-        // };
+                    virtual ~gsl_spline_1d() { clear(); }
+
+                    virtual void set_interpolation_type(
+                        const gsl_interp_type *interptype ) {
+                        _interptype = interptype;
+                    }
+
+                    virtual void fill( size_t N, const INDEPTYPE *x,
+                                       const DEPTYPE *f ) override {
+                        if ( N != _size ) {
+                            init( N );
+                        }
+                        _set_spline( N, x, f );
+                        _ready = true;
+                    }
+
+                    virtual void fill(
+                        const std::vector<INDEPTYPE>& x,
+                        const std::vector<DEPTYPE>& f ) override {
+                        size_t N = x.size();
+                        if ( N != f.size() ) {
+                            throw std::invalid_argument(
+                                "Vectors must be same size" );
+                        }
+                        fill( N, &x[ 0 ], &f[ 0 ] );
+                    }
+
+                    virtual void init( size_t N ) override {
+                        clear();
+                        _check_interptype();
+                        _allocate_spline( N );
+                    }
+
+                    virtual void clear() override {
+                        _free_spline();
+                        _free_accel();
+                    }
+
+                    virtual void ready() override {
+                        _check_spline();
+                        _check_accel();
+                    }
+
+                    DEPTYPE eval_f( INDEPTYPE x ) override {
+                        _check_ready();
+                        return (DEPTYPE)gsl_spline_eval( _spline, (double)x,
+                                                         _accel );
+                    }
+
+                    DEPTYPE eval_df( INDEPTYPE x ) override {
+                        _check_ready();
+                        return (DEPTYPE)gsl_spline_eval_deriv(
+                            _spline, (double)x, _accel );
+                    }
+
+                    DEPTYPE eval_ddf( INDEPTYPE x ) override {
+                        _check_ready();
+                        return (DEPTYPE)gsl_spline_eval_deriv2(
+                            _spline, (double)x, _accel );
+                    }
+
+                    DEPTYPE eval_dddf( INDEPTYPE x ) override {
+                        throw std::out_of_range( "GSL splines have no third "
+                                                 "derivative capability." );
+                    }
+
+                protected:
+                    void _allocate_spline( size_t n ) {
+                        if ( n < _interptype->min_size ) {
+                            std::ostringstream oss;
+                            oss << "GSL interpolation type "
+                                << _interptype->name << " requires at least "
+                                << _interptype->min_size << " points.";
+                            throw std::logic_error( oss.str() );
+                        }
+                        _spline = gsl_spline_alloc( _interptype, n );
+                        _accel  = gsl_interp_accel_alloc();
+                        _size   = n;
+                    }
+
+                    void _set_spline( size_t n, const INDEPTYPE *x,
+                                      const DEPTYPE *y ) {
+                        double *xd = NCPA::arrays::zeros<double>( n );
+                        double *yd = NCPA::arrays::zeros<double>( n );
+                        _to_double<INDEPTYPE>( n, x, xd );
+                        _to_double<DEPTYPE>( n, y, yd );
+                        gsl_spline_init( _spline, xd, yd, n );
+                        _xmin = (INDEPTYPE)x[ 0 ];
+                        _xmax = (INDEPTYPE)x[ n - 1 ];
+                        delete[] xd;
+                        delete[] yd;
+                    }
+
+                    template<typename T>
+                    void _to_double( size_t n, const T *input,
+                                     double *& output ) {
+                        for ( auto i = 0; i < n; i++ ) {
+                            output[ i ] = (double)( input[ i ] );
+                        }
+                    }
+
+                    template<>
+                    void _to_double( size_t n, const double *input,
+                                     double *& output ) {
+                        std::memcpy( output, input, n * sizeof( double ) );
+                    }
+
+                    void _free_interptype() { _interptype = nullptr; }
+
+                    void _free_spline() {
+                        if ( _spline != nullptr ) {
+                            gsl_spline_free( _spline );
+                            _spline = nullptr;
+                        }
+                        _free_accel();
+                        _ready = false;
+                    }
+
+                    void _free_accel() {
+                        if ( _accel != nullptr ) {
+                            gsl_interp_accel_free( _accel );
+                            _accel = nullptr;
+                        }
+                        _ready = false;
+                    }
+
+                    void _check_ready() const {
+                        if ( !_ready ) {
+                            throw std::logic_error( "Spline not ready" );
+                        }
+                    }
+
+                    void _check_interptype() const {
+                        if ( _interptype == nullptr ) {
+                            throw std::logic_error(
+                                "GSL Spline type has not been set!" );
+                        }
+                    }
+
+                    void _check_spline() const {
+                        if ( _spline == nullptr ) {
+                            throw std::logic_error(
+                                "Spline has not been initialized!" );
+                        }
+                    }
+
+                    void _check_accel() const {
+                        if ( _accel == nullptr ) {
+                            throw std::logic_error(
+                                "Spline accelerator has not been "
+                                "initialized" );
+                        }
+                    }
+
+
+                private:
+                    const gsl_interp_type *_interptype = nullptr;
+                    gsl_spline *_spline                = nullptr;
+                    gsl_interp_accel *_accel           = nullptr;
+                    bool _ready                        = false;
+                    INDEPTYPE _xmin = 0.0, _xmax = 0.0;
+                    size_t _size = 0;
+            };
+
+            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
+                class gsl_spline_1d<INDEPTYPE, DEPTYPE,
+                                    _ENABLE_IF_INDEP_IS_REAL,
+                                    _ENABLE_IF_DEP_IS_COMPLEX>
+                : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
+                public:
+                    gsl_spline_1d() {}
+
+                    gsl_spline_1d( const gsl_interp_type *interptype ) {
+                        set_interpolation_type( interptype );
+                    }
+
+                    virtual ~gsl_spline_1d() { this->clear(); }
+
+                    virtual _SUBSPLINE_PTR_T real() override {
+                        return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );
+                    }
+
+                    virtual _SUBSPLINE_PTR_T imag() override {
+                        return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );
+                    }
+
+                    // any new methods can be added here
+                    virtual void set_interpolation_type(
+                        const gsl_interp_type *interptype ) {
+                        dynamic_cast<gsl_spline_1d<
+                            INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            real() )
+                            ->set_interpolation_type( interptype );
+                        dynamic_cast<gsl_spline_1d<
+                            INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            imag() )
+                            ->set_interpolation_type( interptype );
+                    }
+
+                private:
+                    gsl_spline_1d<INDEPTYPE, typename DEPTYPE::value_type>
+                        _real_spline, _imag_spline;
+            };
+
+        }  // namespace GSL
+#endif
+
+        // HERE'S HOW WE'LL DO COMPLEX: EACH TYPE OF INTERPOLATOR JUST HAS THE
+        // REAL PART. WE'LL CALL THOSE INTERPOLATION ENGINES.  THE ACTUAL
+        // INTERPOLATOR OBJECT WILL HAVE REAL AND COMPLEX VERSIONS, WHICH WILL
+        // HAVE ONE OR TWO OF THE ENGINES, RESPECTIVELY.
+        //
+        // MIGHT COULD HAVE A TEMPLATED FUNCTION LIKE
+        // set_parameter( const std::string &paramName, const char *bytes )
+        //
+        // leave it to the individual engines to parse any necessary parameter
+        // objects; use template<typename T> void to_bytes( T obj, char *&
+        // bytes );  // allocate inside here template<typename T> void
+        // from_bytes( T &obj, char *& bytes );  // delete inside here
 
 
     }  // namespace interpolation

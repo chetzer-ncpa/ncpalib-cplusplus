@@ -1,5 +1,5 @@
 GTESTLIBS=-lgtest_main -lgtest
-LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS)
+LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS) -lgslcblas -lgsl
 INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -std=${STANDARD} $(INCFLAGS)
 
