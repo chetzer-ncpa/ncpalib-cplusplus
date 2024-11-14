@@ -131,6 +131,8 @@
 #define ENABLE_IF_TU( CONDITION, T, U ) \
     typename std::enable_if<CONDITION<T, U>::value, int>::type ENABLER = 0
 
+#define ENABLE_IF_REAL( T ) ENABLE_IF( std::is_floating_point<T> )
+
 namespace NCPA {
     namespace types {
         namespace details {
@@ -232,14 +234,13 @@ namespace NCPA {
         };
 
         
+
+        
         template<class T>
         struct is_iterable {
                 static constexpr bool value
                     = details::_hasIteratorFunctions<T>( std::is_class<T> {} );
         };
-
-        // template<typename T>
-        // using IsIterable = std::enable_if_t<is_iterable<T>::value>;
 
         template<typename T, typename U>
         struct is_iterable_of {
@@ -249,10 +250,7 @@ namespace NCPA {
                             U, typename T::value_type>::value );
         };
 
-        // template<typename Container, typename Element>
-        // using IsIterableOf
-        //     = std::enable_if_t < is_iterable_of<Container, Element>::value;
-
+        
 
     }  // namespace types
 }  // namespace NCPA

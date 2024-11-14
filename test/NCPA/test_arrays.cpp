@@ -12,7 +12,7 @@ using namespace std;
 using namespace NCPA::arrays;
 using namespace testing;
 
-TEST( NCPAarraysTest, ZerosCreatesArray ) {
+TEST( NCPAArraysLibraryTest, ZerosCreatesArray ) {
     double *testArray     = zeros<double>( 5 );
     double  shouldBe[ 5 ] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
     ASSERT_ARRAY_EQ( 5, testArray, shouldBe );
@@ -22,7 +22,7 @@ TEST( NCPAarraysTest, ZerosCreatesArray ) {
     delete[] testArray;
 }
 
-TEST( NCPAarraysTest, ZerosCreates2DArray ) {
+TEST( NCPAArraysLibraryTest, ZerosCreates2DArray ) {
     double **testArray = zeros<double>( 10, 5 );
     for ( auto i = 0; i < 10; i++ ) {
         for ( auto j = 0; j < 5; j++ ) {
@@ -31,13 +31,13 @@ TEST( NCPAarraysTest, ZerosCreates2DArray ) {
     }
 }
 
-TEST( NCPAarraysTest, FreeArray2DFreesArrayWithoutError ) {
+TEST( NCPAArraysLibraryTest, FreeArray2DFreesArrayWithoutError ) {
     double **testArray = zeros<double>( 10, 5 );
     free_array( testArray, 10, 5 );
     EXPECT_EQ( testArray, nullptr );
 }
 
-TEST( NCPAarraysTest, ZerosCreates3DArray ) {
+TEST( NCPAArraysLibraryTest, ZerosCreates3DArray ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     for ( auto i = 0; i < 10; i++ ) {
         for ( auto j = 0; j < 5; j++ ) {
@@ -48,57 +48,60 @@ TEST( NCPAarraysTest, ZerosCreates3DArray ) {
     }
 }
 
-TEST( NCPAarraysTest, FreeArray3DFreesArrayWithoutError ) {
+TEST( NCPAArraysLibraryTest, FreeArray3DFreesArrayWithoutError ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     free_array( testArray, 10, 5, 3 );
     ASSERT_EQ( testArray, nullptr );
 }
 
-TEST( NCPAarraysTest, IndexVectorCreatesExpectedVectors ) {
-    int *testArray = index_vector<int>( 5 );
+TEST( NCPAArraysLibraryTest, IndexVectorCreatesExpectedVectors ) {
+    vector<int> testArray = index_vector<int>( 5 );
     for ( int i = 0; i < 5; i++ ) {
         EXPECT_EQ( i, testArray[ i ] );
     }
-    double *testArray2 = index_vector<double>( 5 );
+    vector<double> testArray2 = index_vector<double>( 5 );
     for ( int i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( (double)i, testArray2[ i ] );
     }
 }
 
-TEST( NCPAarraysTest, IndexVectorCreatesExpectedVectorsWithOffset ) {
+TEST( NCPAArraysLibraryTest, IndexVectorCreatesExpectedVectorsWithOffset ) {
     int  offset    = 2;
-    int *testArray = index_vector<int>( 5, offset );
+    vector<int> testArray = index_vector<int>( 5, offset );
     for ( int i = 0; i < 5; i++ ) {
         EXPECT_EQ( i + offset, testArray[ i ] );
     }
-    double *testArray2 = index_vector<double>( 5, (double)offset );
+    vector<double> testArray2 = index_vector<double>( 5, (double)offset );
     for ( int i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( (double)( i + offset ), testArray2[ i ] );
     }
 }
 
-TEST( NCPAarraysTest, CircShiftShiftsForward ) {
-    int *testArray     = index_vector<int>( 5 );
+TEST( NCPAArraysLibraryTest, CircShiftShiftsForward ) {
+    vector<int> inds = index_vector<int>( 5 );
+    int *testArray     = &inds[0];
     int  shouldBe[ 5 ] = { 2, 3, 4, 0, 1 };
     circshift( testArray, 5, 2, testArray );
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( NCPAarraysTest, CircShiftShiftsBackward ) {
-    int *testArray     = index_vector<int>( 5 );
+TEST( NCPAArraysLibraryTest, CircShiftShiftsBackward ) {
+    vector<int> inds = index_vector<int>( 5 );
+    int *testArray     = &inds[0];
     int  shouldBe[ 5 ] = { 3, 4, 0, 1, 2 };
     circshift( testArray, 5, -2, testArray );
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( NCPAarraysTest, CircShiftZeroDoesNotShift ) {
-    int *testArray     = index_vector<int>( 5 );
+TEST( NCPAArraysLibraryTest, CircShiftZeroDoesNotShift ) {
+    vector<int> inds = index_vector<int>( 5 );
+    int *testArray     = &inds[0];
     int  shouldBe[ 5 ] = { 0, 1, 2, 3, 4 };
     circshift( testArray, 5, 0, testArray );
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( NCPAarraysTest, FillArray2DSetsValuesCorrectly ) {
+TEST( NCPAArraysLibraryTest, FillArray2DSetsValuesCorrectly ) {
     double **testArray = zeros<double>( 10, 5 );
     fill( testArray, 10, 5, 4.5 );
     for ( auto i = 0; i < 10; i++ ) {
@@ -109,7 +112,7 @@ TEST( NCPAarraysTest, FillArray2DSetsValuesCorrectly ) {
     free_array( testArray, 10, 5 );
 }
 
-TEST( NCPAarraysTest, FillArray3DSetsValuesCorrectly ) {
+TEST( NCPAArraysLibraryTest, FillArray3DSetsValuesCorrectly ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     fill( testArray, 10, 5, 3, 4.5 );
     for ( auto i = 0; i < 10; i++ ) {
@@ -122,18 +125,32 @@ TEST( NCPAarraysTest, FillArray3DSetsValuesCorrectly ) {
     free_array( testArray, 10, 5, 3 );
 }
 
-TEST(NCPAarraysTest, ReverseReversesOrder) {
-	double *testArray = index_vector<double>( 11 );
-	vector<double> testVector( testArray, testArray + 11 );
+TEST(NCPAArraysLibraryTest, ReverseReversesOrder) {
+	vector<double> testVector = index_vector<double>( 11 );
+    double *testArray = zeros<double>( 11 );
+    std::copy( testVector.cbegin(), testVector.cend(), testArray );
 	std::reverse( testVector.begin(), testVector.end() );
 	NCPA::arrays::reverse( testArray, 11, testArray );
 	EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
 }
 
-TEST(NCPAarraysTest, ReverseReversesOrderPartially) {
-	double *testArray = index_vector<double>( 11 );
-	vector<double> testVector( testArray, testArray + 11 );
+TEST(NCPAArraysLibraryTest, ReverseReversesOrderPartially) {
+	vector<double> testVector = index_vector<double>( 11 );
+    double *testArray = zeros<double>( 11 );
+    std::copy( testVector.cbegin(), testVector.cend(), testArray );
 	std::reverse( testVector.begin(), testVector.begin() + 5 );
 	NCPA::arrays::reverse( testArray, 5, testArray );
 	EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
+}
+
+TEST(NCPAArraysLibraryTest, AsArrayLinksToVector) {
+    std::vector<int> vi = { 0, 1, 2, 3, 4 };
+    int *pi = as_array( vi );
+    for (auto i = 0; i < 5; i++) {
+        ASSERT_EQ( pi[ i ], vi[ i ] );
+    }
+    vi[ 0 ] = 5;
+    for (auto i = 0; i < 5; i++) {
+        ASSERT_EQ( pi[ i ], vi[ i ] );
+    }
 }

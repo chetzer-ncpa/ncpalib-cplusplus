@@ -4,6 +4,7 @@ INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -std=${STANDARD} $(INCFLAGS)
 
 SOURCES=$(wildcard test_*.cpp)
+# SOURCES=test_linearalgebra_sparsevector.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 

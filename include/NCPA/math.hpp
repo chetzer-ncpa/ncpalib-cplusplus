@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NCPA/types.hpp"
 #include "NCPA/arrays.hpp"
+#include "NCPA/types.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -20,6 +20,20 @@ namespace NCPA {
         // double precision to enable DOUBLE_EQUAL unit tests
         constexpr double PI
             = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+
+        /**
+         * Returns zero as the specified type.
+         */
+        template<typename T, ENABLE_IF( std::is_arithmetic<T> )>
+        const T zero() {
+            T z = 0;
+            return z;
+        }
+        template<typename T, ENABLE_IF( NCPA::types::is_complex<T> )>
+        const T zero() {
+            T z(0,0);
+            return z;
+        }
 
         
 
@@ -45,8 +59,8 @@ namespace NCPA {
          * the supplied value.
          */
         template<typename T>
-        bool find_interval_inclusive( T *z, size_t NZ, T val, size_t &bottom,
-                                      size_t &top ) {
+        bool find_interval_inclusive( T *z, size_t NZ, T val, size_t& bottom,
+                                      size_t& top ) {
             double *it  = std::lower_bound( z, z + NZ, val );
             size_t diff = it - z;
             if ( diff == 0 ) {
@@ -137,7 +151,7 @@ namespace NCPA {
         return 0.0 if x==0 and y==0
         */
         template<typename T>
-        void cart2pol( T x, T y, T &r, T &theta_rad ) {
+        void cart2pol( T x, T y, T& r, T& theta_rad ) {
             r = std::sqrt( x * x + y * y );
             try {
                 theta_rad = std::atan2( y, x );
@@ -154,7 +168,7 @@ namespace NCPA {
         @param y The y Cartesian output coordinate.
         */
         template<typename T>
-        void pol2cart( T r, T theta_rad, T &x, T &y ) {
+        void pol2cart( T r, T theta_rad, T& x, T& y ) {
             x = r * std::cos( theta_rad );
             y = r * std::sin( theta_rad );
         }
@@ -244,10 +258,8 @@ namespace NCPA {
          * @param real The real vector to convert
          * @returns The complex<> vector to return
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
-        std::vector<std::complex<T>> real2complex(
-            const std::vector<T> &in ) {
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
+        std::vector<std::complex<T>> real2complex( const std::vector<T>& in ) {
             std::vector<std::complex<T>> out;
             out.reserve( in.size() );
             for ( auto it = in.cbegin(); it != in.cend(); ++it ) {
@@ -264,10 +276,8 @@ namespace NCPA {
          * @param real The real array to convert
          * @param out The complex<> array to return
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
-        void real2complex( size_t n, const T *in,
-                             std::complex<T> *out ) {
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
+        void real2complex( size_t n, const T *in, std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
                 out[ i ] = std::complex<T>( in[ i ], 0.0 );
             }
@@ -281,11 +291,9 @@ namespace NCPA {
          * @param real The real vector to convert as the real parts
          * @param imag The real vector to convert as the imaginary parts
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
         std::vector<std::complex<T>> real2complex(
-            const std::vector<T> &real,
-            const std::vector<T> &imag ) {
+            const std::vector<T>& real, const std::vector<T>& imag ) {
             size_t Nr = real.size();
             size_t Ni = imag.size();
             size_t N  = std::max( Nr, Ni );
@@ -311,10 +319,9 @@ namespace NCPA {
          * @param imag The real array to convert as the real parts
          * @param out The complex<> array to return
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
         void real2complex( size_t n, const T *real, const T *imag,
-                             std::complex<T> *out ) {
+                           std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
                 out[ i ] = std::complex<T>( real[ i ], imag[ i ] );
             }
@@ -329,11 +336,9 @@ namespace NCPA {
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
-        void complex2real( const std::vector<std::complex<T>> &in,
-                             std::vector<T> &real,
-                             std::vector<T> &imag ) {
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
+        void complex2real( const std::vector<std::complex<T>>& in,
+                           std::vector<T>& real, std::vector<T>& imag ) {
             real.resize( in.size() );
             imag.resize( in.size() );
             for ( size_t i = 0; i < in.size(); i++ ) {
@@ -352,10 +357,9 @@ namespace NCPA {
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        template<typename T = double,
-                ENABLE_IF( std::is_floating_point<T> )>
-        void complex2real( size_t n, const std::complex<T> *in,
-                             T *real, T *imag ) {
+        template<typename T = double, ENABLE_IF( std::is_floating_point<T> )>
+        void complex2real( size_t n, const std::complex<T> *in, T *real,
+                           T *imag ) {
             for ( size_t i = 0; i < n; i++ ) {
                 real[ i ] = in[ i ].real();
                 imag[ i ] = in[ i ].imag();
@@ -403,24 +407,37 @@ namespace NCPA {
             return randn;
         }
 
-        /**
-        Generates a vector of N random complex numbers in a given range.
-        @brief Generates a vector of random complex numbers.
-        @param N Number of random values to generate.
-        @param minreal The lower end of the range for the real parts.
-        @param maxreal The upper end of the range for the real parts.
-        @param minimag The lower end of the range for the imaginary parts.
-        @param maximag The upper end of the range for the imaginary parts.
-        @returns A vector of random numbers.
-        */
         template<typename T>
-        std::vector<std::complex<T>> random_numbers( size_t N, T minreal,
-                                                     T maxreal, T minimag,
-                                                     T maximag ) {
-            std::vector<T> randr = random_numbers<T>( N, minreal, maxreal ),
-                           randi = random_numbers<T>( N, minimag, maximag );
+        std::vector<T> random_numbers(
+            size_t N, typename T::value_type minrange,
+            typename T::value_type maxrange,
+            ENABLE_IF( NCPA::types::is_complex<T> ) ) {
+            std::vector<typename T::value_type> randr
+                = random_numbers<typename T::value_type>( N, minrange,
+                                                          maxrange ),
+                randi = random_numbers<typename T::value_type>( N, minrange,
+                                                                maxrange );
             return real2complex( randr, randi );
         }
+
+        // /**
+        // Generates a vector of N random complex numbers in a given range.
+        // @brief Generates a vector of random complex numbers.
+        // @param N Number of random values to generate.
+        // @param minreal The lower end of the range for the real parts.
+        // @param maxreal The upper end of the range for the real parts.
+        // @param minimag The lower end of the range for the imaginary parts.
+        // @param maximag The upper end of the range for the imaginary parts.
+        // @returns A vector of random numbers.
+        // */
+        // template<typename T>
+        // std::vector<std::complex<T>> random_numbers( size_t N, T minreal,
+        //                                              T maxreal, T minimag,
+        //                                              T maximag ) {
+        //     std::vector<T> randr = random_numbers<T>( N, minreal, maxreal ),
+        //                    randi = random_numbers<T>( N, minimag, maximag );
+        //     return real2complex( randr, randi );
+        // }
 
         /**
          * Returns a single random real number in a given range.
@@ -428,25 +445,26 @@ namespace NCPA {
          * @param maxrange The upper end of the range.
          * @returns A single random real number.
          */
-        template<typename T>
-        T random_number( T minrange, T maxrange ) {
+        template<typename T, typename U = typename T::value_type>
+        T random_number( U minrange, U maxrange ) {
             return random_numbers<T>( 1, minrange, maxrange )[ 0 ];
         }
 
-        /**
-         * Returns a single random complex number in a given range.
-         * @param minreal The lower end of the range for the real part.
-         * @param maxreal The upper end of the range for the real part.
-         * @param minimag The lower end of the range for the imaginary part.
-         * @param maximag The upper end of the range for the imaginary part.
-         * @returns A single random complex number.
-         */
-        template<typename T>
-        std::complex<T> random_number( T minreal, T maxreal, T minimag,
-                                       T maximag ) {
-            return random_numbers<T>( 1, minreal, maxreal, minimag,
-                                      maximag )[ 0 ];
-        }
+        // /**
+        //  * Returns a single random complex number in a given range.
+        //  * @param minreal The lower end of the range for the real part.
+        //  * @param maxreal The upper end of the range for the real part.
+        //  * @param minimag The lower end of the range for the imaginary part.
+        //  * @param maximag The upper end of the range for the imaginary part.
+        //  * @returns A single random complex number.
+        //  */
+        // template<typename T>
+        // std::complex<T> random_number( T minreal, T maxreal, T minimag,
+        //                                T maximag ) {
+        //     return random_numbers<std::complex<T>>( 1, minreal, maxreal,
+        //     minimag,
+        //                               maximag )[ 0 ];
+        // }
 
         /**
         @brief Evaluate a polynomial from its coefficients.
@@ -456,7 +474,7 @@ namespace NCPA {
         @returns The calculated value of the polynomial at x.
         */
         template<typename T>
-        T evalpoly( const std::vector<T> &coeffs, T x ) {
+        T evalpoly( const std::vector<T>& coeffs, T x ) {
             T val = 0.0;
             for ( size_t i = 0; i < coeffs.size(); i++ ) {
                 val += coeffs[ i ] * std::pow( x, (double)i );
@@ -477,8 +495,6 @@ namespace NCPA {
             std::vector<T> v( coeffs, coeffs + N );
             return evalpoly<T>( v, x );
         }
-
-        
 
         /**
         Performs a simple linear interpolation.  Returns the value at x
@@ -526,7 +542,7 @@ namespace NCPA {
         dynamically allocated.
         */
         template<typename T>
-        void linspace( T firstval, T lastval, size_t N, T *&vec ) {
+        void linspace( T firstval, T lastval, size_t N, T *& vec ) {
             if ( vec == nullptr ) {
                 vec = NCPA::arrays::zeros<T>( N );
             }
@@ -573,7 +589,7 @@ namespace NCPA {
         */
         template<typename T>
         // requires std::floating_point<T>
-        void logspace( T a, T b, size_t N, T *&ls,
+        void logspace( T a, T b, size_t N, T *& ls,
                        ENABLE_IF( std::is_floating_point<T> ) ) {
             // static_assert( std::floating_point<T>, "logspace() only supports
             // floating-point types" );
@@ -591,7 +607,7 @@ namespace NCPA {
         @returns The computed mean.
         */
         template<typename T>
-        T mean( const std::vector<T> &d ) {
+        T mean( const std::vector<T>& d ) {
             T m  = 0;
             T Tn = (T)( d.size() );
             for ( T val : d ) {
@@ -612,7 +628,6 @@ namespace NCPA {
             return (T)( std::ceil( std::log2( v ) ) );
         }
 
-       
         /**
         @brief Peforms a simple trapezoidal integration.
         @param N The number of points to integrate over.
@@ -638,7 +653,7 @@ namespace NCPA {
         @returns The array holding the sum.
         */
         template<typename T>
-        T add_vectors( T &v1, T &v2,
+        T add_vectors( T& v1, T& v2,
                        ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             size_t N = std::min<size_t>( v1.size(), v2.size() );
             T v3     = v1.size() >= v2.size() ? v1 : v2;
@@ -656,7 +671,7 @@ namespace NCPA {
         array, in which case the values are replaced.
         */
         template<typename T>
-        void add_arrays( size_t N, T *v1, T *v2, T *&v12 ) {
+        void add_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] + v2[ i ];
@@ -674,13 +689,14 @@ namespace NCPA {
         @returns The array holding the quotient.
         */
         template<typename T>
-        T divide_vectors( T &v1, T &v2,
+        T divide_vectors( T& v1, T& v2,
                           ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
             std::transform( v1.cbegin(),
                             v1.cbegin()
                                 + std::min<size_t>( v1.size(), v2.size() ),
-                            v2.cbegin(), v3.begin(), std::divides<typename T::value_type> {} );
+                            v2.cbegin(), v3.begin(),
+                            std::divides<typename T::value_type> {} );
             return v3;
         }
 
@@ -695,7 +711,7 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void divide_arrays( size_t N, T *v1, T *v2, T *&v12 ) {
+        void divide_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] / v2[ i ];
@@ -714,13 +730,14 @@ namespace NCPA {
         @returns The array holding the product.
         */
         template<typename T>
-        T multiply_vectors( T &v1, T &v2,
+        T multiply_vectors( T& v1, T& v2,
                             ENABLE_IF( NCPA::types::is_iterable<T> ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
             std::transform( v1.cbegin(),
                             v1.cbegin()
                                 + std::min<size_t>( v1.size(), v2.size() ),
-                            v2.cbegin(), v3.begin(), std::multiplies<typename T::value_type> {} );
+                            v2.cbegin(), v3.begin(),
+                            std::multiplies<typename T::value_type> {} );
             return v3;
         }
 
@@ -735,7 +752,7 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void multiply_arrays( size_t N, T *v1, T *v2, T *&v12 ) {
+        void multiply_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] * v2[ i ];
@@ -754,7 +771,7 @@ namespace NCPA {
         @param out The new, dynamically-allocated scaled array.
         */
         template<typename T, typename U>
-        void scale_array( size_t N, U *in, T factor, U *&out ) {
+        void scale_array( size_t N, U *in, T factor, U *& out ) {
             U *tempvec = NCPA::arrays::zeros<U>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = in[ i ] * (U)factor;
@@ -772,9 +789,9 @@ namespace NCPA {
         */
         template<typename T, typename U>
         T scale_vector(
-            T &v1, U scalar,
-            typename std::enable_if<
-                NCPA::types::is_iterable_of<T, U>::value, int>::type ENABLER
+            T& v1, U scalar,
+            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+                                    int>::type ENABLER
             = 0 ) {
             T v3 = v1;
             std::transform( v3.begin(), v3.end(), v3.begin(),
@@ -804,7 +821,7 @@ namespace NCPA {
         */
         template<typename T>
         T subtract_vectors(
-            T &v1, T &v2,
+            T& v1, T& v2,
             typename std::enable_if<NCPA::types::is_iterable<T>::value,
                                     int>::type ENABLER
             = 0 ) {
@@ -823,13 +840,23 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void subtract_arrays( size_t N, T *v1, T *v2, T *&v12 ) {
+        void subtract_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] - v2[ i ];
             }
             std::memcpy( v12, tempvec, N * sizeof( T ) );
             delete[] tempvec;
+        }
+
+        template<typename T>
+        bool is_zero( T val ) {
+            return ( std::fpclassify( val ) == FP_ZERO );
+        }
+
+        template<typename T>
+        bool is_zero( std::complex<T> val ) {
+            return is_zero( val.real() ) && is_zero( val.imag() );
         }
 
         // /**

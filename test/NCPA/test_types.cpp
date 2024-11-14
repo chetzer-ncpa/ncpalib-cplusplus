@@ -16,7 +16,7 @@ using namespace std;
 using namespace testing;
 using namespace NCPA::types;
 
-class NCPAtypesTest : public ::testing::Test {
+class NCPATypesLibraryTest : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
            
@@ -133,71 +133,71 @@ void test_iterable_of(
     typename std::enable_if<is_iterable_of<T, U>::value, int>::type ENABLER
     = 0 ) {}
 
-TEST_F( NCPAtypesTest, IsIterableAcceptsVector ) {
+TEST_F( NCPATypesLibraryTest, IsIterableAcceptsVector ) {
     EXPECT_NO_THROW( { test_iterable( svd ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableAcceptsList ) {
+TEST_F( NCPATypesLibraryTest, IsIterableAcceptsList ) {
      EXPECT_NO_THROW( { test_iterable( sld ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableAcceptsMap ) {
+TEST_F( NCPATypesLibraryTest, IsIterableAcceptsMap ) {
     EXPECT_NO_THROW( { test_iterable( mdd ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableDoesNotAcceptScalar ) {
+TEST_F( NCPATypesLibraryTest, IsIterableDoesNotAcceptScalar ) {
     EXPECT_THROW( { test_iterable( d ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsIterableDoesNotAcceptArray ) {
+TEST_F( NCPATypesLibraryTest, IsIterableDoesNotAcceptArray ) {
     EXPECT_THROW( { test_iterable( ad ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsIterableDoesNotAcceptPointer ) {
+TEST_F( NCPATypesLibraryTest, IsIterableDoesNotAcceptPointer ) {
     
     EXPECT_THROW( { test_iterable( pd ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfAcceptsVectorOfSameType ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfAcceptsVectorOfSameType ) {
     
     EXPECT_NO_THROW( { test_iterable_of( svd, d ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfAllowsFloatToDouble ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfAllowsFloatToDouble ) {
     EXPECT_NO_THROW( { test_iterable_of( svd, f ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfAcceptsIntToDouble ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfAcceptsIntToDouble ) {
     EXPECT_NO_THROW( { test_iterable_of( svd, i ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfAcceptsDoubleToInt ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfAcceptsDoubleToInt ) {
     EXPECT_NO_THROW( { test_iterable_of( svi, d ); } );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfDoesNotAllowVectorOfInconvertibleType ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfDoesNotAllowVectorOfInconvertibleType ) {
    EXPECT_THROW(
         { test_iterable_of( svd, ss ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfDoesNotAllowComplexToDouble ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfDoesNotAllowComplexToDouble ) {
     EXPECT_THROW(
         { test_iterable_of( svd, cd ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsIterableOfAllowsDoubleToComplex ) {
+TEST_F( NCPATypesLibraryTest, IsIterableOfAllowsDoubleToComplex ) {
     EXPECT_NO_THROW( { test_iterable_of( svcd, d ); } );
 }
 
-TEST_F( NCPAtypesTest, IsDeleteableAllowsObjects ) {
+TEST_F( NCPATypesLibraryTest, IsDeleteableAllowsObjects ) {
     EXPECT_NO_THROW( { test_deleteable( ss ); } );
 }
 
-TEST_F( NCPAtypesTest, IsDeleteableDoesNotAllowBaseTypes ) {
+TEST_F( NCPATypesLibraryTest, IsDeleteableDoesNotAllowBaseTypes ) {
     EXPECT_THROW( { test_deleteable( d ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsDereferenceableAllowsPointers ) {
+TEST_F( NCPATypesLibraryTest, IsDereferenceableAllowsPointers ) {
     EXPECT_NO_THROW( { test_dereferenceable( pi ); } );
     EXPECT_NO_THROW( { test_dereferenceable( pd ); } );
     EXPECT_NO_THROW( { test_dereferenceable( pf ); } );
@@ -205,42 +205,42 @@ TEST_F( NCPAtypesTest, IsDereferenceableAllowsPointers ) {
     EXPECT_NO_THROW( { test_dereferenceable( psld ); } );
 }
 
-TEST_F( NCPAtypesTest, IsDereferenceableDoesNotAllowFundamentalTypes ) {
+TEST_F( NCPATypesLibraryTest, IsDereferenceableDoesNotAllowFundamentalTypes ) {
     EXPECT_THROW( { test_dereferenceable( i ); }, std::invalid_argument );
     EXPECT_THROW( { test_dereferenceable( d ); }, std::invalid_argument );
     EXPECT_THROW( { test_dereferenceable( f ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsDereferenceableDoesNotAllowObjects ) {
+TEST_F( NCPATypesLibraryTest, IsDereferenceableDoesNotAllowObjects ) {
     EXPECT_THROW( { test_dereferenceable( ss ); }, std::invalid_argument );
     EXPECT_THROW( { test_dereferenceable( sld ); }, std::invalid_argument );
     EXPECT_THROW( { test_dereferenceable( msi ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsDereferenceableAllowsIterators ) {
+TEST_F( NCPATypesLibraryTest, IsDereferenceableAllowsIterators ) {
     EXPECT_NO_THROW( { test_dereferenceable( ss.begin() ); } );
     EXPECT_NO_THROW( { test_dereferenceable( sld.end() ); } );
     EXPECT_NO_THROW( { test_dereferenceable( msi.begin() ); } );
 }
 
-TEST_F( NCPAtypesTest, IsComplexAllowsComplexTypes ) {
+TEST_F( NCPATypesLibraryTest, IsComplexAllowsComplexTypes ) {
     EXPECT_NO_THROW( { test_complex( cd ); } );
     EXPECT_NO_THROW( { test_complex( cf ); } );
     EXPECT_NO_THROW( { test_complex( cld ); } );
 }
 
-TEST_F( NCPAtypesTest, IsComplexDoesNotAllowArithmeticTypes ) {
+TEST_F( NCPATypesLibraryTest, IsComplexDoesNotAllowArithmeticTypes ) {
     EXPECT_THROW( { test_complex( d ); }, std::invalid_argument );
     EXPECT_THROW( { test_complex( f ); }, std::invalid_argument );
     EXPECT_THROW( { test_complex( ld ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsComplexDoesNotAllowOtherClasses ) {
+TEST_F( NCPATypesLibraryTest, IsComplexDoesNotAllowOtherClasses ) {
     EXPECT_THROW( { test_complex( ss ); }, std::invalid_argument );
     EXPECT_THROW( { test_complex( svd ); }, std::invalid_argument );
 }
 
-TEST_F( NCPAtypesTest, IsNumericAllowsIntegerTypes ) {
+TEST_F( NCPATypesLibraryTest, IsNumericAllowsIntegerTypes ) {
     EXPECT_NO_THROW( { test_numeric( i ); } );
     EXPECT_NO_THROW( { test_numeric( ui ); } );
     EXPECT_NO_THROW( { test_numeric( l ); } );
@@ -252,7 +252,7 @@ TEST_F( NCPAtypesTest, IsNumericAllowsIntegerTypes ) {
     EXPECT_NO_THROW( { test_numeric( st ); } );
 }
 
-TEST_F( NCPAtypesTest, IsNumericAllowsFloatingPointTypes ) {
+TEST_F( NCPATypesLibraryTest, IsNumericAllowsFloatingPointTypes ) {
     EXPECT_NO_THROW( { test_numeric( f ); } );
     EXPECT_NO_THROW( { test_numeric( d ); } );
     EXPECT_NO_THROW( { test_numeric( ld ); } );

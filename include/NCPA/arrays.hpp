@@ -4,9 +4,21 @@
 
 #include <cstddef>
 #include <cstring>
+#include <algorithm>
 
 namespace NCPA {
     namespace arrays {
+
+        template<typename T>
+        T* as_array( std::vector<T> &in ) {
+            return &in[0];
+        }
+
+        template<typename T>
+        const T* as_array( const std::vector<T> &in ) {
+            return &in[0];
+        }
+
         /**
         Dynamically allocates a new array and sets all elements to zero
         before returning it.
@@ -206,16 +218,14 @@ namespace NCPA {
         }
 
         /**
-        @brief Sets each element of a 2-D array to a constant value.
+        @brief Sets each element of an array to a constant value.
         @param v The array to fill.
         @param nr The dimension of the array.
         @param val The value to set each element to.
         */
         template<typename T>
         void fill( T *v, size_t nr, const T& val ) {
-            for ( size_t i = 0; i < nr; i++ ) {
-                v[ i ] = val;
-            }
+            std::fill( v, v + nr, val );
         }
 
         /**
@@ -229,9 +239,6 @@ namespace NCPA {
         void fill( T **v, size_t nr, size_t nc, const T& val ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 fill( v[ i ], nc, val );
-                // for ( size_t j = 0; j < nc; j++ ) {
-                //     v[ i ][ j ] = val;
-                // }
             }
         }
 
@@ -248,11 +255,46 @@ namespace NCPA {
         void fill( T ***v, size_t nr, size_t nc, size_t nz, const T& val ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 fill( v[ i ], nc, nz, val );
-                // for ( size_t j = 0; j < nc; j++ ) {
-                //     for ( size_t k = 0; k < nz; k++ ) {
-                //         v[ i ][ j ][ k ] = val;
-                //     }
-                // }
+            }
+        }
+
+        /**
+        @brief Copies one array to another
+        @param from The array to copy.
+        @param n The number of values to copy.
+        @param to The array to copy into.
+        */
+        template<typename T>
+        void copy( const T *from, size_t n, T* to ) {
+            std::copy( from, from + n, to );
+        }
+
+        /**
+        @brief Copies one 2-D array to another
+        @param from The array to copy.
+        @param n1 The first dimension of the array.
+        @param n2 The second dimension of the array.
+        @param to The array to copy into.
+        */
+        template<typename T>
+        void copy( const T **from, size_t n1, size_t n2, T** to ) {
+            for ( size_t i = 0; i < n1; i++ ) {
+                copy( from[ i ], n2, to[ i ] );
+            }
+        }
+
+        /**
+        @brief Copies one 3-D array to another
+        @param from The array to copy.
+        @param n1 The first dimension of the array.
+        @param n2 The second dimension of the array.
+        @param n3 The third dimension of the array
+        @param to The array to copy into.
+        */
+        template<typename T>
+        void copy( const T ***from, size_t n1, size_t n2, size_t n3, T*** to ) {
+            for ( size_t i = 0; i < n1; i++ ) {
+                copy( from[ i ], n2, n3, to[ i ] );
             }
         }
 
@@ -281,13 +323,23 @@ namespace NCPA {
         @returns A pointer to the newly-allocated array.
         */
         template<typename T>
-        T *index_vector( size_t n, T a = 0 ) {
-            T *ivec = zeros<T>( n );
-            for ( size_t i = 0; i < n; i++ ) {
-                ivec[ i ] = (T)i + a;
+        std::vector<T> index_vector( size_t n, T a = 0 ) {
+            std::vector<T> inds( n );
+            for (size_t i = 0; i < n; i++) {
+                inds[ i ] = (T)i + a;
             }
-            return ivec;
+            return inds;
         }
+
+
+        // template<typename T>
+        // T *index_vector( size_t n, T a = 0 ) {
+        //     T *ivec = zeros<T>( n );
+        //     for ( size_t i = 0; i < n; i++ ) {
+        //         ivec[ i ] = (T)i + a;
+        //     }
+        //     return ivec;
+        // }
 
         /**
         @brief Reverses the order of the first N elements of an array.

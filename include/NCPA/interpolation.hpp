@@ -42,12 +42,14 @@ claus@olemiss.edu
 */
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
 #include <cmath>
 #include <complex>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
@@ -67,6 +69,8 @@ claus@olemiss.edu
     typename std::enable_if<std::is_floating_point<DEPTYPE>::value>::type
 #define _ENABLE_IF_DEP_IS_COMPLEX \
     typename std::enable_if<NCPA::types::is_complex<DEPTYPE>::value>::type
+#define _ENABLE_IF_DEP_IS_NUMERIC \
+    typename std::enable_if<NCPA::types::is_numeric<DEPTYPE>::value>::type
 #define _SUBSPLINE_PTR_T \
     NCPA::interpolation::_spline_1d<INDEPTYPE, typename DEPTYPE::value_type> *
 #define _SUBSPLINE_T( _CLASSNAME_ ) \
@@ -256,7 +260,7 @@ the real class, and use the _WITH_PARAM versions of the macros:
         : public SUPERCLASS<INDEPTYPE,DEPTYPE> {
         public:
             CLASSNAME() : SUPERCLASS<INDEPTYPE,DEPTYPE>() {}
-            CLASSNAME( PARAMTYPE param ) 
+            CLASSNAME( PARAMTYPE param )
                 : CLASSNAME<INDEPTYPE,DEPTYPE,PARAMTYPE>() { ... }
             virtual ~CLASSNAME() { ... }
             virtual void fill( size_t N, const INDEPTYPE *x,
@@ -297,6 +301,19 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 namespace NCPA {
     namespace interpolation {
+
+        enum class interpolator_type_t {
+            LANL_LINEAR,
+            LANL_CUBIC,
+            GSL_LINEAR,
+            GSL_POLYNOMIAL,
+            GSL_CUBIC,
+            GSL_AKIMA,
+            GSL_STEFFEN,
+            GSL_CUBIC_PERIODIC,
+            GSL_AKIMA_PERIODIC
+        };
+
         namespace details {
             template<typename INDEPTYPE, typename DEPTYPE>
             class _abstract_spline_1d {
@@ -402,6 +419,70 @@ namespace NCPA {
                 virtual _SUBSPLINE_PTR_T real() = 0;
                 virtual _SUBSPLINE_PTR_T imag() = 0;
         };
+
+
+
+
+
+
+        // Simple nearest neighbor interpolator
+        DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( nearest_neighbor_spline_1d,
+                                                   details::_abstract_spline_1d );
+        
+        _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION //
+    class nearest_neighbor_spline_1d<INDEPTYPE, DEPTYPE, void,
+        _ENABLE_IF_INDEP_IS_REAL,_ENABLE_IF_DEP_IS_REAL>
+        : public details::_abstract_spline_1d<INDEPTYPE,DEPTYPE> {
+        public:
+            virtual ~nearest_neighbor_spline_1d() {}
+            virtual void fill( size_t N, const INDEPTYPE *x,
+                               const DEPTYPE *f ) override {
+                if (N != _size) {
+                    init(N);
+                }
+                std::memcpy( _x.get(), x, N*sizeof(INDEPTYPE)) ;
+                std::memcpy( _f.get(), f, N*sizeof(DEPTYPE) );
+                _size = N;
+            }
+            virtual void fill( const std::vector<INDEPTYPE>& x,
+                               const std::vector<DEPTYPE>& f )
+                               override {
+                if (x.size() != f.size()) {
+                    throw std::invalid_argument( "Vector sizes must be equal!");
+                }
+                fill( x.size(), &x[0], &f[0] );
+            }
+            virtual void init( size_t N ) override { 
+                _x = std::unique_ptr<INDEPTYPE>( NCPA::arrays::zeros<INDEPTYPE>( N ) );
+                _f = std::unique_ptr<DEPTYPE>( NCPA::arrays::zeros<DEPTYPE>( N ) );
+                _size = N;
+            }
+            virtual void clear() override { 
+                _x.reset();
+                _f.reset();
+                _size = 0;
+            }
+            virtual void ready() override {
+                if ((!_x) || (!_f)) {
+                    throw std::logic_error( "Interpolator has not been set up!");
+                }
+            }
+            virtual DEPTYPE eval_f( INDEPTYPE x ) override {
+                return _f[ NCPA::math::find_closest_index<INDEPTYPE>( _x.get(), _size, x ) ];
+            }
+            virtual DEPTYPE eval_df( INDEPTYPE x ) override { return 0; }
+            virtual DEPTYPE eval_ddf( INDEPTYPE x ) override { return 0; }
+            virtual DEPTYPE eval_dddf( INDEPTYPE x ) override { return 0; }
+            
+        private:
+            std::unique_ptr<INDEPTYPE> _x;
+            std::unique_ptr<DEPTYPE> _f;
+            size_t _size = 0;
+    };
+    DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR(nearest_neighbor_spline_1d,details::_abstract_spline_1d)
+
+
+
 
         namespace LANL {
             namespace details {
@@ -978,58 +1059,129 @@ namespace NCPA {
             DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAM(
                 gsl_spline_1d, NCPA::interpolation::_spline_1d,
                 const gsl_interp_type * );
-            // template<typename INDEPTYPE, typename DEPTYPE, typename
-            // PARAMTYPE> class gsl_spline_1d<
-            //     INDEPTYPE, DEPTYPE, PARAMTYPE,
-            //     typename std::enable_if<
-            //         std::is_floating_point<INDEPTYPE>::value>::type,
-            //     typename std::enable_if<
-            //         NCPA::types::is_complex<DEPTYPE>::value>::type>
-            //     : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE>
-            //     { public:
-            //         gsl_spline_1d() :
-            //             NCPA::interpolation::_spline_1d<INDEPTYPE,
-            //             DEPTYPE>() {}
-
-            //         gsl_spline_1d( PARAMTYPE param ) :
-            //             gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE>() {
-            //             _real_spline
-            //                 = gsl_spline_1d<INDEPTYPE,
-            //                                 typename DEPTYPE::value_type,
-            //                                 PARAMTYPE>( param );
-            //             _imag_spline
-            //                 = gsl_spline_1d<INDEPTYPE,
-            //                                 typename DEPTYPE::value_type,
-            //                                 PARAMTYPE>( param );
-            //         }
-
-            //         virtual ~gsl_spline_1d() { this->clear(); }
-
-            //         virtual NCPA::interpolation::_spline_1d<
-            //             INDEPTYPE, typename DEPTYPE::value_type> *
-            //             real() override {
-            //             return static_cast<NCPA::interpolation::_spline_1d<
-            //                 INDEPTYPE, typename DEPTYPE::value_type> *>(
-            //                 &_real_spline );
-            //         }
-
-            //         virtual NCPA::interpolation::_spline_1d<
-            //             INDEPTYPE, typename DEPTYPE::value_type> *
-            //             imag() override {
-            //             return static_cast<NCPA::interpolation::_spline_1d<
-            //                 INDEPTYPE, typename DEPTYPE::value_type> *>(
-            //                 &_imag_spline );
-            //         }
-
-            //     private:
-            //         gsl_spline_1d<INDEPTYPE, typename DEPTYPE::value_type,
-            //                       PARAMTYPE>
-            //             _real_spline, _imag_spline;
-            // };
-
 
         }  // namespace GSL
 #endif
+
+        
+        template<typename INDEPTYPE, typename DEPTYPE>
+        class _Interpolator1D {
+            public:
+                _Interpolator1D() {}
+
+                _Interpolator1D(
+                    std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> engine ) {
+                    set_engine( engine );
+                }
+
+                void set_engine(
+                    std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> engine ) {
+                    _engine = std::move( engine );
+                }
+
+                virtual void fill( size_t N, const INDEPTYPE *x,
+                                   const DEPTYPE *f ) {
+                    _engine->fill( N, x, f );
+                }
+
+                virtual void fill( const std::vector<INDEPTYPE>& x,
+                                   const std::vector<DEPTYPE>& f ) {
+                    _engine->fill( x, f );
+                }
+
+                virtual void init( size_t N ) { _engine->init( N ); }
+
+                virtual void clear() { _engine.reset(); }
+
+                virtual void ready() { _engine.ready(); }
+
+                virtual DEPTYPE eval_f( INDEPTYPE x ) {
+                    return _engine->eval_f( x );
+                }
+
+                virtual DEPTYPE eval_df( INDEPTYPE x ) {
+                    return _engine->eval_df( x );
+                }
+
+                virtual DEPTYPE eval_ddf( INDEPTYPE x ) {
+                    return _engine->eval_ddf( x );
+                }
+
+                virtual DEPTYPE eval_dddf( INDEPTYPE x ) {
+                    return _engine->eval_dddf( x );
+                }
+
+            private:
+                std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> _engine;
+        };
+
+        template<typename INDEPTYPE, typename DEPTYPE>
+        using Interpolator1D
+            = std::unique_ptr<_Interpolator1D<INDEPTYPE, DEPTYPE>>;
+
+        class InterpolatorFactory {
+            public:
+                template<typename INDEPTYPE, typename DEPTYPE>
+                static Interpolator1D<INDEPTYPE, DEPTYPE>& build(
+                    interpolator_type_t interptype ) {
+                    Interpolator1D<INDEPTYPE, DEPTYPE> interp;
+
+                    switch ( interptype ) {
+                        case interpolator_type_t::LANL_LINEAR:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new LANL::linear_spline_1d<INDEPTYPE,
+                                                           DEPTYPE>() ) );
+                            break;
+                        case interpolator_type_t::LANL_CUBIC:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new LANL::natural_cubic_spline_1d<
+                                    INDEPTYPE, DEPTYPE>() ) );
+                            break;
+#ifdef HAVE_GSL_INTERPOLATION_LIBRARY
+                        case interpolator_type_t::GSL_LINEAR:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_linear ) ) );
+                            break;
+                        case interpolator_type_t::GSL_POLYNOMIAL:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_polynomial ) ) );
+                            break;
+                        case interpolator_type_t::GSL_CUBIC:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_cspline ) ) );
+                            break;
+                        case interpolator_type_t::GSL_CUBIC_PERIODIC:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_cspline_periodic ) ) );
+                            break;
+                        case interpolator_type_t::GSL_AKIMA:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_akima ) ) );
+                            break;
+                        case interpolator_type_t::GSL_AKIMA_PERIODIC:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_akima_periodic ) ) );
+                            break;
+#if GSL_MAJOR_VERSION >= 2
+                        case interpolator_type_t::GSL_STEFFEN:
+                            interp.set_engine( std::unique_ptr<_spline_1d<INDEPTYPE,DEPTYPE>>(
+                                new GSL::gsl_spline_1d<
+                                    INDEPTYPE, DEPTYPE>( gsl_interp_steffen ) ) );
+                            break;
+#endif
+#endif
+                        default:
+                            throw std::range_error( "Requested interpolator type unrecognized; either it is undefined or you don't have the libraries available.");
+                    }
+                    return interp;
+                }
+        };
 
     }  // namespace interpolation
 }  // namespace NCPA

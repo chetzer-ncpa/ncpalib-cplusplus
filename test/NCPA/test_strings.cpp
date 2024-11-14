@@ -13,7 +13,7 @@ using namespace testing;
 using namespace NCPA::strings;
 using namespace std;
 
-class StringsTest : public ::testing::Test {
+class NCPAStringsLibraryTest : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
             token_string = "  This is a multi-word string.";
@@ -29,42 +29,42 @@ class StringsTest : public ::testing::Test {
         
 };
 
-TEST_F( StringsTest, DeblankRemovesFromFront ) {
+TEST_F( NCPAStringsLibraryTest, DeblankRemovesFromFront ) {
     EXPECT_EQ( deblank( "     Test string"), "Test string" );
 }
 
-TEST_F( StringsTest, DeblankRemovesFromBack ) {
+TEST_F( NCPAStringsLibraryTest, DeblankRemovesFromBack ) {
     EXPECT_EQ( deblank( "Test string        "), "Test string" );
 }
 
-TEST_F( StringsTest, DeblankRemovesFromFrontAndBack ) {
+TEST_F( NCPAStringsLibraryTest, DeblankRemovesFromFrontAndBack ) {
     EXPECT_EQ( deblank( "   Test string        "), "Test string" );
 }
 
-TEST_F( StringsTest, WhitespaceRedefineableForDeblank) {
+TEST_F( NCPAStringsLibraryTest, WhitespaceRedefineableForDeblank) {
     EXPECT_EQ( deblank( "   Test string        ", "."), "   Test string        " );
     EXPECT_EQ( deblank( "......Test string...", "."), "Test string" );
 }
 
-TEST_F( StringsTest, StringsSplitOnWhitespace) {
+TEST_F( NCPAStringsLibraryTest, StringsSplitOnWhitespace) {
     vector<string> tokens = split( token_string );
     EXPECT_ARRAY_EQ( 5, tokens, expected_tokens );
 }
 
-TEST_F( StringsTest, StringsSplitOnCustomCharacters ) {
+TEST_F( NCPAStringsLibraryTest, StringsSplitOnCustomCharacters ) {
     vector<string> tokens = split( token_string, " \t\n\r." );
     expected_tokens[ 4 ] = "string";
     EXPECT_ARRAY_EQ( 5, tokens, expected_tokens );
 }
 
-TEST_F( StringsTest, TimeAsStringWorksAsExpected ) {
+TEST_F( NCPAStringsLibraryTest, TimeAsStringWorksAsExpected ) {
     EXPECT_EQ( time_as_string( 0.0 ), "1970-01-01T00:00:00.000Z");
 }
 
-TEST_F( StringsTest, ToLowerWorks ) {
+TEST_F( NCPAStringsLibraryTest, ToLowerWorks ) {
     EXPECT_EQ( to_lower( mixed ), lower );
 }
 
-TEST_F( StringsTest, ToUpperWorks ) {
+TEST_F( NCPAStringsLibraryTest, ToUpperWorks ) {
     EXPECT_EQ( to_upper( mixed ), upper );
 }
