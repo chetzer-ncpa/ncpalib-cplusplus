@@ -92,6 +92,17 @@ namespace NCPA {
                     virtual abstract_matrix<ELEMENTTYPE>& transpose() = 0;
 
                     // implementations, not abstract
+                    // metaconstructors
+                    virtual abstract_matrix<ELEMENTTYPE>& identity( size_t nrows, size_t ncols ) {
+                        clear();
+                        resize( nrows, ncols );
+                        ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
+                        for (auto i = 0; i < diagonal_size(0); i++) {
+                            set(i,i,one);
+                        }
+                        return *this;
+                    }
+
                     virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                         multiply(
                             const abstract_matrix<ELEMENTTYPE>& b ) const {
@@ -110,8 +121,11 @@ namespace NCPA {
                         return product;
                     }
 
-                    virtual abstract_matrix<ELEMENTTYPE>& scale(
-                        ELEMENTTYPE val ) {
+                    template<typename ANYTYPE,
+                             ENABLE_IF_TU( std::is_convertible, ANYTYPE,
+                                           ELEMENTTYPE )>
+                     abstract_matrix<ELEMENTTYPE>& scale(
+                        ANYTYPE val ) {
                         for ( size_t row = 0; row < rows(); row++ ) {
                             for ( size_t col = 0; col < columns(); col++ ) {
                                 get( row, col ) *= val;
@@ -131,6 +145,7 @@ namespace NCPA {
                         return *this;
                     }
 
+                    
                     virtual abstract_matrix<ELEMENTTYPE>& add(
                         const abstract_matrix<ELEMENTTYPE>& b,
                         ELEMENTTYPE modifier = 1.0 ) {
@@ -144,8 +159,10 @@ namespace NCPA {
                         return *this;
                     }
 
-                    virtual abstract_matrix<ELEMENTTYPE>& add(
-                        ELEMENTTYPE b ) {
+                    template<typename ANYTYPE,
+                             ENABLE_IF_TU( std::is_convertible, ANYTYPE,
+                                           ELEMENTTYPE )>
+                     abstract_matrix<ELEMENTTYPE>& add( ANYTYPE b ) {
                         for ( size_t row = 0; row < rows(); row++ ) {
                             for ( size_t col = 0; col < columns(); col++ ) {
                                 get( row, col ) += b;
@@ -284,7 +301,9 @@ namespace NCPA {
                     //     const abstract_matrix<OTHERTYPE>& other ) const {
                     //     return false;
                     // }
-                    template<typename ANYTYPE>
+                    template<typename ANYTYPE,
+                             ENABLE_IF_TU( std::is_convertible, ANYTYPE,
+                                           ELEMENTTYPE )>
                     bool equals(
                         const abstract_matrix<ANYTYPE>& other ) const {
                         if ( rows() != other.rows() ) {

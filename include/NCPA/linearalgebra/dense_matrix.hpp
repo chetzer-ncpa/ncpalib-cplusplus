@@ -225,8 +225,11 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual abstract_matrix<ELEMENTTYPE>& scale(
-                        ELEMENTTYPE val ) override {
+                    template<typename ANYTYPE,
+                             ENABLE_IF_TU( std::is_convertible, ANYTYPE,
+                                           ELEMENTTYPE )>
+                     abstract_matrix<ELEMENTTYPE>& scale(
+                        ANYTYPE val ) {
                         for ( auto it = _elements.begin();
                               it != _elements.end(); ++it ) {
                             it->scale( val );
@@ -264,8 +267,11 @@ namespace NCPA {
                     //         this );
                     // }
 
-                    virtual abstract_matrix<ELEMENTTYPE>& add(
-                        ELEMENTTYPE b ) override {
+template<typename ANYTYPE,
+                             ENABLE_IF_TU( std::is_convertible, ANYTYPE,
+                                           ELEMENTTYPE )>
+                     abstract_matrix<ELEMENTTYPE>& add(
+                        ELEMENTTYPE b )  {
                         for ( auto it = _elements.begin();
                               it != _elements.end(); ++it ) {
                             it->add( b );

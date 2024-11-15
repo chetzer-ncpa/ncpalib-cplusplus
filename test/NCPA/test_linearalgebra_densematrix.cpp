@@ -51,6 +51,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         // declare stuff here
         details::dense_matrix<test_t> empty, square, more_rows, more_cols,
             product, identity, symmetric, product2, zeromat;
+        Matrix<test_t> mat1, mat2;
         const size_t dim1 = 3, dim2 = 5;
         test_t testval = -4.2;
 };

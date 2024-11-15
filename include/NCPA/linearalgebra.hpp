@@ -7,3 +7,4 @@
 #include "NCPA/linearalgebra/vector.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
+#include "NCPA/linearalgebra/matrix.hpp"

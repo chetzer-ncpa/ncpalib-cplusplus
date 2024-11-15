@@ -89,6 +89,26 @@ namespace NCPA {
                     return ( rows() == 1 );
                 }
 
+                virtual bool is_empty() const {
+                    return ( _ptr ? _ptr->is_empty() : true );
+                }
+
+                virtual bool is_diagonal() const {
+                    return ( _ptr ? _ptr->is_diagonal() : true );
+                }
+
+                virtual bool is_tridiagonal() const {
+                    return ( _ptr ? _ptr->is_tridiagonal() : true );
+                }
+
+                virtual bool is_lower_triangular() const {
+                    return ( _ptr ? _ptr->is_lower_triangular() : true );
+                }
+
+                virtual bool is_upper_triangular() const {
+                    return ( _ptr ? _ptr->is_upper_triangular() : true );
+                }
+
                 virtual size_t rows() const {
                     return ( _ptr ? _ptr->rows() : 0 );
                 }
@@ -98,20 +118,23 @@ namespace NCPA {
                 }
 
                 virtual ELEMENTTYPE& get( size_t row, size_t col ) {
-                    return ( _ptr ? _ptr->get( row, col ) : 0 );
+                    check_pointer();
+                    return _ptr->get( row, col );
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
                                                 size_t col ) const {
-                    return ( _ptr ? _ptr->get( row, col ) : 0 );
+                    return ( _ptr ? _ptr->get( row, col ) : _zero );
                 }
 
                 virtual std::unique_ptr<Matrix<ELEMENTTYPE>> get_row(
                     size_t row ) const {
                     if ( _ptr ) {
                         std::unique_ptr<Matrix<ELEMENTTYPE>> rowmat(
-                            new Matrix<ELEMENTTYPE>( 1, columns() ) );
-                        rowmat->set_row( _ptr->get_row( row ) );
+                            new Matrix<ELEMENTTYPE>( *this ) );
+                        rowmat->resize( 1, columns() )
+                            .zero()
+                            .set_row( 0, _ptr->get_row( row ) );
                         return rowmat;
                     } else {
                         return std::unique_ptr<Matrix<ELEMENTTYPE>>();
@@ -122,7 +145,7 @@ namespace NCPA {
                     size_t row ) const {
                     if ( _ptr ) {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>(
-                            _ptr->get_row( row ) );
+                            new Vector<ELEMENTTYPE>( _ptr->get_row( row ) ) );
                     } else {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
@@ -132,8 +155,10 @@ namespace NCPA {
                     size_t col ) const {
                     if ( _ptr ) {
                         std::unique_ptr<Matrix<ELEMENTTYPE>> colmat(
-                            new Matrix<ELEMENTTYPE>( rows(), 1 ) );
-                        colmat->set_column( _ptr->get_column( col ) );
+                            new Matrix<ELEMENTTYPE>( *this ) );
+                        colmat->resize( rows(), 1 )
+                            .zero()
+                            .set_column( 0, _ptr->get_column( col ) );
                         return colmat;
                     } else {
                         return std::unique_ptr<Matrix<ELEMENTTYPE>>();
@@ -144,7 +169,8 @@ namespace NCPA {
                     size_t col ) const {
                     if ( _ptr ) {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>(
-                            _ptr->get_column( col ) );
+                            new Vector<ELEMENTTYPE>(
+                                _ptr->get_column( col ) ) );
                     } else {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
@@ -154,7 +180,7 @@ namespace NCPA {
                     int offset = 0 ) const {
                     if ( _ptr ) {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>(
-                            _ptr->get_diagonal( offset ) );
+                            new Vector<ELEMENTTYPE>( _ptr->get_diagonal( offset ) ) );
                     } else {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
@@ -442,8 +468,6 @@ namespace NCPA {
 
                 virtual Matrix<ELEMENTTYPE>& add( ELEMENTTYPE other ) {
                     check_pointer();
-                    other.check_pointer();
-                    check_same_size( other );
                     *_ptr += other;
                     return *this;
                 }
@@ -459,8 +483,6 @@ namespace NCPA {
 
                 virtual Matrix<ELEMENTTYPE>& subtract( ELEMENTTYPE other ) {
                     check_pointer();
-                    other.check_pointer();
-                    check_same_size( other );
                     *_ptr -= other;
                     return *this;
                 }
@@ -476,8 +498,6 @@ namespace NCPA {
 
                 virtual Matrix<ELEMENTTYPE>& scale( ELEMENTTYPE other ) {
                     check_pointer();
-                    other.check_pointer();
-                    check_same_size( other );
                     *_ptr *= other;
                     return *this;
                 }
@@ -492,10 +512,6 @@ namespace NCPA {
                     }
                     _ptr->multiply( *( other._ptr ) );
                     return *this;
-                }
-
-                virtual bool is_empty() const {
-                    return ( _ptr ? _ptr->is_empty() : true );
                 }
 
                 virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
@@ -519,7 +535,7 @@ namespace NCPA {
 
                 virtual Matrix<ELEMENTTYPE>& operator-=(
                     const Matrix<ELEMENTTYPE>& other ) {
-                    this->add( other, -1.0 );
+                    this->subtract( other );
                     return *this;
                 }
 
@@ -542,15 +558,13 @@ namespace NCPA {
                 }
 
                 // friend binary operators
-                friend bool operator==(
-                    const Matrix<ELEMENTTYPE>& a,
-                    const Matrix<ELEMENTTYPE>& b ) {
+                friend bool operator==( const Matrix<ELEMENTTYPE>& a,
+                                        const Matrix<ELEMENTTYPE>& b ) {
                     return a.equals( b );
                 }
 
-                friend bool operator!=(
-                    const Matrix<ELEMENTTYPE>& a,
-                    const Matrix<ELEMENTTYPE>& b ) {
+                friend bool operator!=( const Matrix<ELEMENTTYPE>& a,
+                                        const Matrix<ELEMENTTYPE>& b ) {
                     return !( a.equals( b ) );
                 }
 
@@ -596,6 +610,7 @@ namespace NCPA {
 
             private:
                 std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>> _ptr;
+                const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
         };
     }  // namespace linear
 }  // namespace NCPA
