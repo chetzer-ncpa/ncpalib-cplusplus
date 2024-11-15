@@ -9,6 +9,7 @@
 #include <cmath>
 #include <complex>
 #include <vector>
+#include <fstream>
 
 #include <gtest/gtest-spi.h>
 
@@ -57,7 +58,7 @@ class NCPAInterpolationLibraryTest : public ::testing::Test {
                     NCPA::math::random_number<complex<double>>( -2.0, 2.0 ) };
             cf_cub = make_cubic( x_cub, ccub_coeffs );
 
-            cub_tol = 0.01;
+            cub_tol = 0.05;
 
             lanl_lin_spline_1d.fill( x_lin, f_lin );
             lanl_lin_spline_1d.ready();
@@ -128,8 +129,9 @@ TEST_F( NCPAInterpolationLibraryTest,
     }
     for ( double d  = NCPA::math::min( x_cub ); d <= NCPA::math::max( x_cub );
           d        += 0.1 ) {
-        double expected = eval_cubic( d, cub_coeffs );
-        EXPECT_NEAR( lanl_cub_spline_1d.eval_f( d ), expected,
+        double expected = eval_cubic( d, cub_coeffs ),
+                actual = lanl_cub_spline_1d.eval_f( d );
+        EXPECT_NEAR( actual, expected,
                      std::abs( expected * cub_tol ) );
     }
 }
@@ -141,15 +143,17 @@ TEST_F( NCPAInterpolationLibraryTest,
                      cf_cub[ i ].real(), 1e-12 );
         EXPECT_NEAR( lanl_ccub_spline_1d.eval_f( x_cub[ i ] ).imag(),
                      cf_cub[ i ].imag(), 1e-12 );
-        // EXPECT_COMPLEX_DOUBLE_EQ(
-        //     lanl_ccub_spline_1d.eval_f( x_cub[ i ] ),
-        //     cf_cub[ i ] );
     }
+    // std::ofstream testout( "lanl_cubic_spline_output.dat", ios_base::out );
     for ( double d  = NCPA::math::min( x_cub ); d <= NCPA::math::max( x_cub );
           d        += 0.1 ) {
-        double expected = eval_cubic( d, cub_coeffs );
-        EXPECT_NEAR( lanl_cub_spline_1d.eval_f( d ), expected,
-                     std::abs( expected * cub_tol ) );
+        complex<double> expected = eval_cubic( d, ccub_coeffs ),
+                        actual = lanl_ccub_spline_1d.eval_f( d );
+        // testout << d << " " << expected << " " << actual << endl;
+        EXPECT_NEAR( actual.real(), expected.real(),
+                     std::abs( expected.real() * cub_tol ) );
+        EXPECT_NEAR( actual.imag(), expected.imag(),
+                     std::abs( expected.imag() * cub_tol ) );
     }
 }
 

@@ -27,6 +27,10 @@ template<typename T>
 void swap( NCPA::units::ScalarWithUnits<T>&,
            NCPA::units::ScalarWithUnits<T>& ) noexcept;
 
+template<typename T>
+void swap( NCPA::units::VectorWithUnits<T>&,
+           NCPA::units::VectorWithUnits<T>& ) noexcept;
+
 // template<typename T, ENABLE_IF( std::is_floating_point<T> )>
 template<typename T>
 bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
@@ -62,9 +66,7 @@ template<typename T>
 std::ostream& operator<<( std::ostream& output,
                           const NCPA::units::ScalarWithUnits<T>& D );
 
-template<typename T>
-void swap( NCPA::units::VectorWithUnits<T>&,
-           NCPA::units::VectorWithUnits<T>& ) noexcept;
+
 
 namespace NCPA {
     namespace units {
@@ -667,19 +669,19 @@ namespace NCPA {
                     return this->_value / b.as( this->_units );
                 }
 
-                friend bool ::operator==( const ScalarWithUnits<T>& a,
+                friend bool ::operator== <>( const ScalarWithUnits<T>& a,
                                           const ScalarWithUnits<T>& b );
-                friend bool ::operator!=( const ScalarWithUnits<T>& a,
+                friend bool ::operator!= <>( const ScalarWithUnits<T>& a,
                                           const ScalarWithUnits<T>& b );
-                friend bool ::operator>=( const ScalarWithUnits<T>& a,
+                friend bool ::operator>= <>( const ScalarWithUnits<T>& a,
                                           const ScalarWithUnits<T>& b );
-                friend bool ::operator<=( const ScalarWithUnits<T>& a,
+                friend bool ::operator<= <>( const ScalarWithUnits<T>& a,
                                           const ScalarWithUnits<T>& b );
-                friend bool ::operator>( const ScalarWithUnits<T>& a,
+                friend bool ::operator> <>( const ScalarWithUnits<T>& a,
                                          const ScalarWithUnits<T>& b );
-                friend bool ::operator<( const ScalarWithUnits<T>& a,
+                friend bool ::operator< <>( const ScalarWithUnits<T>& a,
                                          const ScalarWithUnits<T>& b );
-                friend std::ostream& ::operator<<(
+                friend std::ostream& ::operator<< <>(
                     std::ostream & output, const ScalarWithUnits<T>& D );
 
             protected:
@@ -799,7 +801,7 @@ namespace NCPA {
                 virtual ~VectorWithUnits() { this->clear(); }
 
                 // assignment and swapping
-                friend void ::swap( VectorWithUnits<T>& first,
+                friend void ::swap<>( VectorWithUnits<T>& first,
                                     VectorWithUnits<T>& second ) noexcept;
 
                 VectorWithUnits& operator=( VectorWithUnits<T> other ) {

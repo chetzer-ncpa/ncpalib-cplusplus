@@ -12,7 +12,7 @@
                                                      _SUPERCLASSNAME_ ) \
     template<typename ELEMENTTYPE, typename = void>                     \
     class _CLASSNAME_ : public _SUPERCLASSNAME_<ELEMENTTYPE> {          \
-            static_assert( false, "Invalid type for _CLASSNAME_" );     \
+            /*static_assert( false, "Invalid type for _CLASSNAME_" );*/     \
     }
 
 #define NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE \

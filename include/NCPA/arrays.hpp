@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstring>
 #include <algorithm>
+#include <vector>
 
 namespace NCPA {
     namespace arrays {

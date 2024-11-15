@@ -587,7 +587,8 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithDoubleArrayAndUnitsStringWorks ) {
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantScalarWithUnitsWorks ) {
-    EXPECT_THAT( v4, SizeIs( 10 ) );
+    // EXPECT_THAT( v4, SizeIs( 10 ) );
+    EXPECT_EQ( v4.size(), 10 );
     EXPECT_TRUE( v4.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v4.size(); i++ ) {
         EXPECT_DOUBLE_EQ( v4[ i ].get(), 10.0 );
@@ -595,7 +596,8 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantScalarWithUnitsWorks ) {
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantDoubleWorks ) {
-    EXPECT_THAT( v5, SizeIs( 10 ) );
+    // EXPECT_THAT( v5, SizeIs( 10 ) );
+    EXPECT_EQ( v5.size(), 10 );
     EXPECT_TRUE( v5.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v5.size(); i++ ) {
         EXPECT_DOUBLE_EQ( v5[ i ].get(), 10.0 );
@@ -603,7 +605,8 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantDoubleWorks ) {
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorWorks ) {
-    EXPECT_THAT( v8, SizeIs( 6 ) );
+    EXPECT_EQ( v8.size(), 6 );
+    // EXPECT_THAT( v8, SizeIs( 6 ) );
     EXPECT_TRUE( v8.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v8.size(); i++ ) {
         EXPECT_DOUBLE_EQ( v8[ i ].get(), hottemps[ i ] );
@@ -611,7 +614,8 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorWorks ) {
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorAndStringWorks ) {
-    EXPECT_THAT( v9, SizeIs( 6 ) );
+    EXPECT_EQ( v9.size(), 6 );
+    // EXPECT_THAT( v9, SizeIs( 6 ) );
     EXPECT_TRUE( v9.get_units()->equals( FAHRENHEIT ) );
     for ( size_t i = 0; i < v9.size(); i++ ) {
         EXPECT_DOUBLE_EQ( v9[ i ].get(), hottemps[ i ] );
@@ -619,7 +623,8 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorAndStringWorks ) {
 }
 
 TEST_F( NCPAUnitsLibraryTest, CopyConstructorWorks ) {
-    EXPECT_THAT( v6, SizeIs( 10 ) );
+    EXPECT_EQ( v6.size(), 10 );
+    // EXPECT_THAT( v6, SizeIs( 10 ) );
     EXPECT_TRUE( v6.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v6.size(); i++ ) {
         EXPECT_DOUBLE_EQ( v6[ i ].get(), 10.0 );
@@ -658,7 +663,8 @@ TEST_F( NCPAUnitsLibraryTest, SwapWorks ) {
     delete[] buffer;
     buffer = nullptr;
 
-    EXPECT_THAT( v7, SizeIs( v6size ) );
+    // EXPECT_THAT( v7, SizeIs( v6size ) );
+    EXPECT_EQ( v7.size(), v6size );
     EXPECT_EQ( v7.get_units(), v6u );
     buffer = new double[ v7.size() ];
     v7.get_values( buffer );
