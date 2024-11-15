@@ -45,7 +45,13 @@ namespace NCPA {
                         resize( nrows, ncols );
                     }
 
-                    virtual ~dense_matrix() = default;
+                    virtual ~dense_matrix() {}
+
+                    dense_matrix<ELEMENTTYPE>& operator=(
+                        dense_matrix<ELEMENTTYPE> other ) {
+                        swap( *this, other );
+                        return *this;
+                    }
 
                     // bring some methods in unchanged
                     using abstract_matrix<ELEMENTTYPE>::set;
@@ -213,7 +219,7 @@ namespace NCPA {
                         this->check_size( NCPA::math::max( row_inds, nvals ),
                                           column );
                         for ( size_t i = 0; i < nvals; i++ ) {
-                            _elements[ row_inds[i] ][ column ] = vals[ i ];
+                            _elements[ row_inds[ i ] ][ column ] = vals[ i ];
                         }
                         return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
                             this );
@@ -268,16 +274,29 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> transpose()
-                        const override {
-                        std::unique_ptr<abstract_matrix<ELEMENTTYPE>> trans
-                            = fresh_clone();
-                        trans->resize( columns(), rows() );
-                        for ( size_t i = 0; i < rows(); i++ ) {
-                            trans->set_column( i, get_row( i )->as_std() );
+                    virtual abstract_matrix<ELEMENTTYPE>& transpose()
+                        override {
+                        std::unique_ptr<abstract_matrix<ELEMENTTYPE>> orig
+                            = clone();
+                        resize( orig->columns(), orig->rows() );
+                        for ( size_t i = 0; i < orig->rows(); i++ ) {
+                            set_column( i, orig->get_row( i )->as_std() );
                         }
-                        return trans;
+                        return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
+                            this );
                     }
+
+                    // virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
+                    // transpose()
+                    //     const override {
+                    //     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> trans
+                    //         = fresh_clone();
+                    //     trans->resize( columns(), rows() );
+                    //     for ( size_t i = 0; i < rows(); i++ ) {
+                    //         trans->set_column( i, get_row( i )->as_std() );
+                    //     }
+                    //     return trans;
+                    // }
 
                     typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
                         begin() noexcept {

@@ -89,8 +89,7 @@ namespace NCPA {
                         const ELEMENTTYPE *vals )
                         = 0;
 
-                    virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
-                        transpose() const = 0;
+                    virtual abstract_matrix<ELEMENTTYPE>& transpose() = 0;
 
                     // implementations, not abstract
                     virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
@@ -159,6 +158,10 @@ namespace NCPA {
                                                                 size_t col ) {
                         return set( row, col,
                                     NCPA::math::zero<ELEMENTTYPE>() );
+                    }
+
+                    virtual abstract_matrix<ELEMENTTYPE>& zero() {
+                        return scale( NCPA::math::zero<ELEMENTTYPE>() );
                     }
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_row(
@@ -256,9 +259,9 @@ namespace NCPA {
                     virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
                         const std::vector<ELEMENTTYPE>& vals,
                         int offset = 0 ) {
-                        return set_diagonal( vals.size(),
-                                             NCPA::arrays::as_array( vals ),
-                                             offset );
+                        return set_diagonal(
+                            std::min( vals.size(), diagonal_size( offset ) ),
+                            NCPA::arrays::as_array( vals ), offset );
                     }
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
@@ -276,14 +279,14 @@ namespace NCPA {
                             offset );
                     }
 
-                    template<typename OTHERTYPE>
+                    // template<typename OTHERTYPE>
+                    // bool equals(
+                    //     const abstract_matrix<OTHERTYPE>& other ) const {
+                    //     return false;
+                    // }
+                    template<typename ANYTYPE>
                     bool equals(
-                        const abstract_matrix<OTHERTYPE>& other ) const {
-                        return false;
-                    }
-
-                    virtual bool equals(
-                        const abstract_matrix<ELEMENTTYPE>& other ) const {
+                        const abstract_matrix<ANYTYPE>& other ) const {
                         if ( rows() != other.rows() ) {
                             return false;
                         }
@@ -411,14 +414,81 @@ namespace NCPA {
                         }
                     }
 
-                    size_t diagonal_size( int offset ) {
+                    virtual size_t diagonal_size( int offset ) const {
                         return max_off_diagonal() + 1
                              - (size_t)std::abs( offset );
                     }
 
-                    size_t max_off_diagonal() {
+                    virtual size_t max_off_diagonal() const {
                         check_size( 0, 0 );
                         return std::max( rows(), columns() ) - 1;
+                    }
+
+                    virtual bool is_empty() const {
+                        return ( rows() == 0 && columns() == 0 );
+                    }
+
+                    virtual bool is_diagonal() const {
+                        if ( is_empty() ) {
+                            return true;
+                        }
+                        ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
+                        for ( auto i = 0; i < rows(); i++ ) {
+                            for ( auto j = 0; j < columns(); j++ ) {
+                                if ( i != j && get( i, j ) != zero ) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    }
+
+                    virtual bool is_tridiagonal() const {
+                        if ( is_empty() ) {
+                            return true;
+                        }
+                        ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
+                        int nr           = (int)rows();
+                        int nc           = (int)columns();
+                        for ( int i = 0; i < rows(); i++ ) {
+                            for ( int j = 0; j < columns(); j++ ) {
+                                if ( std::abs( i - j ) > 1
+                                     && get( i, j ) != zero ) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    }
+
+                    virtual bool is_upper_triangular() const {
+                        if ( is_empty() ) {
+                            return true;
+                        }
+                        ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
+                        for ( size_t i = 1; i < rows(); i++ ) {
+                            for ( size_t j = 0; j < i; j++ ) {
+                                if ( get( i, j ) != zero ) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    }
+
+                    virtual bool is_lower_triangular() const {
+                        if ( is_empty() ) {
+                            return true;
+                        }
+                        ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
+                        for ( size_t i = 0; i < rows() - 1; i++ ) {
+                            for ( size_t j = i + 1; j < columns(); j++ ) {
+                                if ( get( i, j ) != zero ) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
                     }
             };
         }  // namespace details

@@ -35,7 +35,20 @@ namespace NCPA {
             return z;
         }
 
-        
+        /**
+         * Returns unity as the specified type.
+         * 
+         */
+        template<typename T, ENABLE_IF( std::is_arithmetic<T> )>
+        const T one() {
+            T z = 1;
+            return z;
+        }
+        template<typename T, ENABLE_IF( NCPA::types::is_complex<T> )>
+        const T one() {
+            T z(1,0);
+            return z;
+        }
 
         /**
          * Returns -1, 0, or 1 depending on the sign of the argument.
