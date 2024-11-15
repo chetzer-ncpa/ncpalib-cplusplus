@@ -268,15 +268,15 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual abstract_matrix<ELEMENTTYPE>& transpose()
-                        override {
-                        dense_matrix<ELEMENTTYPE> trans( columns(), rows() );
+                    virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> transpose()
+                        const override {
+                        std::unique_ptr<abstract_matrix<ELEMENTTYPE>> trans
+                            = fresh_clone();
+                        trans->resize( columns(), rows() );
                         for ( size_t i = 0; i < rows(); i++ ) {
-                            trans.set_column( i, get_row( i )->as_std() );
+                            trans->set_column( i, get_row( i )->as_std() );
                         }
-                        swap( *this, trans );
-                        return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
-                            this );
+                        return trans;
                     }
 
                     typename std::vector<dense_vector<ELEMENTTYPE>>::iterator

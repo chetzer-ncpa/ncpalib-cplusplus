@@ -27,19 +27,29 @@ class NCPALinearAlgebraDenseMatrixTest : public ::testing::Test {
             more_rows = mat_t( dim2, dim1 );
             more_cols = mat_t( dim1, dim2 );
             product   = mat_t( dim2, dim2 );
+            product2  = mat_t( dim1, dim1 );
+            symmetric = mat_t( dim1, dim1 );
+            identity  = mat_t( dim1, dim1 );
             for ( size_t i = 0; i < dim1; i++ ) {
                 double di = (double)( i + 1 );
                 square.set_row( i, { di, di, di } );
                 more_rows.set_column( i, { di, di, di, di, di } );
                 more_cols.set_row( i, { di, di, di, di, di } );
+                symmetric.set_row( i, { 0, 0, 0 } );
+                identity.set( i, i, 1.0 );
+                for ( size_t j = 0; j < dim1; j++ ) {
+                    product2.set( i, j,
+                                  (double)( 5 * ( i + 1 ) * ( j + 1 ) ) );
+                }
             }
+            symmetric.set( 1, 1, testval );
             product.set( 14 );
 
         }  // void TearDown() override {}
 
         // declare stuff here
         details::dense_matrix<test_t> empty, square, more_rows, more_cols,
-            product;
+            product, identity, symmetric, product2;
         const size_t dim1 = 3, dim2 = 5;
         test_t testval = -4.2;
 };
@@ -52,6 +62,28 @@ TEST_F( NCPALinearAlgebraDenseMatrixTest, DefaultConstructorIsCorrect ) {
 TEST_F( NCPALinearAlgebraDenseMatrixTest, SizedConstructorIsCorrect ) {
     EXPECT_EQ( square.rows(), dim1 );
     EXPECT_EQ( square.columns(), dim1 );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, EqualsReturnsTrueForEqual ) {
+    EXPECT_TRUE( square.equals( square ) );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, EqualsReturnsFalseForUnequal ) {
+    EXPECT_FALSE( square.equals( more_rows ) );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, CopyConstructorWorks ) {
+    empty = mat_t( square );
+    EXPECT_TRUE( empty.equals( square ) );
+    square.clear();
+    EXPECT_FALSE( empty.equals( square ) );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, AssignmentOperatorWorks ) {
+    empty = square;
+    EXPECT_TRUE( empty.equals( square ) );
+    square.clear();
+    EXPECT_FALSE( empty.equals( square ) );
 }
 
 TEST_F( NCPALinearAlgebraDenseMatrixTest, SizeMethodsReturnExpectedValues ) {
@@ -225,14 +257,68 @@ TEST_F( NCPALinearAlgebraDenseMatrixTest, SetRowMethodsWork ) {
     row = 3;
     std::vector<test_t> row3( 2, testval );
     oldval = more_rows.get( row, 2 );
-    more_rows.set_row( row, row3  );
+    more_rows.set_row( row, row3 );
     _TEST_EQ_( more_rows.get( row, 0 ), testval );
     _TEST_EQ_( more_rows.get( row, 1 ), testval );
     _TEST_EQ_( more_rows.get( row, 2 ), oldval );
 
     row = 4;
-    more_rows.set_row( row, testval  );
+    more_rows.set_row( row, testval );
     _TEST_EQ_( more_rows.get( row, 0 ), testval );
     _TEST_EQ_( more_rows.get( row, 1 ), testval );
     _TEST_EQ_( more_rows.get( row, 2 ), testval );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, SetColumnsMethodsWork ) {
+    test_t *col0          = NCPA::arrays::zeros<test_t>( dim1 );
+    size_t col0_inds[ 3 ] = { 0, 1, 2 };
+    NCPA::arrays::fill( col0, dim1, testval );
+    size_t col = 0;
+    more_cols.set_column( col, dim1, col0_inds, col0 );
+    for ( size_t row = 0; row < dim1; row++ ) {
+        _TEST_EQ_( more_cols.get( row, col ), testval );
+    }
+
+    col           = 1;
+    test_t oldval = more_cols.get( 1, col );
+    std::vector<test_t> col1( 2, testval );
+    std::vector<size_t> col1_inds( { 0, 2 } );
+    more_cols.set_column( col, col1_inds, col1 );
+    _TEST_EQ_( more_cols.get( 0, col ), testval );
+    _TEST_EQ_( more_cols.get( 1, col ), oldval );
+    _TEST_EQ_( more_cols.get( 2, col ), testval );
+
+    col    = 2;
+    oldval = more_cols.get( 1, col );
+    more_cols.set_column( col, { 0, 2 }, { testval, testval } );
+    _TEST_EQ_( more_cols.get( 0, col ), testval );
+    _TEST_EQ_( more_cols.get( 1, col ), oldval );
+    _TEST_EQ_( more_cols.get( 2, col ), testval );
+
+    col = 3;
+    std::vector<test_t> col3( 2, testval );
+    oldval = more_cols.get( 2, col );
+    more_cols.set_column( col, col3 );
+    _TEST_EQ_( more_cols.get( 0, col ), testval );
+    _TEST_EQ_( more_cols.get( 1, col ), testval );
+    _TEST_EQ_( more_cols.get( 2, col ), oldval );
+
+    col = 4;
+    more_cols.set_column( col, testval );
+    _TEST_EQ_( more_cols.get( 0, col ), testval );
+    _TEST_EQ_( more_cols.get( 1, col ), testval );
+    _TEST_EQ_( more_cols.get( 2, col ), testval );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest, TransposeWorksCorrectly ) {
+    EXPECT_TRUE( symmetric.transpose()->equals( symmetric ) );
+    EXPECT_TRUE( identity.transpose()->equals( identity ) );
+    EXPECT_TRUE( more_rows.transpose()->equals( more_cols ) );
+}
+
+TEST_F( NCPALinearAlgebraDenseMatrixTest,
+        MatrixMatrixMultiplicationIsCorrect ) {
+    EXPECT_TRUE( more_rows.multiply( more_cols )->equals( product ) );
+    EXPECT_TRUE( more_cols.multiply( more_rows )->equals( product2 ) );
+    EXPECT_TRUE( square.multiply( identity )->equals( square ) );
 }

@@ -89,7 +89,8 @@ namespace NCPA {
                         const ELEMENTTYPE *vals )
                         = 0;
 
-                    virtual abstract_matrix<ELEMENTTYPE>& transpose() = 0;
+                    virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
+                        transpose() const = 0;
 
                     // implementations, not abstract
                     virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
@@ -210,6 +211,12 @@ namespace NCPA {
                             column,
                             NCPA::arrays::index_vector<size_t>( vals.size() ),
                             vals );
+                    }
+
+                    virtual abstract_matrix<ELEMENTTYPE>& set_column(
+                        size_t column, ELEMENTTYPE val ) {
+                        return set_column(
+                            column, std::vector<ELEMENTTYPE>( rows(), val ) );
                     }
 
                     // set the diagonal or off-diagonal
