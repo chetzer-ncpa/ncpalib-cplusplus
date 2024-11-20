@@ -63,6 +63,7 @@ namespace NCPA {
                         ELEMENTTYPE val )
                         = 0;
 
+                    virtual abstract_vector<ELEMENTTYPE>& zero() = 0;
                     virtual abstract_vector<ELEMENTTYPE>& zero( size_t n ) = 0;
                     virtual abstract_vector<ELEMENTTYPE>& zero(
                         const std::vector<size_t>& n )
@@ -91,8 +92,11 @@ namespace NCPA {
                         const abstract_vector<ELEMENTTYPE>& b ) const
                         = 0;
 
+                    virtual std::map< size_t, ELEMENTTYPE > nonzero() const = 0;
                     virtual size_t count_nonzero_indices() const        = 0;
                     virtual std::vector<size_t> nonzero_indices() const = 0;
+
+                    virtual void qc() = 0;
 
                     // implementations, not abstract
                     template<typename OTHERTYPE>
@@ -174,6 +178,30 @@ namespace NCPA {
                         const abstract_vector<ELEMENTTYPE>& a,
                         const abstract_vector<ELEMENTTYPE>& b ) {
                         return !( a.equals( b ) );
+                    }
+
+                    virtual std::vector<size_t> nonzero_index_union(
+                        const abstract_vector<ELEMENTTYPE>& b ) {
+                        auto nz_a = nonzero_indices();
+                        auto nz_b = b.nonzero_indices();
+                        std::vector<size_t> keep;
+
+                        std::set_union( nz_a.cbegin(), nz_a.cend(),
+                                        nz_b.cbegin(), nz_b.cend(),
+                                        std::back_inserter( keep ) );
+                        return keep;
+                    }
+
+                    virtual std::vector<size_t> nonzero_index_intersection(
+                        const abstract_vector<ELEMENTTYPE>& b ) {
+                        auto nz_a = nonzero_indices();
+                        auto nz_b = b.nonzero_indices();
+                        std::vector<size_t> keep;
+
+                        std::set_intersection( nz_a.cbegin(), nz_a.cend(),
+                                               nz_b.cbegin(), nz_b.cend(),
+                                               std::back_inserter( keep ) );
+                        return keep;
                     }
             };
         }  // namespace details

@@ -109,8 +109,14 @@ namespace NCPA {
                             this );
                     }
 
+                    virtual void qc() override {}
+
                     virtual size_t size() const override {
                         return _elements.size();
+                    }
+
+                    virtual abstract_vector<ELEMENTTYPE>& zero() override {
+                        return set( _zero );
                     }
 
                     virtual abstract_vector<ELEMENTTYPE>& zero(
@@ -130,6 +136,17 @@ namespace NCPA {
                     virtual abstract_vector<ELEMENTTYPE>& zero(
                         std::initializer_list<size_t> n ) override {
                         return zero( std::vector<size_t>( n ) );
+                    }
+
+                    virtual std::map<size_t, ELEMENTTYPE> nonzero()
+                        const override {
+                        std::map<size_t, ELEMENTTYPE> nz;
+                        for ( auto i = 0; i < size(); i++ ) {
+                            if ( !NCPA::math::is_zero( _elements[ i ] ) ) {
+                                nz[ i ] = _elements[ i ];
+                            }
+                        }
+                        return nz;
                     }
 
                     virtual std::vector<size_t> nonzero_indices()

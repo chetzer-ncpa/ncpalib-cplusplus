@@ -12,7 +12,7 @@
                                                      _SUPERCLASSNAME_ ) \
     template<typename ELEMENTTYPE, typename = void>                     \
     class _CLASSNAME_ : public _SUPERCLASSNAME_<ELEMENTTYPE> {          \
-            /*static_assert( false, "Invalid type for _CLASSNAME_" );*/     \
+            /*static_assert( false, "Invalid type for _CLASSNAME_" );*/ \
     }
 
 #define NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE \
@@ -30,14 +30,29 @@
     bool operator!=( const _CLASSNAME_<_TYPENAME_>& a,            \
                      const _CLASSNAME_<_TYPENAME_>& b );
 
-#define DECLARE_BINARY_OPERATORS( _CLASSNAME_ )                               \
-    template<typename ELEMENTTYPE>                                            \
-    _CLASSNAME_<ELEMENTTYPE> operator+( const _CLASSNAME_<ELEMENTTYPE>& c1,   \
-                                        const _CLASSNAME_<ELEMENTTYPE>& c2 ); \
-    template<typename ELEMENTTYPE>                                            \
-    _CLASSNAME_<ELEMENTTYPE> operator-( const _CLASSNAME_<ELEMENTTYPE>& c1,   \
-                                        const _CLASSNAME_<ELEMENTTYPE>& c2 ); \
-    template<typename ELEMENTTYPE>                                            \
-    _CLASSNAME_<ELEMENTTYPE> operator*( const _CLASSNAME_<ELEMENTTYPE>& c1,   \
-                                        const _CLASSNAME_<ELEMENTTYPE>& c2 );
-
+#define NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( _CLASSNAME_,    \
+                                                            _TYPENAME_ )    \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator+( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       const _CLASSNAME_<_TYPENAME_>& c2 ); \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator+( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       _TYPENAME_ c2 );                     \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator+( _TYPENAME_ c2,                       \
+                                       const _CLASSNAME_<_TYPENAME_>& c1 ); \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator-( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       const _CLASSNAME_<_TYPENAME_>& c2 ); \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator-( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       _TYPENAME_ c2 );                     \
+    template<typename ELEMENTTYPE>                                          \
+    _CLASSNAME_<_TYPENAME_> operator*( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       const _CLASSNAME_<_TYPENAME_>& c2 ); \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator*( const _CLASSNAME_<_TYPENAME_>& c1,   \
+                                       _TYPENAME_ c2 );                     \
+    template<typename _TYPENAME_>                                           \
+    _CLASSNAME_<_TYPENAME_> operator*( _TYPENAME_ c2,                       \
+                                       const _CLASSNAME_<_TYPENAME_>& c1 );

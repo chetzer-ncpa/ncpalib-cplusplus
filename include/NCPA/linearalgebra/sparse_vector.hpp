@@ -134,6 +134,10 @@ namespace NCPA {
 
                     virtual ELEMENTTYPE& get( size_t n ) override {
                         _check_out_of_range( n );
+                        auto it = _elements.find( n );
+                        if ( it == _elements.end() ) {
+                            _elements[ n ] = _zero;
+                        }
                         return _elements[ n ];
                     }
 
@@ -163,14 +167,12 @@ namespace NCPA {
                     virtual abstract_vector<ELEMENTTYPE>& resize(
                         size_t n ) override {
                         if ( n < _capacity ) {
-                            for ( auto it = _elements.rbegin();
-                                  it != _elements.rend(); ++it ) {
-                                if ( it->first >= n ) {
-                                    _elements.erase( it->first );
-                                }
+                            auto last = _elements.upper_bound( n - 1 );
+                            while ( last != _elements.end() ) {
+                                _elements.erase( last );
+                                last = _elements.upper_bound( n - 1 );
                             }
                         }
-
                         _capacity = n;
                         return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                             this );
@@ -224,14 +226,8 @@ namespace NCPA {
                     virtual abstract_vector<ELEMENTTYPE>& scale(
                         const abstract_vector<ELEMENTTYPE>& b ) override {
                         _check_same_size( b );
-
-                        auto nz_a = nonzero_indices();
-                        auto nz_b = b.nonzero_indices();
-                        std::vector<size_t> keep;
-
-                        std::set_union( nz_a.cbegin(), nz_a.cend(),
-                                        nz_b.cbegin(), nz_b.cend(),
-                                        std::back_inserter( keep ) );
+                        std::vector<size_t> keep
+                            = this->nonzero_index_union( b );
 
                         sparse_vector<ELEMENTTYPE> newv;
                         newv.resize( size() );
@@ -256,18 +252,35 @@ namespace NCPA {
                         return product;
                     }
 
+                    virtual std::map<size_t, ELEMENTTYPE> nonzero()
+                        const override {
+                        return std::map<size_t, ELEMENTTYPE>( _elements );
+                    }
+
                     virtual std::vector<size_t> nonzero_indices()
                         const override {
                         std::vector<size_t> nz;
                         for ( auto it = _elements.cbegin();
                               it != _elements.cend(); ++it ) {
-                            nz.push_back( it->first );
+                            if (!NCPA::math::is_zero( it->second )) {
+                                nz.push_back( it->first );
+                            }
                         }
                         return nz;
                     }
 
                     virtual size_t count_nonzero_indices() const override {
                         return _elements.size();
+                    }
+
+                    virtual void qc() override {
+                        _verify_nonzero();
+                    }
+
+                    virtual abstract_vector<ELEMENTTYPE>& zero() override {
+                        _elements.clear();
+                        return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                            this );
                     }
 
                     virtual abstract_vector<ELEMENTTYPE>& zero(
@@ -344,7 +357,20 @@ namespace NCPA {
                         return !( a.equals( b ) );
                     }
 
+
                 protected:
+                    void _verify_nonzero() {
+                        std::vector<size_t> bad_inds;
+                        for (auto it = _elements.begin(); it != _elements.end(); ++it) {
+                            if (NCPA::math::is_zero( it->second )) {
+                                bad_inds.push_back( it->first );
+                            }
+                        }
+                        for (auto it = bad_inds.begin(); it != bad_inds.end(); ++it) {
+                            _elements.erase( *it );
+                        }
+                    }
+
                     void _erase( size_t n ) {
                         auto it = _elements.find( n );
                         if ( it != _elements.cend() ) {

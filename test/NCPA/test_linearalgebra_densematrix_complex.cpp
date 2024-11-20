@@ -12,17 +12,17 @@ using namespace testing;
 using namespace std;
 using namespace NCPA::linear;
 
-#define _TEST_EQ_       EXPECT_DOUBLE_EQ
-#define _TEST_ARRAY_EQ_ EXPECT_ARRAY_DOUBLE_EQ
-#define _TEST_TITLE_    NCPALinearAlgebraLibraryDenseMatrixTest
+#define _TEST_EQ_       EXPECT_COMPLEX_DOUBLE_EQ
+#define _TEST_ARRAY_EQ_ EXPECT_ARRAY_COMPLEX_DOUBLE_EQ
+#define _TEST_TITLE_    NCPALinearAlgebraLibraryComplexDenseMatrixTest
 
-typedef double test_t;
+typedef complex<double> test_t;
 typedef details::dense_matrix<test_t> mat_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-
+            testval = test_t( -4.2, 4.2 );
             square    = mat_t( dim1, dim1 );
             more_rows = mat_t( dim2, dim1 );
             more_cols = mat_t( dim1, dim2 );
@@ -32,19 +32,20 @@ class _TEST_TITLE_ : public ::testing::Test {
             identity  = mat_t( dim1, dim1 );
             zeromat   = mat_t( dim2, dim2 );
             for ( size_t i = 0; i < dim1; i++ ) {
-                double di = (double)( i + 1 );
+                double die = (double)( i + 1 );
+                test_t di( die, die );
                 square.set_row( i, { di, di, di } );
                 more_rows.set_column( i, { di, di, di, di, di } );
                 more_cols.set_row( i, { di, di, di, di, di } );
                 symmetric.set_row( i, { 0, 0, 0 } );
-                identity.set( i, i, 1.0 );
+                identity.set( i, i, NCPA::math::one<test_t>() );
                 for ( size_t j = 0; j < dim1; j++ ) {
                     product2.set( i, j,
-                                  (double)( 5 * ( i + 1 ) * ( j + 1 ) ) );
+                                  test_t( 0.0,  10.0 * (double)( i + 1 ) * (double)( j + 1 ) ) );
                 }
             }
             symmetric.set( 1, 1, testval );
-            product.set( 14 );
+            product.set( test_t( 0.0, 28.0) );
 
         }  // void TearDown() override {}
 
@@ -53,7 +54,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             product, identity, symmetric, product2, zeromat;
         Matrix<test_t> mat1, mat2;
         const size_t dim1 = 3, dim2 = 5;
-        test_t testval = -4.2;
+        test_t testval;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorIsCorrect ) {
@@ -112,7 +113,7 @@ TEST_F( _TEST_TITLE_, ResizePreservesExistingData ) {
             if ( i < dim1 && j < dim1 ) {
                 _TEST_EQ_( more_cols.get( i, j ), square.get( i, j ) );
             } else {
-                _TEST_EQ_( square.get( i, j ), 0.0 );
+                _TEST_EQ_( square.get( i, j ), NCPA::math::zero<test_t>() );
             }
         }
     }
@@ -145,7 +146,7 @@ TEST_F( _TEST_TITLE_, SwapWorks ) {
 TEST_F( _TEST_TITLE_, GetRowReturnsCopy ) {
     for ( size_t i = 0; i < dim1; i++ ) {
         for ( size_t j = 0; j < dim1; j++ ) {
-            _TEST_EQ_( (double)( i + 1 ), square.get_row( i )->get( j ) );
+            _TEST_EQ_( test_t( (double)( i + 1 ), (double)( i + 1 )) , square.get_row( i )->get( j ) );
         }
     }
 }
@@ -153,19 +154,30 @@ TEST_F( _TEST_TITLE_, GetRowReturnsCopy ) {
 TEST_F( _TEST_TITLE_, GetColumnReturnsCopy ) {
     for ( size_t i = 0; i < dim1; i++ ) {
         for ( size_t j = 0; j < dim1; j++ ) {
-            _TEST_EQ_( (double)( j + 1 ), square.get_column( i )->get( j ) );
+            _TEST_EQ_( test_t( (double)( j + 1 ), (double)( j + 1 )), square.get_column( i )->get( j ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, GetDiagonalReturnsExpectedValues ) {
-    std::vector<test_t> diag0( { 1.0, 2.0, 3.0 } ), diag1( { 1.0, 2.0 } ),
-        diag2( { 1.0 } ), diag_1( { 2.0, 3.0 } ), diag_2( { 3.0 } );
+    std::vector<test_t> diag0( { test_t(1.0,1.0), test_t(2.0,2.0), test_t(3.0,3.0) } );
+    std::vector<test_t>    diag1( {test_t(1.0,1.0), test_t(2.0,2.0)} ),
+
+        diag2( { test_t(1.0,1.0) } ), diag_1( {test_t(2.0,2.0), test_t(3.0,3.0)} ), 
+        diag_2( {test_t(3.0,3.0)} );
     _TEST_ARRAY_EQ_( 3, square.get_diagonal()->as_std(), diag0 );
     _TEST_ARRAY_EQ_( 2, square.get_diagonal( 1 )->as_std(), diag1 );
     _TEST_ARRAY_EQ_( 1, square.get_diagonal( 2 )->as_std(), diag2 );
     _TEST_ARRAY_EQ_( 2, square.get_diagonal( -1 )->as_std(), diag_1 );
     _TEST_ARRAY_EQ_( 1, square.get_diagonal( -2 )->as_std(), diag_2 );
+}
+
+TEST_F( _TEST_TITLE_, IndexingOperatorReturnsVector ) {
+    for ( size_t i = 0; i < dim1; i++ ) {
+        for ( size_t j = 0; j < dim1; j++ ) {
+            _TEST_EQ_( square[i][j], square.get( i, j ) );
+        }
+    }
 }
 
 TEST_F( _TEST_TITLE_, ClearWorksProperly ) {
@@ -218,7 +230,7 @@ TEST_F( _TEST_TITLE_, AsArrayThrowsIfDimensionsWrong ) {
 }
 
 TEST_F( _TEST_TITLE_, SetMethodsWork ) {
-    _TEST_EQ_( square.get( 0, 0 ), 1.0 );
+    _TEST_EQ_( square.get( 0, 0 ), test_t(1.0,1.0) );
     square.set( 0, 0, testval );
     _TEST_EQ_( square.get( 0, 0 ), testval );
     square.set( testval );
@@ -340,7 +352,7 @@ TEST_F( _TEST_TITLE_, ScaleWorksWithMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       original.get( i, j ) * original.get( i, j ) );
+                       (original.get( i, j ) * original.get( i, j )) );
         }
     }
 }
@@ -351,7 +363,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) + testval );
+                       (original.get( i, j ) + testval) );
         }
     }
 }
@@ -362,7 +374,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) * 2.0 );
+                       (original.get( i, j ) * 2.0) );
         }
     }
 }
@@ -373,7 +385,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScaledMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       0.0 );
+                       NCPA::math::zero<test_t>() );
         }
     }
 }
@@ -436,7 +448,7 @@ TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithScalar ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) + testval );
+                       (original.get( i, j ) + testval) );
         }
     }
 }
@@ -447,7 +459,7 @@ TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) * 2.0 );
+                       (original.get( i, j ) * 2.0) );
         }
     }
 }
@@ -458,7 +470,7 @@ TEST_F( _TEST_TITLE_, MinusEqualOperatorWorksWithScalar ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) - testval );
+                       (original.get( i, j ) - testval) );
         }
     }
 }
@@ -469,7 +481,7 @@ TEST_F( _TEST_TITLE_, MinusEqualWorksWithMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       0.0 );
+                       NCPA::math::zero<test_t>() );
         }
     }
 }
@@ -490,7 +502,7 @@ TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithMatrix ) {
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       original.get( i, j ) * original.get( i, j ) );
+                       (original.get( i, j ) * original.get( i, j )) );
         }
     }
 }
@@ -501,7 +513,7 @@ TEST_F( _TEST_TITLE_, DivideEqualOperatorWorksWithScalar ) {
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       original.get( i, j ) / testval );
+                       (original.get( i, j ) / testval) );
         }
     }
 }

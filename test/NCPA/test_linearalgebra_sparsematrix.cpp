@@ -14,10 +14,10 @@ using namespace NCPA::linear;
 
 #define _TEST_EQ_       EXPECT_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_DOUBLE_EQ
-#define _TEST_TITLE_    NCPALinearAlgebraLibraryDenseMatrixTest
+#define _TEST_TITLE_    NCPALinearAlgebraLibrarySparseMatrixTest
 
 typedef double test_t;
-typedef details::dense_matrix<test_t> mat_t;
+typedef details::sparse_matrix<test_t> mat_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
@@ -49,8 +49,8 @@ class _TEST_TITLE_ : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::dense_matrix<test_t> empty, square, more_rows, more_cols,
-            product, identity, symmetric, product2, zeromat;
+        mat_t empty, square, more_rows, more_cols, product, identity,
+            symmetric, product2, zeromat;
         Matrix<test_t> mat1, mat2;
         const size_t dim1 = 3, dim2 = 5;
         test_t testval = -4.2;
@@ -107,11 +107,14 @@ TEST_F( _TEST_TITLE_, ResizeWorks ) {
 
 TEST_F( _TEST_TITLE_, ResizePreservesExistingData ) {
     square.resize( dim1 + 1, dim1 + 1 );
+    ASSERT_EQ( square.rows(), dim1+1 );
+    ASSERT_EQ( square.columns(), dim1 + 1 );
     for ( size_t i = 0; i < dim1 + 1; i++ ) {
         for ( size_t j = 0; j < dim1 + 1; j++ ) {
             if ( i < dim1 && j < dim1 ) {
                 _TEST_EQ_( more_cols.get( i, j ), square.get( i, j ) );
             } else {
+                // cout << "Checking square[" << i << "," << j << "]" << endl;
                 _TEST_EQ_( square.get( i, j ), 0.0 );
             }
         }
@@ -350,8 +353,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
     square.add( testval );
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) + testval );
+            _TEST_EQ_( square.get( i, j ), original.get( i, j ) + testval );
         }
     }
 }
@@ -361,8 +363,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithMatrix ) {
     square.add( square );
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) * 2.0 );
+            _TEST_EQ_( square.get( i, j ), original.get( i, j ) * 2.0 );
         }
     }
 }
@@ -372,8 +373,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScaledMatrix ) {
     square.add( square, -1.0 );
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       0.0 );
+            _TEST_EQ_( square.get( i, j ), 0.0 );
         }
     }
 }
@@ -388,9 +388,8 @@ TEST_F( _TEST_TITLE_, ZeroWorks ) {
 TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
     mat_t testmat( 5, 5 ), control( 5, 5 );
     test_t zero = NCPA::math::zero<test_t>();
-    
-    for (auto i = 0; i < 5; i++) {
-        _TEST_EQ_( testmat.get(i,i), zero );
+    for ( auto i = 0; i < 5; i++ ) {
+        _TEST_EQ_( testmat.get( i, i ), zero );
         control.set( i, i, testval );
     }
     // set control off-diagonals
@@ -407,20 +406,28 @@ TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
     testmat.set_diagonal( 3, diag, 2 );
     testmat.set_diagonal( 2, diag, -3 );
     EXPECT_TRUE( testmat.equals( control ) );
+    // cout << "First test passed" << endl;
 
     // second version
     testmat.zero();
+    // cout << "Zero OK" << endl;
     testmat.set_diagonal( vdiag );
+    // cout << "Main diagonal set" << endl;
     testmat.set_diagonal( vdiag, 2 );
+    // cout << "Upper second off-diagonal set" << endl;
     testmat.set_diagonal( vdiag, -3 );
+    // cout << "Lower third off-diagonal set" << endl;
     EXPECT_TRUE( testmat.equals( control ) );
+    // cout << "Second test passed" << endl;
 
     // third version
     testmat.zero();
     testmat.set_diagonal( { testval, testval, testval, testval, testval } );
     testmat.set_diagonal( { testval, testval, testval, testval, testval }, 2 );
-    testmat.set_diagonal( { testval, testval, testval, testval, testval }, -3 );
+    testmat.set_diagonal( { testval, testval, testval, testval, testval },
+                          -3 );
     EXPECT_TRUE( testmat.equals( control ) );
+    // cout << "Third test passed" << endl;
 
     // fourth version
     testmat.zero();
@@ -428,55 +435,52 @@ TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
     testmat.set_diagonal( testval, 2 );
     testmat.set_diagonal( testval, -3 );
     EXPECT_TRUE( testmat.equals( control ) );
+    // cout << "Fourth test passed" << endl;
 }
 
 TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithScalar ) {
-    mat_t original = square;
-    square += testval;
+    mat_t original  = square;
+    square         += testval;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) + testval );
+            _TEST_EQ_( square.get( i, j ), original.get( i, j ) + testval );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithMatrix ) {
-    mat_t original = square;
-    square += square;
+    mat_t original  = square;
+    square         += square;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) * 2.0 );
+            _TEST_EQ_( square.get( i, j ), original.get( i, j ) * 2.0 );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, MinusEqualOperatorWorksWithScalar ) {
-    mat_t original = square;
-    square -= testval;
+    mat_t original  = square;
+    square         -= testval;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       original.get( i, j ) - testval );
+            _TEST_EQ_( square.get( i, j ), original.get( i, j ) - testval );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, MinusEqualWorksWithMatrix ) {
-    mat_t original = square;
-    square -= square;
+    mat_t original  = square;
+    square         -= square;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       0.0 );
+            _TEST_EQ_( square.get( i, j ), 0.0 );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithScalar ) {
-    mat_t original = product;
-    product*= 0.5;
+    mat_t original  = product;
+    product        *= 0.5;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ), 0.5 * original.get( i, j ) );
@@ -485,8 +489,8 @@ TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithScalar ) {
 }
 
 TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithMatrix ) {
-    mat_t original = product;
-    product *= product;
+    mat_t original  = product;
+    product        *= product;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
@@ -496,12 +500,11 @@ TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithMatrix ) {
 }
 
 TEST_F( _TEST_TITLE_, DivideEqualOperatorWorksWithScalar ) {
-    mat_t original = product;
-    product /= testval;
+    mat_t original  = product;
+    product        /= testval;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
-            _TEST_EQ_( product.get( i, j ),
-                       original.get( i, j ) / testval );
+            _TEST_EQ_( product.get( i, j ), original.get( i, j ) / testval );
         }
     }
 }
@@ -514,7 +517,7 @@ TEST_F( _TEST_TITLE_, IsDiagonalReturnsCorrectly ) {
     EXPECT_FALSE( more_cols.is_diagonal() );
     EXPECT_TRUE( empty.is_diagonal() );
     EXPECT_TRUE( zeromat.is_diagonal() );
-} 
+}
 
 TEST_F( _TEST_TITLE_, IsTridiagonalReturnsCorrectly ) {
     EXPECT_TRUE( identity.is_tridiagonal() );
@@ -525,12 +528,17 @@ TEST_F( _TEST_TITLE_, IsTridiagonalReturnsCorrectly ) {
     EXPECT_TRUE( empty.is_tridiagonal() );
     EXPECT_TRUE( zeromat.is_tridiagonal() );
 
-    square.zero( 0, dim1-1 );
-    square.zero( dim1-1, 0 );
+    ASSERT_EQ( square.get_row(0)->count_nonzero_indices(), 3 );
+    square.zero( 0, 2 );
+    ASSERT_EQ( square.get_row(0)->count_nonzero_indices(), 2 );
+    ASSERT_EQ( square.get_row(2)->count_nonzero_indices(), 3 );
+    square.zero( 2, 0 );
+    ASSERT_EQ( square.get_row(2)->count_nonzero_indices(), 2 );
+    
     EXPECT_TRUE( square.is_tridiagonal() );
-} 
+}
 
-TEST_F( _TEST_TITLE_, IsLowerTriagonalIsCorrect ) {
+TEST_F( _TEST_TITLE_, IsLowerTriangularIsCorrect ) {
     EXPECT_TRUE( identity.is_lower_triangular() );
     EXPECT_FALSE( square.is_lower_triangular() );
     EXPECT_FALSE( product.is_lower_triangular() );
@@ -539,12 +547,32 @@ TEST_F( _TEST_TITLE_, IsLowerTriagonalIsCorrect ) {
     EXPECT_TRUE( empty.is_lower_triangular() );
     EXPECT_TRUE( zeromat.is_lower_triangular() );
 
-    for (size_t i = 0; i < zeromat.rows(); i++) {
-        for (size_t j = 0; j < i; j++) {
-            zeromat.set(i,j,testval);
+    for ( size_t i = 0; i < zeromat.rows(); i++ ) {
+        for ( size_t j = 0; j < i; j++ ) {
+            // cout << "Setting [" << i << "," << j << "]" << endl;
+            zeromat.set( i, j, testval );
         }
     }
     EXPECT_TRUE( zeromat.is_lower_triangular() );
-    zeromat.set( 0,1,testval);
+    zeromat.set( 0, 1, testval );
     EXPECT_FALSE( zeromat.is_lower_triangular() );
+}
+
+TEST_F( _TEST_TITLE_, IsUpperTriangularIsCorrect ) {
+    EXPECT_TRUE( identity.is_upper_triangular() );
+    EXPECT_FALSE( square.is_upper_triangular() );
+    EXPECT_FALSE( product.is_upper_triangular() );
+    EXPECT_FALSE( more_rows.is_upper_triangular() );
+    EXPECT_FALSE( more_cols.is_upper_triangular() );
+    EXPECT_TRUE( empty.is_upper_triangular() );
+    EXPECT_TRUE( zeromat.is_upper_triangular() );
+
+    for ( size_t i = 0; i < zeromat.rows(); i++ ) {
+        for ( size_t j = i; j < zeromat.columns(); j++ ) {
+            zeromat.set( i, j, testval );
+        }
+    }
+    EXPECT_TRUE( zeromat.is_upper_triangular() );
+    zeromat.set( 1, 0, testval );
+    EXPECT_FALSE( zeromat.is_upper_triangular() );
 }

@@ -149,14 +149,7 @@ namespace NCPA {
             using void_t = typename make_void<Ts...>::type;
         }  // namespace details
 
-        // Tester for deleteable: destructible and not a fundamental type.
-        // Good example of a simple compound trait.
-        template<typename T>
-        struct is_deleteable {
-                static constexpr bool value
-                    = std::is_destructible<T>::value
-                   && ( !std::is_fundamental<T>::value );
-        };
+        
 
         // decltype( *std::declval<T>() ):
         // declval<T>.method() lets you get a dummy instance of t.method()
@@ -184,6 +177,15 @@ namespace NCPA {
         details::void_t<decltype( std::declval<T>().imag() )>>
             : std::true_type {};
 
+        // Tester for deleteable: destructible and not a fundamental type.
+        // Good example of a simple compound trait.
+        template<typename T>
+        struct is_deleteable {
+                static constexpr bool value
+                    = std::is_destructible<T>::value
+                   && ( !std::is_fundamental<T>::value )
+                   && ( !is_complex<T>::value );
+        };
 
         namespace details {
             // // Testers for complex: is a class, and has real() and imag()

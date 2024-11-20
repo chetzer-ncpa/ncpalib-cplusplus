@@ -1,4 +1,5 @@
-
+#include "NCPA/math.hpp"
+#include "NCPA/gtest.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -21,5 +22,6 @@ class _TEST_TITLE_ : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        
+        const test_t zero = NCPA::math::zero<test_t>(),
+                     one  = NCPA::math::one<test_t>();
 };

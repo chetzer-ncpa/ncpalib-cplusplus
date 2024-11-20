@@ -11,6 +11,7 @@
 #include <complex>
 #include <cstring>
 #include <initializer_list>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -27,17 +28,24 @@ NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Matrix,
                                              ELEMENTTYPE );
 
 template<typename ELEMENTTYPE>
-NCPA::linear::Matrix<ELEMENTTYPE> operator+(
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
-template<typename ELEMENTTYPE>
-NCPA::linear::Matrix<ELEMENTTYPE> operator-(
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
-template<typename ELEMENTTYPE>
-NCPA::linear::Matrix<ELEMENTTYPE> operator*(
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-    const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
+std::ostream& operator<<( std::ostream& os,
+                          const NCPA::linear::Matrix<ELEMENTTYPE>& obj );
+
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Matrix<ELEMENTTYPE> operator+(
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Matrix<ELEMENTTYPE> operator-(
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Matrix<ELEMENTTYPE> operator*(
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
+
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Matrix,
+                                                    ELEMENTTYPE )
 
 namespace NCPA {
     namespace linear {
@@ -81,16 +89,58 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual bool is_row_matrix() const {
-                    return ( columns() == 1 );
+                std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
+                    return std::unique_ptr<Matrix<ELEMENTTYPE>>(
+                        new Matrix<ELEMENTTYPE>( *this ) );
                 }
 
+                std::unique_ptr<Matrix<ELEMENTTYPE>> fresh_clone() const {
+                    std::unique_ptr<Matrix<ELEMENTTYPE>> fresh(
+                        new Matrix<ELEMENTTYPE>( *this ) );
+                    fresh->clear();
+                    return fresh;
+                }
+
+                Matrix<ELEMENTTYPE>& identity() {
+                    check_pointer();
+                    if ( !is_square() ) {
+                        throw std::invalid_argument(
+                            "Cannot turn a non-square matrix into an identity "
+                            "matrix" );
+                    }
+                    size_t ndiag = _ptr->diagonal_size( 0 );
+                    _ptr->zero();
+                    for ( size_t i = 0; i < ndiag; i++ ) {
+                        _ptr->set( i, i, NCPA::math::one<ELEMENTTYPE>() );
+                    }
+                    return *this;
+                }
+
+                Matrix<ELEMENTTYPE>& identity( size_t rows, size_t cols = 0 ) {
+                    check_pointer();
+                    if ( cols == 0 ) {
+                        cols = rows;
+                    }
+                    resize( rows, cols );
+                    return identity();
+                }
+
+                virtual bool is_square() const {
+                    return ( _ptr ? _ptr->is_square() : true );
+                }
+
+                virtual bool is_row_matrix() const { return ( rows() == 1 ); }
+
                 virtual bool is_column_matrix() const {
-                    return ( rows() == 1 );
+                    return ( columns() == 1 );
                 }
 
                 virtual bool is_empty() const {
                     return ( _ptr ? _ptr->is_empty() : true );
+                }
+
+                virtual bool is_identity() const {
+                    return ( _ptr ? _ptr->is_identity() : true );
                 }
 
                 virtual bool is_diagonal() const {
@@ -109,6 +159,10 @@ namespace NCPA {
                     return ( _ptr ? _ptr->is_upper_triangular() : true );
                 }
 
+                explicit operator bool() const {
+                    return ( _ptr ? true : false );
+                }
+
                 virtual size_t rows() const {
                     return ( _ptr ? _ptr->rows() : 0 );
                 }
@@ -117,14 +171,25 @@ namespace NCPA {
                     return ( _ptr ? _ptr->columns() : 0 );
                 }
 
-                virtual ELEMENTTYPE& get( size_t row, size_t col ) {
-                    check_pointer();
-                    return _ptr->get( row, col );
-                }
-
                 virtual const ELEMENTTYPE& get( size_t row,
                                                 size_t col ) const {
                     return ( _ptr ? _ptr->get( row, col ) : _zero );
+                }
+
+                virtual const ELEMENTTYPE& get( size_t ind ) const {
+                    if ( _ptr ) {
+                        if ( is_row_matrix() ) {
+                            return _ptr->get( 0, ind );
+                        } else if ( is_column_matrix() ) {
+                            return _ptr->get( ind, 0 );
+                        } else {
+                            throw std::range_error(
+                                "Both dimensions must be specified for "
+                                "non-row and non-column matrices" );
+                        }
+                    } else {
+                        return _zero;
+                    }
                 }
 
                 virtual std::unique_ptr<Matrix<ELEMENTTYPE>> get_row(
@@ -180,7 +245,8 @@ namespace NCPA {
                     int offset = 0 ) const {
                     if ( _ptr ) {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>(
-                            new Vector<ELEMENTTYPE>( _ptr->get_diagonal( offset ) ) );
+                            new Vector<ELEMENTTYPE>(
+                                _ptr->get_diagonal( offset ) ) );
                     } else {
                         return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
@@ -218,6 +284,14 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& set( ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->set( val );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& copy( const Matrix<ELEMENTTYPE>& M ) {
+                    resize( M.rows(), M.columns() );
+                    for (size_t r = 0; r < rows(); r++) {
+                        set_row( r, *(M.get_row(r)) );
+                    }
                     return *this;
                 }
 
@@ -293,12 +367,21 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& set_row(
                     size_t row,
                     const details::abstract_vector<ELEMENTTYPE>& vec ) {
-                    return set_row( row, vec.as_std() );
+                    // return set_row( row, vec.as_std() );
+                    check_pointer();
+                    _ptr->set_row( row, vec );
+                    return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_row(
                     size_t row, const Vector<ELEMENTTYPE>& vec ) {
                     return set_row( row, vec.as_std() );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Vector<ELEMENTTYPE>>& vec ) {
+                    return set_row( row, *vec );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_row(
@@ -309,11 +392,24 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat,
+                    size_t matrow ) {
+                    return set_row( row, *mat );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
                     size_t row, const Matrix<ELEMENTTYPE>& mat ) {
                     if ( !mat.is_row_matrix() ) {
                         throw std::logic_error( "Matrix is not a row matrix" );
                     }
                     return set_row( row, mat, 0 );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat ) {
+                    return set_row( row, *mat, 0 );
                 }
 
                 /*
@@ -385,10 +481,23 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_column(
+                    size_t col,
+                    const std::unique_ptr<Vector<ELEMENTTYPE>>& vec ) {
+                    return set_column( col, *vec );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_column(
                     size_t col, const Matrix<ELEMENTTYPE>& mat,
                     size_t matcol ) {
                     return set_column(
                         col, mat.get_column_vector( matcol )->as_std() );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_column(
+                    size_t col,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat,
+                    size_t matcol ) {
+                    return set_column( col, *mat, matcol );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_column(
@@ -398,6 +507,12 @@ namespace NCPA {
                             "Matrix is not a column matrix" );
                     }
                     return set_column( col, mat, 0 );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_column(
+                    size_t col,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat ) {
+                    return set_column( col, *mat );
                 }
 
                 /*
@@ -457,6 +572,20 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual Matrix<ELEMENTTYPE>& swap_rows( size_t ind1,
+                                                        size_t ind2 ) {
+                    check_pointer();
+                    _ptr->swap_rows( ind1, ind2 );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& swap_columns( size_t ind1,
+                                                           size_t ind2 ) {
+                    check_pointer();
+                    _ptr->swap_columns( ind1, ind2 );
+                    return *this;
+                }
+
                 virtual Matrix<ELEMENTTYPE>& add(
                     const Matrix<ELEMENTTYPE>& other ) {
                     check_pointer();
@@ -510,7 +639,9 @@ namespace NCPA {
                         throw std::invalid_argument(
                             "Matrix size mismatch: cannot multiply" );
                     }
-                    _ptr->multiply( *( other._ptr ) );
+                    auto newmat = Matrix<ELEMENTTYPE>(
+                        _ptr->multiply( *( other._ptr ) ) );
+                    swap( *this, newmat );
                     return *this;
                 }
 
@@ -518,6 +649,26 @@ namespace NCPA {
                     return ( is_empty() || other.is_empty()
                                  ? false
                                  : _ptr->equals( *( other._ptr ) ) );
+                }
+
+                virtual Vector<ELEMENTTYPE>& operator[]( size_t ind ) {
+                    if ( ind >= _ptr->rows() ) {
+                        _ptr->resize( ind + 1, _ptr->columns() );
+                    }
+                    _wrappers[ ind ]
+                        = WrapperVector<ELEMENTTYPE>( ( *_ptr )[ ind ] );
+                    return _wrappers[ ind ];
+                }
+
+                virtual const details::abstract_vector<ELEMENTTYPE>&
+                    operator[]( size_t ind ) const {
+                    if ( ind >= _ptr->rows() ) {
+                        std::ostringstream oss;
+                        oss << "Index " << ind << " too large for matrix of "
+                            << rows() << " rows.";
+                        throw std::out_of_range( oss.str() );
+                    }
+                    return ( *_ptr )[ ind ];
                 }
 
                 // assignment operators
@@ -557,7 +708,30 @@ namespace NCPA {
                     return *this;
                 }
 
-                // friend binary operators
+                // friend operators
+                friend std::ostream& operator<<(
+                    std::ostream& os, const Matrix<ELEMENTTYPE>& mat ) {
+                    os << "[";
+                    for ( size_t r = 0; r < mat.rows(); r++ ) {
+                        if ( r > 0 ) {
+                            os << " ";
+                        }
+                        os << " [ ";
+                        for ( size_t c = 0; c < mat.columns(); c++ ) {
+                            if ( c > 0 ) {
+                                os << ", ";
+                            }
+                            os << mat[ r ][ c ];
+                        }
+                        if ( r != mat.rows() - 1 ) {
+                            os << " ]," << std::endl;
+                        } else {
+                            os << " ] ]";
+                        }
+                    }
+                    return os;
+                }
+
                 friend bool operator==( const Matrix<ELEMENTTYPE>& a,
                                         const Matrix<ELEMENTTYPE>& b ) {
                     return a.equals( b );
@@ -576,9 +750,30 @@ namespace NCPA {
                     return out;
                 }
 
+                friend Matrix<ELEMENTTYPE> operator+(
+                    const Matrix<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
+                    Matrix<ELEMENTTYPE> out( c1 );
+                    out += c2;
+                    return out;
+                }
+
+                friend Matrix<ELEMENTTYPE> operator+(
+                    ELEMENTTYPE c1, const Matrix<ELEMENTTYPE>& c2 ) {
+                    Matrix<ELEMENTTYPE> out( c2 );
+                    out += c1;
+                    return out;
+                }
+
                 friend Matrix<ELEMENTTYPE> operator-(
                     const Matrix<ELEMENTTYPE>& c1,
                     const Matrix<ELEMENTTYPE>& c2 ) {
+                    Matrix<ELEMENTTYPE> out( c1 );
+                    out -= c2;
+                    return out;
+                }
+
+                friend Matrix<ELEMENTTYPE> operator-(
+                    const Matrix<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
                     Matrix<ELEMENTTYPE> out( c1 );
                     out -= c2;
                     return out;
@@ -589,6 +784,20 @@ namespace NCPA {
                     const Matrix<ELEMENTTYPE>& c2 ) {
                     Matrix<ELEMENTTYPE> out( c1 );
                     out *= c2;
+                    return out;
+                }
+
+                friend Matrix<ELEMENTTYPE> operator*(
+                    const Matrix<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
+                    Matrix<ELEMENTTYPE> out( c1 );
+                    out *= c2;
+                    return out;
+                }
+
+                friend Matrix<ELEMENTTYPE> operator*(
+                    ELEMENTTYPE c1, const Matrix<ELEMENTTYPE>& c2 ) {
+                    Matrix<ELEMENTTYPE> out( c2 );
+                    out *= c1;
                     return out;
                 }
 
@@ -610,6 +819,7 @@ namespace NCPA {
 
             private:
                 std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>> _ptr;
+                std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
         };
     }  // namespace linear

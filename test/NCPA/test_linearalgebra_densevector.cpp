@@ -324,6 +324,12 @@ TEST_F( NCPALinearAlgebraDenseVectorTest, WrapperGetAllowsModification ) {
     EXPECT_DOUBLE_EQ( wrapper1.get( 0 ), 5.0 );
 }
 
+TEST_F( NCPALinearAlgebraDenseVectorTest, WrapperIndexingOperatorAllowsModification ) {
+    EXPECT_DOUBLE_EQ( wrapper1[0], wrapper1.get( 0 ) );
+    wrapper1[0] = 5.0;
+    EXPECT_DOUBLE_EQ( wrapper1.get( 0 ), 5.0 );
+}
+
 TEST_F( NCPALinearAlgebraDenseVectorTest, WrapperIndexOperatorAllowsRead ) {
     for ( size_t i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( wrapper1[ i ], (test_t)( i + 1 ) );

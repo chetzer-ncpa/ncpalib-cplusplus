@@ -45,11 +45,38 @@ namespace NCPA {
                         resize( nrows, ncols );
                     }
 
+                    dense_matrix( const dense_matrix<ELEMENTTYPE>& other ) :
+                        dense_matrix<ELEMENTTYPE>() {
+                        _elements.clear();
+                        for ( auto it = other._elements.cbegin();
+                              it != other._elements.cend(); ++it ) {
+                            _elements.emplace_back(
+                                dense_vector<ELEMENTTYPE>( *it ) );
+                        }
+                    }
+
+                    dense_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
+                        dense_matrix<ELEMENTTYPE>() {
+                        resize( other.rows(), other.columns() );
+                        for ( auto i = 0; i < other.rows(); i++ ) {
+                            for ( auto j = 0; j < other.columns(); j++ ) {
+                                set( i, j, other.get( i, j ) );
+                            }
+                        }
+                    }
+
                     virtual ~dense_matrix() {}
 
                     dense_matrix<ELEMENTTYPE>& operator=(
                         dense_matrix<ELEMENTTYPE> other ) {
                         swap( *this, other );
+                        return *this;
+                    }
+
+                    dense_matrix<ELEMENTTYPE>& operator=(
+                        abstract_matrix<ELEMENTTYPE> other ) {
+                        dense_matrix<ELEMENTTYPE> copy( other );
+                        swap( *this, copy );
                         return *this;
                     }
 
@@ -68,6 +95,12 @@ namespace NCPA {
                         dense_matrix<ELEMENTTYPE>& a,
                         dense_matrix<ELEMENTTYPE>& b ) noexcept;
 
+                    virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                        build_vector( size_t n = 0 ) const override {
+                        return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                            new dense_vector<ELEMENTTYPE>( n ) );
+                    }
+
                     virtual size_t rows() const override {
                         return _elements.size();
                     }
@@ -80,11 +113,11 @@ namespace NCPA {
                         }
                     }
 
-                    virtual ELEMENTTYPE& get( size_t row,
-                                              size_t col ) override {
-                        this->check_size( row, col );
-                        return _elements[ row ][ col ];
-                    }
+                    // virtual ELEMENTTYPE& get( size_t row,
+                    //                           size_t col ) override {
+                    //     this->check_size( row, col );
+                    //     return _elements[ row ][ col ];
+                    // }
 
                     virtual const ELEMENTTYPE& get(
                         size_t row, size_t col ) const override {
@@ -111,24 +144,28 @@ namespace NCPA {
                             new dense_vector<ELEMENTTYPE>( vcol ) );
                     }
 
-                    virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
-                        get_diagonal( int offset = 0 ) const override {
-                        size_t absoffset = (size_t)( std::abs( offset ) );
-                        this->check_size( absoffset, absoffset );
-                        size_t ndiag = (size_t)( std::min( rows(), columns() )
-                                                 - absoffset );
-                        std::vector<ELEMENTTYPE> diag( ndiag );
-                        for ( size_t i = 0; i < ndiag; i++ ) {
-                            if ( offset >= 0 ) {
-                                // diagonal and upper triangle
-                                diag[ i ] = _elements[ i ][ i + absoffset ];
-                            } else {
-                                diag[ i ] = _elements[ i + absoffset ][ i ];
-                            }
-                        }
-                        return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
-                            new dense_vector<ELEMENTTYPE>( diag ) );
-                    }
+                    // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                    //     get_diagonal( int offset = 0 ) const override {
+                    //     size_t absoffset = (size_t)( std::abs( offset ) );
+                    //     this->check_size( absoffset, absoffset );
+                    //     // size_t ndiag = (size_t)( std::min( rows(),
+                    //     columns()
+                    //     // )
+                    //     //                          - absoffset );
+                    //     size_t ndiag = diagonal_size( offset );
+                    //     std::vector<ELEMENTTYPE> diag( ndiag );
+                    //     for ( size_t i = 0; i < ndiag; i++ ) {
+                    //         if ( offset >= 0 ) {
+                    //             // diagonal and upper triangle
+                    //             diag[ i ] = _elements[ i ][ i + absoffset ];
+                    //         } else {
+                    //             diag[ i ] = _elements[ i + absoffset ][ i ];
+                    //         }
+                    //     }
+                    //     return
+                    //     std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                    //         new dense_vector<ELEMENTTYPE>( diag ) );
+                    // }
 
                     virtual abstract_matrix<ELEMENTTYPE>& clear() override {
                         _elements.clear();
@@ -228,8 +265,7 @@ namespace NCPA {
                     template<typename ANYTYPE,
                              ENABLE_IF_TU( std::is_convertible, ANYTYPE,
                                            ELEMENTTYPE )>
-                     abstract_matrix<ELEMENTTYPE>& scale(
-                        ANYTYPE val ) {
+                    abstract_matrix<ELEMENTTYPE>& scale( ANYTYPE val ) {
                         for ( auto it = _elements.begin();
                               it != _elements.end(); ++it ) {
                             it->scale( val );
@@ -267,11 +303,10 @@ namespace NCPA {
                     //         this );
                     // }
 
-template<typename ANYTYPE,
+                    template<typename ANYTYPE,
                              ENABLE_IF_TU( std::is_convertible, ANYTYPE,
                                            ELEMENTTYPE )>
-                     abstract_matrix<ELEMENTTYPE>& add(
-                        ELEMENTTYPE b )  {
+                    abstract_matrix<ELEMENTTYPE>& add( ELEMENTTYPE b ) {
                         for ( auto it = _elements.begin();
                               it != _elements.end(); ++it ) {
                             it->add( b );
@@ -290,6 +325,28 @@ template<typename ANYTYPE,
                         }
                         return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
                             this );
+                    }
+
+                    virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
+                        size_t ind1, size_t ind2 ) override {
+                        std::swap( _elements[ ind1 ], _elements[ ind2 ] );
+                        return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
+                            this );
+                    }
+
+                    virtual abstract_matrix<ELEMENTTYPE>& swap_columns(
+                        size_t ind1, size_t ind2 ) override {
+                        auto col1 = get_column( ind1 );
+                        auto col2 = get_column( ind2 );
+                        set_column( ind1, *col2 );
+                        set_column( ind2, *col1 );
+                        return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
+                            this );
+                    }
+
+                    virtual abstract_vector<ELEMENTTYPE>& operator[](
+                        size_t i ) override {
+                        return _elements[ i ];
                     }
 
                     // virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
@@ -329,6 +386,7 @@ template<typename ANYTYPE,
                 private:
                     bool _finalized = false;
                     std::vector<dense_vector<ELEMENTTYPE>> _elements;
+                    // std::vector<WrapperVector<ELEMENTTYPE>> _wrappers;
             };
         }  // namespace details
     }  // namespace linear

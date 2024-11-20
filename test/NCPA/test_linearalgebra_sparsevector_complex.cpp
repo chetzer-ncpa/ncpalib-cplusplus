@@ -365,6 +365,12 @@ TEST_F( NCPALinearAlgebraComplexSparseVectorTest,
     _TEST_EQ_( wrapper1.get( 0 ), testval );
 }
 
+TEST_F( NCPALinearAlgebraComplexSparseVectorTest, WrapperIndexingOperatorAllowsModification ) {
+    _TEST_EQ_( wrapper1[0], wrapper1.get( 0 ) );
+    wrapper1[0] = complex<double>( 5.0, -5.0 );
+    _TEST_EQ_( wrapper1.get( 0 ), complex<double>( 5.0, -5.0 ) );
+}
+
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest,
         WrapperIndexOperatorAllowsRead ) {
     for ( size_t i = 0; i < vecsize; i++ ) {

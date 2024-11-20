@@ -334,6 +334,12 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperGetAllowsModification ) {
     EXPECT_DOUBLE_EQ( wrapper1.get( 0 ), 5.0 );
 }
 
+TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperIndexingOperatorAllowsModification ) {
+    EXPECT_DOUBLE_EQ( wrapper1[0], wrapper1.get( 0 ) );
+    wrapper1[0] = 5.0;
+    EXPECT_DOUBLE_EQ( wrapper1.get( 0 ), 5.0 );
+}
+
 TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperIndexOperatorAllowsRead ) {
     for ( size_t i = 0; i < vecsize; i++ ) {
         EXPECT_DOUBLE_EQ( wrapper1[ i ], svd[ i ] );
