@@ -93,10 +93,6 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     }
     solver.set_system_matrix( dmat );
     Matrix<test_t> solution = solver.solve( inmat );
-    // cout << "system = " << dmat << endl
-    //      << "inmat = " << inmat << endl
-    //      << "expected = " << expected << endl
-    //      << "got = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution[ i ][ 0 ], expected[ i ], 1.0e-10 );
     }
@@ -112,15 +108,10 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ), 1 );
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ), -1 );
     for ( size_t i = 0; i < 4; i++ ) {
-        // cmat.set_row( i, NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
         cinmat[ i ][ 0 ] = cmat.get_row_vector( i )->dot( expected );
     }
     csolver.set_system_matrix( cmat );
     Matrix<ctest_t> solution = csolver.solve( cinmat );
-    // cout << "system = " << dmat << endl
-    //      << "inmat = " << inmat << endl
-    //      << "expected = " << expected << endl
-    //      << "got = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution[ i ][ 0 ].real(), expected[ i ].real(), 1.0e-10 );
         EXPECT_NEAR( solution[ i ][ 0 ].imag(), expected[ i ].imag(), 1.0e-10 );
