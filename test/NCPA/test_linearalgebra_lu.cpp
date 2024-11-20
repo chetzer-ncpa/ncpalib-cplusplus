@@ -28,7 +28,6 @@ class _TEST_TITLE_ : public ::testing::Test {
                               NCPA::math::random_number<test_t>( 0.0, 10.0 ) );
                 }
             }
-            lu.init( family_t::NCPA_DENSE );
             // lu.set( dmat );
 
         }  // void TearDown() override {}

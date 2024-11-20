@@ -8,12 +8,15 @@
 #define _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC \
     typename std::enable_if<NCPA::types::is_numeric<ELEMENTTYPE>::value>::type
 
+#define NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( \
+    _CLASSNAME_ )                                                  \
+    template<typename ELEMENTTYPE, typename = void>                \
+    class _CLASSNAME_ {}
+
 #define NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( _CLASSNAME_,       \
                                                      _SUPERCLASSNAME_ ) \
     template<typename ELEMENTTYPE, typename = void>                     \
-    class _CLASSNAME_ : public _SUPERCLASSNAME_<ELEMENTTYPE> {          \
-            /*static_assert( false, "Invalid type for _CLASSNAME_" );*/ \
-    }
+    class _CLASSNAME_ : public _SUPERCLASSNAME_<ELEMENTTYPE> {}
 
 #define NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE \
     template<typename ELEMENTTYPE>

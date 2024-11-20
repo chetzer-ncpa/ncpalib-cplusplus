@@ -2,7 +2,6 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
-#include "NCPA/linearalgebra/builders.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/lu.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
@@ -83,7 +82,9 @@ namespace NCPA {
                         override {
                         _mat.reset();
                         _lu.reset();
-                        return *static_cast<abstract_linear_system_solver<ELEMENTTYPE>*>( this );
+                        return *static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE> *>(
+                            this );
                     }
 
                     virtual abstract_linear_system_solver<ELEMENTTYPE>&
@@ -95,14 +96,15 @@ namespace NCPA {
                         }
                         _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
                             new Matrix<ELEMENTTYPE>( M ) );
-                        return *static_cast<abstract_linear_system_solver<ELEMENTTYPE>*>( this );
+                        return *static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE> *>(
+                            this );
                     }
 
                     virtual NCPA::linear::Matrix<ELEMENTTYPE> _solve_using_lu(
                         const NCPA::linear::Vector<ELEMENTTYPE>& b ) {
                         size_t N = b.size();
-                        NCPA::linear::Matrix<ELEMENTTYPE> x
-                            = NCPA::linear::MatrixFactory<ELEMENTTYPE>::build( family_t::NCPA_DENSE );
+                        NCPA::linear::Matrix<ELEMENTTYPE> x = *_mat;
                         x.resize( N, 1 );
                         int i = 0, j = 0, iN = (int)N;
 
@@ -129,7 +131,7 @@ namespace NCPA {
                                 y[ i ]
                                     -= _lu->upper().get( i, j ) * x.get( j );
                             }
-                            x.set( i, 0,  y[ i ] / _lu->upper().get( i, i ) );
+                            x.set( i, 0, y[ i ] / _lu->upper().get( i, i ) );
                         }
 
                         return x;
@@ -149,13 +151,14 @@ namespace NCPA {
                         }
                         if ( !_lu ) {
                             _build_lu();
-                            _lu->init( family_t::NCPA_SPARSE );
+                            // std::cout << "Decompose():" << std::endl;
                             _lu->decompose( *_mat, false );
+                            // std::cout << "OK" << std::endl;
                         }
                         try {
                             return _solve_using_lu( b );
                         } catch ( std::invalid_argument& e1 ) {
-                            _lu->clear().init( family_t::NCPA_SPARSE );
+                            _lu->clear();
                             _lu->decompose( *_mat, true );
                             return _solve_using_lu( b );
                         }
@@ -176,12 +179,15 @@ namespace NCPA {
 
                 protected:
                     void _build_lu() {
-                        _lu = std::unique_ptr<NCPA::linear::LUDecomposition<ELEMENTTYPE>>( new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
+                        _lu = std::unique_ptr<
+                            NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
+                            new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
                     }
 
                 private:
                     std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>> _mat;
-                    std::unique_ptr<NCPA::linear::LUDecomposition<ELEMENTTYPE>> _lu;
+                    std::unique_ptr<NCPA::linear::LUDecomposition<ELEMENTTYPE>>
+                        _lu;
             };
         }  // namespace details
     }  // namespace linear

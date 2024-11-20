@@ -2,7 +2,6 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
-#include "NCPA/linearalgebra/builders.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
@@ -110,50 +109,6 @@ namespace NCPA {
                             this );
                     }
 
-                    // virtual NCPA::linear::Matrix<ELEMENTTYPE>
-                    // _solve_using_lu(
-                    //     const NCPA::linear::Vector<ELEMENTTYPE>& b ) {
-                    //     size_t N = b.size();
-                    //     NCPA::linear::Matrix<ELEMENTTYPE> x
-                    //         =
-                    //         NCPA::linear::MatrixFactory<ELEMENTTYPE>::build(
-                    //         family_t::NCPA_DENSE );
-                    //     x.resize( N, 1 );
-                    //     int i = 0, j = 0, iN = (int)N;
-
-                    //     // temporary vectors
-                    //     std::vector<ELEMENTTYPE> y(
-                    //         N, NCPA::math::zero<ELEMENTTYPE>() ),
-                    //         Pb( N, NCPA::math::zero<ELEMENTTYPE>() );
-
-                    //     // forward substitution
-                    //     for ( i = 0; i < iN; i++ ) {
-                    //         // @todo is this loop necessary if no pivoting?
-                    //         for ( j = 0; j < iN; j++ ) {
-                    //             Pb[ i ] += ( _lu->permutation().get( i, j )
-                    //             )
-                    //                      * b.get( j );
-                    //         }
-                    //         for ( j = 0; j < i; j++ ) {
-                    //             Pb[ i ] -= _lu->lower().get( i, j ) * y[ j
-                    //             ];
-                    //         }
-                    //         y[ i ] = Pb[ i ] / _lu->lower().get( i, i );
-                    //     }
-
-                    //     for ( i = iN - 1; i >= 0; i-- ) {
-                    //         for ( j = i + 1; j < iN; j++ ) {
-                    //             y[ i ]
-                    //                 -= _lu->upper().get( i, j ) * x.get( j
-                    //                 );
-                    //         }
-                    //         x.set( i, 0,  y[ i ] / _lu->upper().get( i, i )
-                    //         );
-                    //     }
-
-                    //     return x;
-                    // }
-
                     virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
                         const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
                         size_t N = b.size();
@@ -167,7 +122,6 @@ namespace NCPA {
                             throw std::logic_error( oss.str() );
                         }
                         ELEMENTTYPE cup, pot;
-                        // ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
                         std::vector<ELEMENTTYPE> diag  = _mat->get_diagonal()->as_std(),
                                        lower = _mat->get_diagonal( -1 )->as_std(),
                                        upper = _mat->get_diagonal( 1 )->as_std();
@@ -178,14 +132,13 @@ namespace NCPA {
                                 "Matrix diagonal and RHS vector are not the "
                                 "same size!" );
                         }
-                        if ( b->size() != L ) {
+                        if ( b.size() != L ) {
                             throw std::logic_error(
                                 "Matrix diagonal and solution vector are not "
                                 "the same size!" );
                         }
                         std::vector<ELEMENTTYPE> vec( L );
-                        NCPA::linear::Matrix<ELEMENTTYPE> x
-                            = NCPA::linear::MatrixFactory<ELEMENTTYPE>::build( family_t::NCPA_DENSE );
+                        NCPA::linear::Matrix<ELEMENTTYPE> x = *_mat;
                         x.resize( N, 1 );
                         int i;
 
@@ -198,7 +151,7 @@ namespace NCPA {
                         x[ 0 ][ 0 ]   = b[ 0 ];
                         for ( i = 1; i < L; i++ ) {
                             pot    = lower[ i - 1 ] / cup;
-                            x[ i ] = b[ i ] - ( x[ i - 1 ][ 0 ] * pot );
+                            x[ i ][ 0 ] = b[ i ] - ( x[ i - 1 ][ 0 ] * pot );
                             cup    = diag[ i ] - ( upper[ i - 1 ] * pot );
                             if ( NCPA::math::is_zero<ELEMENTTYPE>(cup ) ) {
                                 throw std::invalid_argument(
@@ -213,20 +166,6 @@ namespace NCPA {
                                    / vec[ i ];
                         }
                         return x;
-                        // x_out->from_std( x );
-
-                        // if ( !_lu ) {
-                        //     _build_lu();
-                        //     _lu->init( family_t::NCPA_SPARSE );
-                        //     _lu->decompose( *_mat, false );
-                        // }
-                        // try {
-                        //     return _solve_using_lu( b );
-                        // } catch ( std::invalid_argument& e1 ) {
-                        //     _lu->clear().init( family_t::NCPA_SPARSE );
-                        //     _lu->decompose( *_mat, true );
-                        //     return _solve_using_lu( b );
-                        // }
                     }
 
                     virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(

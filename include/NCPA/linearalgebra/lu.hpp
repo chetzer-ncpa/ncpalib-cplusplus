@@ -32,18 +32,12 @@ namespace NCPA {
             public:
                 LUDecomposition() :
                     _tolerance { NCPA::math::one<ELEMENTTYPE>()
-                                 * LU_DECOMPOSITION_TOLERANCE },
-                    _family { family_t::INVALID } {}
-
-                LUDecomposition( family_t family ) :
-                    LUDecomposition(), _family { family } {
-                    this->init();
-                }
+                                 * LU_DECOMPOSITION_TOLERANCE }
+                    {}
 
                 LUDecomposition( const LUDecomposition<ELEMENTTYPE>& other ) :
                     LUDecomposition<ELEMENTTYPE>() {
                     _tolerance   = other._tolerance;
-                    _family      = other._family;
                     _upper       = other._upper;
                     _lower       = other._lower;
                     _permutation = other._permutation;
@@ -52,21 +46,6 @@ namespace NCPA {
                 LUDecomposition<ELEMENTTYPE>& operator=(
                     LUDecomposition<ELEMENTTYPE> other ) {
                     swap( *this, other );
-                    return *this;
-                }
-
-                virtual LUDecomposition<ELEMENTTYPE>& init( family_t family ) {
-                    _family = family;
-                    return init();
-                }
-
-                virtual LUDecomposition<ELEMENTTYPE>& init() {
-                    if ( _family != family_t::INVALID ) {
-                        _lower = MatrixFactory<ELEMENTTYPE>::build( _family );
-                        _upper = MatrixFactory<ELEMENTTYPE>::build( _family );
-                        _permutation
-                            = MatrixFactory<ELEMENTTYPE>::build( _family );
-                    }
                     return *this;
                 }
 
@@ -114,15 +93,13 @@ namespace NCPA {
                             "LUDecomposition.set(): Base matrix must be "
                             "square" );
                     }
-                    // if (_upper.is_empty() || _lower.is_empty() ||
-                    // _permutation.is_empty()) {
-                    if ( !_upper || !_lower || !_permutation ) {
+                    // if ( !_upper || !_lower || !_permutation ) {
                         _upper       = base;
                         _lower       = base;
                         _permutation = base;
-                    }
+                    // }
                     size_t N = base.rows();
-                    _upper.copy( base );
+                    // _upper.copy( base );
                     _lower.clear().resize( N, N );
                     _permutation.identity( N, N );
 
@@ -146,7 +123,7 @@ namespace NCPA {
                             }
                             if ( std::abs( maxVal )
                                  < std::abs( tolerance() ) ) {
-                                clear().init();
+                                clear();
                                 throw std::invalid_argument(
                                     "LUDecomposition.compute(): Matrix is "
                                     "degenerate" );
@@ -188,7 +165,6 @@ namespace NCPA {
 
             private:
                 ELEMENTTYPE _tolerance;
-                family_t _family;
                 Matrix<ELEMENTTYPE> _lower, _upper, _permutation;
         };
     }  // namespace linear
@@ -202,5 +178,4 @@ static void swap( NCPA::linear::LUDecomposition<T>& a,
     swap( a._upper, b._upper );
     swap( a._permutation, b._permutation );
     swap( a._tolerance, b._tolerance );
-    swap( a._family, b._family );
 }

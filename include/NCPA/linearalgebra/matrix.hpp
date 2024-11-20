@@ -19,8 +19,7 @@
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-            Matrix, details::abstract_matrix );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
     }
 }  // namespace NCPA
 
@@ -30,19 +29,6 @@ NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Matrix,
 template<typename ELEMENTTYPE>
 std::ostream& operator<<( std::ostream& os,
                           const NCPA::linear::Matrix<ELEMENTTYPE>& obj );
-
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Matrix<ELEMENTTYPE> operator+(
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Matrix<ELEMENTTYPE> operator-(
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Matrix<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c2 );
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Matrix,
                                                     ELEMENTTYPE )
@@ -89,17 +75,19 @@ namespace NCPA {
                     return *this;
                 }
 
-                std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
-                    return std::unique_ptr<Matrix<ELEMENTTYPE>>(
-                        new Matrix<ELEMENTTYPE>( *this ) );
-                }
+                // std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
+                //     return std::unique_ptr<Matrix<ELEMENTTYPE>>(
+                //         new Matrix<ELEMENTTYPE>( *this ) );
+                // }
 
-                std::unique_ptr<Matrix<ELEMENTTYPE>> fresh_clone() const {
-                    std::unique_ptr<Matrix<ELEMENTTYPE>> fresh(
-                        new Matrix<ELEMENTTYPE>( *this ) );
-                    fresh->clear();
-                    return fresh;
-                }
+                // std::unique_ptr<Matrix<ELEMENTTYPE>> fresh_clone() const {
+                //     std::unique_ptr<Matrix<ELEMENTTYPE>> fresh(
+                //         new Matrix<ELEMENTTYPE>(
+                //             std::unique_ptr<
+                //                 details::abstract_matrix<ELEMENTTYPE>>() ) );
+                //     // fresh->clear();
+                //     return fresh;
+                // }
 
                 Matrix<ELEMENTTYPE>& identity() {
                     check_pointer();
@@ -287,10 +275,11 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& copy( const Matrix<ELEMENTTYPE>& M ) {
+                virtual Matrix<ELEMENTTYPE>& copy(
+                    const Matrix<ELEMENTTYPE>& M ) {
                     resize( M.rows(), M.columns() );
-                    for (size_t r = 0; r < rows(); r++) {
-                        set_row( r, *(M.get_row(r)) );
+                    for ( size_t r = 0; r < rows(); r++ ) {
+                        set_row( r, *( M.get_row( r ) ) );
                     }
                     return *this;
                 }
@@ -830,4 +819,5 @@ static void swap( NCPA::linear::Matrix<T>& a,
                   NCPA::linear::Matrix<T>& b ) noexcept {
     // using std::swap;
     a._ptr.swap( b._ptr );
+    swap( a._wrappers, b._wrappers );
 }

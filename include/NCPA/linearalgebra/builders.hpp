@@ -6,12 +6,16 @@
 #include "NCPA/linearalgebra/sparse_matrix.hpp"
 #include "NCPA/linearalgebra/sparse_vector.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/solver.hpp"
 
 #include <stdexcept>
 
 namespace NCPA {
     namespace linear {
         enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE };
+        enum class solver_t { INVALID, BASIC, TRIDIAGONAL };
 
         template<typename ELEMENTTYPE>
         class VectorFactory {
@@ -63,6 +67,35 @@ namespace NCPA {
                             throw std::logic_error(
                                 "Unknown or unsupported linear algebra family "
                                 "requested" );
+                    }
+                }
+        };
+
+        template<typename ELEMENTTYPE>
+        class SolverFactory {
+            public:
+                static Solver<ELEMENTTYPE> build( solver_t family ) {
+                    switch ( family ) {
+                        case solver_t::BASIC:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<
+                                    details::abstract_linear_system_solver<
+                                        ELEMENTTYPE>>(
+                                    new details::basic_linear_system_solver<
+                                        ELEMENTTYPE>() ) );
+                            break;
+                        case solver_t::TRIDIAGONAL:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<
+                                    details::abstract_linear_system_solver<
+                                        ELEMENTTYPE>>(
+                                    new details::
+                                        basic_tridiagonal_linear_system_solver<
+                                            ELEMENTTYPE>() ) );
+                            break;
+                        default:
+                            throw std::logic_error( "Unknown or unsupported "
+                                                    "solver type requested" );
                     }
                 }
         };

@@ -899,15 +899,19 @@ namespace NCPA {
             delete[] tempvec;
         }
 
-        template<typename T>
+        template<typename T, ENABLE_IF( std::is_arithmetic<T> )>
         bool is_zero( T val ) {
             return ( std::fpclassify( val ) == FP_ZERO );
         }
 
-        template<typename T>
-        bool is_zero( std::complex<T> val ) {
+        template<typename T, ENABLE_IF( NCPA::types::is_complex<T> )>
+        bool is_zero( T val ) {
             return is_zero( val.real() ) && is_zero( val.imag() );
         }
+
+        
+
+        
 
         // /**
         // @brief Compares two doubles to a given number of decimal places

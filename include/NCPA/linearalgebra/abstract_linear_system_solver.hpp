@@ -36,21 +36,26 @@ namespace NCPA {
             template<typename ELEMENTTYPE>
             class abstract_linear_system_solver {
                 public:
-                    ~abstract_linear_system_solver() {}
+                    virtual ~abstract_linear_system_solver() {}
 
                     friend void ::swap<ELEMENTTYPE>(
-                        abstract_vector<ELEMENTTYPE>& a,
-                        abstract_vector<ELEMENTTYPE>& b ) noexcept;
+                        abstract_linear_system_solver<ELEMENTTYPE>& a,
+                        abstract_linear_system_solver<ELEMENTTYPE>&
+                            b ) noexcept;
+
 
                     virtual abstract_linear_system_solver<ELEMENTTYPE>&
                         set_system_matrix(
-                            const NCPA::linear::Matrix<ELEMENTTYPE>& M ) = 0;
-                    virtual abstract_linear_system_solver<ELEMENTTYPE>& clear() = 0;
+                            const NCPA::linear::Matrix<ELEMENTTYPE>& M )
+                        = 0;
+                    virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
+                        = 0;
                     virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
-                        const NCPA::linear::Matrix<ELEMENTTYPE>& RHS ) = 0;
+                        const NCPA::linear::Matrix<ELEMENTTYPE>& RHS )
+                        = 0;
                     virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
-                        const NCPA::linear::Vector<ELEMENTTYPE>& RHS ) = 0;
-
+                        const NCPA::linear::Vector<ELEMENTTYPE>& RHS )
+                        = 0;
             };
         }  // namespace details
     }  // namespace linear

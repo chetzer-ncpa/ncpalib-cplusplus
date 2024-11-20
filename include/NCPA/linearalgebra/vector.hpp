@@ -19,8 +19,9 @@
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-            Vector, details::abstract_vector );
+        // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+        //     Vector, details::abstract_vector );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
     }  // namespace linear
 }  // namespace NCPA

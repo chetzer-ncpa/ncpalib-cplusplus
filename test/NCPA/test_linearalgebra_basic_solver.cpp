@@ -27,17 +27,6 @@ class _TEST_TITLE_ : public ::testing::Test {
                 family_t::NCPA_DENSE );
             cinmat = MatrixFactory<ctest_t>::build(
                 family_t::NCPA_DENSE );
-            // dmat.resize( 4, 4 );
-            // for ( size_t r = 0; r < 4; r++ ) {
-            //     for ( size_t c = 0; c < 4; c++ ) {
-            //         dmat.set( r, c,
-            //                   NCPA::math::random_number<test_t>( 0.0, 10.0 )
-            //                   );
-            //     }
-            // }
-            // lu.init( family_t::NCPA_DENSE );
-            // lu.set( dmat );
-
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -54,12 +43,17 @@ class _TEST_TITLE_ : public ::testing::Test {
 };
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForTrivialCase ) {
+    // cout << "identity():" << endl;
     dmat.identity( 4, 4 );
+    // cout << "resize():" << endl;
     inmat.resize( 4, 1 );
+    // cout << "for loop:" << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         inmat[ i ][ 0 ] = (test_t)( i + 1 );
     }
+    // cout << "set_system_matrix()" << endl;
     solver.set_system_matrix( dmat );
+    // cout << "solve()" << endl;
     Matrix<test_t> solution = solver.solve( inmat );
     for ( size_t i = 0; i < 4; i++ ) {
         _TEST_EQ_( solution[ i ][ 0 ], inmat[ i ][ 0 ] );
