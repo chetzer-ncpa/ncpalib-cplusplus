@@ -119,19 +119,19 @@
 #include <type_traits>
 #include <utility>
 
-#define ENABLE_IF( CONDITION ) \
-    typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
-#define ENABLE_AND( CONDITION1, CONDITION2 ) \
-    typename std::enable_if<CONDITION1::value, int>::type ENABLER1 = 0, \
-    typename std::enable_if<CONDITION2::value, int>::type ENABLER2 = 0
-#define NO_DEFAULT_ENABLE_IF( CONDITION ) \
-    typename std::enable_if<CONDITION::value, int>::type ENABLER
-#define ENABLE_IF_T( CONDITION, T ) \
-    typename std::enable_if<CONDITION<T>::value, int>::type ENABLER = 0
-#define ENABLE_IF_TU( CONDITION, T, U ) \
-    typename std::enable_if<CONDITION<T, U>::value, int>::type ENABLER = 0
+// #define ENABLE_IF( CONDITION ) \
+//     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
+// #define ENABLE_AND( CONDITION1, CONDITION2 ) \
+//     typename std::enable_if<CONDITION1::value, int>::type ENABLER1 = 0, \
+//     typename std::enable_if<CONDITION2::value, int>::type ENABLER2 = 0
+// #define NO_DEFAULT_ENABLE_IF( CONDITION ) \
+//     typename std::enable_if<CONDITION::value, int>::type ENABLER
+// #define ENABLE_IF_T( CONDITION, T ) \
+//     typename std::enable_if<CONDITION<T>::value, int>::type ENABLER = 0
+// #define ENABLE_IF_TU( CONDITION, T, U ) \
+//     typename std::enable_if<CONDITION<T, U>::value, int>::type ENABLER = 0
 
-#define ENABLE_IF_REAL( T ) ENABLE_IF( std::is_floating_point<T> )
+// #define ENABLE_IF_REAL( T ) ENABLE_IF( std::is_floating_point<T> )
 
 namespace NCPA {
     namespace types {

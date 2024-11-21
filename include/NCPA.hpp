@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "NCPA/defines.hpp"
 #include "NCPA/gtest.hpp"
 #include "NCPA/arrays.hpp"
 #include "NCPA/interpolation.hpp"

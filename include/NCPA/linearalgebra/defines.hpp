@@ -59,3 +59,4 @@
     template<typename _TYPENAME_>                                           \
     _CLASSNAME_<_TYPENAME_> operator*( _TYPENAME_ c2,                       \
                                        const _CLASSNAME_<_TYPENAME_>& c1 );
+

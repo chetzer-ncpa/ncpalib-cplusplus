@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/types.hpp"
+#include "NCPA/defines.hpp"
 
 #include <cstddef>
 #include <cstring>
@@ -76,15 +77,13 @@ namespace NCPA {
                 @param nr The dimension of the array.
                 */
         template<typename T>
-        void free_array( T *& v, size_t nr,
-                         ENABLE_IF( !NCPA::types::is_deleteable<T> ) ) {
+        void free_array( T *& v, size_t nr, ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
             delete[] v;
             v = nullptr;
         }
 
         template<typename T>
-        void free_array( T *& v, size_t nr,
-                         ENABLE_IF( NCPA::types::is_deleteable<T> ) ) {
+        void free_array( T *& v, size_t nr, ENABLE_FUNCTION_IF_DELETEABLE( T )  ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 delete v[ i ];
             }
@@ -99,8 +98,7 @@ namespace NCPA {
         @param nc The second dimension of the array.
         */
         template<typename T>
-        void free_array( T **& v, size_t nr, size_t nc,
-                         ENABLE_IF( !NCPA::types::is_deleteable<T> ) ) {
+        void free_array( T **& v, size_t nr, size_t nc, ENABLE_FUNCTION_IF_NOT_DELETEABLE(T) ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 delete[] v[ i ];
             }
@@ -109,8 +107,7 @@ namespace NCPA {
         }
 
         template<typename T>
-        void free_array( T **& v, size_t nr, size_t nc,
-                         ENABLE_IF( NCPA::types::is_deleteable<T> ) ) {
+        void free_array( T **& v, size_t nr, size_t nc, ENABLE_FUNCTION_IF_DELETEABLE(T) ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 for ( size_t j = 0; j < nc; j++ ) {
                     delete v[ i ][ j ];
@@ -133,7 +130,7 @@ namespace NCPA {
         */
         template<typename T>
         void free_array( T ***& data, size_t nd1, size_t nd2, size_t nd3,
-                         ENABLE_IF( !NCPA::types::is_deleteable<T> ) ) {
+                         ENABLE_FUNCTION_IF_NOT_DELETEABLE(T) ) {
             size_t i, j, k;
             for ( i = 0; i < nd1; ++i ) {
                 if ( data[ i ] != NULL ) {
@@ -149,7 +146,7 @@ namespace NCPA {
 
         template<typename T>
         void free_array( T ***& data, size_t nd1, size_t nd2, size_t nd3,
-                         ENABLE_IF( NCPA::types::is_deleteable<T> ) ) {
+                         ENABLE_FUNCTION_IF_DELETEABLE(T) ) {
             size_t i, j, k;
             for ( i = 0; i < nd1; ++i ) {
                 if ( data[ i ] != NULL ) {

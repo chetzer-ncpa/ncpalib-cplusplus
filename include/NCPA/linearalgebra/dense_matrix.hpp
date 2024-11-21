@@ -7,6 +7,7 @@
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+#include "NCPA/defines.hpp"
 
 #include <cmath>
 #include <complex>
