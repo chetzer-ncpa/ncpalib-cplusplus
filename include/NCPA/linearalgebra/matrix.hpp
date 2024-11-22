@@ -52,10 +52,6 @@ namespace NCPA {
                     _ptr = std::move( other._ptr->clone() );
                 }
 
-                /**
-                 * Move constructor.
-                 * @param source The vector to assimilate.
-                 */
                 Matrix( Matrix<ELEMENTTYPE>&& source ) noexcept :
                     Matrix<ELEMENTTYPE>() {
                     ::swap( *this, source );

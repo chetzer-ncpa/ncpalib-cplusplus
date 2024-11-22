@@ -9,6 +9,15 @@
 #include <unordered_map>
 #include <vector>
 
+// namespace NCPA {
+//     namespace units {
+//         class Unit;
+//     }
+// }
+
+// std::ostream& operator<<( std::ostream& output,
+//                           const NCPA::units::Unit& U );
+
 namespace NCPA {
     namespace units {
         class Unit;
@@ -55,18 +64,20 @@ namespace NCPA {
                     _postscale_offset { postscale },
                     _reference { reference } {}
 
-                const std::string& name() const { return _name; }
+                virtual ~Unit() {}
 
-                const std::vector<std::string>& aliases() const {
+                virtual const std::string& name() const { return _name; }
+
+                virtual const std::vector<std::string>& aliases() const {
                     return _aliases;
                 }
 
-                const Unit *reference() const {
+                virtual const Unit *reference() const {
                     return ( _reference == nullptr ? this : _reference );
                     // return _reference;
                 }
 
-                const Unit *base_reference() const {
+                virtual const Unit *base_reference() const {
                     if ( is_base_reference() ) {
                         return this;
                     } else {
@@ -74,7 +85,7 @@ namespace NCPA {
                     }
                 }
 
-                bool equals( const Unit *other ) const {
+                virtual bool equals( const Unit *other ) const {
                     bool isbase1 = this->is_base_reference();
                     bool isbase2 = other->is_base_reference();
 
@@ -94,16 +105,16 @@ namespace NCPA {
                     }
                 }
 
-                bool equals( const Unit& other ) const {
+                virtual bool equals( const Unit& other ) const {
                     return this->equals( &other );
                 }
 
-                bool is_convertible_to( const Unit& other ) const {
+                virtual bool is_convertible_to( const Unit& other ) const {
                     return base_reference()->equals(
                         *( other.base_reference() ) );
                 }
 
-                bool is_base_reference() const {
+                virtual bool is_base_reference() const {
                     return ( _reference == nullptr );
                 }
 
@@ -200,6 +211,11 @@ namespace NCPA {
                     }
                 }
 
+                friend std::ostream& operator<< (
+                    std::ostream & output, const Unit& D ){
+                        output << D._name;
+                        return output;
+                    }
             private:
                 std::string _name;
                 std::vector<std::string> _aliases;
@@ -210,7 +226,21 @@ namespace NCPA {
                 const Unit *_reference = nullptr;
         };
 
+        // class NullUnit : public Unit {
+        //     public:
+        //         NullUnit() {}
+        //         virtual ~NullUnit() {}
+        //         virtual const std::string& name() const override { return "N/A"; }
+        //         virtual const std::vector<std::string>& aliases() const override { return std::vector<std::string>(); }
+        //         virtual const Unit *reference() const override { return this; }
+        //         virtual bool equals( const Unit *other ) const override { return false; }
+        //         virtual bool is_convertible_to( const Unit& other ) const override { return false; }
+        //         virtual bool is_base_reference() const override { return true; }
+        
+        // };      
+
         // Standard units
+        // const static NullUnit UNITLESS();
         const static Unit METERS( "m", { "meters" } );
         const static Unit KELVIN( "K", { "Kelvin", "degK" } );
         const static Unit METERS_PER_SECOND( "m/s", { "meters per second", "mps",
@@ -254,7 +284,7 @@ namespace NCPA {
         const static Unit HOURS( "hour", { "hr" }, &SECONDS, 3600.0 );
 
         namespace details {
-            std::unordered_map<std::string, const Unit *> _units_map;
+            static std::unordered_map<std::string, const Unit *> _units_map;
         }
 
         class Units {
@@ -331,6 +361,7 @@ namespace NCPA {
 
                 static void _init_map() {
                     if ( NCPA::units::details::_units_map.size() == 0 ) {
+                        // register_unit( UNITLESS );
                         register_unit( METERS );
                         register_unit( KELVIN );
                         register_unit( METERS_PER_SECOND );
@@ -359,3 +390,9 @@ namespace NCPA {
                 }
         };
     }}
+
+//  std::ostream& operator<< (
+//                     std::ostream & output, const NCPA::units::Unit& D ) {
+//                         output << D._name;
+//                         return output;
+//                     }

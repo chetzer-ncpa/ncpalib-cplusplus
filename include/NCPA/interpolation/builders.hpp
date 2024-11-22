@@ -20,6 +20,29 @@ namespace NCPA {
     namespace interpolation {
         class InterpolatorFactory {
             public:
+                static bool can_build( interpolator_type_t interptype ) {
+                    switch (interptype) {
+                        case interpolator_type_t::NEAREST_NEIGHBOR:
+                        case interpolator_type_t::LANL_LINEAR:
+                        case interpolator_type_t::LANL_CUBIC:
+#ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
+                        case interpolator_type_t::GSL_LINEAR:
+                        case interpolator_type_t::GSL_POLYNOMIAL:
+                        case interpolator_type_t::GSL_CUBIC:
+                        case interpolator_type_t::GSL_CUBIC_PERIODIC:
+                        case interpolator_type_t::GSL_AKIMA:
+                        case interpolator_type_t::GSL_AKIMA_PERIODIC:
+#  if GSL_MAJOR_VERSION >= 2
+                        case interpolator_type_t::GSL_STEFFEN:
+#endif
+#endif
+                            return true;
+                            break;
+                        default:
+                            return false;
+                    }
+                }
+
                 template<typename INDEPTYPE, typename DEPTYPE>
                 static Interpolator1D<INDEPTYPE, DEPTYPE> build(
                     interpolator_type_t interptype ) {

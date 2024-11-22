@@ -1,4 +1,5 @@
 #pragma once
+#include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/units/scalar_with_units.hpp"
@@ -32,97 +33,105 @@ namespace NCPA {
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
                                          int>::type ENABLER>
-        //  NO_DEFAULT_ENABLE_IF( std::is_floating_point<T> )>
-        class VectorWithUnits : public std::vector<ScalarWithUnits<T>> {
+        class VectorWithUnits : public std::vector<T> {
             public:
                 // constructors
-                VectorWithUnits() : std::vector<ScalarWithUnits<T>>() {}
+                VectorWithUnits() : std::vector<T>(), _units { nullptr } {}
+
+                VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
+                    this->resize( n_points );
+                }
+
+                VectorWithUnits( const std::vector<T>& values,
+                                 const Unit *units ) :
+                    VectorWithUnits<T>() {
+                    set( values, units );
+                    
+                }
+
+                VectorWithUnits( const std::vector<T>& values,
+                                 const Unit &units ) :
+                    VectorWithUnits<T>(values, &units) {
+                }
+
+                VectorWithUnits( size_t n_points, const T *property_values,
+                                 const Unit *property_units ) :
+                    VectorWithUnits<T>(
+                        std::vector<T>( property_values,
+                                        property_values + n_points ),
+                        property_units ) {}
 
                 VectorWithUnits( size_t n_points, const T *property_values,
                                  const Unit& property_units ) :
-                    std::vector<ScalarWithUnits<T>>( n_points ) {
-                    this->set( n_points, property_values, property_units );
-                }
+                    VectorWithUnits<T>( n_points, property_values,
+                                        &property_units ) {}
 
                 VectorWithUnits( size_t n_points, const T *property_values,
                                  const std::string& property_units ) :
-                    VectorWithUnits( n_points, property_values,
-                                     Units::from_string( property_units ) ) {}
+                    VectorWithUnits<T>(
+                        n_points, property_values,
+                        Units::from_string( property_units ) ) {}
 
                 VectorWithUnits( size_t n_points, const T *values,
-                                 const char *units ) :
-                    VectorWithUnits( n_points, values,
-                                     *Units::from_string( units ) ) {}
+                                 const char *property_units ) :
+                    VectorWithUnits<T>(
+                        n_points, values,
+                        Units::from_string( property_units ) ) {}
 
-                VectorWithUnits( size_t n_points,
-                                 const ScalarWithUnits<T> *scalarvalues ) :
-                    std::vector<ScalarWithUnits<T>>( n_points ) {
-                    for ( size_t i = 0; i < n_points; i++ ) {
-                        this->at( i ) = scalarvalues[ i ];
-                    }
-                    normalize_units();
-                }
+                // VectorWithUnits( size_t n_points,
+                //                  const ScalarWithUnits<T> *scalarvalues ) :
+                //     std::vector<ScalarWithUnits<T>>( n_points ) {
+                //     for ( size_t i = 0; i < n_points; i++ ) {
+                //         this->at( i ) = scalarvalues[ i ];
+                //     }
+                //     normalize_units();
+                // }
 
                 VectorWithUnits( size_t n_points,
                                  const ScalarWithUnits<T>& singlevalue ) :
-                    std::vector<ScalarWithUnits<T>>( n_points, singlevalue ) {}
+                    VectorWithUnits<T>(
+                        std::vector<T>( n_points, singlevalue.get() ),
+                        singlevalue.get_units() ) {}
 
                 VectorWithUnits( size_t n_points, T singleValue,
                                  const Unit& units ) :
-                    std::vector<ScalarWithUnits<T>>(
-                        n_points, ScalarWithUnits<T>( singleValue, units ) ) {}
+                    VectorWithUnits<T>(
+                        std::vector<T>( n_points, singleValue ), &units ) {}
 
                 VectorWithUnits( size_t n_points, T singleValue,
                                  const std::string& units ) :
-                    std::vector<ScalarWithUnits<T>>(
-                        n_points, ScalarWithUnits<T>( singleValue, units ) ) {}
+                    VectorWithUnits<T>( n_points, singleValue,
+                                        Units::from_string( units ) ) {}
 
                 VectorWithUnits( size_t n_points, T singleValue,
                                  const char *units ) :
-                    std::vector<ScalarWithUnits<T>>(
-                        n_points, ScalarWithUnits<T>( singleValue, units ) ) {}
-
-                VectorWithUnits( const std::vector<T>& values,
-                                 const Unit& units ) :
-                    std::vector<ScalarWithUnits<T>>( values.size() ) {
-                    for ( size_t i = 0; i < values.size(); i++ ) {
-                        this->at( i )
-                            = ScalarWithUnits<T>( values[ i ], units );
-                    }
-                }
+                    VectorWithUnits<T>( n_points, singleValue,
+                                        Units::from_string( units ) ) {}
 
                 VectorWithUnits( const std::vector<T>& values,
                                  const std::string& units ) :
-                    std::vector<ScalarWithUnits<T>>( values.size() ) {
-                    for ( size_t i = 0; i < values.size(); i++ ) {
-                        this->at( i )
-                            = ScalarWithUnits<T>( values[ i ], units );
-                    }
+                    VectorWithUnits<T>( values, Units::from_string( units ) ) {
                 }
 
                 VectorWithUnits( const std::vector<T>& values,
                                  const char *units ) :
-                    std::vector<ScalarWithUnits<T>>( values.size() ) {
-                    for ( size_t i = 0; i < values.size(); i++ ) {
-                        this->at( i ) = ScalarWithUnits<T>(
-                            values[ i ], *Units::from_string( units ) );
-                    }
+                    VectorWithUnits<T>( values, Units::from_string( units ) ) {
                 }
 
                 // copy constructor
                 VectorWithUnits( const VectorWithUnits<T>& source ) :
-                    std::vector<ScalarWithUnits<T>>( source ) {
-                    normalize_units();
+                    std::vector<T>( source ) {
+                    _units = source._units;
                 }
 
                 // move constructor
                 VectorWithUnits( VectorWithUnits<T>&& source ) noexcept :
-                    std::vector<ScalarWithUnits<T>>() {
+                    std::vector<T>() {
                     ::swap( *this, source );
                 }
 
                 // destructor
-                virtual ~VectorWithUnits() { this->clear(); }
+                virtual ~VectorWithUnits() {}
 
                 // assignment and swapping
                 friend void ::swap<>( VectorWithUnits<T>& first,
@@ -134,56 +143,46 @@ namespace NCPA {
                 }
 
                 // methods
-                virtual void as_array( ScalarWithUnits<T> *& buffer,
-                                       bool normFirst = true ) {
-                    if ( normFirst ) {
-                        this->normalize_units();
-                    }
+                virtual void as_array( ScalarWithUnits<T> *& buffer ) {
                     if ( buffer == nullptr ) {
                         buffer = new ScalarWithUnits<T>[ this->size() ];
                     }
                     size_t i = 0;
                     for ( auto it = this->cbegin(); it != this->cend();
                           ++it ) {
-                        buffer[ i++ ] = *it;
+                        buffer[ i++ ] = ScalarWithUnits<T>( *it, *_units );
                     }
                 }
 
-                virtual void as_array( T *& buffer, bool normFirst = true ) {
-                    if ( normFirst ) {
-                        this->normalize_units();
-                    } else if ( !this->is_normalized() ) {
-                        throw std::logic_error( "Multiple units present in "
-                                                "vector, normalize first!" );
-                    }
+                virtual void as_array( T *& buffer ) {
                     if ( buffer == nullptr ) {
                         buffer = new T[ this->size() ];
                     }
                     this->get_values( buffer );
                 }
 
-                virtual std::vector<T> as_std_vector() const {
-                    std::vector<T> v( this->size() );
-                    auto it1 = this->cbegin();
-                    auto it2 = v.begin();
-                    for ( ; it1 != this->cend(); ++it1, ++it2 ) {
-                        *it2 = it1->get();
-                    }
-                    return v;
-                }
+                // virtual std::vector<T> as_std_vector() const {
+                //     std::vector<T> v( this->size() );
+                //     auto it1 = this->cbegin();
+                //     auto it2 = v.begin();
+                //     for ( ; it1 != this->cend(); ++it1, ++it2 ) {
+                //         *it2 = it1->get();
+                //     }
+                //     return v;
+                // }
 
                 virtual void convert_units( const Unit& new_units ) {
                     // will throw invalid_conversion and leave original units
-                    // unchanged if there's an error if there's no change in
+                    // unchanged if there's an error.  If there's no change in
                     // units, don't bother with the calculation
                     const Unit *oldunits = this->get_units();
                     if ( !new_units.equals( *oldunits ) ) {
-                        VectorWithUnits<T> buffer( *this );
-                        for ( auto it = buffer.begin(); it != buffer.end();
-                              ++it ) {
-                            it->convert_units( new_units );
-                        }
+                        VectorWithUnits<T> buffer
+                            = oldunits->convert_to( *this, new_units );
+                        buffer.set_units( new_units );
+                        
                         std::swap( *this, buffer );
+                        // *this = buffer;
                     }
                 }
 
@@ -196,151 +195,140 @@ namespace NCPA {
                 }
 
                 // Fill the vector with identical values.  Does not resize.
-                virtual void fill( T value, const Unit& units ) {
-                    this->fill( ScalarWithUnits<T>( value, units ) );
+                virtual void fill( T value, const Unit *units ) {
+                    this->assign( this->size(), value );
+                    _units = units;
                 }
 
                 virtual void fill( T value, const std::string& units ) {
-                    this->fill( ScalarWithUnits<T>( value, units ) );
+                    this->fill( value, Units::from_string( units ) );
                 }
 
                 virtual void fill( T value, const char *units ) {
-                    this->fill(
-                        ScalarWithUnits<T>( value, std::string( units ) ) );
+                    this->fill( value, Units::from_string( units ) );
                 }
 
                 virtual void fill( const ScalarWithUnits<T>& value ) {
-                    for ( auto it = this->begin(); it != this->end(); ++it ) {
-                        *it = value;
-                    }
+                    this->fill( value.get(), value.get_units() );
                 }
 
-                virtual const Unit *get_units( bool normFirst = true ) {
-                    if ( normFirst ) {
-                        this->normalize_units();
-                    } else if ( !this->is_normalized() ) {
-                        throw std::logic_error( "Multiple units present in "
-                                                "vector, normalize first!" );
-                    }
-                    if ( this->empty() ) {
-                        return nullptr;
-                    } else {
-                        return this->begin()->get_units();
-                    }
-                }
+                virtual const Unit *get_units() const { return _units; }
 
-                virtual void get_values( size_t& n, T *buffer,
-                                         bool normFirst = true ) {
-                    if ( normFirst ) {
-                        this->normalize_units();
-                    }
-                    size_t i = 0;
-                    for ( auto it = this->cbegin(); it != this->cend();
-                          ++it ) {
-                        buffer[ i++ ] = it->get();
-                    }
-                    n = this->size();
-                }
-
-                virtual void get_values( T *buffer, bool normFirst = true ) {
-                    size_t n;
-                    this->get_values( n, buffer, normFirst );
-                }
-
-                virtual bool is_normalized() const {
-                    if ( !this->empty() ) {
-                        const Unit *base = this->front().get_units();
-                        for ( auto it = this->cbegin(); it != this->cend();
-                              ++it ) {
-                            // NCPA::units_t u = it->get_units();
-                            if ( !( it->get_units()->equals( *base ) ) ) {
-                                return false;
-                            }
+                virtual void get_values( size_t& n, T *buffer ) {
+                    if ( n == 0 ) {
+                        if ( buffer != nullptr ) {
+                            delete[] buffer;
+                            buffer = nullptr;
                         }
+                        n = this->size();
+                    } else if ( n != this->size() ) {
+                        std::ostringstream oss;
+                        oss << "get_values: Size mismatch: vector has "
+                            << this->size() << " elements, but " << n
+                            << " elements were requested.";
+                        throw std::invalid_argument( oss.str() );
                     }
-                    return true;
+                    if ( buffer == nullptr ) {
+                        buffer = NCPA::arrays::zeros<T>( n );
+                    }
+                    std::copy( this->cbegin(), this->cend(), buffer );
                 }
 
-                virtual void normalize_units() {
-                    if ( !this->empty() ) {
-                        const Unit *base = this->front().get_units();
-                        for ( auto it = this->begin() + 1; it != this->end();
-                              ++it ) {
-                            it->convert_units( *base );
-                        }
-                    }
+                virtual void get_values( T *buffer ) {
+                    size_t n = this->size();
+                    this->get_values( n, buffer );
+                }
+
+                // virtual ScalarWithUnits<T> get( size_t ind ) {
+                //     return ScalarWithUnits( this->at( ind ), *this->get_units() );
+                // }
+
+                // virtual bool is_normalized() const {
+                //     if ( !this->empty() ) {
+                //         const Unit *base = this->front().get_units();
+                //         for ( auto it = this->cbegin(); it != this->cend();
+                //               ++it ) {
+                //             // NCPA::units_t u = it->get_units();
+                //             if ( !( it->get_units()->equals( *base ) ) ) {
+                //                 return false;
+                //             }
+                //         }
+                //     }
+                //     return true;
+                // }
+
+                // virtual void normalize_units() {
+                //     if ( !this->empty() ) {
+                //         const Unit *base = this->front().get_units();
+                //         for ( auto it = this->begin() + 1; it !=
+                //         this->end();
+                //               ++it ) {
+                //             it->convert_units( *base );
+                //         }
+                //     }
+                // }
+
+                virtual void set( const std::vector<T>& values,
+                                  const Unit *units ) {
+                    this->assign( values.cbegin(), values.cend() );
+                    _units = units;
                 }
 
                 virtual void set( size_t n_points, const T *values,
                                   const std::string& units ) {
-                    this->set( n_points, values,
-                               *Units::from_string( units ) );
+                    this->set( std::vector<T>( values, values + n_points ),
+                               Units::from_string( units ) );
                 }
 
                 virtual void set( size_t n_points, const T *values,
                                   const char *& units ) {
-                    this->set( n_points, values,
-                               *Units::from_string( units ) );
+                    this->set( std::vector<T>( values, values + n_points ),
+                               Units::from_string( units ) );
                 }
 
                 virtual void set( size_t n_points, const T *values,
-                                  const Unit& units ) {
-                    this->resize( n_points );
-                    for ( size_t i = 0; i < n_points; i++ ) {
-                        this->at( i )
-                            = ScalarWithUnits<T>( values[ i ], units );
-                    }
+                                  const Unit *units ) {
+                    this->set( std::vector<T>( values, values + n_points ),
+                               units );
                 }
 
                 virtual void set( size_t n_points,
                                   const ScalarWithUnits<T> *values ) {
-                    this->clear();
-                    this->resize( n_points );
-                    for ( size_t i = 0; i < n_points; i++ ) {
-                        this->at( i ) = values[ i ];
+                    std::vector<T> v( n_points );
+                    for (size_t i = 0; i < n_points; i++) {
+                        v[ i ] = values[ i ].get();
                     }
-                }
-
-                virtual void set( const std::vector<T>& values,
-                                  const Unit& units ) {
-                    this->clear();
-                    this->resize( values.size() );
-                    for ( size_t i = 0; i < values.size(); i++ ) {
-                        this->at( i )
-                            = ScalarWithUnits<T>( values[ i ], units );
-                    }
+                    this->set( v, values[0].get_units() );
                 }
 
                 virtual void set( const std::vector<T>& values,
                                   const std::string& units ) {
-                    this->set( values, *Units::from_string( units ) );
+                    this->set( values, Units::from_string( units ) );
                 }
 
                 virtual void set( const std::vector<T>& values,
                                   const char *units ) {
-                    this->set( values, *Units::from_string( units ) );
+                    this->set( values, Units::from_string( units ) );
                 }
 
                 virtual void set_units( const Unit& new_units ) {
-                    for ( auto it = this->begin(); it != this->end(); ++it ) {
-                        it->set_units( new_units );
-                    }
+                    _units = &new_units;
                 }
 
                 virtual void set_units( const std::string& new_units ) {
-                    for ( auto it = this->begin(); it != this->end(); ++it ) {
-                        it->set_units( new_units );
-                    }
+                    _units = Units::from_string( new_units );
                 }
 
                 virtual void set_units( const char *new_units ) {
-                    for ( auto it = this->begin(); it != this->end(); ++it ) {
-                        it->set_units( new_units );
-                    }
+                    _units = Units::from_string( new_units );
                 }
 
                 explicit operator bool() const { return !this->empty(); }
+
+            private:
+                const Unit *_units = nullptr;
         };
+
 
     }  // namespace units
 }  // namespace NCPA
@@ -352,6 +340,7 @@ template<typename T>
 void swap( NCPA::units::VectorWithUnits<T>& a,
            NCPA::units::VectorWithUnits<T>& b ) noexcept {
     using std::swap;
-    swap( static_cast<std::vector<NCPA::units::ScalarWithUnits<T>>&>( a ),
-          static_cast<std::vector<NCPA::units::ScalarWithUnits<T>>&>( b ) );
+    swap( static_cast<std::vector<T>&>( a ),
+          static_cast<std::vector<T>&>( b ) );
+    swap( a._units, b._units );
 }

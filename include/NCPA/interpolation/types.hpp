@@ -15,5 +15,12 @@ namespace NCPA {
             GSL_CUBIC_PERIODIC,
             GSL_AKIMA_PERIODIC
         };
+
+        enum class extrapolator_type_t {
+            FORBIDDEN,
+            CONSTANT,
+            LINEAR,
+            PERIODIC
+        };
     }
 }  // namespace NCPA

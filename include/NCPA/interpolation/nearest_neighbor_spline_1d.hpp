@@ -28,8 +28,10 @@ namespace NCPA {
             class nearest_neighbor_spline_1d<INDEPTYPE, DEPTYPE, void,
                                              ENABLE_IF_REAL( INDEPTYPE ),
                                              ENABLE_IF_REAL( DEPTYPE )>
-            : public details::_abstract_spline_1d<INDEPTYPE, DEPTYPE> {
+            : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
             public:
+                nearest_neighbor_spline_1d() : _size{ 0 } {}
+
                 virtual ~nearest_neighbor_spline_1d() {}
 
                 virtual void fill( size_t N, const INDEPTYPE *x,
@@ -37,8 +39,8 @@ namespace NCPA {
                     if ( N != _size ) {
                         init( N );
                     }
-                    std::memcpy( _x.get(), x, N * sizeof( INDEPTYPE ) );
-                    std::memcpy( _f.get(), f, N * sizeof( DEPTYPE ) );
+                    _x.assign( x, x+N );
+                    _f.assign( f, f+N );
                     _size = N;
                 }
 
@@ -52,21 +54,18 @@ namespace NCPA {
                 }
 
                 virtual void init( size_t N ) override {
-                    _x = std::unique_ptr<INDEPTYPE>(
-                        NCPA::arrays::zeros<INDEPTYPE>( N ) );
-                    _f = std::unique_ptr<DEPTYPE>(
-                        NCPA::arrays::zeros<DEPTYPE>( N ) );
+                    clear();
                     _size = N;
                 }
 
                 virtual void clear() override {
-                    _x.reset();
-                    _f.reset();
+                    _x.clear();
+                    _f.clear();
                     _size = 0;
                 }
 
                 virtual void ready() override {
-                    if ( ( !_x ) || ( !_f ) ) {
+                    if ( _x.empty() || _f.empty() ) {
                         throw std::logic_error(
                             "Interpolator has not been set up!" );
                     }
@@ -74,7 +73,7 @@ namespace NCPA {
 
                 virtual DEPTYPE eval_f( INDEPTYPE x ) override {
                     return _f[ NCPA::math::find_closest_index<INDEPTYPE>(
-                        _x.get(), _size, x ) ];
+                        _x, x ) ];
                 }
 
                 virtual DEPTYPE eval_df( INDEPTYPE x ) override { return 0; }
@@ -84,8 +83,8 @@ namespace NCPA {
                 virtual DEPTYPE eval_dddf( INDEPTYPE x ) override { return 0; }
 
             private:
-                std::unique_ptr<INDEPTYPE> _x;
-                std::unique_ptr<DEPTYPE> _f;
+                std::vector<INDEPTYPE> _x;
+                std::vector<DEPTYPE> _f;
                 size_t _size = 0;
         };
         DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( nearest_neighbor_spline_1d,

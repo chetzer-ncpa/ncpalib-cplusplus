@@ -1,7 +1,7 @@
+#include "NCPA/arrays.hpp"
 #include "NCPA/gtest.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/units.hpp"
-#include "NCPA/arrays.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -55,7 +55,7 @@ class NCPAUnitsLibraryTest : public ::testing::Test {
             v4 = VectorWithUnits<>( 10, s );
             v5 = VectorWithUnits<>( 10, 10.0, CELSIUS );
             v6 = VectorWithUnits<>( v4 );
-            v7 = VectorWithUnits<>( 5, svec );
+            // v7 = VectorWithUnits<>( 5, svec );
             v8 = VectorWithUnits<>( hottemps, CELSIUS );
             v9 = VectorWithUnits<>( hottemps, "F" );
             v0 = VectorWithUnits<>();
@@ -70,7 +70,7 @@ class NCPAUnitsLibraryTest : public ::testing::Test {
         ScalarWithUnits<> freezing, boiling, halfway, s0, s1, s2;
         ScalarWithUnits<> firstLeg, secondLeg, thirdLeg;
 
-        VectorWithUnits<> v1, v2, v3, v4, v5, v6, v7, v8, v9, v0;
+        VectorWithUnits<> v1, v2, v3, v4, v5, v6, v8, v9, v0;
         double kms[ 10 ]
             = { 1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 };
         vector<double> temps        = { 10, 20, 30, 40, 50 };
@@ -96,7 +96,8 @@ TEST_F( NCPAUnitsLibraryTest, IsConvertibleToReturnsTrueForCommonReference ) {
     EXPECT_TRUE( F.is_convertible_to( K ) );
 }
 
-TEST_F( NCPAUnitsLibraryTest, IsConvertibleToReturnsFalseForNoCommonReference ) {
+TEST_F( NCPAUnitsLibraryTest,
+        IsConvertibleToReturnsFalseForNoCommonReference ) {
     EXPECT_FALSE( M.is_convertible_to( C ) );
     EXPECT_FALSE( K.is_convertible_to( M ) );
 }
@@ -304,7 +305,8 @@ TEST_F( NCPAUnitsLibraryTest, ConvertUnitsConvertsCorrectly ) {
     ASSERT_DOUBLE_EQ( freezing.get(), 32.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, ConvertUnitsThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        ConvertUnitsThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW(
         { freezing.convert_units( METERS ); }, invalid_conversion<> );
 }
@@ -350,7 +352,8 @@ TEST_F( NCPAUnitsLibraryTest, GreaterThanOperatorFalseForEqual ) {
     ASSERT_FALSE( boiling > boiling );
 }
 
-TEST_F( NCPAUnitsLibraryTest, GreaterThanOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        GreaterThanOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW( { bool b = freezing > firstLeg; }, invalid_conversion<> );
 }
 
@@ -366,7 +369,8 @@ TEST_F( NCPAUnitsLibraryTest, LessThanOperatorFalseForEqual ) {
     ASSERT_FALSE( boiling < boiling );
 }
 
-TEST_F( NCPAUnitsLibraryTest, LessThanOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        LessThanOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW( { bool b = freezing < firstLeg; }, invalid_conversion<> );
 }
 
@@ -423,7 +427,8 @@ TEST_F( NCPAUnitsLibraryTest, PlusOperatorGivesCorrectSumWithUnitConversion ) {
     ASSERT_DOUBLE_EQ( secondAndThird.get(), 50.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, PlusOperatorKeepsCorrectUnitsWithUnitConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        PlusOperatorKeepsCorrectUnitsWithUnitConversion ) {
     ScalarWithUnits<> secondAndThird = secondLeg + thirdLeg;
     ASSERT_TRUE( secondAndThird.get_units()->equals( METERS ) );
 }
@@ -444,7 +449,8 @@ TEST_F( NCPAUnitsLibraryTest, PlusOperatorWorksWithDouble ) {
     ASSERT_TRUE( superHeated.get_units()->equals( CELSIUS ) );
 }
 
-TEST_F( NCPAUnitsLibraryTest, PlusOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        PlusOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW(
         { ScalarWithUnits<> b = freezing + firstLeg; }, invalid_conversion<> );
 }
@@ -454,12 +460,14 @@ TEST_F( NCPAUnitsLibraryTest, MinusOperatorGivesCorrectDifference ) {
     ASSERT_DOUBLE_EQ( firstAndSecond.get(), -10.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, MinusOperatorGivesCorrectDifferenceWithUnitConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        MinusOperatorGivesCorrectDifferenceWithUnitConversion ) {
     ScalarWithUnits<> secondAndThird = secondLeg - thirdLeg;
     ASSERT_DOUBLE_EQ( secondAndThird.get(), -10.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, MinusOperatorKeepsCorrectUnitsWithUnitConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        MinusOperatorKeepsCorrectUnitsWithUnitConversion ) {
     ScalarWithUnits<> secondAndThird = secondLeg - thirdLeg;
     ASSERT_TRUE( secondAndThird.get_units()->equals( METERS ) );
 }
@@ -480,7 +488,8 @@ TEST_F( NCPAUnitsLibraryTest, MinusOperatorWorksWithDouble ) {
     ASSERT_TRUE( superCooled.get_units()->equals( CELSIUS ) );
 }
 
-TEST_F( NCPAUnitsLibraryTest, MinusOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        MinusOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW(
         { ScalarWithUnits<> b = freezing - firstLeg; }, invalid_conversion<> );
 }
@@ -490,12 +499,14 @@ TEST_F( NCPAUnitsLibraryTest, PlusEqualsOperatorGivesCorrectSum ) {
     ASSERT_DOUBLE_EQ( firstLeg.get(), 30.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, PlusEqualsOperatorGivesCorrectSumWithUnitConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        PlusEqualsOperatorGivesCorrectSumWithUnitConversion ) {
     secondLeg += thirdLeg;
     ASSERT_DOUBLE_EQ( secondLeg.get(), 50.0 );
 }
 
-TEST_F( NCPAUnitsLibraryTest, PlusEqualsOperatorKeepsCorrectUnitsWithUnitConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        PlusEqualsOperatorKeepsCorrectUnitsWithUnitConversion ) {
     secondLeg += thirdLeg;
     ASSERT_TRUE( secondLeg.get_units()->equals( METERS ) );
 }
@@ -506,7 +517,8 @@ TEST_F( NCPAUnitsLibraryTest, PlusEqualsOperatorWorksWithDouble ) {
     ASSERT_TRUE( boiling.get_units()->equals( CELSIUS ) );
 }
 
-TEST_F( NCPAUnitsLibraryTest, PlusEqualsOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        PlusEqualsOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW( { freezing += firstLeg; }, invalid_conversion<> );
 }
 
@@ -527,7 +539,8 @@ TEST_F( NCPAUnitsLibraryTest, MinusEqualsOperatorWorksWithDouble ) {
     ASSERT_TRUE( freezing.get_units()->equals( CELSIUS ) );
 }
 
-TEST_F( NCPAUnitsLibraryTest, MinusEqualsOperatorThrowsOutOfRangeOnInvalidConversion ) {
+TEST_F( NCPAUnitsLibraryTest,
+        MinusEqualsOperatorThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW( { freezing -= firstLeg; }, invalid_conversion<> );
 }
 
@@ -591,7 +604,7 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantScalarWithUnitsWorks ) {
     EXPECT_EQ( v4.size(), 10 );
     EXPECT_TRUE( v4.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v4.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v4[ i ].get(), 10.0 );
+        EXPECT_DOUBLE_EQ( v4[ i ], 10.0 );
     }
 }
 
@@ -600,7 +613,7 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithConstantDoubleWorks ) {
     EXPECT_EQ( v5.size(), 10 );
     EXPECT_TRUE( v5.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v5.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v5[ i ].get(), 10.0 );
+        EXPECT_DOUBLE_EQ( v5[ i ], 10.0 );
     }
 }
 
@@ -609,7 +622,7 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorWorks ) {
     // EXPECT_THAT( v8, SizeIs( 6 ) );
     EXPECT_TRUE( v8.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v8.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v8[ i ].get(), hottemps[ i ] );
+        EXPECT_DOUBLE_EQ( v8[ i ], hottemps[ i ] );
     }
 }
 
@@ -618,7 +631,7 @@ TEST_F( NCPAUnitsLibraryTest, ConstructorWithVectorAndStringWorks ) {
     // EXPECT_THAT( v9, SizeIs( 6 ) );
     EXPECT_TRUE( v9.get_units()->equals( FAHRENHEIT ) );
     for ( size_t i = 0; i < v9.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v9[ i ].get(), hottemps[ i ] );
+        EXPECT_DOUBLE_EQ( v9[ i ], hottemps[ i ] );
     }
 }
 
@@ -627,47 +640,39 @@ TEST_F( NCPAUnitsLibraryTest, CopyConstructorWorks ) {
     // EXPECT_THAT( v6, SizeIs( 10 ) );
     EXPECT_TRUE( v6.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v6.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v6[ i ].get(), 10.0 );
+        EXPECT_DOUBLE_EQ( v6[ i ], 10.0 );
     }
 }
 
-TEST_F( NCPAUnitsLibraryTest, ConstructorWithScalarWithUnitsArrayWorks ) {
-    EXPECT_EQ( v7.size(), 5 );
-    EXPECT_TRUE( v7.get_units()->equals( CELSIUS ) );
-    double buffer[ 10 ];
-    v7.get_values( buffer );
-    EXPECT_ARRAY_DOUBLE_EQ( 5, temps, buffer );
-}
-
 TEST_F( NCPAUnitsLibraryTest, AssignmentOperatorWorks ) {
-    v3 = v7;
-    EXPECT_EQ( v3.size(), v7.size() );
-    EXPECT_TRUE( v3.get_units()->equals( *v7.get_units() ) );
-    for ( auto v3it = v3.cbegin(), v7it = v7.cbegin();
-          v3it != v3.cend() && v7it != v7.cend(); ++v3it, ++v7it ) {
-        EXPECT_TRUE( *v3it == *v7it );
+    v3 = v6;
+    EXPECT_EQ( v3.size(), v6.size() );
+    EXPECT_TRUE( v3.get_units()->equals( *v6.get_units() ) );
+    for ( auto v3it = v3.cbegin(), v6it = v6.cbegin();
+          v3it != v3.cend() && v6it != v6.cend(); ++v3it, ++v6it ) {
+        EXPECT_TRUE( *v3it == *v6it );
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, SwapWorks ) {
-    size_t v6size = v6.size(), v7size = v7.size();
+    size_t v6size = v6.size(), v3size = v3.size();
     const Unit *v6u = v6.get_units();
-    const Unit *v7u = v7.get_units();
-    swap( v6, v7 );
+    const Unit *v3u = v3.get_units();
+    swap( v6, v3 );
 
-    EXPECT_EQ( v6.size(), v7size );
-    EXPECT_EQ( v6.get_units(), v7u );
+    EXPECT_EQ( v6.size(), v3size );
+    EXPECT_EQ( v6.get_units(), v3u );
     double *buffer = new double[ v6.size() ];
     v6.get_values( buffer );
-    EXPECT_ARRAY_DOUBLE_EQ( 5, buffer, temps );
+    EXPECT_ARRAY_DOUBLE_EQ( 5, buffer, kms );
     delete[] buffer;
     buffer = nullptr;
 
     // EXPECT_THAT( v7, SizeIs( v6size ) );
-    EXPECT_EQ( v7.size(), v6size );
-    EXPECT_EQ( v7.get_units(), v6u );
-    buffer = new double[ v7.size() ];
-    v7.get_values( buffer );
+    EXPECT_EQ( v3.size(), v6size );
+    EXPECT_EQ( v3.get_units(), v6u );
+    buffer = new double[ v3.size() ];
+    v3.get_values( buffer );
     EXPECT_ARRAY_DOUBLE_EQ( 10, buffer, all10 );
     delete[] buffer;
 }
@@ -675,9 +680,9 @@ TEST_F( NCPAUnitsLibraryTest, SwapWorks ) {
 TEST_F( NCPAUnitsLibraryTest, AsArrayReturnsCorrectArray ) {
     ScalarWithUnits<double> *buffer = nullptr;
     v4.as_array( buffer );
-    for ( auto it = v4.cbegin(); it != v4.end(); ++it ) {
-        EXPECT_DOUBLE_EQ( it->get(), 10.0 );
-        EXPECT_TRUE( it->get_units()->equals( CELSIUS ) );
+    for ( auto i = 0; i < v4.size(); i++ ) {
+        EXPECT_DOUBLE_EQ( buffer[ i ].get(), 10.0 );
+        EXPECT_TRUE( buffer[ i ].get_units()->equals( CELSIUS ) );
     }
     delete[] buffer;
 }
@@ -685,46 +690,14 @@ TEST_F( NCPAUnitsLibraryTest, AsArrayReturnsCorrectArray ) {
 TEST_F( NCPAUnitsLibraryTest, AsArrayReturnsCorrectDoubleArray ) {
     double *buffer = nullptr;
     v4.as_array( buffer );
-    for ( auto it = v4.cbegin(); it != v4.end(); ++it ) {
-        EXPECT_DOUBLE_EQ( it->get(), 10.0 );
+    for ( auto i = 0; i < v4.size(); i++ ) {
+        EXPECT_DOUBLE_EQ( buffer[ i ], 10.0 );
     }
     delete[] buffer;
 }
 
-TEST_F( NCPAUnitsLibraryTest, AsArrayNormalizesCorrectly ) {
-    v2[ 0 ].convert_units( METERS );
-    ScalarWithUnits<double> *s = nullptr;
-    v2.as_array( s );
-    for ( size_t i = 0; i < v2.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( s[ i ].get(),
-                          KILOMETERS.convert_to( kms[ i ], METERS ) );
-        EXPECT_TRUE( s[ i ].get_units()->equals( METERS ) );
-    }
-    delete[] s;
-}
-
-TEST_F( NCPAUnitsLibraryTest, AsArrayDoesNotNormalizeIfTold ) {
-    v2[ 0 ].convert_units( METERS );
-    ScalarWithUnits<double> *s = nullptr;
-    v2.as_array( s, false );
-    EXPECT_DOUBLE_EQ( s[ 0 ].get(),
-                      KILOMETERS.convert_to( kms[ 0 ], METERS ) );
-    EXPECT_TRUE( s[ 0 ].get_units()->equals( METERS ) );
-    for ( size_t i = 1; i < v2.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( s[ i ].get(), kms[ i ] );
-        EXPECT_TRUE( s[ i ].get_units()->equals( KILOMETERS ) );
-    }
-    delete[] s;
-}
-
-TEST_F( NCPAUnitsLibraryTest, AsArrayThrowsLogicErrorIfNoNormalization ) {
-    v2[ 0 ].convert_units( METERS );
-    double *buffer = nullptr;
-    EXPECT_THROW( { v2.as_array( buffer, false ); }, logic_error );
-}
-
 TEST_F( NCPAUnitsLibraryTest, AsArrayReturnsCorrectDoubleVector ) {
-    vector<double> v = v4.as_std_vector();
+    vector<double> v = v4;
     for ( auto it = v.cbegin(); it != v.end(); ++it ) {
         EXPECT_DOUBLE_EQ( *it, 10.0 );
     }
@@ -733,38 +706,31 @@ TEST_F( NCPAUnitsLibraryTest, AsArrayReturnsCorrectDoubleVector ) {
 TEST_F( NCPAUnitsLibraryTest, ConvertUnitsCreatesCorrectValues ) {
     v2.convert_units( METERS );
     for ( size_t i = 0; i < 10; i++ ) {
-        EXPECT_DOUBLE_EQ( v2[ i ].get(), kms[ i ] * 1000.0 );
+        EXPECT_DOUBLE_EQ( v2[ i ], kms[ i ] * 1000.0 );
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConvertUnitsStoresCorrectUnits ) {
     v2.convert_units( METERS );
-    for ( size_t i = 0; i < 10; i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( METERS ) );
-    }
+    EXPECT_TRUE( v2.get_units()->equals( METERS ) );
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConvertUnitsWithStringCreatesCorrectValues ) {
     v2.convert_units( "m" );
     for ( size_t i = 0; i < 10; i++ ) {
-        EXPECT_DOUBLE_EQ( v2[ i ].get(), kms[ i ] * 1000.0 );
+        EXPECT_DOUBLE_EQ( v2[ i ], kms[ i ] * 1000.0 );
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConvertUnitsWithStringStoresCorrectUnits ) {
     v2.convert_units( "m" );
-    for ( size_t i = 0; i < 10; i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( METERS ) );
-    }
+    
+        EXPECT_TRUE( v2.get_units()->equals( METERS ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, GetUnitsReturnsCorrectUnits ) {
     EXPECT_TRUE( v4.get_units()->equals( CELSIUS ) );
-}
-
-TEST_F( NCPAUnitsLibraryTest, GetUnitsThrowsLogicErrorIfNoNormalization ) {
-    v2[ 0 ].convert_units( METERS );
-    EXPECT_THROW( { const Unit *u = v2.get_units( false ); }, logic_error );
 }
 
 TEST_F( NCPAUnitsLibraryTest, ConvertUnitsThrowsInvalidConversionCorrectly ) {
@@ -773,28 +739,28 @@ TEST_F( NCPAUnitsLibraryTest, ConvertUnitsThrowsInvalidConversionCorrectly ) {
 
 TEST_F( NCPAUnitsLibraryTest, FillSetsValuesCorrectly ) {
     size_t n = v2.size();
-    v2.fill( 12.0, *Units::from_string( "kg/m3" ) );
+    v2.fill( 12.0, Units::from_string( "kg/m3" ) );
     for ( size_t i = 0; i < n; i++ ) {
-        EXPECT_DOUBLE_EQ( v2[ i ].get(), 12.0 );
+        EXPECT_DOUBLE_EQ( v2[ i ], 12.0 );
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, FillSetsUnitsCorrectly ) {
     size_t n      = v2.size();
     const Unit *u = Units::from_string( "kg/m3" );
-    v2.fill( 12.0, *u );
-    for ( size_t i = 0; i < n; i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( u ) );
-    }
+    v2.fill( 12.0, u );
+    
+        EXPECT_TRUE( v2.get_units()->equals( u ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, FillSetsUnitsCorrectlyFromString ) {
     size_t n      = v2.size();
     const Unit *u = Units::from_string( "kg/m3" );
     v2.fill( 12.0, "kg/m3" );
-    for ( size_t i = 0; i < n; i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( u ) );
-    }
+    
+        EXPECT_TRUE( v2.get_units()->equals( u ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, FillSetsValuesCorrectlyFromScalarObject ) {
@@ -803,7 +769,7 @@ TEST_F( NCPAUnitsLibraryTest, FillSetsValuesCorrectlyFromScalarObject ) {
     ScalarWithUnits<double> s( 12.0, *u );
     v2.fill( s );
     for ( size_t i = 0; i < n; i++ ) {
-        EXPECT_DOUBLE_EQ( v2[ i ].get(), s.get() );
+        EXPECT_DOUBLE_EQ( v2[ i ], s.get() );
     }
 }
 
@@ -812,14 +778,14 @@ TEST_F( NCPAUnitsLibraryTest, FillSetsUnitsCorrectlyFromScalarObject ) {
     const Unit *u = Units::from_string( "kg/m3" );
     ScalarWithUnits<double> s( 12.0, *u );
     v2.fill( s );
-    for ( size_t i = 0; i < n; i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( *s.get_units() ) );
-    }
+    
+        EXPECT_TRUE( v2.get_units()->equals( *s.get_units() ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, GetValuesReturnsCorrectArray ) {
     double buffer[ 10 ];
-    size_t n;
+    size_t n = 10;
     v2.get_values( n, buffer );
     EXPECT_ARRAY_DOUBLE_EQ( n, buffer, kms );
 }
@@ -830,94 +796,75 @@ TEST_F( NCPAUnitsLibraryTest, GetValuesWithoutSizeReturnsCorrectArray ) {
     EXPECT_ARRAY_DOUBLE_EQ( 10, buffer, kms );
 }
 
-TEST_F( NCPAUnitsLibraryTest, IsNormalizedReturnsTrueIfAllUnitsMatch ) {
-    EXPECT_TRUE( v2.is_normalized() );
-}
-
-TEST_F( NCPAUnitsLibraryTest, IsNormalizedReturnsFalseIfNotAllUnitsMatch ) {
-    v2[ 3 ].set_units( CELSIUS );
-    EXPECT_FALSE( v2.is_normalized() );
-}
-
-TEST_F( NCPAUnitsLibraryTest, IsNormalizedReturnsTrueIfEmpty ) {
-    EXPECT_TRUE( v0.is_normalized() );
-}
-
-TEST_F( NCPAUnitsLibraryTest, NormalizeUnitsCorrectlyNormalizesToUnitsOfFirstEntry ) {
-    v2[ 0 ].convert( METERS );
-    ASSERT_FALSE( v2.is_normalized() );
-    v2.normalize_units();
-    ASSERT_TRUE( v2.is_normalized() );
-    for ( size_t i = 0; i < v2.size(); i++ ) {
-        EXPECT_TRUE( v2[ i ].get_units()->equals( METERS ) );
-    }
-}
-
 TEST_F( NCPAUnitsLibraryTest, SetResizesCorrectly ) {
     ASSERT_EQ( v2.size(), 10 );
-    v2.set( 5, &temps[ 0 ], CELSIUS );
+    v2.set( 5, &temps[ 0 ], &CELSIUS );
     ASSERT_EQ( v2.size(), 5 );
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetSetsNewVectorValuesCorrectly ) {
-    v2.set( 5, &temps[ 0 ], CELSIUS );
+    v2.set( 5, &temps[ 0 ], &CELSIUS );
     for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_DOUBLE_EQ( v2[ i ].get(), temps[ i ] );
+        ASSERT_DOUBLE_EQ( v2[ i ], temps[ i ] );
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetSetsNewVectorUnitsCorrectly ) {
-    v2.set( 5, &temps[ 0 ], CELSIUS );
-    for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_TRUE( v2[ i ].get_units()->equals( CELSIUS ) );
-    }
+    v2.set( 5, &temps[ 0 ], &CELSIUS );
+    
+        ASSERT_TRUE( v2.get_units()->equals( CELSIUS ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetSetsNewVectorUnitsCorrectlyFromString ) {
     v2.set( temps, "C" );
-    for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_TRUE( v2[ i ].get_units()->equals( CELSIUS ) );
-    }
+    
+        ASSERT_TRUE( v2.get_units()->equals( CELSIUS ) );
+    
 }
 
-TEST_F( NCPAUnitsLibraryTest, SetSetsNewVectorValuesCorrectlyFromArrayOfScalarObjects ) {
+TEST_F( NCPAUnitsLibraryTest,
+        SetSetsNewVectorValuesCorrectlyFromArrayOfScalarObjects ) {
     v2.set( 5, svec );
+    ASSERT_TRUE( v2.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_DOUBLE_EQ( v2[ i ].get(), temps[ i ] );
-        ASSERT_TRUE( v2[ i ].get_units()->equals( CELSIUS ) );
+        ASSERT_DOUBLE_EQ( v2[ i ], temps[ i ] );
+        
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetWorksWithVector ) {
-    v2.set( hottemps, CELSIUS );
+    v2.set( hottemps, &CELSIUS );
     ASSERT_EQ( v2.size(), 6 );
+    ASSERT_TRUE( v2.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < 6; i++ ) {
-        ASSERT_DOUBLE_EQ( v2[ i ].get(), hottemps[ i ] );
-        ASSERT_TRUE( v2[ i ].get_units()->equals( CELSIUS ) );
+        ASSERT_DOUBLE_EQ( v2[ i ], hottemps[ i ] );
+        
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetWorksWithVectorAAndString ) {
     v2.set( hottemps, "F" );
     ASSERT_EQ( v2.size(), 6 );
+    ASSERT_TRUE( v2.get_units()->equals( FAHRENHEIT ) );
     for ( size_t i = 0; i < 6; i++ ) {
-        ASSERT_DOUBLE_EQ( v2[ i ].get(), hottemps[ i ] );
-        ASSERT_TRUE( v2[ i ].get_units()->equals( FAHRENHEIT ) );
+        ASSERT_DOUBLE_EQ( v2[ i ], hottemps[ i ] );
+        
     }
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetUnitsSetsAllUnitsCorrectly ) {
     v2.set_units( METERS );
-    for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_TRUE( v2[ i ].get_units()->equals( METERS ) );
-    }
+    
+        ASSERT_TRUE( v2.get_units()->equals( METERS ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetUnitsSetsAllUnitsCorrectlyFromString ) {
     v2.set_units( "C" );
-    for ( size_t i = 0; i < 5; i++ ) {
-        ASSERT_TRUE( v2[ i ].get_units()->equals( CELSIUS ) );
-    }
+    
+        ASSERT_TRUE( v2.get_units()->equals( CELSIUS ) );
+    
 }
 
 TEST_F( NCPAUnitsLibraryTest, FakeUnitsRegisterProperly ) {

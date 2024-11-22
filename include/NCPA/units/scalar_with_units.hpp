@@ -80,6 +80,10 @@ namespace NCPA {
                     _value { value },
                     _units { NCPA::units::Units::from_string( units ) } {}
 
+                ScalarWithUnits( T value, const char* units ) :
+                    _value { value },
+                    _units { NCPA::units::Units::from_string( units ) } {}
+
                 // copy constructor
                 ScalarWithUnits( const ScalarWithUnits<T>& source ) :
                     _value { source._value }, _units { source._units } {}
