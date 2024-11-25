@@ -1,6 +1,7 @@
 #pragma once
 #include "NCPA/strings.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/math.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -253,6 +254,7 @@ namespace NCPA {
                                        { "decibels per meter", "dB/meter" } );
         const static Unit KILOGRAMS( "kg", { "kilograms" } );
         const static Unit SECONDS( "s", { "seconds", "sec" } );
+        const static Unit RADIANS( "rad", { "radians" } );
 
         // derived units
         const static Unit KILOMETERS( "km", { "kilometers" }, &METERS, 1000.0 );
@@ -282,6 +284,7 @@ namespace NCPA {
         const static Unit DAYS( "day", {}, &SECONDS, 86400.0 );
         const static Unit MINUTES( "min", { "minutes" }, &SECONDS, 60.0 );
         const static Unit HOURS( "hour", { "hr" }, &SECONDS, 3600.0 );
+        const static Unit DEGREES( "deg", { "degrees"}, &RADIANS, NCPA::math::PI / 180.0 );
 
         namespace details {
             static std::unordered_map<std::string, const Unit *> _units_map;
@@ -370,6 +373,7 @@ namespace NCPA {
                         register_unit( DECIBELS_PER_METER );
                         register_unit( KILOGRAMS );
                         register_unit( SECONDS );
+                        register_unit( RADIANS );
 
                         register_unit( KILOMETERS );
                         register_unit( MILLIMETERS );
@@ -386,6 +390,7 @@ namespace NCPA {
                         register_unit( DAYS );
                         register_unit( MINUTES );
                         register_unit( HOURS );
+                        register_unit( DEGREES );
                     }
                 }
         };

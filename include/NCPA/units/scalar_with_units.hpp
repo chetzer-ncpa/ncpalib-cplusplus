@@ -70,8 +70,11 @@ namespace NCPA {
                 ScalarWithUnits( T value ) :
                     _value { value }, _units { nullptr } {}
 
+                ScalarWithUnits( T value, const Unit* property_units ) :
+                    _value { value }, _units { property_units } {}
+
                 ScalarWithUnits( T value, const Unit& property_units ) :
-                    _value { value }, _units { &property_units } {}
+                    ScalarWithUnits( value, &property_units ) {}
 
                 // ScalarWithUnits( T value, const Unit& property_units ) :
                 //     _value { value }, _units { &property_units } {}
@@ -113,7 +116,7 @@ namespace NCPA {
                     // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
-                virtual T get_as( Unit *u ) const {
+                virtual T get_as( const Unit *u ) const {
                     return this->get_as( *u );
                     // return NCPA::units::Units::convert( _value, _units, u );
                 }
@@ -162,6 +165,10 @@ namespace NCPA {
 
                 virtual void set_units( const char *units ) {
                     this->set_units( std::string( units ) );
+                }
+
+                virtual void set( T newval ) {
+                    set_value( newval );
                 }
 
                 virtual void set( T newval, const Unit& new_units ) {

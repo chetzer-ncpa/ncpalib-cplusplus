@@ -46,13 +46,22 @@ namespace NCPA {
                                  const Unit *units ) :
                     VectorWithUnits<T>() {
                     set( values, units );
-                    
                 }
 
+                VectorWithUnits( size_t n_points, const Unit *units ) :
+                    VectorWithUnits<T>( std::vector<T>( n_points ), units ) {}
+
+                VectorWithUnits( size_t n_points, const char *units ) :
+                    VectorWithUnits<T>( std::vector<T>( n_points ),
+                                        Units::from_string( units ) ) {}
+
+                VectorWithUnits( size_t n_points, const std::string& units ) :
+                    VectorWithUnits<T>( std::vector<T>( n_points ),
+                                        Units::from_string( units ) ) {}
+
                 VectorWithUnits( const std::vector<T>& values,
-                                 const Unit &units ) :
-                    VectorWithUnits<T>(values, &units) {
-                }
+                                 const Unit& units ) :
+                    VectorWithUnits<T>( values, &units ) {}
 
                 VectorWithUnits( size_t n_points, const T *property_values,
                                  const Unit *property_units ) :
@@ -180,7 +189,7 @@ namespace NCPA {
                         VectorWithUnits<T> buffer
                             = oldunits->convert_to( *this, new_units );
                         buffer.set_units( new_units );
-                        
+
                         std::swap( *this, buffer );
                         // *this = buffer;
                     }
@@ -239,8 +248,47 @@ namespace NCPA {
                     this->get_values( n, buffer );
                 }
 
+                virtual VectorWithUnits<T> as( const Unit &units ) const {
+                    VectorWithUnits<T> converted( *this );
+                    converted.convert_units( units );
+                    return converted;
+                }
+
+                virtual VectorWithUnits<T> as( const Unit *units ) const {
+                    return this->as( *units );
+                }
+
+                virtual VectorWithUnits<T> as( const char *units ) const {
+                    return this->as( Units::from_string( units ) );
+                }
+
+                virtual VectorWithUnits<T> as( const std::string &units ) const {
+                    return this->as( Units::from_string( units ) );
+                }
+
+                virtual T get( size_t ind ) const { return this->at( ind ); }
+
+                virtual ScalarWithUnits<T> get_scalar( size_t ind ) const {
+                    return ScalarWithUnits<T>( this->get( ind ),
+                                               this->get_units() );
+                }
+
+                virtual T get_as( size_t ind, const Unit *units ) const {
+                    return _units->convert_to( this->at( ind ), units );
+                }
+
+                virtual T get_as( size_t ind, const char *units ) const {
+                    return _units->convert_to( this->at( ind ), units );
+                }
+
+                virtual T get_as( size_t ind,
+                                  const std::string& units ) const {
+                    return _units->convert_to( this->at( ind ), units );
+                }
+
                 // virtual ScalarWithUnits<T> get( size_t ind ) {
-                //     return ScalarWithUnits( this->at( ind ), *this->get_units() );
+                //     return ScalarWithUnits( this->at( ind ),
+                //     *this->get_units() );
                 // }
 
                 // virtual bool is_normalized() const {
@@ -267,6 +315,15 @@ namespace NCPA {
                 //         }
                 //     }
                 // }
+
+                virtual void set( size_t index, T value ) {
+                    this->at( index ) = value;
+                }
+
+                virtual void set( size_t index,
+                                  const ScalarWithUnits<T>& value ) {
+                    this->at( index ) = value.get_as( this->get_units() );
+                }
 
                 virtual void set( const std::vector<T>& values,
                                   const Unit *units ) {
@@ -295,10 +352,10 @@ namespace NCPA {
                 virtual void set( size_t n_points,
                                   const ScalarWithUnits<T> *values ) {
                     std::vector<T> v( n_points );
-                    for (size_t i = 0; i < n_points; i++) {
+                    for ( size_t i = 0; i < n_points; i++ ) {
                         v[ i ] = values[ i ].get();
                     }
-                    this->set( v, values[0].get_units() );
+                    this->set( v, values[ 0 ].get_units() );
                 }
 
                 virtual void set( const std::vector<T>& values,
@@ -324,6 +381,28 @@ namespace NCPA {
                 }
 
                 explicit operator bool() const { return !this->empty(); }
+
+                VectorWithUnits operator+(
+                    const VectorWithUnits<T>& second ) const {
+                    VectorWithUnits<T> temp1( *this );
+                    temp1 += second;
+                    return temp1;
+                }
+
+                VectorWithUnits operator+=(
+                    const VectorWithUnits<T>& second ) {
+                    if ( this->_units->is_convertible_to(
+                             *( second._units ) ) ) {
+                        for ( size_t i = 0; i < this->size(); i++ ) {
+                            this->at( i )
+                                += second.get_as( i, this->get_units() );
+                        }
+                        return *this;
+                    } else {
+                        throw invalid_conversion<>( this->_units,
+                                                    second._units );
+                    }
+                }
 
             private:
                 const Unit *_units = nullptr;
