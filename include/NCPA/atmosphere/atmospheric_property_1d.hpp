@@ -82,6 +82,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual vector_t& vector() {
+                    return _x;
+                }
+
                 virtual double get( double altitude ) {
                     return _spline.eval_f( altitude );
                 }

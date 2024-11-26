@@ -63,7 +63,8 @@ namespace NCPA {
 
                         for ( auto r = 0; r < rows(); r++ ) {
                             for ( auto c = 0; c < columns(); c++ ) {
-                                if ( !NCPA::math::equals( get( r, c ), other.get( r, c ) ) ) {
+                                if ( !NCPA::math::equals(
+                                         get( r, c ), other.get( r, c ) ) ) {
                                     return false;
                                 }
                             }
@@ -76,15 +77,16 @@ namespace NCPA {
                     }
 
                     virtual bool is_square() const {
-                        return (rows() == columns());
+                        return ( rows() == columns() );
                     }
 
                     virtual bool is_identity() const {
-                        if (!is_square() || !is_diagonal()) {
+                        if ( !is_square() || !is_diagonal() ) {
                             return false;
                         }
-                        for (size_t i = 0; i < diagonal_size(0); i++) {
-                            if (get(i,i) != NCPA::math::one<ELEMENTTYPE>()) {
+                        for ( size_t i = 0; i < diagonal_size( 0 ); i++ ) {
+                            if ( get( i, i )
+                                 != NCPA::math::one<ELEMENTTYPE>() ) {
                                 return false;
                             }
                         }
@@ -231,9 +233,12 @@ namespace NCPA {
                                                                   size_t cols )
                         = 0;
                     virtual abstract_matrix<ELEMENTTYPE>& transpose() = 0;
-                    virtual abstract_matrix<ELEMENTTYPE>& swap_rows(size_t ind1, size_t ind2) = 0;
-                    virtual abstract_matrix<ELEMENTTYPE>& swap_columns(size_t ind1, size_t ind2) = 0;
-
+                    virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
+                        size_t ind1, size_t ind2 )
+                        = 0;
+                    virtual abstract_matrix<ELEMENTTYPE>& swap_columns(
+                        size_t ind1, size_t ind2 )
+                        = 0;
 
                     virtual abstract_matrix<ELEMENTTYPE>& add(
                         const abstract_matrix<ELEMENTTYPE>& b,
@@ -275,12 +280,29 @@ namespace NCPA {
                                 product->set( row, col,
                                               get_row( row )->dot(
                                                   *( b.get_column( col ) ) ) );
-                                // std::cout << "Set product[" << row << "," << col
+                                // std::cout << "Set product[" << row << "," <<
+                                // col
                                 // << "] to " << product->get
                             }
                         }
                         return product;
                     }
+
+                    // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                    //     multiply(
+                    //         const abstract_vector<ELEMENTTYPE>& b ) const {
+                    //     if ( columns() != b.size() ) {
+                    //         throw std::logic_error(
+                    //             "Size mismatch between matrix and vector!" );
+                    //     }
+                    //     std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
+                    //         = b.fresh_clone();
+                    //     product.resize( rows() );
+                    //     for ( size_t row = 0; row < rows(); row++ ) {
+                    //         product->set( row, get_row( row )->dot( b ) );
+                    //     }
+                    //     return product;
+                    // }
 
                     // template<typename ANYTYPE,
                     //          ENABLE_IF_TU( std::is_convertible, ANYTYPE,
@@ -361,8 +383,8 @@ namespace NCPA {
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_row(
                         size_t row, const abstract_vector<ELEMENTTYPE>& vec ) {
-                            return set_row( row, vec.as_std() );
-                        }
+                        return set_row( row, vec.as_std() );
+                    }
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_column(
                         size_t column, size_t nvals, const size_t *row_inds,
@@ -399,10 +421,10 @@ namespace NCPA {
                     }
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_column(
-                        size_t column, const abstract_vector<ELEMENTTYPE>& vec ) {
-                            return set_column( column, vec.as_std() );
-                        }
-                    
+                        size_t column,
+                        const abstract_vector<ELEMENTTYPE>& vec ) {
+                        return set_column( column, vec.as_std() );
+                    }
 
                     virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
                         size_t nvals, const ELEMENTTYPE *vals,
@@ -428,11 +450,13 @@ namespace NCPA {
                         for ( size_t i = 0; i < nvals; i++ ) {
                             if ( offset >= 0 ) {
                                 // upper triangle
-                                // std::cout << "Setting [" << i << "," << i+absoffset << "]" << std::endl;
+                                // std::cout << "Setting [" << i << "," <<
+                                // i+absoffset << "]" << std::endl;
                                 set( i, i + absoffset, vals[ i ] );
                             } else {
                                 // lower triangle
-                                // std::cout << "Setting [" << i+absoffset << "," << i << "]" << std::endl;
+                                // std::cout << "Setting [" << i+absoffset <<
+                                // "," << i << "]" << std::endl;
                                 set( i + absoffset, i, vals[ i ] );
                             }
                         }
@@ -467,14 +491,15 @@ namespace NCPA {
                     virtual const ELEMENTTYPE& get( size_t row,
                                                     size_t col ) const
                         = 0;
-                   
-                
+
+
                     // @todo make read-write vector view for columns
 
-                    // virtual const abstract_vector<ELEMENTTYPE>& get_column( size_t ind ) = 0;
+                    // virtual const abstract_vector<ELEMENTTYPE>& get_column(
+                    // size_t ind ) = 0;
                     virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                         get_row( size_t row ) const = 0;
-                    
+
                     virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                         get_column( size_t column ) const = 0;
 
@@ -504,7 +529,7 @@ namespace NCPA {
                     }
 
                     virtual abstract_matrix<ELEMENTTYPE>& as_array(
-                        size_t& nrows, size_t& ncols, ELEMENTTYPE **& vals ) 
+                        size_t& nrows, size_t& ncols, ELEMENTTYPE **& vals )
                         = 0;
 
                     virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -554,7 +579,8 @@ namespace NCPA {
                     }
 
                     virtual abstract_vector<ELEMENTTYPE>& operator[](
-                        size_t i ) = 0;
+                        size_t i )
+                        = 0;
 
                     // virtual const abstract_vector<ELEMENTTYPE>&
                     //     operator[]( size_t i ) const {

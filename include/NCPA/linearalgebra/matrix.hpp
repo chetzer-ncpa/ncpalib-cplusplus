@@ -32,6 +32,10 @@ std::ostream& operator<<( std::ostream& os,
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Matrix,
                                                     ELEMENTTYPE )
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Vector<ELEMENTTYPE> operator*(
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
+//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 );
 
 namespace NCPA {
     namespace linear {
@@ -80,7 +84,8 @@ namespace NCPA {
                 //     std::unique_ptr<Matrix<ELEMENTTYPE>> fresh(
                 //         new Matrix<ELEMENTTYPE>(
                 //             std::unique_ptr<
-                //                 details::abstract_matrix<ELEMENTTYPE>>() ) );
+                //                 details::abstract_matrix<ELEMENTTYPE>>() )
+                //                 );
                 //     // fresh->clear();
                 //     return fresh;
                 // }
@@ -630,6 +635,19 @@ namespace NCPA {
                     return *this;
                 }
 
+                // virtual Vector<ELEMENTTYPE>& multiply(
+                //     const Vector<ELEMENTTYPE>& other ) {
+                //     check_pointer();
+                //     other.check_pointer();
+                //     if ( columns() != size.rows() ) {
+                //         throw std::invalid_argument(
+                //             "Matrix-vector size mismatch: cannot multiply" );
+                //     }
+                //     auto newvec = Vector<ELEMENTTYPE>(
+                //         _ptr->multiply( *( other.internal() ) ) );
+                //     return newvec;
+                // }
+
                 virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
                     return ( is_empty() || other.is_empty()
                                  ? false
@@ -771,6 +789,12 @@ namespace NCPA {
                     out *= c2;
                     return out;
                 }
+
+                // friend NCPA::linear::Matrix<ELEMENTTYPE> operator*(
+                //     const Matrix<ELEMENTTYPE>& c1,
+                //     const Vector<ELEMENTTYPE>& c2 ) {
+                //     return c1.multiply( c2 );
+                // }
 
                 friend Matrix<ELEMENTTYPE> operator*(
                     const Matrix<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {

@@ -134,18 +134,20 @@ namespace NCPA {
                     // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
-                virtual T as( const Unit& u ) const {
-                    return this->get_as( u );
+                virtual ScalarWithUnits<T> as( const Unit& u ) const {
+                    ScalarWithUnits<T> converted( *this );
+                    converted.convert_units( u );
+                    return converted;
                 }
 
-                virtual T as( const Unit *u ) const { return this->as( *u ); }
+                virtual ScalarWithUnits<T> as( const Unit *u ) const { return this->as( *u ); }
 
-                virtual T as( const std::string& units ) const {
-                    return this->get_as( units );
+                virtual ScalarWithUnits<T> as( const std::string& units ) const {
+                    return this->as( Units::from_string( units ) );
                 }
 
-                virtual T as( const char *units ) const {
-                    return this->get_as( units );
+                virtual ScalarWithUnits<T> as( const char *units ) const {
+                    return this->as( Units::from_string( units ) );
                 }
 
                 virtual void set_value( T newval ) { _value = newval; }
@@ -323,7 +325,7 @@ namespace NCPA {
                 }
 
                 T over( const ScalarWithUnits<T>& b ) const {
-                    return this->_value / b.as( this->_units );
+                    return this->_value / b.get_as( this->_units );
                 }
 
                 friend bool ::operator== <>( const ScalarWithUnits<T>& a,
@@ -368,7 +370,7 @@ namespace NCPA {
 template<typename T>
 std::ostream& operator<<( std::ostream& output,
                           const NCPA::units::ScalarWithUnits<T>& D ) {
-    NCPA::units::Unit *u = D.get_units();
+    const NCPA::units::Unit *u = D.get_units();
     output << D.get() << " " << ( u == nullptr ? "<null>" : u->name() );
     return output;
 }

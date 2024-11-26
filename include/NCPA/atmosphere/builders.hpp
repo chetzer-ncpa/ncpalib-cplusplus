@@ -14,31 +14,37 @@ namespace NCPA {
     namespace atmos {
         class AtmosphereFactory {
             public:
-                AtmosphereFactory() {}
+                
 
                 // Atmosphere1D build( const std::string& filename ) {
                 //     return build( filename, "" );
                 // }
 
-                Atmosphere1D build( const std::string& filename,
+                static Atmosphere1D build( const std::string& filename,
                                     const std::string& headerfilename = "" ) {
                     std::string hfile( headerfilename );
                     if ( headerfilename.size() == 0 ) {
                         hfile = filename;
                     }
                     std::ifstream header_in( hfile );
-                    read_header_from_stream( header_in );
-                    header_in.close();
+                    // read_header_from_stream( header_in );
+                    // header_in.close();
 
                     std::ifstream in( filename );
-                    Atmosphere1D atm = read_values_from_stream( in );
+                    Atmosphere1D atm = read_values_from_stream( in, header_in );
                     in.close();
-                    _headerlines.clear();
+                    header_in.close();
+                    // headerlines.clear();
                     return atm;
                 }
 
-                void read_header_from_stream( std::istream& in ) {
+                static std::vector<std::string> read_header_from_stream( std::istream& in ) {
                     std::string line;
+                    std::vector<std::string> headerlines;
+                    if ( !in.good() ) {
+                        throw std::runtime_error(
+                            "Atmosphere1D - Header input stream not in good state" );
+                    }
 
                     std::getline( in, line );
                     while ( in.good() ) {
@@ -48,16 +54,19 @@ namespace NCPA {
                         if ( line[ 0 ] == '#' ) {
                             // check second character
                             if ( line.size() > 1 && line[ 1 ] == '%' ) {
-                                _headerlines.push_back( line.substr( 2 ) );
+                                headerlines.push_back( line.substr( 2 ) );
                             }  // otherwise it's a regular comment and can be
                                // ignored
                         }
 
                         std::getline( in, line );
                     }
+                    return headerlines;
                 }
 
-                Atmosphere1D read_values_from_stream( std::istream& in ) {
+                static Atmosphere1D read_values_from_stream( std::istream& in, std::istream& header_in ) {
+                    std::vector<std::string> headerlines = read_header_from_stream( header_in );
+                    
                     if ( !in.good() ) {
                         throw std::runtime_error(
                             "Atmosphere1D - Input stream not in good state" );
@@ -77,7 +86,7 @@ namespace NCPA {
                         if ( line[ 0 ] == '#' ) {
                             // check second character
                             // if (line.size() > 1 && line[ 1 ] == '%') {
-                            // 	_headerlines.push_back( line.substr( 2 ) );
+                            // 	headerlines.push_back( line.substr( 2 ) );
                             // } // otherwise it's a regular comment and can be
                             // ignored
 
@@ -90,12 +99,12 @@ namespace NCPA {
                         std::getline( in, line );
                     }
                     // in.close();
-                    // cout << "Found " << _headerlines.size() << " header
+                    // cout << "Found " << headerlines.size() << " header
                     // lines" << endl; cout << "Found " << atmlines.size() << "
                     // data lines" << endl;
 
                     // parse them out
-                    size_t nfields = _headerlines.size();
+                    size_t nfields = headerlines.size();
                     if ( nfields == 0 ) {
                         throw std::runtime_error(
                             "Atmosphere1D - No descriptive fields found." );
@@ -107,8 +116,8 @@ namespace NCPA {
                     std::vector<double> values;
                     std::vector<units_ptr_t> units;
 
-                    for ( auto it = _headerlines.cbegin();
-                          it != _headerlines.cend(); ++it ) {
+                    for ( auto it = headerlines.cbegin();
+                          it != headerlines.cend(); ++it ) {
                         fields = NCPA::strings::split(
                             NCPA::strings::deblank( *it ), " ," );
                         if ( fields.size() != 3 && fields.size() != 4 ) {
@@ -276,7 +285,7 @@ namespace NCPA {
                 }
 
             private:
-                std::vector<std::string> _headerlines;
+                std::vector<std::string> headerlines;
         };
     }  // namespace atmos
 }  // namespace NCPA

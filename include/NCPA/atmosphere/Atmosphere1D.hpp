@@ -15,7 +15,7 @@ namespace NCPA {
     }
 }  // namespace NCPA
 
-void swap( NCPA::atmos::Atmosphere1D&, NCPA::atmos::Atmosphere1D& ) noexcept;
+static void swap( NCPA::atmos::Atmosphere1D&, NCPA::atmos::Atmosphere1D& ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -112,16 +112,33 @@ namespace NCPA {
                     return _ptr->get( key, altitude );
                 }
 
+                virtual double get( const std::string& key, const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                    check_pointer();
+                    return _ptr->get( key, altitude.get_as( this->get_altitude_units() ) );
+                }
+
                 virtual double get_first_derivative( const std::string& key,
                                                      double altitude ) {
                     check_pointer();
                     return _ptr->get_first_derivative( key, altitude );
                 }
 
+                virtual double get_first_derivative( const std::string& key,
+                                                     const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                    check_pointer();
+                    return _ptr->get_first_derivative( key, altitude.get_as( this->get_altitude_units() ) );
+                }
+
                 virtual double get_second_derivative( const std::string& key,
                                                       double altitude ) {
                     check_pointer();
                     return _ptr->get_second_derivative( key, altitude );
+                }
+
+                virtual double get_second_derivative( const std::string& key,
+                                                      const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                    check_pointer();
+                    return _ptr->get_second_derivative( key, altitude.get_as( this->get_altitude_units() ) );
                 }
 
                 virtual units_ptr_t get_altitude_units() {
@@ -217,7 +234,7 @@ namespace NCPA {
     }  // namespace atmos
 }  // namespace NCPA
 
-void swap( NCPA::atmos::Atmosphere1D& a,
+static void swap( NCPA::atmos::Atmosphere1D& a,
              NCPA::atmos::Atmosphere1D& b ) noexcept {
     using std::swap;
     swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),

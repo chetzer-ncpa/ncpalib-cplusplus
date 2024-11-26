@@ -21,6 +21,8 @@ namespace NCPA {
         constexpr double PI
             = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
 
+        constexpr std::complex<double> I = std::complex<double>( 0.0, 1.0 );
+
         /**
          * Returns zero as the specified type.
          */
@@ -241,6 +243,34 @@ namespace NCPA {
         template<typename T>
         T rad2deg( T rad_in ) {
             return (T)( ( (double)rad_in ) * 180.0 / PI );
+        }
+
+        /**
+         * @brief Converts from math angles to geographic azimuth
+         * @param deg_in The input value in degrees CCW from the x-axis
+         * @returns The same vale in degrees CW from north
+         */
+        template<typename T>
+        T math2az( T deg_in ) {
+            T deg_out = ((T)90.0) - deg_in;
+            while (deg_out < 0.0) {
+                deg_out += 360.0;
+            }
+            return deg_out;
+        }
+
+        /**
+         * @brief Converts from geographic azimuth to math angle
+         * @param deg_in The input value in degrees CW from north
+         * @returns The same vale in degrees CCW from the x-axis
+         */
+        template<typename T>
+        T az2math( T deg_in ) {
+            T deg_out = ((T)90.0) - deg_in;
+            while (deg_out < 0.0) {
+                deg_out += 360.0;
+            }
+            return deg_out;
         }
 
         /**
@@ -857,6 +887,40 @@ namespace NCPA {
         void scale_array( size_t N, U *in, T factor ) {
             for ( size_t i = 0; i < N; i++ ) {
                 in[ i ] *= factor;
+            }
+        }
+
+        /**
+        Scales an array.
+        @brief Performs array scaling.
+        @param v1 The array to multiply.
+        @param scalar The scalar to multiply by.
+        @returns The scaled array.
+        */
+        template<typename T, typename U>
+        T offset_vector(
+            T& v1, U scalar,
+            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+                                    int>::type ENABLER
+            = 0 ) {
+            T v3 = v1;
+            for (auto i = 0; i < v1.size(); i++ ) {
+                v3[ i ] += scalar;
+            }
+            return v3;
+        }
+
+        /**
+        Scales an array of values in-place by a constant value
+        @brief Scales an array by a constant value in place.
+        @param N The number of points in the array.
+        @param in The array to scale.
+        @param factor The factor to scale by.
+        */
+        template<typename T, typename U>
+        void offset_array( size_t N, U *in, T factor ) {
+            for ( size_t i = 0; i < N; i++ ) {
+                in[ i ] += factor;
             }
         }
 

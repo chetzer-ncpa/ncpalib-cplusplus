@@ -259,12 +259,12 @@ TEST_F( NCPAUnitsLibraryTest, GetTests ) {
 
 TEST_F( NCPAUnitsLibraryTest, GetAsReturnsCorrectValue ) {
     ASSERT_DOUBLE_EQ( freezing.get_as( FAHRENHEIT ), 32.0 );
-    ASSERT_DOUBLE_EQ( freezing.as( "Kelvin" ), 273.15 );
+    ASSERT_DOUBLE_EQ( freezing.as( "Kelvin" ).get(), 273.15 );
 }
 
 TEST_F( NCPAUnitsLibraryTest, GetAsThrowsOutOfRangeOnInvalidConversion ) {
     EXPECT_THROW(
-        { double d = freezing.as( METERS ); }, invalid_conversion<> );
+        { double d = freezing.get_as( METERS ); }, invalid_conversion<> );
 }
 
 TEST_F( NCPAUnitsLibraryTest, SetValueSetsCorrectValue ) {

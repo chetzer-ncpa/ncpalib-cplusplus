@@ -9,3 +9,5 @@
 #include "NCPA/strings.hpp"
 #include "NCPA/types.hpp"
 #include "NCPA/units.hpp"
+#include "NCPA/atmosphere.hpp"
+#include "NCPA/logging.hpp"
