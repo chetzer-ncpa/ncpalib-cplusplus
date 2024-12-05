@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NCPA/strings.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/strings.hpp"
 #include "NCPA/units/unit.hpp"
 
 #include <iostream>
@@ -14,7 +14,7 @@
 // forward declarations
 namespace NCPA {
     namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
         class ScalarWithUnits;
     }  // namespace units
 }  // namespace NCPA
@@ -61,8 +61,10 @@ std::ostream& operator<<( std::ostream& output,
 
 namespace NCPA {
     namespace units {
-        template<typename T = double, typename std::enable_if<std::is_floating_point<T>::value, int>::type ENABLER>
-                // ENABLE_IF_REAL(T)>
+        template<typename T = double,
+                 typename std::enable_if<std::is_floating_point<T>::value,
+                                         int>::type ENABLER>
+        // ENABLE_IF_REAL(T)>
         class ScalarWithUnits {
             public:
                 ScalarWithUnits() : _value { 0.0 }, _units { nullptr } {}
@@ -70,7 +72,7 @@ namespace NCPA {
                 ScalarWithUnits( T value ) :
                     _value { value }, _units { nullptr } {}
 
-                ScalarWithUnits( T value, const Unit* property_units ) :
+                ScalarWithUnits( T value, const Unit *property_units ) :
                     _value { value }, _units { property_units } {}
 
                 ScalarWithUnits( T value, const Unit& property_units ) :
@@ -83,7 +85,7 @@ namespace NCPA {
                     _value { value },
                     _units { NCPA::units::Units::from_string( units ) } {}
 
-                ScalarWithUnits( T value, const char* units ) :
+                ScalarWithUnits( T value, const char *units ) :
                     _value { value },
                     _units { NCPA::units::Units::from_string( units ) } {}
 
@@ -140,9 +142,12 @@ namespace NCPA {
                     return converted;
                 }
 
-                virtual ScalarWithUnits<T> as( const Unit *u ) const { return this->as( *u ); }
+                virtual ScalarWithUnits<T> as( const Unit *u ) const {
+                    return this->as( *u );
+                }
 
-                virtual ScalarWithUnits<T> as( const std::string& units ) const {
+                virtual ScalarWithUnits<T> as(
+                    const std::string& units ) const {
                     return this->as( Units::from_string( units ) );
                 }
 
@@ -169,9 +174,7 @@ namespace NCPA {
                     this->set_units( std::string( units ) );
                 }
 
-                virtual void set( T newval ) {
-                    set_value( newval );
-                }
+                virtual void set( T newval ) { set_value( newval ); }
 
                 virtual void set( T newval, const Unit& new_units ) {
                     set_value( newval );
@@ -329,19 +332,19 @@ namespace NCPA {
                 }
 
                 friend bool ::operator== <>( const ScalarWithUnits<T>& a,
-                                          const ScalarWithUnits<T>& b );
+                                             const ScalarWithUnits<T>& b );
                 friend bool ::operator!= <>( const ScalarWithUnits<T>& a,
-                                          const ScalarWithUnits<T>& b );
+                                             const ScalarWithUnits<T>& b );
                 friend bool ::operator>= <>( const ScalarWithUnits<T>& a,
-                                          const ScalarWithUnits<T>& b );
+                                             const ScalarWithUnits<T>& b );
                 friend bool ::operator<= <>( const ScalarWithUnits<T>& a,
-                                          const ScalarWithUnits<T>& b );
-                friend bool ::operator> <>( const ScalarWithUnits<T>& a,
-                                         const ScalarWithUnits<T>& b );
+                                             const ScalarWithUnits<T>& b );
+                friend bool ::operator><>( const ScalarWithUnits<T>& a,
+                                           const ScalarWithUnits<T>& b );
                 friend bool ::operator< <>( const ScalarWithUnits<T>& a,
-                                         const ScalarWithUnits<T>& b );
+                                            const ScalarWithUnits<T>& b );
                 friend std::ostream& ::operator<< <>(
-                    std::ostream & output, const ScalarWithUnits<T>& D );
+                    std::ostream& output, const ScalarWithUnits<T>& D );
 
             protected:
                 T _value;
@@ -363,17 +366,25 @@ namespace NCPA {
                 }
         };
 
-    }
-}
+        template<typename T>
+        std::ostream& operator<<( std::ostream& output,
+                                  const ScalarWithUnits<T>& D ) {
+            const Unit *u = D.get_units();
+            output << D.get() << " "
+                   << ( u == nullptr ? "<null>" : u->name() );
+            return output;
+        }
 
-// template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-std::ostream& operator<<( std::ostream& output,
-                          const NCPA::units::ScalarWithUnits<T>& D ) {
-    const NCPA::units::Unit *u = D.get_units();
-    output << D.get() << " " << ( u == nullptr ? "<null>" : u->name() );
-    return output;
-}
+    }  // namespace units
+}  // namespace NCPA
+
+// template<typename T>
+// std::ostream& operator<<( std::ostream& output,
+//                           const NCPA::units::ScalarWithUnits<T>& D ) {
+//     const NCPA::units::Unit *u = D.get_units();
+//     output << D.get() << " " << ( u == nullptr ? "<null>" : u->name() );
+//     return output;
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
 template<typename T>

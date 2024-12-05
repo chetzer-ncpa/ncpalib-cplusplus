@@ -2,6 +2,7 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
@@ -18,11 +19,11 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
-    }
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
+//     }
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Solver,
                                              ELEMENTTYPE );
@@ -96,13 +97,13 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE> solve(
+                virtual Vector<ELEMENTTYPE> solve(
                     const Matrix<ELEMENTTYPE>& RHS ) {
                     check_pointer();
                     return _ptr->solve( RHS );
                 }
 
-                virtual Matrix<ELEMENTTYPE> solve(
+                virtual Vector<ELEMENTTYPE> solve(
                     const Vector<ELEMENTTYPE>& RHS ) {
                     check_pointer();
                     return _ptr->solve( RHS );

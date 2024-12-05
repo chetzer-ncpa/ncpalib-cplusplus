@@ -64,6 +64,7 @@ namespace NCPA {
                     virtual AtmosphericProperty1D& get_property(
                         const std::string& key )
                         = 0;
+                    virtual vector_t& get_altitude_vector() = 0;
                     virtual double get( const std::string& key )
                         = 0;  // scalars
                     virtual double get( const std::string& key,

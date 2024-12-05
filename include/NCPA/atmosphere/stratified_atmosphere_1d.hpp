@@ -146,6 +146,10 @@ namespace NCPA {
                         return _properties[ key ];
                     }
 
+                    virtual vector_t& get_altitude_vector() override {
+                        return _z;
+                    }
+
                     virtual double get( const std::string& key ) override {
                         return _scalar_properties.at( key ).get();
                     }

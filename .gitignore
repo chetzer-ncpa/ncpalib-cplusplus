@@ -7,4 +7,5 @@
 *orig.hpp
 *orig.cpp
 *.orig
+*.old
 */.vscode

@@ -2,6 +2,7 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/lu.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
@@ -18,14 +19,14 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-                basic_linear_system_solver, abstract_linear_system_solver );
-        }
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+//                 basic_linear_system_solver, abstract_linear_system_solver );
+//         }
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::basic_linear_system_solver, ELEMENTTYPE );
@@ -101,11 +102,11 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> _solve_using_lu(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> _solve_using_lu(
                         const NCPA::linear::Vector<ELEMENTTYPE>& b ) {
                         size_t N = b.size();
-                        NCPA::linear::Matrix<ELEMENTTYPE> x = *_mat;
-                        x.resize( N, 1 );
+                        NCPA::linear::Vector<ELEMENTTYPE> x = b;
+                        x.resize( N ).zero();
                         int i = 0, j = 0, iN = (int)N;
 
                         // temporary vectors
@@ -131,13 +132,13 @@ namespace NCPA {
                                 y[ i ]
                                     -= _lu->upper().get( i, j ) * x.get( j );
                             }
-                            x.set( i, 0, y[ i ] / _lu->upper().get( i, i ) );
+                            x.set( i, y[ i ] / _lu->upper().get( i, i ) );
                         }
 
                         return x;
                     }
 
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
                         size_t N = b.size();
                         if ( N != _mat->rows() ) {
@@ -164,12 +165,12 @@ namespace NCPA {
                         }
                     }
 
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
                         if ( b.is_column_matrix() ) {
-                            return solve( *b.get_column_vector( 0 ) );
+                            return solve( *b.get_column( 0 ) );
                         } else if ( b.is_row_matrix() ) {
-                            return solve( *b.get_row_vector( 0 ) );
+                            return solve( *b.get_row( 0 ) );
                         } else {
                             throw std::logic_error(
                                 "solve(): input Matrix is neither a column "

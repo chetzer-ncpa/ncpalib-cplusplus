@@ -33,8 +33,12 @@ namespace NCPA {
 namespace NCPA {
     namespace logging {
         namespace details {
-            constexpr char _default_logger_name[]    = "default";
+            constexpr char _default_logger_name[] = "default";
+#ifdef NCPA_DEBUG_ON
+            constexpr log_level_t _default_log_level = log_level_t::DEBUG;
+#else
             constexpr log_level_t _default_log_level = log_level_t::WARNING;
+#endif
 
             class _logger {
                 public:
@@ -116,8 +120,9 @@ namespace NCPA {
                     void _open_stream() {
                         _fstream.open( _filename, std::ios_base::out
                                                       | std::ios_base::app );
-                        if (!_fstream.is_open()) {
-                            throw std::runtime_error("Failed to open file " + _filename);
+                        if ( !_fstream.is_open() ) {
+                            throw std::runtime_error( "Failed to open file "
+                                                      + _filename );
                         }
                     }
             };
@@ -184,8 +189,8 @@ namespace NCPA {
                     return log.pass_on( msg );
                 }
 
-                friend Logger& operator<<( Logger& log,
-                                       std::ostream& ( *f )(std::ostream&)) {
+                friend Logger& operator<<(
+                    Logger& log, std::ostream& ( *f )(std::ostream&)) {
                     std::ostringstream s;
                     s << f;
                     return log << s.str();
@@ -243,6 +248,9 @@ namespace NCPA {
                 std::string _default;
         };
 
-        Logger logger = Logger::logger();
+        static Logger logger = Logger::logger();
+
     }  // namespace logging
 }  // namespace NCPA
+
+#define NCPA_DEBUG NCPA::logging::logger << NCPA::logging::log_level_t::DEBUG

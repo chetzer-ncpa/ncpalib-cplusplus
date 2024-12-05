@@ -2,6 +2,7 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -15,14 +16,14 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( sparse_vector,
-                                                         abstract_vector );
-        }
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( sparse_vector,
+//                                                          abstract_vector );
+//         }
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::sparse_vector, ELEMENTTYPE );
@@ -243,14 +244,54 @@ namespace NCPA {
                     virtual ELEMENTTYPE dot(
                         const abstract_vector<ELEMENTTYPE>& b )
                         const override {
+                        if ( auto *derived = dynamic_cast<
+                                 const sparse_vector<ELEMENTTYPE> *>( &b ) ) {
+                            return _sparse_dot(
+                                dynamic_cast<
+                                    const sparse_vector<ELEMENTTYPE>&>( b ) );
+                        } else {
+                            _check_same_size( b );
+                            ELEMENTTYPE product = _zero;
+                            for ( auto it = _elements.cbegin();
+                                  it != _elements.cend(); ++it ) {
+                                product += it->second * b.get( it->first );
+                            }
+                            return product;
+                        }
+                    }
+
+                    ELEMENTTYPE _sparse_dot(
+                        const sparse_vector<ELEMENTTYPE>& b ) const {
                         _check_same_size( b );
                         ELEMENTTYPE product = _zero;
-                        for ( auto it = _elements.cbegin();
-                              it != _elements.cend(); ++it ) {
-                            product += it->second * b.get( it->first );
+                        auto a_it           = this->_elements.cbegin();
+                        auto b_it           = b._elements.cbegin();
+                        while ( a_it != this->_elements.cend()
+                                && b_it != b._elements.cend() ) {
+                            if ( a_it->first == b_it->first ) {
+                                product += a_it->second * b_it->second;
+                                ++a_it;
+                                ++b_it;
+                            } else if ( a_it->first < b_it->first ) {
+                                ++a_it;
+                            } else {
+                                ++b_it;
+                            }
                         }
                         return product;
                     }
+
+                    // ELEMENTTYPE _sparse_dot( const
+                    // sparse_vector<ELEMENTTYPE>& b ) const {
+                    //     _check_same_size( b );
+                    //     ELEMENTTYPE product = _zero;
+                    //     auto inds = this->nonzero_index_intersection( b );
+                    //     for (auto it = inds.cbegin(); it != inds.cend();
+                    //     ++it) {
+                    //         product += this->get( *it ) * b.get( *it );
+                    //     }
+                    //     return product;
+                    // }
 
                     virtual std::map<size_t, ELEMENTTYPE> nonzero()
                         const override {
@@ -262,7 +303,7 @@ namespace NCPA {
                         std::vector<size_t> nz;
                         for ( auto it = _elements.cbegin();
                               it != _elements.cend(); ++it ) {
-                            if (!NCPA::math::is_zero( it->second )) {
+                            if ( !NCPA::math::is_zero( it->second ) ) {
                                 nz.push_back( it->first );
                             }
                         }
@@ -273,9 +314,7 @@ namespace NCPA {
                         return _elements.size();
                     }
 
-                    virtual void qc() override {
-                        _verify_nonzero();
-                    }
+                    virtual void qc() override { _verify_nonzero(); }
 
                     virtual abstract_vector<ELEMENTTYPE>& zero() override {
                         _elements.clear();
@@ -357,16 +396,19 @@ namespace NCPA {
                         return !( a.equals( b ) );
                     }
 
+                    friend class band_diagonal_matrix<ELEMENTTYPE>;
 
                 protected:
                     void _verify_nonzero() {
                         std::vector<size_t> bad_inds;
-                        for (auto it = _elements.begin(); it != _elements.end(); ++it) {
-                            if (NCPA::math::is_zero( it->second )) {
+                        for ( auto it = _elements.begin();
+                              it != _elements.end(); ++it ) {
+                            if ( NCPA::math::is_zero( it->second ) ) {
                                 bad_inds.push_back( it->first );
                             }
                         }
-                        for (auto it = bad_inds.begin(); it != bad_inds.end(); ++it) {
+                        for ( auto it = bad_inds.begin(); it != bad_inds.end();
+                              ++it ) {
                             _elements.erase( *it );
                         }
                     }

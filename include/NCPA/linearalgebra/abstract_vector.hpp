@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -15,14 +16,14 @@
 #include <vector>
 
 // forward declarations for operators and friend functions
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            template<typename ELEMENTTYPE>
-            class abstract_vector;
-        }  // namespace details
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             template<typename ELEMENTTYPE>
+//             class abstract_vector;
+//         }  // namespace details
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::abstract_vector, ELEMENTTYPE );
@@ -63,7 +64,7 @@ namespace NCPA {
                         ELEMENTTYPE val )
                         = 0;
 
-                    virtual abstract_vector<ELEMENTTYPE>& zero() = 0;
+                    virtual abstract_vector<ELEMENTTYPE>& zero()           = 0;
                     virtual abstract_vector<ELEMENTTYPE>& zero( size_t n ) = 0;
                     virtual abstract_vector<ELEMENTTYPE>& zero(
                         const std::vector<size_t>& n )
@@ -92,9 +93,9 @@ namespace NCPA {
                         const abstract_vector<ELEMENTTYPE>& b ) const
                         = 0;
 
-                    virtual std::map< size_t, ELEMENTTYPE > nonzero() const = 0;
-                    virtual size_t count_nonzero_indices() const        = 0;
-                    virtual std::vector<size_t> nonzero_indices() const = 0;
+                    virtual std::map<size_t, ELEMENTTYPE> nonzero() const = 0;
+                    virtual size_t count_nonzero_indices() const          = 0;
+                    virtual std::vector<size_t> nonzero_indices() const   = 0;
 
                     virtual void qc() = 0;
 

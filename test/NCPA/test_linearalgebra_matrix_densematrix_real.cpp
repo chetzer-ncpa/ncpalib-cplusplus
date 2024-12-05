@@ -89,7 +89,7 @@ TEST_F( _TEST_TITLE_, IndexingOperatorsWork ) {
     wrapper2 = wrapper1;
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1[i][j], wrapper2.get( i, j ) );
+            _TEST_EQ_( wrapper1.get(i,j), wrapper2.get( i, j ) );
         }
     }
 }
@@ -107,7 +107,7 @@ TEST_F( _TEST_TITLE_, ResizeWorks ) {
     wrapper1.resize( 2, 2 );
     EXPECT_EQ( wrapper1.rows(), 2 );
     EXPECT_EQ( wrapper1.columns(), 2 );
-    EXPECT_THROW( { wrapper1[2][2]; }, std::out_of_range );
+    EXPECT_THROW( { wrapper1.get(2,2); }, std::range_error );
 }
 
 TEST_F( _TEST_TITLE_, ResizePreservesExistingValues ) {
@@ -144,30 +144,8 @@ TEST_F( _TEST_TITLE_, GetReturnsZeroIfEmpty ) {
     _TEST_EQ_( wrapper2.get( 0, 0 ), zero );
 }
 
-TEST_F( _TEST_TITLE_, GetRowReturnsRowMatrix ) {
-    auto mat3 = *( wrapper1.get_row( 0 ) );
-    EXPECT_EQ( mat3.rows(), 1 );
-    EXPECT_EQ( mat3.columns(), 3 );
-    EXPECT_TRUE( mat3.is_row_matrix() );
-    for ( auto i = 0; i < dim1; i++ ) {
-        _TEST_EQ_( mat3.get( 0, i ), wrapper1.get( 0, i ) );
-        _TEST_EQ_( mat3.get( i ), wrapper1.get( 0, i ) );
-    }
-}
-
-TEST_F( _TEST_TITLE_, GetColumnReturnsRowMatrix ) {
-    auto mat3 = *( wrapper1.get_column( 0 ) );
-    EXPECT_EQ( mat3.columns(), 1 );
-    EXPECT_EQ( mat3.rows(), 3 );
-    EXPECT_TRUE( mat3.is_column_matrix() );
-    for ( auto i = 0; i < dim1; i++ ) {
-        _TEST_EQ_( mat3.get( i, 0 ), wrapper1.get( i, 0 ) );
-        _TEST_EQ_( mat3.get( i ), wrapper1.get( i, 0 ) );
-    }
-}
-
 TEST_F( _TEST_TITLE_, GetRowVectorReturnsRowAsVector ) {
-    auto vec = *( wrapper1.get_row_vector( 0 ) );
+    auto vec = *( wrapper1.get_row( 0 ) );
     EXPECT_EQ( vec.size(), 3 );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( vec[ i ], wrapper1.get( 0, i ) );
@@ -175,7 +153,7 @@ TEST_F( _TEST_TITLE_, GetRowVectorReturnsRowAsVector ) {
 }
 
 TEST_F( _TEST_TITLE_, GetColumnVectorReturnsColumnAsVector ) {
-    auto vec = *( wrapper1.get_column_vector( 0 ) );
+    auto vec = *( wrapper1.get_column( 0 ) );
     EXPECT_EQ( vec.size(), 3 );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( vec[ i ], wrapper1.get( i, 0 ) );
@@ -255,7 +233,7 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     wrapper2 = wrapper1;
 
     // abstract_vector
-    auto avec = *( wrapper1.get_row_vector( 0 ) );
+    auto avec = *( wrapper1.get_row( 0 ) );
     wrapper2.set_row( 1, avec );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
@@ -263,7 +241,7 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     wrapper2 = wrapper1;
 
     // Vector
-    Vector<test_t> aVec( *( wrapper1.get_row_vector( 0 ) ) );
+    Vector<test_t> aVec( *( wrapper1.get_row( 0 ) ) );
     wrapper2.set_row( 1, aVec );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
@@ -344,7 +322,7 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     wrapper2 = wrapper1;
 
     // abstract_vector
-    auto avec = *( wrapper1.get_column_vector( 0 ) );
+    auto avec = *( wrapper1.get_column( 0 ) );
     wrapper2.set_column( 1, avec );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
@@ -352,7 +330,7 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     wrapper2 = wrapper1;
 
     // Vector
-    Vector<test_t> aVec( *( wrapper1.get_column_vector( 0 ) ) );
+    Vector<test_t> aVec( *( wrapper1.get_column( 0 ) ) );
     wrapper2.set_column( 1, aVec );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
@@ -414,7 +392,7 @@ TEST_F( _TEST_TITLE_,
     EXPECT_FALSE( wrapper2.is_identity() );
 
     // abstract_vector
-    auto avec = *( wrapper1.get_column_vector( 0 ) );
+    auto avec = *( wrapper1.get_column( 0 ) );
     wrapper2.set_diagonal( avec, 2 );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( i, i + 2 ), wrapper1.get( i, 0 ) );
@@ -422,7 +400,7 @@ TEST_F( _TEST_TITLE_,
     wrapper2.zero();
 
     // Vector
-    Vector<test_t> aVec( *( wrapper1.get_column_vector( 0 ) ) );
+    Vector<test_t> aVec( *( wrapper1.get_column( 0 ) ) );
     wrapper2.set_diagonal( aVec, -2 );
     for ( auto i = 0; i < dim1; i++ ) {
         _TEST_EQ_( wrapper2.get( i + 2, i ), wrapper1.get( i, 0 ) );

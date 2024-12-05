@@ -1,24 +1,25 @@
 #pragma once
 
-#include "NCPA/types.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/types.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
-#include <algorithm>
+#include <numeric>
 #include <vector>
 
 namespace NCPA {
     namespace arrays {
 
         template<typename T>
-        T* as_array( std::vector<T> &in ) {
-            return &in[0];
+        T *as_array( std::vector<T>& in ) {
+            return &in[ 0 ];
         }
 
         template<typename T>
-        const T* as_array( const std::vector<T> &in ) {
-            return &in[0];
+        const T *as_array( const std::vector<T>& in ) {
+            return &in[ 0 ];
         }
 
         /**
@@ -77,13 +78,15 @@ namespace NCPA {
                 @param nr The dimension of the array.
                 */
         template<typename T>
-        void free_array( T *& v, size_t nr, ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
+        void free_array( T *& v, size_t nr,
+                         ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
             delete[] v;
             v = nullptr;
         }
 
         template<typename T>
-        void free_array( T *& v, size_t nr, ENABLE_FUNCTION_IF_DELETEABLE( T )  ) {
+        void free_array( T *& v, size_t nr,
+                         ENABLE_FUNCTION_IF_DELETEABLE( T ) ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 delete v[ i ];
             }
@@ -98,7 +101,8 @@ namespace NCPA {
         @param nc The second dimension of the array.
         */
         template<typename T>
-        void free_array( T **& v, size_t nr, size_t nc, ENABLE_FUNCTION_IF_NOT_DELETEABLE(T) ) {
+        void free_array( T **& v, size_t nr, size_t nc,
+                         ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 delete[] v[ i ];
             }
@@ -107,7 +111,8 @@ namespace NCPA {
         }
 
         template<typename T>
-        void free_array( T **& v, size_t nr, size_t nc, ENABLE_FUNCTION_IF_DELETEABLE(T) ) {
+        void free_array( T **& v, size_t nr, size_t nc,
+                         ENABLE_FUNCTION_IF_DELETEABLE( T ) ) {
             for ( size_t i = 0; i < nr; i++ ) {
                 for ( size_t j = 0; j < nc; j++ ) {
                     delete v[ i ][ j ];
@@ -130,7 +135,7 @@ namespace NCPA {
         */
         template<typename T>
         void free_array( T ***& data, size_t nd1, size_t nd2, size_t nd3,
-                         ENABLE_FUNCTION_IF_NOT_DELETEABLE(T) ) {
+                         ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
             size_t i, j, k;
             for ( i = 0; i < nd1; ++i ) {
                 if ( data[ i ] != NULL ) {
@@ -146,7 +151,7 @@ namespace NCPA {
 
         template<typename T>
         void free_array( T ***& data, size_t nd1, size_t nd2, size_t nd3,
-                         ENABLE_FUNCTION_IF_DELETEABLE(T) ) {
+                         ENABLE_FUNCTION_IF_DELETEABLE( T ) ) {
             size_t i, j, k;
             for ( i = 0; i < nd1; ++i ) {
                 if ( data[ i ] != NULL ) {
@@ -179,7 +184,7 @@ namespace NCPA {
         template<typename T>
         void circshift( T *X, size_t N, int K, T *& out ) {
             while ( std::abs( K ) > N ) {
-                K -= ( (int)N ) * (K < 0 ? -1 : 1);
+                K -= ( (int)N ) * ( K < 0 ? -1 : 1 );
             }
             size_t i;
             T *tempvec = zeros<T>( N );
@@ -263,7 +268,7 @@ namespace NCPA {
         @param to The array to copy into.
         */
         template<typename T>
-        void copy( const T *from, size_t n, T* to ) {
+        void copy( const T *from, size_t n, T *to ) {
             std::copy( from, from + n, to );
         }
 
@@ -275,7 +280,7 @@ namespace NCPA {
         @param to The array to copy into.
         */
         template<typename T>
-        void copy( const T **from, size_t n1, size_t n2, T** to ) {
+        void copy( const T **from, size_t n1, size_t n2, T **to ) {
             for ( size_t i = 0; i < n1; i++ ) {
                 copy( from[ i ], n2, to[ i ] );
             }
@@ -290,7 +295,8 @@ namespace NCPA {
         @param to The array to copy into.
         */
         template<typename T>
-        void copy( const T ***from, size_t n1, size_t n2, size_t n3, T*** to ) {
+        void copy( const T ***from, size_t n1, size_t n2, size_t n3,
+                   T ***to ) {
             for ( size_t i = 0; i < n1; i++ ) {
                 copy( from[ i ], n2, n3, to[ i ] );
             }
@@ -323,12 +329,11 @@ namespace NCPA {
         template<typename T>
         std::vector<T> index_vector( size_t n, T a = 0 ) {
             std::vector<T> inds( n );
-            for (size_t i = 0; i < n; i++) {
+            for ( size_t i = 0; i < n; i++ ) {
                 inds[ i ] = (T)i + a;
             }
             return inds;
         }
-
 
         // template<typename T>
         // T *index_vector( size_t n, T a = 0 ) {
@@ -355,6 +360,97 @@ namespace NCPA {
             std::memcpy( out, tempvec, N * sizeof( T ) );
 
             delete[] tempvec;
+        }
+
+        // use like:
+        // auto p = sort_permutation(vectorA,
+        //      [](T const& a, T const& b){ /*some comparison*/ });
+        //
+        // From https://stackoverflow.com/a/17074810
+        // @todo generalize for any container
+        template<typename T, typename Compare>
+        std::vector<std::size_t> sort_permutation( const std::vector<T>& vec,
+                                                   Compare compare ) {
+            std::vector<std::size_t> p( vec.size() );
+            std::iota( p.begin(), p.end(), 0 );
+            std::sort( p.begin(), p.end(),
+                       [ & ]( std::size_t i, std::size_t j ) {
+                           return compare( vec[ i ], vec[ j ] );
+                       } );
+            return p;
+        }
+
+        template<typename T, typename Compare>
+        std::vector<std::size_t> sort_permutation( const std::vector<T>& vec1,
+                                                    const std::vector<T>& vec2,
+                                                   Compare compare ) {
+            if (vec1.size() != vec2.size()) {
+                throw std::invalid_argument( "Vectors must be the same size!");
+            }
+            std::vector<std::size_t> p( vec1.size() );
+            std::iota( p.begin(), p.end(), 0 );
+            std::sort( p.begin(), p.end(),
+                       [ & ]( std::size_t i, std::size_t j ) {
+                           return compare( vec1[ i ], vec1[ j ] ) || (vec1[ i ] == vec1[ j ] && compare( vec2[ i ], vec2[ j ] ));
+                       } );
+            return p;
+        }
+
+        template<typename T>
+        std::vector<std::size_t> sort_permutation_increasing( const std::vector<T>& vec ) {
+            return sort_permutation<T>( vec, 
+                [](T const& a, T const& b) { return a < b; } );
+        }
+
+        template<typename T>
+        std::vector<std::size_t> sort_permutation_increasing( const std::vector<T>& vec1,
+        const std::vector<T>& vec2 ) {
+            return sort_permutation<T>( vec1, vec2,
+                [](T const& a, T const& b) { return a < b; } );
+        }
+
+        template<typename T>
+        std::vector<std::size_t> sort_permutation_decreasing( const std::vector<T>& vec ) {
+            return sort_permutation<T>( vec, 
+                [](T const& a, T const& b) { return a > b; } );
+        }
+
+        template<typename T>
+        std::vector<std::size_t> sort_permutation_decreasing( const std::vector<T>& vec1,
+        const std::vector<T>& vec2 ) {
+            return sort_permutation<T>( vec1, vec2,
+                [](T const& a, T const& b) { return a > b; } );
+        }
+
+        // From https://stackoverflow.com/a/17074810
+        template<typename T>
+        std::vector<T> apply_permutation( const std::vector<T>& vec,
+                                          const std::vector<std::size_t>& p ) {
+            std::vector<T> sorted_vec( vec.size() );
+            std::transform( p.begin(), p.end(), sorted_vec.begin(),
+                            [ & ]( std::size_t i ) { return vec[ i ]; } );
+            return sorted_vec;
+        }
+
+        // From https://stackoverflow.com/a/17074810
+        template<typename T>
+        void apply_permutation_in_place( std::vector<T>& vec,
+                                         const std::vector<std::size_t>& p ) {
+            std::vector<bool> done( vec.size() );
+            for ( std::size_t i = 0; i < vec.size(); ++i ) {
+                if ( done[ i ] ) {
+                    continue;
+                }
+                done[ i ]          = true;
+                std::size_t prev_j = i;
+                std::size_t j      = p[ i ];
+                while ( i != j ) {
+                    std::swap( vec[ prev_j ], vec[ j ] );
+                    done[ j ] = true;
+                    prev_j    = j;
+                    j         = p[ j ];
+                }
+            }
         }
 
 

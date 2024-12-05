@@ -102,6 +102,11 @@ namespace NCPA {
                     return _ptr->get_property( key );
                 }
 
+                virtual vector_t get_altitude_vector() {
+                    check_pointer();
+                    return _ptr->get_altitude_vector();
+                }
+
                 virtual double get( const std::string& key ) {
                     check_pointer();
                     return _ptr->get( key );

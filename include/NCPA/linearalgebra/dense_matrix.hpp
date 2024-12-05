@@ -3,6 +3,7 @@
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/math.hpp"
@@ -18,14 +19,14 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_matrix,
-                                                         abstract_matrix );
-        }
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_matrix,
+//                                                          abstract_matrix );
+//         }
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::dense_matrix, ELEMENTTYPE );
@@ -345,10 +346,20 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual abstract_vector<ELEMENTTYPE>& operator[](
-                        size_t i ) override {
-                        return _elements[ i ];
+                    virtual bool is_this_subclass(
+                        const abstract_matrix<ELEMENTTYPE>& b ) const override {
+                        if ( auto *derived = dynamic_cast<
+                                 const dense_matrix<ELEMENTTYPE> *>( &b ) ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
+
+                    // virtual abstract_vector<ELEMENTTYPE>& operator[](
+                    //     size_t i ) override {
+                    //     return _elements[ i ];
+                    // }
 
                     // virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                     // transpose()

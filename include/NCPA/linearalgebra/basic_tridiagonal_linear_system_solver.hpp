@@ -2,6 +2,7 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
@@ -17,15 +18,15 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-                basic_tridiagonal_linear_system_solver,
-                abstract_linear_system_solver );
-        }
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+//                 basic_tridiagonal_linear_system_solver,
+//                 abstract_linear_system_solver );
+//         }
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::basic_tridiagonal_linear_system_solver,
@@ -109,7 +110,7 @@ namespace NCPA {
                             this );
                     }
 
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
                         size_t N = b.size();
                         if ( N != _mat->rows() ) {
@@ -122,9 +123,10 @@ namespace NCPA {
                             throw std::logic_error( oss.str() );
                         }
                         ELEMENTTYPE cup, pot;
-                        std::vector<ELEMENTTYPE> diag  = _mat->get_diagonal()->as_std(),
-                                       lower = _mat->get_diagonal( -1 )->as_std(),
-                                       upper = _mat->get_diagonal( 1 )->as_std();
+                        std::vector<ELEMENTTYPE> diag
+                            = _mat->get_diagonal()->as_std(),
+                            lower = _mat->get_diagonal( -1 )->as_std(),
+                            upper = _mat->get_diagonal( 1 )->as_std();
 
                         size_t L = diag.size();
                         if ( b.size() != L ) {
@@ -138,8 +140,8 @@ namespace NCPA {
                                 "the same size!" );
                         }
                         std::vector<ELEMENTTYPE> vec( L );
-                        NCPA::linear::Matrix<ELEMENTTYPE> x = *_mat;
-                        x.resize( N, 1 );
+                        NCPA::linear::Vector<ELEMENTTYPE> x = b;
+                        x.resize( N ).zero();
                         int i;
 
                         if ( NCPA::math::is_zero<ELEMENTTYPE>( diag[ 0 ] ) ) {
@@ -148,32 +150,33 @@ namespace NCPA {
                         }
                         cup      = diag[ 0 ];
                         vec[ 0 ] = cup;
-                        x[ 0 ][ 0 ]   = b[ 0 ];
+                        x.set( 0, b[ 0 ] );
                         for ( i = 1; i < L; i++ ) {
-                            pot    = lower[ i - 1 ] / cup;
-                            x[ i ][ 0 ] = b[ i ] - ( x[ i - 1 ][ 0 ] * pot );
-                            cup    = diag[ i ] - ( upper[ i - 1 ] * pot );
-                            if ( NCPA::math::is_zero<ELEMENTTYPE>(cup ) ) {
+                            pot = lower[ i - 1 ] / cup;
+                            x.set( i, b[ i ] - ( x.get( i - 1 ) * pot ) );
+                            cup = diag[ i ] - ( upper[ i - 1 ] * pot );
+                            if ( NCPA::math::is_zero<ELEMENTTYPE>( cup ) ) {
                                 throw std::invalid_argument(
                                     "Matrix needs to be pivoted" );
                             }
                             vec[ i ] = cup;
                         }
 
-                        x[ L - 1 ][ 0 ] = x[ L - 1 ][ 0 ] / vec[ L - 1 ];
+                        x.set( L - 1, x.get( L - 1 ) / vec[ L - 1 ] );
                         for ( i = L - 2; i >= 0; i-- ) {
-                            x[ i ][ 0 ] = ( x[ i ][ 0 ] - ( upper[ i ] * x[ i + 1 ][ 0 ] ) )
-                                   / vec[ i ];
+                            x.set( i, ( x.get( i )
+                                        - ( upper[ i ] * x.get( i + 1 ) ) )
+                                          / vec[ i ] );
                         }
                         return x;
                     }
 
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
                         if ( b.is_column_matrix() ) {
-                            return solve( *b.get_column_vector( 0 ) );
+                            return solve( *b.get_column( 0 ) );
                         } else if ( b.is_row_matrix() ) {
-                            return solve( *b.get_row_vector( 0 ) );
+                            return solve( *b.get_row( 0 ) );
                         } else {
                             throw std::logic_error(
                                 "solve(): input Matrix is neither a column "
@@ -181,17 +184,8 @@ namespace NCPA {
                         }
                     }
 
-                // protected:
-                    // void _build_lu() {
-                    //     _lu = std::unique_ptr<
-                    //         NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
-                    //         new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
-                    // }
-
                 private:
                     std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>> _mat;
-                    // std::unique_ptr<NCPA::linear::LUDecomposition<ELEMENTTYPE>>
-                    //     _lu;
             };
         }  // namespace details
     }  // namespace linear
@@ -209,5 +203,4 @@ static void swap(
         static_cast<NCPA::linear::details::abstract_linear_system_solver<T>&>(
             b ) );
     swap( a._mat, b._mat );
-    // swap( a._lu, b._lu );
 }

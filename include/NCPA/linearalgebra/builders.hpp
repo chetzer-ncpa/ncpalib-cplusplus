@@ -1,9 +1,10 @@
 #pragma once
 
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
-#include "NCPA/linearalgebra/sparse_matrix.hpp"
+#include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
 #include "NCPA/linearalgebra/sparse_vector.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
@@ -14,7 +15,7 @@
 
 namespace NCPA {
     namespace linear {
-        enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE };
+        enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
         enum class solver_t { INVALID, BASIC, TRIDIAGONAL };
 
         template<typename ELEMENTTYPE>
@@ -56,11 +57,11 @@ namespace NCPA {
                                     new details::dense_matrix<
                                         ELEMENTTYPE>() ) );
                             break;
-                        case family_t::NCPA_SPARSE:
+                        case family_t::NCPA_BAND_DIAGONAL:
                             return Matrix<ELEMENTTYPE>(
                                 std::unique_ptr<
                                     details::abstract_matrix<ELEMENTTYPE>>(
-                                    new details::dense_matrix<
+                                    new band_diagonal_matrix<
                                         ELEMENTTYPE>() ) );
                             break;
                         default:

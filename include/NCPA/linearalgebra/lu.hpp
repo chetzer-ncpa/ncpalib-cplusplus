@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/linearalgebra/builders.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
 #include "NCPA/linearalgebra/vector.hpp"
@@ -12,18 +13,14 @@
 #  define LU_DECOMPOSITION_TOLERANCE 1.0e-20
 #endif
 
-namespace NCPA {
-    namespace linear {
-
-        template<typename ELEMENTTYPE>
-        class LUDecomposition;
-
-    }  // namespace linear
-}  // namespace NCPA
-
 template<typename ELEMENTTYPE>
 static void swap( NCPA::linear::LUDecomposition<ELEMENTTYPE>& a,
                   NCPA::linear::LUDecomposition<ELEMENTTYPE>& b ) noexcept;
+
+// template<typename ELEMENTTYPE>
+// static void swap(
+//     NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE>& a,
+//     NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE>& b ) noexcept;
 
 namespace NCPA {
     namespace linear {
@@ -32,8 +29,7 @@ namespace NCPA {
             public:
                 LUDecomposition() :
                     _tolerance { NCPA::math::one<ELEMENTTYPE>()
-                                 * LU_DECOMPOSITION_TOLERANCE }
-                    {}
+                                 * LU_DECOMPOSITION_TOLERANCE } {}
 
                 LUDecomposition( const LUDecomposition<ELEMENTTYPE>& other ) :
                     LUDecomposition<ELEMENTTYPE>() {
@@ -62,17 +58,6 @@ namespace NCPA {
                              && !_permutation.is_empty() );
                 }
 
-                // virtual LUDecomposition<ELEMENTTYPE>& set(
-                //     const Matrix<ELEMENTTYPE>& mat ) {
-                //     if ( !mat.is_square() ) {
-                //         throw std::invalid_argument(
-                //             "LUDecomposition.set(): Matrix must be square"
-                //             );
-                //     }
-                //     _base = mat;
-                //     return *this;
-                // }
-
                 virtual LUDecomposition<ELEMENTTYPE>& set_tolerance(
                     ELEMENTTYPE tol ) {
                     _tolerance = tol;
@@ -93,20 +78,16 @@ namespace NCPA {
                             "LUDecomposition.set(): Base matrix must be "
                             "square" );
                     }
-                    // if ( !_upper || !_lower || !_permutation ) {
-                        _upper       = base;
-                        _lower       = base;
-                        _permutation = base;
-                    // }
-                    size_t N = base.rows();
-                    // _upper.copy( base );
+                    _upper       = base;
+                    _lower       = base;
+                    _permutation = base;
+                    size_t N     = base.rows();
                     _lower.clear().resize( N, N );
                     _permutation.identity( N, N );
 
                     size_t i, j, k;
 
                     ELEMENTTYPE maxA, absA;
-                    // _upper *= base;
 
                     for ( k = 0; k < N; k++ ) {
                         if ( pivot ) {
@@ -151,15 +132,28 @@ namespace NCPA {
                     return *this;
                 }
 
+                
+
                 virtual const Matrix<ELEMENTTYPE>& lower() const {
                     return _lower;
                 }
+
+                
 
                 virtual const Matrix<ELEMENTTYPE>& upper() const {
                     return _upper;
                 }
 
+                
+
                 virtual const Matrix<ELEMENTTYPE>& permutation() const {
+                    return _permutation;
+                }
+
+            // protected:
+                virtual Matrix<ELEMENTTYPE>& lower() { return _lower; }
+                virtual Matrix<ELEMENTTYPE>& upper() { return _upper; }
+                virtual Matrix<ELEMENTTYPE>& permutation() {
                     return _permutation;
                 }
 
@@ -167,6 +161,63 @@ namespace NCPA {
                 ELEMENTTYPE _tolerance;
                 Matrix<ELEMENTTYPE> _lower, _upper, _permutation;
         };
+
+        // template<typename ELEMENTTYPE>
+        // class BandDiagonalLUDecomposition
+        //     : public LUDecomposition<ELEMENTTYPE> {
+        //     public:
+        //         BandDiagonalLUDecomposition() :
+        //             LUDecomposition<ELEMENTTYPE>() {}
+
+        //         BandDiagonalLUDecomposition(
+        //             const BandDiagonalLUDecomposition<ELEMENTTYPE>& other ) :
+        //             LUDecomposition<ELEMENTTYPE>( other ) {}
+
+        //         BandDiagonalLUDecomposition<ELEMENTTYPE>& operator=(
+        //             BandDiagonalLUDecomposition<ELEMENTTYPE> other ) {
+        //             swap( *this, other );
+        //             return *this;
+        //         }
+
+        //         virtual LUDecomposition<ELEMENTTYPE>& decompose(
+        //             const Matrix<ELEMENTTYPE>& base,
+        //             bool pivot = true ) override {
+        //             if ( !base ) {
+        //                 throw std::logic_error(
+        //                     "BandDiagonalLUDecomposition.compute(): base "
+        //                     "matrix has not "
+        //                     "been set up!" );
+        //             }
+
+        //             if ( !base.is_band_diagonal() ) {
+        //                 throw std::logic_error(
+        //                     "BandDiagonalLUDecomposition.decompose(): Base "
+        //                     "matrix must be band-diagonal" );
+        //             }
+
+        //             if ( !base.is_square() ) {
+        //                 throw std::logic_error(
+        //                     "BandDiagonalLUDecomposition.decompose(): Base "
+        //                     "matrix must be "
+        //                     "square" );
+        //             }
+
+        //             n = base.rows();
+        //             this->upper() = base;
+        //             m1 = base
+
+        //             int i, j, k, l, mm;
+        //             double dum;
+        //             mm = m1 + m2;
+        //         }
+
+        //     private:
+        //         // using nomenclature from Numerical Recipes for now, make
+        //         // better later
+        //         int n, m1, m2;
+        //         double d;
+        //         Vector<int> indx;
+        // };
     }  // namespace linear
 }  // namespace NCPA
 
@@ -179,3 +230,11 @@ static void swap( NCPA::linear::LUDecomposition<T>& a,
     swap( a._permutation, b._permutation );
     swap( a._tolerance, b._tolerance );
 }
+
+// template<typename T>
+// static void swap( NCPA::linear::BandDiagonalLUDecomposition<T>& a,
+//                   NCPA::linear::BandDiagonalLUDecomposition<T>& b ) noexcept {
+//     using std::swap;
+//     std::swap( static_cast<NCPA::linear::LUDecomposition<ELEMENTTYPE>&>( a ),
+//                static_cast<NCPA::linear::LUDecomposition<ELEMENTTYPE>&>( b ) );
+// }

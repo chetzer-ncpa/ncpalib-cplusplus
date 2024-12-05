@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/math.hpp"
@@ -15,14 +16,14 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_vector,
-                                                         abstract_vector );
-        }
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_vector,
+//                                                          abstract_vector );
+//         }
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::dense_vector, ELEMENTTYPE );
@@ -304,6 +305,8 @@ namespace NCPA {
                         const dense_vector<ELEMENTTYPE>& b ) {
                         return !( a.equals( b ) );
                     }
+
+                    friend class dense_matrix<ELEMENTTYPE>;
 
                 protected:
                     void _check_same_size(

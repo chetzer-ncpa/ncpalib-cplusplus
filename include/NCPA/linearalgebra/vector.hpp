@@ -3,6 +3,7 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -17,14 +18,14 @@
 #include <sstream>
 #include <vector>
 
-namespace NCPA {
-    namespace linear {
-        // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-        //     Vector, details::abstract_vector );
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
-    }  // namespace linear
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace linear {
+//         // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+//         //     Vector, details::abstract_vector );
+//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
+//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Vector,
                                              ELEMENTTYPE );
@@ -101,6 +102,18 @@ namespace NCPA {
                 virtual size_t size() const {
                     return internal() ? internal()->size() : 0;
                 };
+
+                virtual Vector<ELEMENTTYPE>& zero() {
+                    check_pointer();
+                    internal()->zero();
+                    return *this;
+                }
+
+                virtual Vector<ELEMENTTYPE>& zero( size_t n ) {
+                    check_pointer();
+                    internal()->zero( n );
+                    return *this;
+                }
 
                 virtual ELEMENTTYPE& get( size_t n ) {
                     check_pointer();

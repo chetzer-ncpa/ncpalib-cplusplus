@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
@@ -16,15 +17,15 @@
 #include <sstream>
 #include <vector>
 
-// forward declarations for operators and friend functions
-namespace NCPA {
-    namespace linear {
-        namespace details {
-            template<typename ELEMENTTYPE>
-            class abstract_linear_system_solver;
-        }  // namespace details
-    }  // namespace linear
-}  // namespace NCPA
+// // forward declarations for operators and friend functions
+// namespace NCPA {
+//     namespace linear {
+//         namespace details {
+//             template<typename ELEMENTTYPE>
+//             class abstract_linear_system_solver;
+//         }  // namespace details
+//     }  // namespace linear
+// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::abstract_linear_system_solver, ELEMENTTYPE );
@@ -50,10 +51,10 @@ namespace NCPA {
                         = 0;
                     virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                         = 0;
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Matrix<ELEMENTTYPE>& RHS )
                         = 0;
-                    virtual NCPA::linear::Matrix<ELEMENTTYPE> solve(
+                    virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Vector<ELEMENTTYPE>& RHS )
                         = 0;
             };

@@ -45,7 +45,7 @@ TEST_F( _TEST_TITLE_, LUDecompositionIsCorrect ) {
     Matrix<test_t> right = lu.lower() * lu.upper();
     for ( size_t r = 0; r < left.rows(); r++ ) {
         for ( size_t c = 0; c < left.columns(); c++ ) {
-            EXPECT_NEAR( left[ r ][ c ], right[ r ][ c ], 1e-10 );
+            EXPECT_NEAR( left.get( r, c ), right.get( r, c ), 1e-10 );
         }
     }
 }
@@ -56,7 +56,7 @@ TEST_F( _TEST_TITLE_, LUDecompositionIsCorrectWithPivot ) {
     Matrix<test_t> right = lu.lower() * lu.upper();
     for ( size_t r = 0; r < left.rows(); r++ ) {
         for ( size_t c = 0; c < left.columns(); c++ ) {
-            EXPECT_NEAR( left[ r ][ c ], right[ r ][ c ], 1e-10 );
+            EXPECT_NEAR( left.get( r, c ), right.get( r, c ), 1e-10 );
         }
     }
 }

@@ -26,36 +26,47 @@ namespace NCPA {
         /**
          * Returns zero as the specified type.
          */
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC(T)>
-        const T zero() {
-            T z = 0;
-            return z;
+        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
+        constexpr T zero() {
+            // T z = 0;
+            return (T)( 0 );
         }
 
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX(T)>
-        const T zero() {
-            T z( 0, 0 );
-            return z;
+        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
+        constexpr T zero() {
+            // T z( 0, 0 );
+            return T( 0, 0 );
+        }
+
+        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
+        bool is_zero( T val ) {
+            return ( std::fpclassify( val ) == FP_ZERO );
+        }
+
+        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
+        bool is_zero( T val ) {
+            return is_zero( val.real() ) && is_zero( val.imag() );
         }
 
         /**
          * Returns unity as the specified type.
          *
          */
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC(T)>
-        const T one() {
-            T z = 1;
-            return z;
+        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
+        constexpr T one() {
+            // T z = 1;
+            return (T)( 1 );
         }
 
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX(T)>
-        const T one() {
-            T z( 1, 0 );
-            return z;
+        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
+        constexpr T one() {
+            // T z( 1, 0 );
+            return T( 1, 0 );
         }
 
         template<typename T>
-        bool equals( T x, T y, size_t n = 1, ENABLE_FUNCTION_IF_ARITHMETIC(T) ) {
+        bool equals( T x, T y, size_t n = 1,
+                     ENABLE_FUNCTION_IF_ARITHMETIC( T ) ) {
             if ( std::numeric_limits<T>::is_exact ) {
                 return x == y;
             } else {
@@ -85,8 +96,10 @@ namespace NCPA {
         }
 
         template<typename T>
-        bool equals( T x, T y, size_t n = 1, ENABLE_FUNCTION_IF_COMPLEX(T) ) {
-            return equals( x.real(), y.real() ) && equals( x.imag(), y.imag() );
+        bool equals( T x, T y, size_t n = 1,
+                     ENABLE_FUNCTION_IF_COMPLEX( T ) ) {
+            return equals( x.real(), y.real() )
+                && equals( x.imag(), y.imag() );
         }
 
         /**
@@ -252,8 +265,8 @@ namespace NCPA {
          */
         template<typename T>
         T math2az( T deg_in ) {
-            T deg_out = ((T)90.0) - deg_in;
-            while (deg_out < 0.0) {
+            T deg_out = ( (T)90.0 ) - deg_in;
+            while ( deg_out < 0.0 ) {
                 deg_out += 360.0;
             }
             return deg_out;
@@ -266,8 +279,8 @@ namespace NCPA {
          */
         template<typename T>
         T az2math( T deg_in ) {
-            T deg_out = ((T)90.0) - deg_in;
-            while (deg_out < 0.0) {
+            T deg_out = ( (T)90.0 ) - deg_in;
+            while ( deg_out < 0.0 ) {
                 deg_out += 360.0;
             }
             return deg_out;
@@ -338,7 +351,7 @@ namespace NCPA {
          * @param real The real vector to convert
          * @returns The complex<> vector to return
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         std::vector<std::complex<T>> real2complex( const std::vector<T>& in ) {
             std::vector<std::complex<T>> out;
             out.reserve( in.size() );
@@ -356,7 +369,7 @@ namespace NCPA {
          * @param real The real array to convert
          * @param out The complex<> array to return
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void real2complex( size_t n, const T *in, std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
                 out[ i ] = std::complex<T>( in[ i ], 0.0 );
@@ -371,7 +384,7 @@ namespace NCPA {
          * @param real The real vector to convert as the real parts
          * @param imag The real vector to convert as the imaginary parts
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         std::vector<std::complex<T>> real2complex(
             const std::vector<T>& real, const std::vector<T>& imag ) {
             size_t Nr = real.size();
@@ -399,7 +412,7 @@ namespace NCPA {
          * @param imag The real array to convert as the real parts
          * @param out The complex<> array to return
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void real2complex( size_t n, const T *real, const T *imag,
                            std::complex<T> *out ) {
             for ( size_t i = 0; i < n; i++ ) {
@@ -416,7 +429,7 @@ namespace NCPA {
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void complex2real( const std::vector<std::complex<T>>& in,
                            std::vector<T>& real, std::vector<T>& imag ) {
             real.resize( in.size() );
@@ -437,7 +450,7 @@ namespace NCPA {
          * @param real The real parts
          * @param imag The imaginary parts
          */
-        template<typename T = double, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void complex2real( size_t n, const std::complex<T> *in, T *real,
                            T *imag ) {
             for ( size_t i = 0; i < n; i++ ) {
@@ -455,8 +468,8 @@ namespace NCPA {
         @returns A vector of random numbers.
         */
         template<typename T>
-        std::vector<T> random_numbers( size_t N, T minrange, T maxrange, ENABLE_FUNCTION_IF_INTEGRAL(T)
-                                        ) {
+        std::vector<T> random_numbers( size_t N, T minrange, T maxrange,
+                                       ENABLE_FUNCTION_IF_INTEGRAL( T ) ) {
             std::vector<T> randn;
             randn.reserve( N );
             std::random_device rd;
@@ -470,9 +483,8 @@ namespace NCPA {
         }
 
         template<typename T>
-        std::vector<T> random_numbers(
-            size_t N, T minrange, T maxrange,
-            ENABLE_FUNCTION_IF_REAL(T) ) {
+        std::vector<T> random_numbers( size_t N, T minrange, T maxrange,
+                                       ENABLE_FUNCTION_IF_REAL( T ) ) {
             std::vector<T> randn;
             randn.reserve( N );
             std::random_device rd;
@@ -486,10 +498,10 @@ namespace NCPA {
         }
 
         template<typename T>
-        std::vector<T> random_numbers(
-            size_t N, typename T::value_type minrange,
-            typename T::value_type maxrange,
-            ENABLE_FUNCTION_IF_COMPLEX(T) ) {
+        std::vector<T> random_numbers( size_t N,
+                                       typename T::value_type minrange,
+                                       typename T::value_type maxrange,
+                                       ENABLE_FUNCTION_IF_COMPLEX( T ) ) {
             std::vector<typename T::value_type> randr
                 = random_numbers<typename T::value_type>( N, minrange,
                                                           maxrange ),
@@ -640,7 +652,7 @@ namespace NCPA {
         template<typename T>
         // requires std::floating_point<T>
         std::vector<T> logspace( T firstval, T lastval, size_t N,
-                                 ENABLE_FUNCTION_IF_REAL(T) ) {
+                                 ENABLE_FUNCTION_IF_REAL( T ) ) {
             // static_assert( std::floating_point<T>, "logspace() only supports
             // floating-point types" );
             T la                = std::log10( firstval );
@@ -668,7 +680,7 @@ namespace NCPA {
         template<typename T>
         // requires std::floating_point<T>
         void logspace( T a, T b, size_t N, T *& ls,
-                       ENABLE_FUNCTION_IF_REAL(T) ) {
+                       ENABLE_FUNCTION_IF_REAL( T ) ) {
             // static_assert( std::floating_point<T>, "logspace() only supports
             // floating-point types" );
             if ( ls == nullptr ) {
@@ -731,7 +743,8 @@ namespace NCPA {
         @returns The array holding the sum.
         */
         template<typename T>
-        T add_vectors( T& v1, T& v2, ENABLE_FUNCTION_IF_ITERABLE(T) ) {
+        T add_vectors( const T& v1, const T& v2,
+                       ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
             size_t N = std::min<size_t>( v1.size(), v2.size() );
             T v3     = v1.size() >= v2.size() ? v1 : v2;
             std::transform( v1.cbegin(), v1.cbegin() + N, v2.cbegin(),
@@ -748,7 +761,7 @@ namespace NCPA {
         array, in which case the values are replaced.
         */
         template<typename T>
-        void add_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
+        void add_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] + v2[ i ];
@@ -766,8 +779,8 @@ namespace NCPA {
         @returns The array holding the quotient.
         */
         template<typename T>
-        T divide_vectors( T& v1, T& v2,
-                          ENABLE_FUNCTION_IF_ITERABLE(T) ) {
+        T divide_vectors( const T& v1, const T& v2,
+                          ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
             std::transform( v1.cbegin(),
                             v1.cbegin()
@@ -788,7 +801,7 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void divide_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
+        void divide_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] / v2[ i ];
@@ -807,8 +820,8 @@ namespace NCPA {
         @returns The array holding the product.
         */
         template<typename T>
-        T multiply_vectors( T& v1, T& v2,
-                            ENABLE_FUNCTION_IF_ITERABLE(T) ) {
+        T multiply_vectors( const T& v1, const T& v2,
+                            ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
             T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
             std::transform( v1.cbegin(),
                             v1.cbegin()
@@ -829,7 +842,7 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void multiply_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
+        void multiply_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] * v2[ i ];
@@ -848,7 +861,7 @@ namespace NCPA {
         @param out The new, dynamically-allocated scaled array.
         */
         template<typename T, typename U>
-        void scale_array( size_t N, U *in, T factor, U *& out ) {
+        void scale_array( size_t N, const U *in, T factor, U *& out ) {
             U *tempvec = NCPA::arrays::zeros<U>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = in[ i ] * (U)factor;
@@ -866,10 +879,13 @@ namespace NCPA {
         */
         template<typename T, typename U>
         T scale_vector(
-            T& v1, U scalar,
+            const T& v1, U scalar,
             typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
                                     int>::type ENABLER
             = 0 ) {
+            if (scalar == NCPA::math::one<U>()) {
+                return v1;
+            }
             T v3 = v1;
             std::transform( v3.begin(), v3.end(), v3.begin(),
                             [ scalar ]( U num ) { return num * scalar; } );
@@ -885,8 +901,10 @@ namespace NCPA {
         */
         template<typename T, typename U>
         void scale_array( size_t N, U *in, T factor ) {
+            if (factor != NCPA::math::one<T>()) {
             for ( size_t i = 0; i < N; i++ ) {
                 in[ i ] *= factor;
+            }
             }
         }
 
@@ -899,12 +917,15 @@ namespace NCPA {
         */
         template<typename T, typename U>
         T offset_vector(
-            T& v1, U scalar,
+            const T& v1, U scalar,
             typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
                                     int>::type ENABLER
             = 0 ) {
+            if ( NCPA::math::is_zero<U>( scalar ) ) {
+                return v1;
+            }
             T v3 = v1;
-            for (auto i = 0; i < v1.size(); i++ ) {
+            for ( auto i = 0; i < v1.size(); i++ ) {
                 v3[ i ] += scalar;
             }
             return v3;
@@ -919,8 +940,10 @@ namespace NCPA {
         */
         template<typename T, typename U>
         void offset_array( size_t N, U *in, T factor ) {
-            for ( size_t i = 0; i < N; i++ ) {
-                in[ i ] += factor;
+            if ( !NCPA::math::is_zero<T>( factor ) ) {
+                for ( size_t i = 0; i < N; i++ ) {
+                    in[ i ] += factor;
+                }
             }
         }
 
@@ -932,7 +955,7 @@ namespace NCPA {
         */
         template<typename T>
         T subtract_vectors(
-            T& v1, T& v2,
+            const T& v1, const T& v2,
             typename std::enable_if<NCPA::types::is_iterable<T>::value,
                                     int>::type ENABLER
             = 0 ) {
@@ -951,7 +974,7 @@ namespace NCPA {
         input array, in which case the values are replaced.
         */
         template<typename T>
-        void subtract_arrays( size_t N, T *v1, T *v2, T *& v12 ) {
+        void subtract_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
             T *tempvec = NCPA::arrays::zeros<T>( N );
             for ( size_t i = 0; i < N; i++ ) {
                 tempvec[ i ] = v1[ i ] - v2[ i ];
@@ -959,18 +982,6 @@ namespace NCPA {
             std::memcpy( v12, tempvec, N * sizeof( T ) );
             delete[] tempvec;
         }
-
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC(T)>
-        bool is_zero( T val ) {
-            return ( std::fpclassify( val ) == FP_ZERO );
-        }
-
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX(T)>
-        bool is_zero( T val ) {
-            return is_zero( val.real() ) && is_zero( val.imag() );
-        }
-
-        
 
         
 
