@@ -23,7 +23,8 @@
 //         // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
 //         //     Vector, details::abstract_vector );
 //         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
-//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
+//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector
+//         );
 //     }  // namespace linear
 // }  // namespace NCPA
 
@@ -36,8 +37,8 @@ std::ostream& operator<<( std::ostream& os,
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::WrapperVector,
                                              ELEMENTTYPE );
 template<typename ELEMENTTYPE>
-std::ostream& operator<<( std::ostream& os,
-                          const NCPA::linear::WrapperVector<ELEMENTTYPE>& vec );
+std::ostream& operator<<(
+    std::ostream& os, const NCPA::linear::WrapperVector<ELEMENTTYPE>& vec );
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Vector,
                                                     ELEMENTTYPE )
@@ -62,6 +63,8 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class Vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
             public:
+                friend class Matrix<ELEMENTTYPE>;
+
                 Vector() {}
 
                 Vector( std::unique_ptr<details::abstract_vector<ELEMENTTYPE>>
@@ -90,6 +93,13 @@ namespace NCPA {
                 friend void ::swap<ELEMENTTYPE>(
                     Vector<ELEMENTTYPE>& a, Vector<ELEMENTTYPE>& b ) noexcept;
 
+                friend Vector<ELEMENTTYPE> operator*(
+                    const Vector<ELEMENTTYPE>& a,
+                    const Matrix<ELEMENTTYPE>& b );
+                friend Vector<ELEMENTTYPE> operator*(
+                    const Matrix<ELEMENTTYPE>& a,
+                    const Vector<ELEMENTTYPE>& b );
+
                 /**
                  * Assignment operator.
                  * @param other The vector to assign to this.
@@ -102,6 +112,10 @@ namespace NCPA {
                 virtual size_t size() const {
                     return internal() ? internal()->size() : 0;
                 };
+
+                virtual bool is_zero() const {
+                    return !(_ptr && !(_ptr->is_zero()));
+                }
 
                 virtual Vector<ELEMENTTYPE>& zero() {
                     check_pointer();
@@ -168,6 +182,12 @@ namespace NCPA {
                     const std::vector<ELEMENTTYPE>& v ) {
                     check_pointer();
                     internal()->set( v );
+                    return *this;
+                }
+
+                virtual Vector<ELEMENTTYPE>& set( const ELEMENTTYPE& val ) {
+                    check_pointer();
+                    internal()->set( val );
                     return *this;
                 }
 

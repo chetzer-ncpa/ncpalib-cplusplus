@@ -20,6 +20,7 @@ using namespace NCPA::linear;
 
 typedef double test_t;
 typedef band_diagonal_matrix<test_t> mat_t;
+typedef details::dense_vector<test_t> vec_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
@@ -50,6 +51,12 @@ class _TEST_TITLE_ : public ::testing::Test {
 
             zeromat = mat_t( dim2, dim2 );
 
+            testvec = vec_t( dim1 );
+            testvec.set( testval );
+            rightvec = vec_t( dim1 );
+            rightvec.set( 0, 4.2 ).set( dim1-1, 4.2 );
+            leftvec = rightvec;
+
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -59,6 +66,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         const size_t dim1 = 5, dim2 = 8;
         test_t testval    = -4.2;
         const test_t zero = NCPA::math::zero<test_t>();
+        vec_t testvec, leftvec, rightvec;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorIsCorrect ) {
@@ -84,6 +92,16 @@ TEST_F( _TEST_TITLE_, CopyConstructorWorks ) {
     EXPECT_TRUE( empty.equals( square ) );
     square.clear();
     EXPECT_FALSE( empty.equals( square ) );
+}
+
+TEST_F( _TEST_TITLE_, CopyOfDenseMatrixIsBandDiagonal ) {
+    details::dense_matrix<test_t> dmat( 5, 5 );
+    dmat.set_diagonal( 1.0 ).set_diagonal(-1.0,1).set_diagonal(-1.0,-1);
+    band_diagonal_matrix<test_t> bdmat( dmat );
+    EXPECT_TRUE( bdmat.is_band_diagonal() );
+    EXPECT_TRUE( bdmat.get_diagonal()->equals( *dmat.get_diagonal() )); 
+    EXPECT_TRUE( bdmat.get_diagonal(1)->equals( *dmat.get_diagonal(1) )); 
+    EXPECT_TRUE( bdmat.get_diagonal(-1)->equals( *dmat.get_diagonal(-1) )); 
 }
 
 TEST_F( _TEST_TITLE_, AssignmentOperatorWorks ) {
@@ -409,6 +427,14 @@ TEST_F( _TEST_TITLE_, TransposeWorksCorrectly ) {
     EXPECT_TRUE( tsym.transpose().equals( symmetric ) );
     EXPECT_TRUE( tid.transpose().equals( identity ) );
     EXPECT_TRUE( tmr.transpose().equals( more_cols ) );
+}
+
+TEST_F( _TEST_TITLE_, MatrixVectorRightMultiplicationIsCorrect ) {
+    EXPECT_TRUE( square.right_multiply( testvec )->equals( rightvec ));
+}
+
+TEST_F( _TEST_TITLE_, VectorMatrixLeftMultiplicationIsCorrect ) {
+    EXPECT_TRUE( square.left_multiply( testvec )->equals( leftvec ));
 }
 
 TEST_F( _TEST_TITLE_, MatrixMatrixMultiplicationIsCorrect ) {

@@ -15,8 +15,7 @@
 
 namespace NCPA {
     namespace linear {
-        enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
-        enum class solver_t { INVALID, BASIC, TRIDIAGONAL };
+        
 
         template<typename ELEMENTTYPE>
         class VectorFactory {
@@ -92,6 +91,15 @@ namespace NCPA {
                                         ELEMENTTYPE>>(
                                     new details::
                                         basic_tridiagonal_linear_system_solver<
+                                            ELEMENTTYPE>() ) );
+                            break;
+                        case solver_t::BAND_DIAGONAL:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<
+                                    details::abstract_linear_system_solver<
+                                        ELEMENTTYPE>>(
+                                    new details::
+                                        basic_band_diagonal_linear_system_solver<
                                             ELEMENTTYPE>() ) );
                             break;
                         default:

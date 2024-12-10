@@ -94,6 +94,19 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, ClearClearsContents ) {
     EXPECT_EQ( vec_std.size(), 0 );
 }
 
+TEST_F( NCPALinearAlgebraSparseVectorTest, IsZeroWorksAsExpected ) {
+    EXPECT_TRUE( vec.is_zero() );
+    EXPECT_FALSE( vec_std.is_zero() );
+    vec_std.zero();
+    EXPECT_TRUE( vec_std.is_zero() );
+    vec_std.clear();
+    EXPECT_TRUE( vec_std.is_zero() );
+    vec_std.resize(5).set( NCPA::math::zero<double>() );
+    EXPECT_TRUE( vec_std.is_zero() );
+    vec_std.set( 0, NCPA::math::one<double>() );
+    EXPECT_FALSE( vec_std.is_zero() );
+}
+
 TEST_F( NCPALinearAlgebraSparseVectorTest, SetSetsSingleValue ) {
     vec_std.set( 0, 6 );
     EXPECT_DOUBLE_EQ( vec_std.get( 0 ), 6.0 );

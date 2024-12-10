@@ -316,6 +316,8 @@ namespace NCPA {
 
                     virtual void qc() override { _verify_nonzero(); }
 
+                    virtual bool is_zero() const override { return _elements.size() == 0; }
+
                     virtual abstract_vector<ELEMENTTYPE>& zero() override {
                         _elements.clear();
                         return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(

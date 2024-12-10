@@ -18,11 +18,12 @@ using namespace NCPA::linear;
 
 typedef complex<double> test_t;
 typedef details::dense_matrix<test_t> mat_t;
+typedef details::dense_vector<test_t> vec_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            testval = test_t( -4.2, 4.2 );
+            testval   = test_t( -4.2, 4.2 );
             square    = mat_t( dim1, dim1 );
             more_rows = mat_t( dim2, dim1 );
             more_cols = mat_t( dim1, dim2 );
@@ -31,6 +32,9 @@ class _TEST_TITLE_ : public ::testing::Test {
             symmetric = mat_t( dim1, dim1 );
             identity  = mat_t( dim1, dim1 );
             zeromat   = mat_t( dim2, dim2 );
+            testvec   = vec_t( dim1 );
+            leftvec   = vec_t( dim1 );
+            rightvec  = vec_t( dim1 );
             for ( size_t i = 0; i < dim1; i++ ) {
                 double die = (double)( i + 1 );
                 test_t di( die, die );
@@ -41,17 +45,22 @@ class _TEST_TITLE_ : public ::testing::Test {
                 identity.set( i, i, NCPA::math::one<test_t>() );
                 for ( size_t j = 0; j < dim1; j++ ) {
                     product2.set( i, j,
-                                  test_t( 0.0,  10.0 * (double)( i + 1 ) * (double)( j + 1 ) ) );
+                                  test_t( 0.0, 10.0 * (double)( i + 1 )
+                                                   * (double)( j + 1 ) ) );
                 }
+                testvec.set( i, 2.0 * die * testval );
+                rightvec.set( i, test_t( -100.8, 0.0 ) * die );
             }
             symmetric.set( 1, 1, testval );
-            product.set( test_t( 0.0, 28.0) );
+            product.set( test_t( 0.0, 28.0 ) );
+            leftvec.set( test_t( -235.2 , 0.0) );
 
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::dense_matrix<test_t> empty, square, more_rows, more_cols,
-            product, identity, symmetric, product2, zeromat;
+        mat_t empty, square, more_rows, more_cols, product, identity,
+            symmetric, product2, zeromat;
+        vec_t testvec, leftvec, rightvec;
         Matrix<test_t> mat1, mat2;
         const size_t dim1 = 3, dim2 = 5;
         test_t testval;
@@ -146,7 +155,8 @@ TEST_F( _TEST_TITLE_, SwapWorks ) {
 TEST_F( _TEST_TITLE_, GetRowReturnsCopy ) {
     for ( size_t i = 0; i < dim1; i++ ) {
         for ( size_t j = 0; j < dim1; j++ ) {
-            _TEST_EQ_( test_t( (double)( i + 1 ), (double)( i + 1 )) , square.get_row( i )->get( j ) );
+            _TEST_EQ_( test_t( (double)( i + 1 ), (double)( i + 1 ) ),
+                       square.get_row( i )->get( j ) );
         }
     }
 }
@@ -154,17 +164,20 @@ TEST_F( _TEST_TITLE_, GetRowReturnsCopy ) {
 TEST_F( _TEST_TITLE_, GetColumnReturnsCopy ) {
     for ( size_t i = 0; i < dim1; i++ ) {
         for ( size_t j = 0; j < dim1; j++ ) {
-            _TEST_EQ_( test_t( (double)( j + 1 ), (double)( j + 1 )), square.get_column( i )->get( j ) );
+            _TEST_EQ_( test_t( (double)( j + 1 ), (double)( j + 1 ) ),
+                       square.get_column( i )->get( j ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, GetDiagonalReturnsExpectedValues ) {
-    std::vector<test_t> diag0( { test_t(1.0,1.0), test_t(2.0,2.0), test_t(3.0,3.0) } );
-    std::vector<test_t>    diag1( {test_t(1.0,1.0), test_t(2.0,2.0)} ),
+    std::vector<test_t> diag0(
+        { test_t( 1.0, 1.0 ), test_t( 2.0, 2.0 ), test_t( 3.0, 3.0 ) } );
+    std::vector<test_t> diag1( { test_t( 1.0, 1.0 ), test_t( 2.0, 2.0 ) } ),
 
-        diag2( { test_t(1.0,1.0) } ), diag_1( {test_t(2.0,2.0), test_t(3.0,3.0)} ), 
-        diag_2( {test_t(3.0,3.0)} );
+        diag2( { test_t( 1.0, 1.0 ) } ),
+        diag_1( { test_t( 2.0, 2.0 ), test_t( 3.0, 3.0 ) } ),
+        diag_2( { test_t( 3.0, 3.0 ) } );
     _TEST_ARRAY_EQ_( 3, square.get_diagonal()->as_std(), diag0 );
     _TEST_ARRAY_EQ_( 2, square.get_diagonal( 1 )->as_std(), diag1 );
     _TEST_ARRAY_EQ_( 1, square.get_diagonal( 2 )->as_std(), diag2 );
@@ -230,7 +243,7 @@ TEST_F( _TEST_TITLE_, AsArrayThrowsIfDimensionsWrong ) {
 }
 
 TEST_F( _TEST_TITLE_, SetMethodsWork ) {
-    _TEST_EQ_( square.get( 0, 0 ), test_t(1.0,1.0) );
+    _TEST_EQ_( square.get( 0, 0 ), test_t( 1.0, 1.0 ) );
     square.set( 0, 0, testval );
     _TEST_EQ_( square.get( 0, 0 ), testval );
     square.set( testval );
@@ -330,6 +343,22 @@ TEST_F( _TEST_TITLE_, TransposeWorksCorrectly ) {
     EXPECT_TRUE( tmr.transpose().equals( more_cols ) );
 }
 
+TEST_F( _TEST_TITLE_, MatrixVectorRightMultiplicationIsCorrect ) {
+    auto product = square.right_multiply( testvec );
+    for (size_t i = 0; i < dim1; i++) {
+        EXPECT_NEAR( product->get(i).real(), rightvec.get(i).real(), 1e-10 );
+        EXPECT_NEAR( product->get(i).imag(), rightvec.get(i).imag(), 1e-10 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, VectorMatrixLeftMultiplicationIsCorrect ) {
+    auto product = square.left_multiply( testvec );
+    for (size_t i = 0; i < dim1; i++) {
+        EXPECT_NEAR( product->get(i).real(), leftvec.get(i).real(), 1e-10 );
+        EXPECT_NEAR( product->get(i).imag(), leftvec.get(i).imag(), 1e-10 );
+    }
+}
+
 TEST_F( _TEST_TITLE_, MatrixMatrixMultiplicationIsCorrect ) {
     EXPECT_TRUE( more_rows.multiply( more_cols )->equals( product ) );
     EXPECT_TRUE( more_cols.multiply( more_rows )->equals( product2 ) );
@@ -352,7 +381,7 @@ TEST_F( _TEST_TITLE_, ScaleWorksWithMatrix ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       (original.get( i, j ) * original.get( i, j )) );
+                       ( original.get( i, j ) * original.get( i, j ) ) );
         }
     }
 }
@@ -363,7 +392,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       (original.get( i, j ) + testval) );
+                       ( original.get( i, j ) + testval ) );
         }
     }
 }
@@ -373,8 +402,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithMatrix ) {
     square.add( square );
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       (original.get( i, j ) * 2.0) );
+            _TEST_EQ_( square.get( i, j ), ( original.get( i, j ) * 2.0 ) );
         }
     }
 }
@@ -384,8 +412,7 @@ TEST_F( _TEST_TITLE_, AddWorksWithScaledMatrix ) {
     square.add( square, -1.0 );
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       NCPA::math::zero<test_t>() );
+            _TEST_EQ_( square.get( i, j ), NCPA::math::zero<test_t>() );
         }
     }
 }
@@ -400,9 +427,9 @@ TEST_F( _TEST_TITLE_, ZeroWorks ) {
 TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
     mat_t testmat( 5, 5 ), control( 5, 5 );
     test_t zero = NCPA::math::zero<test_t>();
-    
-    for (auto i = 0; i < 5; i++) {
-        _TEST_EQ_( testmat.get(i,i), zero );
+
+    for ( auto i = 0; i < 5; i++ ) {
+        _TEST_EQ_( testmat.get( i, i ), zero );
         control.set( i, i, testval );
     }
     // set control off-diagonals
@@ -431,7 +458,8 @@ TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
     testmat.zero();
     testmat.set_diagonal( { testval, testval, testval, testval, testval } );
     testmat.set_diagonal( { testval, testval, testval, testval, testval }, 2 );
-    testmat.set_diagonal( { testval, testval, testval, testval, testval }, -3 );
+    testmat.set_diagonal( { testval, testval, testval, testval, testval },
+                          -3 );
     EXPECT_TRUE( testmat.equals( control ) );
 
     // fourth version
@@ -443,52 +471,50 @@ TEST_F( _TEST_TITLE_, SetDiagonalWorks ) {
 }
 
 TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithScalar ) {
-    mat_t original = square;
-    square += testval;
+    mat_t original  = square;
+    square         += testval;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       (original.get( i, j ) + testval) );
+                       ( original.get( i, j ) + testval ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, PlusEqualOperatorWorksWithMatrix ) {
-    mat_t original = square;
-    square += square;
+    mat_t original  = square;
+    square         += square;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       (original.get( i, j ) * 2.0) );
+            _TEST_EQ_( square.get( i, j ), ( original.get( i, j ) * 2.0 ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, MinusEqualOperatorWorksWithScalar ) {
-    mat_t original = square;
-    square -= testval;
+    mat_t original  = square;
+    square         -= testval;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
             _TEST_EQ_( square.get( i, j ),
-                       (original.get( i, j ) - testval) );
+                       ( original.get( i, j ) - testval ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, MinusEqualWorksWithMatrix ) {
-    mat_t original = square;
-    square -= square;
+    mat_t original  = square;
+    square         -= square;
     for ( size_t i = 0; i < square.rows(); i++ ) {
         for ( size_t j = 0; j < square.columns(); j++ ) {
-            _TEST_EQ_( square.get( i, j ),
-                       NCPA::math::zero<test_t>() );
+            _TEST_EQ_( square.get( i, j ), NCPA::math::zero<test_t>() );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithScalar ) {
-    mat_t original = product;
-    product*= 0.5;
+    mat_t original  = product;
+    product        *= 0.5;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ), 0.5 * original.get( i, j ) );
@@ -497,23 +523,23 @@ TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithScalar ) {
 }
 
 TEST_F( _TEST_TITLE_, TimesEqualOperatorWorksWithMatrix ) {
-    mat_t original = product;
-    product *= product;
+    mat_t original  = product;
+    product        *= product;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       (original.get( i, j ) * original.get( i, j )) );
+                       ( original.get( i, j ) * original.get( i, j ) ) );
         }
     }
 }
 
 TEST_F( _TEST_TITLE_, DivideEqualOperatorWorksWithScalar ) {
-    mat_t original = product;
-    product /= testval;
+    mat_t original  = product;
+    product        /= testval;
     for ( size_t i = 0; i < product.rows(); i++ ) {
         for ( size_t j = 0; j < product.columns(); j++ ) {
             _TEST_EQ_( product.get( i, j ),
-                       (original.get( i, j ) / testval) );
+                       ( original.get( i, j ) / testval ) );
         }
     }
 }
@@ -526,7 +552,7 @@ TEST_F( _TEST_TITLE_, IsDiagonalReturnsCorrectly ) {
     EXPECT_FALSE( more_cols.is_diagonal() );
     EXPECT_TRUE( empty.is_diagonal() );
     EXPECT_TRUE( zeromat.is_diagonal() );
-} 
+}
 
 TEST_F( _TEST_TITLE_, IsTridiagonalReturnsCorrectly ) {
     EXPECT_TRUE( identity.is_tridiagonal() );
@@ -537,10 +563,10 @@ TEST_F( _TEST_TITLE_, IsTridiagonalReturnsCorrectly ) {
     EXPECT_TRUE( empty.is_tridiagonal() );
     EXPECT_TRUE( zeromat.is_tridiagonal() );
 
-    square.zero( 0, dim1-1 );
-    square.zero( dim1-1, 0 );
+    square.zero( 0, dim1 - 1 );
+    square.zero( dim1 - 1, 0 );
     EXPECT_TRUE( square.is_tridiagonal() );
-} 
+}
 
 TEST_F( _TEST_TITLE_, IsLowerTriagonalIsCorrect ) {
     EXPECT_TRUE( identity.is_lower_triangular() );
@@ -551,12 +577,12 @@ TEST_F( _TEST_TITLE_, IsLowerTriagonalIsCorrect ) {
     EXPECT_TRUE( empty.is_lower_triangular() );
     EXPECT_TRUE( zeromat.is_lower_triangular() );
 
-    for (size_t i = 0; i < zeromat.rows(); i++) {
-        for (size_t j = 0; j < i; j++) {
-            zeromat.set(i,j,testval);
+    for ( size_t i = 0; i < zeromat.rows(); i++ ) {
+        for ( size_t j = 0; j < i; j++ ) {
+            zeromat.set( i, j, testval );
         }
     }
     EXPECT_TRUE( zeromat.is_lower_triangular() );
-    zeromat.set( 0,1,testval);
+    zeromat.set( 0, 1, testval );
     EXPECT_FALSE( zeromat.is_lower_triangular() );
 }

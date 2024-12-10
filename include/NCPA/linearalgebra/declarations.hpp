@@ -4,6 +4,9 @@
 
 namespace NCPA {
     namespace linear {
+        enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
+        enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
+
         namespace details {
 
             // vectors
@@ -31,6 +34,10 @@ namespace NCPA {
                 basic_linear_system_solver, abstract_linear_system_solver );
 
             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+                basic_band_diagonal_linear_system_solver,
+                abstract_linear_system_solver );
+
+            NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
                 basic_tridiagonal_linear_system_solver,
                 abstract_linear_system_solver );
 
@@ -43,13 +50,34 @@ namespace NCPA {
 
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
+
+
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
 
         template<typename ELEMENTTYPE>
         class LUDecomposition;
+        // template<typename ELEMENTTYPE>
+        // class BandDiagonalLUDecomposition;
+
+        // factories
         template<typename ELEMENTTYPE>
-        class BandDiagonalLUDecomposition;
+        class VectorFactory;
+        template<typename ELEMENTTYPE>
+        class MatrixFactory;
+        template<typename ELEMENTTYPE>
+        class SolverFactory;
 
     }  // namespace linear
 }  // namespace NCPA
+
+// friend function declarations go here
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Matrix,
+                                             ELEMENTTYPE );
+                                             
+template<typename ELEMENTTYPE>
+std::ostream& operator<<( std::ostream& os,
+                          const NCPA::linear::Matrix<ELEMENTTYPE>& obj );
+
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Matrix,
+                                                    ELEMENTTYPE )

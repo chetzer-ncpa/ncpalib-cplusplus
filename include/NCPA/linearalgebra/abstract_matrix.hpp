@@ -41,7 +41,10 @@ namespace NCPA {
                     virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                         clone() const = 0;
                     virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
-                        fresh_clone() const                       = 0;
+                        fresh_clone() const = 0;
+                    virtual abstract_matrix<ELEMENTTYPE>& copy(
+                        const abstract_matrix<ELEMENTTYPE>& other )
+                        = 0;
                     // virtual abstract_matrix<ELEMENTTYPE>& upcast() = 0;
                     virtual std::string id() const                = 0;
                     virtual size_t rows() const                   = 0;
@@ -170,7 +173,7 @@ namespace NCPA {
 
                     // @todo expand logic
                     virtual bool is_band_diagonal() const {
-                        if (is_tridiagonal()) {
+                        if ( is_tridiagonal() ) {
                             return true;
                         }
                         return false;
@@ -315,10 +318,10 @@ namespace NCPA {
                         }
                         std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                             = build_vector( rows() );
-                        for (size_t i = 0; i < rows(); i++) {
+                        for ( size_t i = 0; i < rows(); i++ ) {
                             ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                            for (size_t j = 0; j < columns(); j++) {
-                                sum += get(i,j) * v.get(j);
+                            for ( size_t j = 0; j < columns(); j++ ) {
+                                sum += get( i, j ) * v.get( j );
                             }
                             product->set( i, sum );
                         }
@@ -332,16 +335,16 @@ namespace NCPA {
                             std::ostringstream oss;
                             oss << "Size mismatch in vector-matrix "
                                    "multiplication: "
-                                << v.size() << " elements in vector vs " 
+                                << v.size() << " elements in vector vs "
                                 << rows() << " rows in matrix";
                             throw std::invalid_argument( oss.str() );
                         }
                         std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                             = build_vector( columns() );
-                        for (size_t i = 0; i < columns(); i++) {
+                        for ( size_t i = 0; i < columns(); i++ ) {
                             ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                            for (size_t j = 0; j < rows(); j++) {
-                                sum += get(j,i) * v.get(j);
+                            for ( size_t j = 0; j < rows(); j++ ) {
+                                sum += get( j, i ) * v.get( j );
                             }
                             product->set( i, sum );
                         }
@@ -543,6 +546,12 @@ namespace NCPA {
                             std::vector<ELEMENTTYPE>( diagonal_size( offset ),
                                                       val ),
                             offset );
+                    }
+
+                    virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
+                        const abstract_vector<ELEMENTTYPE>& vals,
+                        int offset = 0 ) {
+                        return set_diagonal( vals.as_std(), offset );
                     }
 
                     // Getting values out

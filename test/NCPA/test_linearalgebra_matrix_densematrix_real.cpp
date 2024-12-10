@@ -17,6 +17,7 @@ using namespace NCPA::linear;
 
 typedef double test_t;
 typedef details::dense_matrix<test_t> mat_t;
+typedef details::dense_vector<test_t> vec_t;
 
 #define _TEST_EQ_       EXPECT_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_DOUBLE_EQ
@@ -28,14 +29,23 @@ class _TEST_TITLE_ : public ::testing::Test {
             dim1   = 3;
             testval = 42.0;
             square = mat_t( dim1, dim1 );
+            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            testvec.resize( dim1 );
+            leftvec = testvec;
+            rightvec = testvec;
+
             for ( size_t i = 0; i < dim1; i++ ) {
                 double di = (double)( i + 1 );
                 square.set_row( i, { di, di, di } );
+                testvec.set( i, 2.0*di );
+                rightvec.set( i, 12.0*di );
             }
 
             wrapper1 = Matrix<test_t>( square.clone() );
             product = wrapper1;
             product *= 6.0;
+            leftvec.set( 28.0 );
+            
 
         }  // void TearDown() override {}
 
@@ -48,6 +58,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         const test_t zero = NCPA::math::zero<test_t>(),
                      one  = NCPA::math::one<test_t>();
         test_t testval;
+        Vector<test_t> testvec, rightvec, leftvec;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorGivesEmptyMatrix ) {
@@ -488,18 +499,28 @@ TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument);
 }
 
+TEST_F( _TEST_TITLE_, RightMultiplyWorks ) {
+    Vector<test_t> product = wrapper1.right_multiply( testvec );
+    EXPECT_TRUE( product == rightvec );
+}
+
+TEST_F( _TEST_TITLE_, LeftMultiplyWorks ) {
+    Vector<test_t> product = wrapper1.left_multiply( testvec );
+    EXPECT_TRUE( product == leftvec );
+}
+
+TEST_F( _TEST_TITLE_, VectorMatrixMultiplicationOperatorWorks ) {
+    Vector<test_t> product = wrapper1 * testvec;
+    EXPECT_TRUE( product == rightvec );
+    product = testvec * wrapper1;
+    EXPECT_TRUE( product == leftvec );
+}
+
 TEST_F( _TEST_TITLE_, MultiplyWorks ) {
     Matrix<test_t> mat1 = wrapper1;
     mat1.identity();
     EXPECT_TRUE( wrapper1.multiply( mat1 ) == wrapper1 );
-    // Matrix<test_t> product2 = wrapper1;
-    // product2.multiply( wrapper1 );
     EXPECT_TRUE( wrapper1.multiply(wrapper1) == product );
-    // for (size_t i = 0; i < 3; i++) {
-    //     for (size_t j = 0; j < 3; j++) {
-    //         _TEST_EQ_( product2[i][j], product[i][j] );
-    //     }
-    // }
 
     Matrix<test_t> mat2 = mat1, mat3 = mat1;
     mat2.resize( 3, 5 ).set( 1.0 );

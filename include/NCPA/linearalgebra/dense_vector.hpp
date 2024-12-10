@@ -1,8 +1,8 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
-#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
+#include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -139,6 +139,15 @@ namespace NCPA {
                         return zero( std::vector<size_t>( n ) );
                     }
 
+                    virtual bool is_zero() const override {
+                        for (auto it = _elements.cbegin(); it != _elements.cend(); ++it) {
+                            if (! NCPA::math::is_zero(*it)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+
                     virtual std::map<size_t, ELEMENTTYPE> nonzero()
                         const override {
                         std::map<size_t, ELEMENTTYPE> nz;
@@ -219,6 +228,13 @@ namespace NCPA {
 
                     virtual abstract_vector<ELEMENTTYPE>& set(
                         size_t n, ELEMENTTYPE val ) override {
+                        if ( n >= _elements.size() ) {
+                            std::ostringstream oss;
+                            oss << "Element " << n
+                                << " out of range for vector of size "
+                                << _elements.size();
+                            throw std::out_of_range( oss.str() );
+                        }
                         _elements[ n ] = val;
                         return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                             this );

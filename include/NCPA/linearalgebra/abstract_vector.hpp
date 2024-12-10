@@ -72,6 +72,7 @@ namespace NCPA {
                     virtual abstract_vector<ELEMENTTYPE>& zero(
                         std::initializer_list<size_t> n )
                         = 0;
+                    virtual bool is_zero() const = 0;
 
                     virtual abstract_vector<ELEMENTTYPE>& scale(
                         ELEMENTTYPE val )

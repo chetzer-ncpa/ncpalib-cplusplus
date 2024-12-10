@@ -20,6 +20,7 @@ using namespace NCPA::linear;
 
 typedef complex<double> test_t;
 typedef band_diagonal_matrix<test_t> mat_t;
+typedef details::dense_vector<test_t> vec_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
@@ -53,6 +54,13 @@ class _TEST_TITLE_ : public ::testing::Test {
 
             zeromat = mat_t( dim2, dim2 );
 
+            testvec = vec_t( dim1 );
+            testvec.set( diagval );
+            rightvec = vec_t( dim1 );
+            rightvec.set( 0, test_t(0,-4) );
+            rightvec.set( 4, test_t(0,-4) );
+            leftvec = rightvec;
+
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -63,6 +71,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         test_t testval    = test_t( -4.2, 2.1 );
         const test_t zero = NCPA::math::zero<test_t>();
         test_t diagval = test_t( -2.0, 2.0 ), supdiagval = test_t( 1.0, -1.0 );
+        vec_t testvec, leftvec, rightvec;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorIsCorrect ) {
@@ -356,6 +365,37 @@ TEST_F( _TEST_TITLE_, TransposeWorksCorrectly ) {
     EXPECT_TRUE( tsym.transpose().equals( symmetric ) );
     EXPECT_TRUE( tid.transpose().equals( identity ) );
     EXPECT_TRUE( tmr.transpose().equals( more_cols ) );
+}
+
+TEST_F( _TEST_TITLE_, MatrixVectorRightMultiplicationIsCorrect ) {
+    auto product = square.right_multiply( testvec );
+    // NCPA_DEBUG << "[ ";
+    // for (size_t i = 0; i < dim1; i++) {
+    //     if (i != 0) {
+    //         NCPA_DEBUG << "  ";
+    //     }
+    //     NCPA_DEBUG << "[ ";
+    //     for (size_t j = 0; j < dim1; j++) {
+    //         if (j != 0) {
+    //             NCPA_DEBUG << ", ";
+    //         }
+    //         NCPA_DEBUG << square.get(i,j);
+    //     }
+    //     NCPA_DEBUG << "][ " << testvec[ i ] << "] = [" << product->get(i) << "]" << endl;
+    // }
+
+    for (size_t i = 0; i < dim1; i++) {
+        EXPECT_NEAR( product->get(i).real(), rightvec.get(i).real(), 1e-10 );
+        EXPECT_NEAR( product->get(i).imag(), rightvec.get(i).imag(), 1e-10 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, VectorMatrixLeftMultiplicationIsCorrect ) {
+    auto product = square.left_multiply( testvec );
+    for (size_t i = 0; i < dim1; i++) {
+        EXPECT_NEAR( product->get(i).real(), leftvec.get(i).real(), 1e-10 );
+        EXPECT_NEAR( product->get(i).imag(), leftvec.get(i).imag(), 1e-10 );
+    }
 }
 
 TEST_F( _TEST_TITLE_, MatrixMatrixMultiplicationIsCorrect ) {

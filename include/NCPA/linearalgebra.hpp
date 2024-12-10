@@ -24,5 +24,6 @@
 // solvers
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/basic_band_diagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/solver.hpp"

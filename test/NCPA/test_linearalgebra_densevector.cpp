@@ -78,6 +78,19 @@ TEST_F( NCPALinearAlgebraDenseVectorTest, ClearClearsContents ) {
     EXPECT_EQ( dvec_std.size(), 0 );
 }
 
+TEST_F( NCPALinearAlgebraDenseVectorTest, IsZeroWorksAsExpected ) {
+    EXPECT_TRUE( dvec.is_zero() );
+    EXPECT_FALSE( dvec_std.is_zero() );
+    dvec_std.zero();
+    EXPECT_TRUE( dvec_std.is_zero() );
+    dvec_std.clear();
+    EXPECT_TRUE( dvec_std.is_zero() );
+    dvec_std.resize(5).set( NCPA::math::zero<test_t>() );
+    EXPECT_TRUE( dvec_std.is_zero() );
+    dvec_std.set( 0, NCPA::math::one<test_t>() );
+    EXPECT_FALSE( dvec_std.is_zero() );
+}
+
 TEST_F( NCPALinearAlgebraDenseVectorTest, SetSetsSingleValue ) {
     dvec_std.set( 0, 6 );
     EXPECT_DOUBLE_EQ( dvec_std.get( 0 ), 6.0 );

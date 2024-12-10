@@ -22,20 +22,9 @@ class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
             dmat   = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
-            inmat  = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
+            invec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
             cmat   = MatrixFactory<ctest_t>::build( family_t::NCPA_DENSE );
-            cinmat = MatrixFactory<ctest_t>::build( family_t::NCPA_DENSE );
-            // dmat.resize( 4, 4 );
-            // for ( size_t r = 0; r < 4; r++ ) {
-            //     for ( size_t c = 0; c < 4; c++ ) {
-            //         dmat.set( r, c,
-            //                   NCPA::math::random_number<test_t>( 0.0, 10.0 )
-            //                   );
-            //     }
-            // }
-            // lu.init( family_t::NCPA_DENSE );
-            // lu.set( dmat );
-
+            cinvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -44,36 +33,38 @@ class _TEST_TITLE_ : public ::testing::Test {
         const ctest_t czero = NCPA::math::zero<ctest_t>(),
                       cone  = NCPA::math::one<ctest_t>();
 
-        Matrix<test_t> dmat, inmat;
-        Matrix<ctest_t> cmat, cinmat;
+        Matrix<test_t> dmat;
+        Vector<test_t> invec;
+        Matrix<ctest_t> cmat;
+        Vector<ctest_t> cinvec;
 
-        details::basic_linear_system_solver<test_t> solver;
-        details::basic_linear_system_solver<ctest_t> csolver;
+        details::basic_tridiagonal_linear_system_solver<test_t> solver;
+        details::basic_tridiagonal_linear_system_solver<ctest_t> csolver;
 };
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForTrivialCase ) {
     dmat.identity( 4, 4 );
-    inmat.resize( 4, 1 );
+    invec.resize( 4 );
     for ( size_t i = 0; i < 4; i++ ) {
-        inmat.set( i, 0, (test_t)( i + 1 ) );
+        invec.set( i, (test_t)( i + 1 ) );
     }
     solver.set_system_matrix( dmat );
-    Vector<test_t> solution = solver.solve( inmat );
+    Vector<test_t> solution = solver.solve( invec );
     for ( size_t i = 0; i < 4; i++ ) {
-        _TEST_EQ_( solution.get( i ), inmat.get( i, 0 ) );
+        _TEST_EQ_( solution.get( i ), invec.get( i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForComplexTrivialCase ) {
     cmat.identity( 4, 4 );
-    cinmat.resize( 4, 1 );
+    cinvec.resize( 4 );
     for ( size_t i = 0; i < 4; i++ ) {
-        cinmat.set( i, 0, cone * (test_t)( i + 1 ) );
+        cinvec.set( i, cone * (test_t)( i + 1 ) );
     }
     csolver.set_system_matrix( cmat );
-    Vector<ctest_t> solution = csolver.solve( cinmat );
+    Vector<ctest_t> solution = csolver.solve( cinvec );
     for ( size_t i = 0; i < 4; i++ ) {
-        EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinmat.get( i, 0 ) );
+        EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinvec.get( i ) );
     }
 }
 
@@ -81,17 +72,17 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     Vector<test_t> expected
         = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
-    inmat.resize( 4, 1 ).zero();
+    invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ), 1 );
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
                        -1 );
     for ( size_t i = 0; i < 4; i++ ) {
-        inmat.set( i, 0, dmat.get_row( i )->dot( expected ) );
+        invec.set( i, dmat.get_row( i )->dot( expected ) );
     }
     solver.set_system_matrix( dmat );
-    Vector<test_t> solution = solver.solve( inmat );
+    Vector<test_t> solution = solver.solve( invec );
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
@@ -101,7 +92,7 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
     Vector<ctest_t> expected
         = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
-    cinmat.resize( 4, 1 ).zero();
+    cinvec.resize( 4 ).zero();
     cmat.resize( 4, 4 );
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ),
@@ -109,10 +100,10 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ),
                        -1 );
     for ( size_t i = 0; i < 4; i++ ) {
-        cinmat.set( i, 0, cmat.get_row( i )->dot( expected ) );
+        cinvec.set( i, cmat.get_row( i )->dot( expected ) );
     }
     csolver.set_system_matrix( cmat );
-    Vector<ctest_t> solution = csolver.solve( cinmat );
+    Vector<ctest_t> solution = csolver.solve( cinvec );
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(),
                      1.0e-10 );

@@ -18,16 +18,6 @@
 #include <sstream>
 #include <vector>
 
-// namespace NCPA {
-//     namespace linear {
-//         namespace details {
-//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-//                 basic_tridiagonal_linear_system_solver,
-//                 abstract_linear_system_solver );
-//         }
-//     }  // namespace linear
-// }  // namespace NCPA
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::basic_tridiagonal_linear_system_solver,
     ELEMENTTYPE );

@@ -27,18 +27,39 @@ class _TEST_TITLE_ : public ::testing::Test {
         void SetUp() override {  // define stuff here
             dim1     = 3;
             testval  = test_t( 42.0, -42.0 );
+            // cout << "testval OK" << endl;
             square   = mat_t( dim1, dim1 );
+            // cout << "square OK" << endl;
             dproduct = mat_t( dim1, dim1 );
+            // cout << "dproduct OK" << endl;
+            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            testvec.resize( dim1 );
+            // cout << "testvec OK" << endl;
+            leftvec = testvec;
+            // cout << "leftvec OK" << endl;
+            rightvec = testvec;
+            // cout << "rightvec OK" << endl;
+
             for ( size_t i = 0; i < dim1; i++ ) {
                 double di = (double)( i + 1 );
                 complex<double> cdi( di, di );
                 complex<double> cd0( 0.0, 12.0 * di );
                 square.set_row( i, { cdi, cdi, cdi } );
+                // cout << "square.set_row() OK" << endl;
                 dproduct.set_row( i, { cd0, cd0, cd0 } );
+                // cout << "dproduct.set_row() OK" << endl;
+                testvec.set( i, cdi );
+                // cout << "testvec.set() OK" << endl;
+                rightvec.set( i, test_t( 0.0, 12.0*di ));
+                // cout << "rightvec.set() OK" << endl;
             }
+            leftvec.set( test_t( 0.0, 28.0 ) );
+            // cout << "leftvec.set() OK" << endl;
 
             wrapper1 = Matrix<test_t>( square.clone() );
+            // cout << "wrapper1 OK" << endl;
             product  = Matrix<test_t>( dproduct.clone() );
+            // cout << "product OK" << endl;
 
         }  // void TearDown() override {}
 
@@ -51,6 +72,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         const test_t zero = NCPA::math::zero<test_t>(),
                      one  = NCPA::math::one<test_t>();
         test_t testval;
+        Vector<test_t> testvec, leftvec, rightvec;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorGivesEmptyMatrix ) {
@@ -495,18 +517,21 @@ TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument );
 }
 
+TEST_F( _TEST_TITLE_, RightMultiplyWorks ) {
+    Vector<test_t> product = wrapper1.right_multiply( testvec );
+    EXPECT_TRUE( product == rightvec );
+}
+
+TEST_F( _TEST_TITLE_, LeftMultiplyWorks ) {
+    Vector<test_t> product = wrapper1.left_multiply( testvec );
+    EXPECT_TRUE( product == leftvec );
+}
+
 TEST_F( _TEST_TITLE_, MultiplyWorks ) {
     Matrix<test_t> mat1 = wrapper1;
     mat1.identity();
     EXPECT_TRUE( wrapper1.multiply( mat1 ) == wrapper1 );
-    // Matrix<test_t> product2 = wrapper1;
-    // product2.multiply( wrapper1 );
     EXPECT_TRUE( wrapper1.multiply( wrapper1 ) == product );
-    // for (size_t i = 0; i < 3; i++) {
-    //     for (size_t j = 0; j < 3; j++) {
-    //         _TEST_EQ_( product2[i][j], product[i][j] );
-    //     }
-    // }
 
     Matrix<test_t> mat2 = mat1, mat3 = mat1;
     mat2.resize( 3, 5 ).set( 1.0 );

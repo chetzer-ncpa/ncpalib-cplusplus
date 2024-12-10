@@ -37,7 +37,9 @@ namespace NCPA {
                 using details::abstract_matrix<ELEMENTTYPE>::set_row;
                 using details::abstract_matrix<ELEMENTTYPE>::set_column;
                 using details::abstract_matrix<ELEMENTTYPE>::set_diagonal;
-                friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
+                // friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
+                friend class details::basic_band_diagonal_linear_system_solver<
+                    ELEMENTTYPE>;
 
                 band_diagonal_matrix( size_t nrows, size_t ncols,
                                       size_t n_lower_offdiags,
@@ -62,6 +64,12 @@ namespace NCPA {
                     _n_lower  = other._n_lower;
                     _n_upper  = other._n_upper;
                     _contents = other._contents;
+                }
+
+                band_diagonal_matrix(
+                    const details::abstract_matrix<ELEMENTTYPE>& other ) :
+                    band_diagonal_matrix<ELEMENTTYPE>() {
+                    this->copy( other );
                 }
 
                 band_diagonal_matrix(
@@ -95,6 +103,35 @@ namespace NCPA {
                     return std::unique_ptr<
                         details::abstract_matrix<ELEMENTTYPE>>(
                         new band_diagonal_matrix() );
+                }
+
+                virtual details::abstract_matrix<ELEMENTTYPE>& copy(
+                    const details::abstract_matrix<ELEMENTTYPE>& other )
+                    override {
+                    resize( other.rows(), other.columns() );
+                    set_diagonal( *other.get_diagonal() );
+                    int countdown = other.max_off_diagonal();
+                    int ndiag     = 1;
+                    // std::cout << "Getting off-diagonal " << -ndiag << std::endl;
+                    auto diag     = other.get_diagonal( -ndiag );
+                    while ( ndiag <= countdown && !diag->is_zero() ) {
+                        // std::cout << "Off-diagonal " << -ndiag << " is nonzero" << std::endl;
+                        set_diagonal( *diag, -ndiag );
+                        ndiag++;
+                        // std::cout << "Getting off-diagonal " << -ndiag << std::endl;
+                        diag = other.get_diagonal( -ndiag );
+                    }
+                    ndiag = 1;
+                    //  std::cout << "Getting off-diagonal " << ndiag << std::endl;
+                    diag  = other.get_diagonal( ndiag );
+                    while ( ndiag <= countdown && !diag->is_zero() ) {
+                        // std::cout << "Off-diagonal " << ndiag << " is nonzero" << std::endl;
+                        set_diagonal( *diag, ndiag );
+                        ndiag++;
+                        // std::cout << "Getting off-diagonal " << ndiag << std::endl;
+                        diag = other.get_diagonal( ndiag );
+                    }
+                    RETURN_BAND_DIAGONAL_MATRIX_AS_BASE_CLASS;
                 }
 
                 virtual const band_diagonal_matrix<ELEMENTTYPE> *downcast(
@@ -241,9 +278,9 @@ namespace NCPA {
                 virtual details::abstract_matrix<ELEMENTTYPE>& set_column(
                     size_t column, size_t nvals, const size_t *row_inds,
                     const ELEMENTTYPE *vals ) override {
-                    NCPA_DEBUG
-                        << "Made it to band_diagonal_matrix.set_column()"
-                        << std::endl;
+                    // NCPA_DEBUG
+                    //     << "Made it to band_diagonal_matrix.set_column()"
+                    //     << std::endl;
                     for ( size_t i = 0; i < nvals; i++ ) {
                         this->set_safe( row_inds[ i ], column, vals[ i ] );
                     }
@@ -358,24 +395,33 @@ namespace NCPA {
 
                 virtual details::abstract_matrix<ELEMENTTYPE>& resize(
                     size_t r, size_t c ) override {
-                    // did the diagonal size increase or decrease?
-                    int ddiag = (int)std::min( r, c )
-                              - (int)std::min( rows(), columns() );
-                    if ( ddiag > 0 ) {
-                        // increase each diagonal by ddiag elements
-                        for ( auto it = _contents.begin();
-                              it != _contents.end(); ++it ) {
-                            it->insert( it->cend(), (size_t)ddiag, _zero );
+                    if ( _contents.size() == 0 ) {
+                        // starting from scratch
+                        _nrows   = r;
+                        _ncols   = c;
+                        _n_lower = 0;
+                        _n_upper = 0;
+                        _prep_diagonals();
+                    } else {
+                        // did the diagonal size increase or decrease?
+                        int ddiag = (int)std::min( r, c )
+                                  - (int)std::min( rows(), columns() );
+                        if ( ddiag > 0 ) {
+                            // increase each diagonal by ddiag elements
+                            for ( auto it = _contents.begin();
+                                  it != _contents.end(); ++it ) {
+                                it->insert( it->cend(), (size_t)ddiag, _zero );
+                            }
+                        } else if ( ddiag < 0 ) {
+                            for ( auto it = _contents.begin();
+                                  it != _contents.end(); ++it ) {
+                                it->erase( it->cend() - size_t( -ddiag ),
+                                           it->cend() );
+                            }
                         }
-                    } else if ( ddiag < 0 ) {
-                        for ( auto it = _contents.begin();
-                              it != _contents.end(); ++it ) {
-                            it->erase( it->cend() - size_t( -ddiag ),
-                                       it->cend() );
-                        }
+                        _nrows = r;
+                        _ncols = c;
                     }
-                    _nrows = r;
-                    _ncols = c;
 
                     RETURN_BAND_DIAGONAL_MATRIX_AS_BASE_CLASS;
                 }
@@ -630,9 +676,7 @@ namespace NCPA {
                     RETURN_BAND_DIAGONAL_MATRIX_AS_BASE_CLASS;
                 }
 
-                virtual bool is_band_diagonal() const override {
-                    return true;
-                }
+                virtual bool is_band_diagonal() const override { return true; }
 
                 virtual bool is_this_subclass(
                     const details::abstract_matrix<ELEMENTTYPE>& b )
@@ -644,6 +688,33 @@ namespace NCPA {
                     } else {
                         return false;
                     }
+                }
+
+                virtual std::unique_ptr<details::abstract_vector<ELEMENTTYPE>>
+                    right_multiply(
+                        const details::abstract_vector<ELEMENTTYPE>& x )
+                        const override {
+                    if ( columns() != x.size() ) {
+                        std::ostringstream oss;
+                        oss << "Size mismatch in matrix-vector "
+                               "multiplication: "
+                            << columns() << " columns in matrix vs "
+                            << x.size() << " elements in vector";
+                        throw std::invalid_argument( oss.str() );
+                    }
+                    std::unique_ptr<details::abstract_vector<ELEMENTTYPE>> b(
+                        new details::dense_vector<ELEMENTTYPE>( rows() ) );
+                    int n = (int)rows(), bw = (int)bandwidth();
+                    for ( int i = 0; i < n; i++ ) {
+                        int k            = i - (int)_n_lower;
+                        int tmploop      = std::min( bw, n - k );
+                        ELEMENTTYPE bval = _zero;
+                        for ( int j = std::max( 0, -k ); j < tmploop; j++ ) {
+                            bval += _contents[ j ][ i ] * x.get( j + k );
+                        }
+                        b->set( i, bval );
+                    }
+                    return b;
                 }
 
                 virtual std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>>
@@ -749,11 +820,6 @@ namespace NCPA {
                         int ind1 = _n_lower + offset;
                         for ( size_t i = 0; i < nvals; i++ ) {
                             int ind2                  = _min_ind2( ind1 ) + i;
-                            // std::cout << "Offset = " << offset
-                            //           << ": setting _contents[" << ind1 <<
-                            //           "]["
-                            //           << ind2 << "] = " << vals[ i ]
-                            //           << std::endl;
                             _contents[ ind1 ][ ind2 ] = vals[ i ];
                         }
                     } else {
@@ -810,8 +876,10 @@ namespace NCPA {
                 virtual std::vector<size_t> band_column_indices(
                     size_t row ) const {
                     std::vector<size_t> inds;
-                    for ( int i = std::max( 0, (int)row -(int)_n_lower );
-                          i < std::min( (int)columns(), (int)row + (int)_n_upper + 1); i++ ) {
+                    for ( int i = std::max( 0, (int)row - (int)_n_lower );
+                          i < std::min( (int)columns(),
+                                        (int)row + (int)_n_upper + 1 );
+                          i++ ) {
                         inds.push_back( (size_t)i );
                     }
                     return inds;
@@ -819,9 +887,12 @@ namespace NCPA {
 
                 virtual std::vector<size_t> band_row_indices( size_t col ) {
                     std::vector<size_t> inds;
-                    // NCPA_DEBUG << "Getting nonzero indices for column " << col << std::endl;
+                    // NCPA_DEBUG << "Getting nonzero indices for column " <<
+                    // col << std::endl;
                     for ( int i = std::max( 0, (int)col - (int)_n_upper );
-                          i < std::min( (int)rows(), (int)col + (int)_n_lower + 1); i++ ) {
+                          i < std::min( (int)rows(),
+                                        (int)col + (int)_n_lower + 1 );
+                          i++ ) {
                         inds.push_back( (size_t)i );
                         // NCPA_DEBUG << "Adding index " << i << std::endl;
                     }

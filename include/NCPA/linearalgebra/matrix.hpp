@@ -19,36 +19,13 @@
 #include <sstream>
 #include <vector>
 
-#ifndef DEBUG_LOGGER
-#include "NCPA/logging.hpp"
-#define DEBUG_LOGGER NCPA::logging::logger << NCPA::logging::log_level_t::DEBUG
-#endif
-
-// namespace NCPA {
-//     namespace linear {
-//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
-//     }
-// }  // namespace NCPA
-
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Matrix,
-                                             ELEMENTTYPE );
-
-template<typename ELEMENTTYPE>
-std::ostream& operator<<( std::ostream& os,
-                          const NCPA::linear::Matrix<ELEMENTTYPE>& obj );
-
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Matrix,
-                                                    ELEMENTTYPE )
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 );
-
 namespace NCPA {
     namespace linear {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class Matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
             public:
+                friend class Vector<ELEMENTTYPE>;
+
                 Matrix() {}
 
                 Matrix( std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>>
@@ -73,6 +50,7 @@ namespace NCPA {
                 friend void ::swap<ELEMENTTYPE>(
                     Matrix<ELEMENTTYPE>& a, Matrix<ELEMENTTYPE>& b ) noexcept;
 
+                
                 /**
                  * Assignment operator.
                  * @param other The vector to assign to this.
@@ -82,26 +60,22 @@ namespace NCPA {
                     return *this;
                 }
 
-                // std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
-                //     return std::unique_ptr<Matrix<ELEMENTTYPE>>(
-                //         new Matrix<ELEMENTTYPE>( *this ) );
-                // }
-
-                // std::unique_ptr<Matrix<ELEMENTTYPE>> fresh_clone() const {
-                //     std::unique_ptr<Matrix<ELEMENTTYPE>> fresh(
-                //         new Matrix<ELEMENTTYPE>(
-                //             std::unique_ptr<
-                //                 details::abstract_matrix<ELEMENTTYPE>>() )
-                //                 );
-                //     // fresh->clear();
-                //     return fresh;
-                // }
+                Matrix<ELEMENTTYPE>& copy( const Matrix<ELEMENTTYPE>& other ) {
+                    if (_ptr) {
+                        _ptr->copy( *other._ptr );
+                    } else {
+                        _ptr = std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>>(
+                            other._ptr->clone()
+                        );
+                    }
+                }
 
                 Matrix<ELEMENTTYPE>& identity() {
                     check_pointer();
                     if ( !is_square() ) {
                         throw std::invalid_argument(
-                            "Cannot turn a non-square matrix into an identity "
+                            "Cannot turn a non-square matrix into an "
+                            "identity "
                             "matrix" );
                     }
                     size_t ndiag = _ptr->diagonal_size( 0 );
@@ -141,6 +115,10 @@ namespace NCPA {
 
                 virtual bool is_diagonal() const {
                     return ( _ptr ? _ptr->is_diagonal() : true );
+                }
+
+                virtual bool is_band_diagonal() const {
+                    return ( _ptr ? _ptr->is_band_diagonal() : true );
                 }
 
                 virtual bool is_tridiagonal() const {
@@ -217,18 +195,20 @@ namespace NCPA {
                 //     if ( _ptr ) {
                 //         std::unique_ptr<Matrix<ELEMENTTYPE>> colmat(
                 //             new Matrix<ELEMENTTYPE>( *this ) );
-                //         NCPA_DEBUG << "Created column matrix wrapper" << std::endl;
-                //         colmat->resize( rows(), 1 );
-                //         NCPA_DEBUG << "Resize complete" << std::endl;
-                //         colmat->zero();
-                //         NCPA_DEBUG << "Zero complete" << std::endl;
-                //         auto colvec = _ptr->get_column( col );
-                //         NCPA_DEBUG << "Got column vector" << std::endl;
-                //         for (auto i = 0; i < colvec->size(); i++) {
-                //             NCPA_DEBUG << "colvec[" << i << "] = " << colvec->get( i ) << std::endl;
+                //         NCPA_DEBUG << "Created column matrix wrapper" <<
+                //         std::endl; colmat->resize( rows(), 1 );
+                //         NCPA_DEBUG
+                //         << "Resize complete" << std::endl;
+                //         colmat->zero(); NCPA_DEBUG << "Zero complete" <<
+                //         std::endl; auto colvec = _ptr->get_column( col
+                //         ); NCPA_DEBUG << "Got column vector" <<
+                //         std::endl; for (auto i = 0; i < colvec->size();
+                //         i++) {
+                //             NCPA_DEBUG << "colvec[" << i << "] = " <<
+                //             colvec->get( i ) << std::endl;
                 //         }
-                //         NCPA_DEBUG << "Calling set_column()" << std::endl;
-                //         colmat->set_column( 0, *colvec );
+                //         NCPA_DEBUG << "Calling set_column()" <<
+                //         std::endl; colmat->set_column( 0, *colvec );
                 //         NCPA_DEBUG << "Set column done" << std::endl;
                 //         return colmat;
                 //     } else {
@@ -293,14 +273,14 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& copy(
-                    const Matrix<ELEMENTTYPE>& M ) {
-                    resize( M.rows(), M.columns() );
-                    for ( size_t r = 0; r < rows(); r++ ) {
-                        set_row( r, *( M.get_row( r ) ) );
-                    }
-                    return *this;
-                }
+                // virtual Matrix<ELEMENTTYPE>& copy(
+                //     const Matrix<ELEMENTTYPE>& M ) {
+                //     resize( M.rows(), M.columns() );
+                //     for ( size_t r = 0; r < rows(); r++ ) {
+                //         set_row( r, *( M.get_row( r ) ) );
+                //     }
+                //     return *this;
+                // }
 
                 virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
                     check_pointer();
@@ -394,8 +374,7 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& set_row(
                     size_t row, const Matrix<ELEMENTTYPE>& mat,
                     size_t matrow ) {
-                    return set_row( row,
-                                    mat.get_row( matrow )->as_std() );
+                    return set_row( row, mat.get_row( matrow )->as_std() );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_row(
@@ -479,7 +458,6 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& set_column(
                     size_t col,
                     const details::abstract_vector<ELEMENTTYPE>& vec ) {
-                    NCPA_DEBUG << "Called correct set_column() method" << std::endl;
                     return set_column( col, vec.as_std() );
                 }
 
@@ -497,8 +475,8 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& set_column(
                     size_t col, const Matrix<ELEMENTTYPE>& mat,
                     size_t matcol ) {
-                    return set_column(
-                        col, mat.get_column( matcol )->as_std() );
+                    return set_column( col,
+                                       mat.get_column( matcol )->as_std() );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_column(
@@ -653,13 +631,42 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual Vector<ELEMENTTYPE> right_multiply(
+                    const Vector<ELEMENTTYPE>& other ) const {
+                    check_pointer();
+                    other.check_pointer();
+                    if ( columns() != other.size() ) {
+                        throw std::invalid_argument(
+                            "Matrix-vector size mismatch: cannot "
+                            "multiply" );
+                    }
+                    // _ptr->right_multiply( *(other._ptr) );
+                    return Vector<ELEMENTTYPE>(
+                        _ptr->right_multiply( *( other._ptr ) ) );
+                }
+
+                virtual Vector<ELEMENTTYPE> left_multiply(
+                    const Vector<ELEMENTTYPE>& other ) const {
+                    check_pointer();
+                    other.check_pointer();
+                    if ( columns() != other.size() ) {
+                        throw std::invalid_argument(
+                            "Matrix-vector size mismatch: cannot "
+                            "multiply" );
+                    }
+                    return Vector<ELEMENTTYPE>(
+                        _ptr->left_multiply( *( other._ptr ) ) );
+                }
+
                 // virtual Vector<ELEMENTTYPE>& multiply(
                 //     const Vector<ELEMENTTYPE>& other ) {
                 //     check_pointer();
                 //     other.check_pointer();
                 //     if ( columns() != size.rows() ) {
                 //         throw std::invalid_argument(
-                //             "Matrix-vector size mismatch: cannot multiply" );
+                //             "Matrix-vector size mismatch: cannot
+                //             multiply"
+                //             );
                 //     }
                 //     auto newvec = Vector<ELEMENTTYPE>(
                 //         _ptr->multiply( *( other.internal() ) ) );
@@ -677,7 +684,8 @@ namespace NCPA {
                 //         _ptr->resize( ind + 1, _ptr->columns() );
                 //     }
                 //     _wrappers[ ind ]
-                //         = WrapperVector<ELEMENTTYPE>( ( *_ptr )[ ind ] );
+                //         = WrapperVector<ELEMENTTYPE>( ( *_ptr )[ ind ]
+                //         );
                 //     return _wrappers[ ind ];
                 // }
 
@@ -685,7 +693,9 @@ namespace NCPA {
                 //     operator[]( size_t ind ) const {
                 //     if ( ind >= _ptr->rows() ) {
                 //         std::ostringstream oss;
-                //         oss << "Index " << ind << " too large for matrix of "
+                //         oss << "Index " << ind << " too large for matrix
+                //         of
+                //         "
                 //             << rows() << " rows.";
                 //         throw std::out_of_range( oss.str() );
                 //     }
@@ -742,10 +752,10 @@ namespace NCPA {
                             if ( c > 0 ) {
                                 os << ", ";
                             }
-                            os << mat[ r ][ c ];
+                            os << mat.get( r, c );
                         }
                         if ( r != mat.rows() - 1 ) {
-                            os << " ]," << std::endl;
+                            os << " ] ;" << std::endl;
                         } else {
                             os << " ] ]";
                         }
@@ -803,9 +813,7 @@ namespace NCPA {
                 friend NCPA::linear::Matrix<ELEMENTTYPE> operator*(
                     const Matrix<ELEMENTTYPE>& c1,
                     const Matrix<ELEMENTTYPE>& c2 ) {
-                    // DEBUG_LOGGER << "Copying matrix" << std::endl;
                     Matrix<ELEMENTTYPE> out( c1 );
-                    // DEBUG_LOGGER << "Calling *= operator" << std::endl;
                     out *= c2;
                     return out;
                 }
@@ -824,6 +832,19 @@ namespace NCPA {
                     return out;
                 }
 
+                friend Vector<ELEMENTTYPE> operator*(
+                    const Vector<ELEMENTTYPE>& vec,
+                    const Matrix<ELEMENTTYPE>& mat ) {
+                    return mat.left_multiply( vec );
+                }
+
+                friend Vector<ELEMENTTYPE> operator*(
+                    const Matrix<ELEMENTTYPE>& mat,
+                    const Vector<ELEMENTTYPE>& vec ) {
+                    return mat.right_multiply( vec );
+                }
+
+
                 virtual void check_pointer() const {
                     if ( !_ptr ) {
                         throw std::logic_error(
@@ -838,6 +859,10 @@ namespace NCPA {
                         throw std::invalid_argument(
                             "Matrices are not the same size!" );
                     }
+                }
+
+                const details::abstract_matrix<ELEMENTTYPE>& internal() const {
+                    return *_ptr;
                 }
 
             private:
@@ -855,3 +880,17 @@ static void swap( NCPA::linear::Matrix<T>& a,
     a._ptr.swap( b._ptr );
     swap( a._wrappers, b._wrappers );
 }
+
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Vector<ELEMENTTYPE> operator*(
+//     const NCPA::linear::Vector<ELEMENTTYPE>& vec,
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& mat ) {
+//     return mat.left_multiply( vec );
+// }
+
+// template<typename ELEMENTTYPE>
+// NCPA::linear::Vector<ELEMENTTYPE> operator*(
+//     const NCPA::linear::Matrix<ELEMENTTYPE>& mat,
+//     const NCPA::linear::Vector<ELEMENTTYPE>& vec ) {
+//     return mat.right_multiply( vec );
+// }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/defines.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
@@ -8,7 +9,6 @@
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
-#include "NCPA/defines.hpp"
 
 #include <cmath>
 #include <complex>
@@ -59,12 +59,13 @@ namespace NCPA {
 
                     dense_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
                         dense_matrix<ELEMENTTYPE>() {
-                        resize( other.rows(), other.columns() );
-                        for ( auto i = 0; i < other.rows(); i++ ) {
-                            for ( auto j = 0; j < other.columns(); j++ ) {
-                                set( i, j, other.get( i, j ) );
-                            }
-                        }
+                            this->copy( other );
+                        // resize( other.rows(), other.columns() );
+                        // for ( auto i = 0; i < other.rows(); i++ ) {
+                        //     for ( auto j = 0; j < other.columns(); j++ ) {
+                        //         set( i, j, other.get( i, j ) );
+                        //     }
+                        // }
                     }
 
                     virtual ~dense_matrix() {}
@@ -77,8 +78,8 @@ namespace NCPA {
 
                     dense_matrix<ELEMENTTYPE>& operator=(
                         abstract_matrix<ELEMENTTYPE> other ) {
-                        dense_matrix<ELEMENTTYPE> copy( other );
-                        swap( *this, copy );
+                        dense_matrix<ELEMENTTYPE> othercopy( other );
+                        swap( *this, othercopy );
                         return *this;
                     }
 
@@ -88,6 +89,18 @@ namespace NCPA {
                     using abstract_matrix<ELEMENTTYPE>::set_column;
                     using abstract_matrix<ELEMENTTYPE>::add;
                     using abstract_matrix<ELEMENTTYPE>::scale;
+
+                    virtual abstract_matrix<ELEMENTTYPE>& copy(
+                        const abstract_matrix<ELEMENTTYPE>& other ) override {
+                        resize( other.rows(), other.columns() );
+                        for ( auto i = 0; i < other.rows(); i++ ) {
+                            for ( auto j = 0; j < other.columns(); j++ ) {
+                                set( i, j, other.get( i, j ) );
+                            }
+                        }
+                        return *dynamic_cast<abstract_matrix<ELEMENTTYPE> *>(
+                            this );
+                    }
 
                     virtual std::string id() const override {
                         return "NCPA Basic Dense Matrix";
@@ -347,9 +360,11 @@ namespace NCPA {
                     }
 
                     virtual bool is_this_subclass(
-                        const abstract_matrix<ELEMENTTYPE>& b ) const override {
-                        if ( auto *derived = dynamic_cast<
-                                 const dense_matrix<ELEMENTTYPE> *>( &b ) ) {
+                        const abstract_matrix<ELEMENTTYPE>& b )
+                        const override {
+                        if ( auto *derived
+                             = dynamic_cast<const dense_matrix<ELEMENTTYPE> *>(
+                                 &b ) ) {
                             return true;
                         } else {
                             return false;
