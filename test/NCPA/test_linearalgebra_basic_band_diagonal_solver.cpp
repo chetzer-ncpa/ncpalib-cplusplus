@@ -114,13 +114,13 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForComplexKnownCase ) {
 }
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
-    invec.resize( 4 ).set( { 10.0, -7.0, -35.0, 34.0 } );
+    invec.resize( 4 ).set( { 11.0, -7.7, -38.5, 37.40 } );
     dmat.zero()
         .resize( 4, 4 )
-        .set_diagonal( { -1, -2, -3, -4 } )
-        .set_diagonal( { 4, 5, 6 }, -1 )
-        .set_diagonal( { 2, 3, 4 }, 1 )
-        .set_diagonal( { 5, 6 }, 2 );
+        .set_diagonal( { -1.1, -2.2, -3.3, -4.4 } )
+        .set_diagonal( { 4.4, 5.5, 6.6 }, -1 )
+        .set_diagonal( { 2.2, 3.3, 4.4 }, 1 )
+        .set_diagonal( { 5.5, 6.6 }, 2 );
     Vector<test_t> expected = invec;
     expected.set( { 1.0, -2.0, 3.0, -4.0 } );
     // std::vector<test_t> expected = { 1.0, -2.0, 3.0, -4.0 };
@@ -135,22 +135,42 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
     }
 }
 
-TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
-    dmat.resize( 4, 4 ).zero()
-        .set_diagonal( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) )
-        .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), -1 )
-        .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), 1 );
-    Vector<test_t> x = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-    x.resize(4).zero().set( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) );
-    invec = dmat * x;
+// TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
+//     dmat.resize( 4, 4 ).zero()
+//         .set_diagonal( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) )
+//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), -1 )
+//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), 1 );
+//     Vector<test_t> x = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+//     x.resize(4).zero().set( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) );
+//     invec = dmat * x;
 
+//     solver.set_system_matrix( dmat );
+//     Vector<test_t> solution = solver.solve( invec );
+//     cout << "dmat = " << endl << dmat << endl;
+//     cout << "b = " << invec << endl;
+//     cout << "expected = " << x << endl;
+//     cout << "solution = " << solution << endl;
+//     for ( size_t i = 0; i < 4; i++ ) {
+//         EXPECT_NEAR( solution.get( i ), x[ i ], 1.0e-10 );
+//     }
+// }
+
+TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
+    Vector<test_t> expected
+        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+    expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
+    invec.resize( 4 ).zero();
+    dmat.resize( 4, 4 ).zero();
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ), 1 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
+                       -1 );
+    for ( size_t i = 0; i < 4; i++ ) {
+        invec.set( i, dmat.get_row( i )->dot( expected ) );
+    }
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    cout << "dmat = " << endl << dmat << endl;
-    cout << "b = " << invec << endl;
-    cout << "expected = " << x << endl;
-    cout << "solution = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
-        EXPECT_NEAR( solution.get( i ), x[ i ], 1.0e-10 );
+        EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }

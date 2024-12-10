@@ -132,9 +132,9 @@ namespace NCPA {
                         int i, j, k, l, mm;
                         ELEMENTTYPE dum;
 
-                        n  = _mat.rows();
-                        m1 = _mat._n_lower;
-                        m2 = _mat._n_upper;
+                        n  = (int)_mat.rows();
+                        m1 = (int)_mat._n_lower;
+                        m2 = (int)_mat._n_upper;
                         mm = m1 + m2 + 1;
 
                         // NCPA_DEBUG << "n = " << n << ", m1 = " << m1
@@ -145,7 +145,8 @@ namespace NCPA {
                         std::vector<std::vector<ELEMENTTYPE>> a
                             = _mat._contents;
 
-                        // NCPA_DEBUG << "Before decomposition a = (" << a.size()
+                        // NCPA_DEBUG << "Before decomposition a = (" <<
+                        // a.size()
                         //            << "," << a[ 0 ].size()
                         //            << "):" << std::endl;
                         // for ( i = 0; i < mm; i++ ) {
@@ -165,14 +166,11 @@ namespace NCPA {
                         }
                         for ( i = 0; i < mm; i++ ) {
                             for ( j = 0; j < n; j++ ) {
-                                _au[ j ][ i ]
-                                    = a[ i ]
-                                       [ j ];  // reverse storage indices to
-                                               // match Numerical Recipes
+                                // reverse storage indices to
+                                // match Numerical Recipes
+                                _au[ j ][ i ] = a[ i ][ j ];
                             }
                         }
-
-                        // _au = a;
 
                         // NCPA_DEBUG << "Before decomposition _au ="
                         //            << std::endl;
@@ -216,12 +214,12 @@ namespace NCPA {
                             }
                             l--;
                             for ( j = mm - l - 1; j < mm; j++ ) {
-                                _au[ i ][ j ] = _zero;
+                                _au[ i ][ j ] = 0.0;
                             }
                         }
 
-                        // NCPA_DEBUG << "After rearranging _au =" << std::endl;
-                        // for ( i = 0; i < n; i++ ) {
+                        // NCPA_DEBUG << "After rearranging _au =" <<
+                        // std::endl; for ( i = 0; i < n; i++ ) {
                         //     NCPA_DEBUG << "[ ";
                         //     for ( j = 0; j < mm; j++ ) {
                         //         if ( j != 0 ) {
@@ -233,7 +231,7 @@ namespace NCPA {
                         // }
 
 
-                        d = NCPA::math::one<ELEMENTTYPE>();
+                        d = 1.0;
                         l = m1;
                         for ( k = 0; k < n; k++ ) {
                             dum = _au[ k ][ 0 ];
@@ -241,43 +239,40 @@ namespace NCPA {
                             if ( l < n ) {
                                 l++;
                             }
-                            if ( _pivot ) {
-                                for ( j = k + 1; j < l; j++ ) {
-                                    if ( std::abs( _au[ j ][ 0 ] )
-                                         > std::abs( dum ) ) {
-                                        dum = _au[ j ][ 0 ];
-                                        i   = j;
-                                    }
+                            
+                            for ( j = k + 1; j < l; j++ ) {
+                                if ( std::abs( _au[ j ][ 0 ] )
+                                     > std::abs( dum ) ) {
+                                    dum = _au[ j ][ 0 ];
+                                    i   = j;
                                 }
-                                _indx[ k ] = i + 1;
-                                if ( NCPA::math::is_zero( dum ) ) {
-                                    // matrix is algorithmically singular but
-                                    // keep going with tiny pivot
-                                    _au[ k ][ 0 ] = 1e-30;
-                                    std::cout << "Singular!" << std::endl;
-                                }
-                                if ( i != k ) {
-                                    // interchange rows
-                                    d = -d;
-                                    for ( j = 0; j < mm; j++ ) {
-                                        std::swap( _au[ k ][ j ],
-                                                   _au[ i ][ j ] );
-                                    }
-                                }
-                            } else {
-                                _indx[ k ] = k + 1;
                             }
+                            _indx[ k ] = i + 1;
+                            if ( dum == 0.0 ) {
+                                // matrix is algorithmically singular but
+                                // keep going with tiny pivot
+                                _au[ k ][ 0 ] = 1e-40;
+                                std::cout << "Singular!" << std::endl;
+                            }
+                            if ( i != k ) {
+                                // interchange rows
+                                d = -d;
+                                for ( j = 0; j < mm; j++ ) {
+                                    auto tmp      = _au[ k ][ j ];
+                                    _au[ k ][ j ] = _au[ i ][ j ];
+                                    _au[ i ][ j ] = tmp;
+                                }
+                            }
+                            
                             for ( i = k + 1; i < l; i++ ) {
                                 dum = _au[ i ][ 0 ] / _au[ k ][ 0 ];
                                 _al[ k ][ i - k - 1 ] = dum;
-                                // NCPA_DEBUG << "Set _al[ " << k << "]["
-                                //            << i - k - 1 << " = " << dum
-                                //            << std::endl;
                                 for ( j = 1; j < mm; j++ ) {
                                     _au[ i ][ j - 1 ]
                                         = _au[ i ][ j ] - dum * _au[ k ][ j ];
-                                    _au[ i ][ mm - 1 ] = _zero;
                                 }
+                                _au[ i ][ mm - 1 ] = _zero;
+                                
                             }
                         }
 
