@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef NCPA_INTERPOLATION_IGNORE_GSL
+
 #include "NCPA/interpolation/defines.hpp"
 
 #ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
@@ -213,5 +215,7 @@ namespace NCPA {
         }  // namespace GSL
     }
 }
+
+#endif
 
 #endif

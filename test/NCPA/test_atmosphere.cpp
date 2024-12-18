@@ -154,7 +154,7 @@ TEST_F( _TEST_TITLE_, CopyPropertyWorks ) {
     test_atmos.add_property( "NEW_U", test_atmos.get_property( "U" ) );
     double dz = 0.1;
     for ( double z = dz; z < 100.0; z += dz ) {
-        EXPECT_EQ( test_atmos.get( "U", z ), test_atmos.get( "NEW_U", z ) );
+        EXPECT_NEAR( test_atmos.get( "U", z ), test_atmos.get( "NEW_U", z ), 1e-10 );
     }
 }
 

@@ -64,8 +64,13 @@ namespace NCPA {
                     virtual AtmosphericProperty1D& get_property(
                         const std::string& key )
                         = 0;
+                    virtual const AtmosphericProperty1D& get_property(
+                        const std::string& key ) const = 0;
+                    
                     virtual vector_t& get_altitude_vector() = 0;
-                    virtual double get( const std::string& key )
+                    virtual const vector_t& get_altitude_vector() const = 0;
+
+                    virtual double get( const std::string& key ) const
                         = 0;  // scalars
                     virtual double get( const std::string& key,
                                         double altitude )
@@ -76,9 +81,10 @@ namespace NCPA {
                     virtual double get_second_derivative(
                         const std::string& key, double altitude )
                         = 0;
-                    virtual units_ptr_t get_altitude_units() = 0;
+
+                    virtual units_ptr_t get_altitude_units() const = 0;
                     virtual units_ptr_t get_property_units(
-                        const std::string& key )
+                        const std::string& key ) const
                         = 0;
 
                     virtual double get_minimum_altitude() const = 0;
@@ -108,6 +114,8 @@ namespace NCPA {
                         = 0;
                     virtual bool contains_key( const std::string& key ) const
                         = 0;
+
+                    virtual void print( std::ostream& os ) = 0;
             };
         }  // namespace details
     }  // namespace atmos

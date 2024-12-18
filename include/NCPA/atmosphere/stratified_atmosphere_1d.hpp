@@ -143,14 +143,25 @@ namespace NCPA {
                     virtual AtmosphericProperty1D& get_property(
                         const std::string& key ) override {
                         _assert_contains_vector( key );
-                        return _properties[ key ];
+                        return _properties.at( key );
+                    }
+
+                    virtual const AtmosphericProperty1D& get_property(
+                        const std::string& key ) const override {
+                        _assert_contains_vector( key );
+                        return _properties.at( key );
                     }
 
                     virtual vector_t& get_altitude_vector() override {
                         return _z;
                     }
 
-                    virtual double get( const std::string& key ) override {
+                    virtual const vector_t& get_altitude_vector() const override {
+                        return _z;
+                    }
+
+                    virtual double get(
+                        const std::string& key ) const override {
                         return _scalar_properties.at( key ).get();
                     }
 
@@ -172,12 +183,12 @@ namespace NCPA {
                             altitude );
                     }
 
-                    virtual units_ptr_t get_altitude_units() override {
+                    virtual units_ptr_t get_altitude_units() const override {
                         return _z.get_units();
                     }
 
                     virtual units_ptr_t get_property_units(
-                        const std::string& key ) override {
+                        const std::string& key ) const override {
                         if ( contains_vector( key ) ) {
                             return get_property( key ).get_units();
                         } else if ( contains_scalar( key ) ) {
@@ -199,6 +210,9 @@ namespace NCPA {
                     virtual abstract_atmosphere_1d& convert_altitude_units(
                         units_ptr_t new_units ) override {
                         _z.convert_units( *new_units );
+                        for (auto it = _properties.begin(); it != _properties.end(); ++it) {
+                            it->second.convert_altitude_units( *new_units );
+                        }
                         return static_cast<abstract_atmosphere_1d&>( *this );
                     }
 
@@ -283,6 +297,66 @@ namespace NCPA {
                             || contains_scalar( key );
                     }
 
+                    virtual void print( std::ostream& os ) override {
+                        this->print( os, this->get_vector_keys(), "Z" );
+                    }
+
+                    virtual void print(
+                        std::ostream& os,
+                        const std::vector<std::string>& columnorder,
+                        const std::string& altitude_key ) const {
+                        // check columnorder variable for key validity
+                        std::vector<std::string>::const_iterator vit;
+                        for ( vit = columnorder.cbegin();
+                              vit != columnorder.cend(); ++vit ) {
+                            if ( !contains_vector( *vit ) ) {
+                                throw std::invalid_argument(
+                                    "No vector quantity exists with key "
+                                    + *vit );
+                            }
+                        }
+
+                        // first we do the header.  That contains column
+                        // descriptions as well as scalar values scalars first
+                        for ( auto mit = _scalar_properties.cbegin();
+                              mit != _scalar_properties.cend(); ++mit ) {
+                            os << "#% 0, "
+                               << NCPA::strings::deblank( mit->first, "_" )
+                               << ", " << *( mit->second.get_units() ) << ", "
+                               << mit->second.get() << std::endl;
+                        }
+
+                        // Now column descriptors.  Altitude first
+                        os << "#% 1, " << altitude_key << ", "
+                           << *( _z.get_units() ) << std::endl;
+                        unsigned int column = 2;
+                        for ( vit = columnorder.cbegin();
+                              vit != columnorder.cend(); ++vit ) {
+                            os << "#% " << column << ", "
+                               << NCPA::strings::deblank( *vit, "_" ) << ", "
+                               << *( this->get_property_units( *vit ) )
+                               << std::endl;
+                            column++;
+                        }
+
+                        // Now columns
+                        size_t nz_ = _z.size();
+                        os.setf( std::ios::scientific, std::ios::floatfield );
+                        os.setf( std::ios::right, std::ios::adjustfield );
+                        os.precision( 6 );
+                        os.width( 9 );
+                        os.fill( ' ' );
+                        for ( size_t i = 0; i < nz_; i++ ) {
+                            os << _z[ i ];
+                            for ( vit = columnorder.cbegin();
+                                  vit != columnorder.cend(); ++vit ) {
+                                os << " " << get_property( *vit ).vector()[ i ];
+                            }
+                            os << std::endl;
+                        }
+                        os.flush();
+                    }
+
                 protected:
                     void _assert_contains_vector(
                         const std::string& key ) const {
@@ -327,8 +401,7 @@ namespace NCPA {
                         _scalar_properties;
                     vector_t _z;
                     NCPA::interpolation::interpolator_type_t _interpolator_type
-                        = NCPA::interpolation::interpolator_type_t::
-                            NEAREST_NEIGHBOR;
+                        = NCPA::interpolation::interpolator_type_t::GSL_STEFFEN;
             };
         }  // namespace details
     }  // namespace atmos

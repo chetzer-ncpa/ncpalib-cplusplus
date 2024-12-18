@@ -3,8 +3,8 @@
 #include "NCPA/atmosphere/abstract_atmosphere_1d.hpp"
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/types.hpp"
-#include "NCPA/units.hpp"
 #include "NCPA/interpolation.hpp"
+#include "NCPA/units.hpp"
 
 #include <memory>
 #include <string>
@@ -15,7 +15,11 @@ namespace NCPA {
     }
 }  // namespace NCPA
 
-static void swap( NCPA::atmos::Atmosphere1D&, NCPA::atmos::Atmosphere1D& ) noexcept;
+// static std::ostream& operator<<( std::ostream& os,
+//                                  const NCPA::atmos::Atmosphere1D& vec );
+
+static void swap( NCPA::atmos::Atmosphere1D&,
+                  NCPA::atmos::Atmosphere1D& ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -51,14 +55,16 @@ namespace NCPA {
 
                 virtual Atmosphere1D set_interpolator(
                     NCPA::interpolation::interpolator_type_t interp_type ) {
-                        check_pointer();
-                        if (NCPA::interpolation::InterpolatorFactory::can_build( interp_type )) {
-                            _ptr->set_interpolator( interp_type );
-                        } else {
-                            throw std::logic_error( "Selected interpolator type not available" );
-                        }
-                        return *this;
+                    check_pointer();
+                    if ( NCPA::interpolation::InterpolatorFactory::can_build(
+                             interp_type ) ) {
+                        _ptr->set_interpolator( interp_type );
+                    } else {
+                        throw std::logic_error(
+                            "Selected interpolator type not available" );
                     }
+                    return *this;
+                }
 
                 virtual Atmosphere1D& add_property(
                     const std::string& key,
@@ -71,7 +77,7 @@ namespace NCPA {
                 virtual Atmosphere1D& add_property(
                     const std::string& key, const vector_t& property ) {
                     check_pointer();
-                     _ptr->add_property( key, property );
+                    _ptr->add_property( key, property );
                     return *this;
                 }
 
@@ -117,9 +123,12 @@ namespace NCPA {
                     return _ptr->get( key, altitude );
                 }
 
-                virtual double get( const std::string& key, const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                virtual double get(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& altitude ) {
                     check_pointer();
-                    return _ptr->get( key, altitude.get_as( this->get_altitude_units() ) );
+                    return _ptr->get(
+                        key, altitude.get_as( this->get_altitude_units() ) );
                 }
 
                 virtual double get_first_derivative( const std::string& key,
@@ -128,10 +137,12 @@ namespace NCPA {
                     return _ptr->get_first_derivative( key, altitude );
                 }
 
-                virtual double get_first_derivative( const std::string& key,
-                                                     const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                virtual double get_first_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& altitude ) {
                     check_pointer();
-                    return _ptr->get_first_derivative( key, altitude.get_as( this->get_altitude_units() ) );
+                    return _ptr->get_first_derivative(
+                        key, altitude.get_as( this->get_altitude_units() ) );
                 }
 
                 virtual double get_second_derivative( const std::string& key,
@@ -140,10 +151,12 @@ namespace NCPA {
                     return _ptr->get_second_derivative( key, altitude );
                 }
 
-                virtual double get_second_derivative( const std::string& key,
-                                                      const NCPA::units::ScalarWithUnits<double>& altitude ) {
+                virtual double get_second_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& altitude ) {
                     check_pointer();
-                    return _ptr->get_second_derivative( key, altitude.get_as( this->get_altitude_units() ) );
+                    return _ptr->get_second_derivative(
+                        key, altitude.get_as( this->get_altitude_units() ) );
                 }
 
                 virtual units_ptr_t get_altitude_units() {
@@ -230,8 +243,18 @@ namespace NCPA {
                     }
                 }
 
+                // friend binary operators
+                friend std::ostream& operator<<( std::ostream& os,
+                                                 const Atmosphere1D& atm ) {
+                    if ( atm ) {
+                        atm._ptr->print( os );
+                    }
+                    return os;
+                }
 
-                explicit operator bool() const { return (_ptr ? true : false); }
+                explicit operator bool() const {
+                    return ( _ptr ? true : false );
+                }
 
             private:
                 std::unique_ptr<details::abstract_atmosphere_1d> _ptr;
@@ -240,7 +263,7 @@ namespace NCPA {
 }  // namespace NCPA
 
 static void swap( NCPA::atmos::Atmosphere1D& a,
-             NCPA::atmos::Atmosphere1D& b ) noexcept {
+                  NCPA::atmos::Atmosphere1D& b ) noexcept {
     using std::swap;
     swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
           static_cast<NCPA::atmos::AtmosphericModel&>( b ) );

@@ -50,7 +50,6 @@ namespace NCPA {
                 friend void ::swap<ELEMENTTYPE>(
                     Matrix<ELEMENTTYPE>& a, Matrix<ELEMENTTYPE>& b ) noexcept;
 
-                
                 /**
                  * Assignment operator.
                  * @param other The vector to assign to this.
@@ -61,12 +60,12 @@ namespace NCPA {
                 }
 
                 Matrix<ELEMENTTYPE>& copy( const Matrix<ELEMENTTYPE>& other ) {
-                    if (_ptr) {
+                    if ( _ptr ) {
                         _ptr->copy( *other._ptr );
                     } else {
-                        _ptr = std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>>(
-                            other._ptr->clone()
-                        );
+                        _ptr = std::unique_ptr<
+                            details::abstract_matrix<ELEMENTTYPE>>(
+                            other._ptr->clone() );
                     }
                 }
 
@@ -763,6 +762,40 @@ namespace NCPA {
                     return os;
                 }
 
+                template<typename U=ELEMENTTYPE,ENABLE_FUNCTION_IF_COMPLEX( U )>
+                void print_nonzero(
+                    std::ostream& os, const std::string& sep = " " ) {
+                    ELEMENTTYPE element;
+                    os << this->rows() << std::endl;
+                    for ( size_t r = 0; r < this->rows(); r++ ) {
+                        auto nzinds = this->get_row( r )
+                                          ->internal()
+                                          ->nonzero_indices();
+                        for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                              ++cit ) {
+                            element = this->get( r, *cit );
+                            os << r << sep << *cit << sep << element.real()
+                               << sep << element.imag() << std::endl;
+                        }
+                    }
+                }
+
+                template<typename U=ELEMENTTYPE,ENABLE_FUNCTION_IF_REAL( U )>
+                void print_nonzero( std::ostream& os,
+                                    const std::string& sep = " " ) {
+                    os << this->rows() << std::endl;
+                    for ( size_t r = 0; r < this->rows(); r++ ) {
+                        auto nzinds = this->get_row( r )
+                                          ->internal()
+                                          ->nonzero_indices();
+                        for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                              ++cit ) {
+                            os << r << sep << *cit << sep
+                               << this->get( r, *cit ) << std::endl;
+                        }
+                    }
+                }
+
                 friend bool operator==( const Matrix<ELEMENTTYPE>& a,
                                         const Matrix<ELEMENTTYPE>& b ) {
                     return a.equals( b );
@@ -843,7 +876,6 @@ namespace NCPA {
                     const Vector<ELEMENTTYPE>& vec ) {
                     return mat.right_multiply( vec );
                 }
-
 
                 virtual void check_pointer() const {
                     if ( !_ptr ) {

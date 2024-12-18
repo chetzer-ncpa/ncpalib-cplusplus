@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <iostream>
 #include <numeric>
 #include <vector>
 
@@ -72,11 +73,11 @@ namespace NCPA {
         }
 
         /**
-                @brief Frees a dynamically allocated 1-D array.  Most provided
+        @brief Frees a dynamically allocated 1-D array.  Most provided
            for consistency of interface.
-                @param v The array to free.
-                @param nr The dimension of the array.
-                */
+        @param v The array to free.
+        @param nr The dimension of the array.
+        */
         template<typename T>
         void free_array( T *& v, size_t nr,
                          ENABLE_FUNCTION_IF_NOT_DELETEABLE( T ) ) {
@@ -382,44 +383,49 @@ namespace NCPA {
 
         template<typename T, typename Compare>
         std::vector<std::size_t> sort_permutation( const std::vector<T>& vec1,
-                                                    const std::vector<T>& vec2,
+                                                   const std::vector<T>& vec2,
                                                    Compare compare ) {
-            if (vec1.size() != vec2.size()) {
-                throw std::invalid_argument( "Vectors must be the same size!");
+            if ( vec1.size() != vec2.size() ) {
+                throw std::invalid_argument(
+                    "Vectors must be the same size!" );
             }
             std::vector<std::size_t> p( vec1.size() );
             std::iota( p.begin(), p.end(), 0 );
             std::sort( p.begin(), p.end(),
                        [ & ]( std::size_t i, std::size_t j ) {
-                           return compare( vec1[ i ], vec1[ j ] ) || (vec1[ i ] == vec1[ j ] && compare( vec2[ i ], vec2[ j ] ));
+                           return compare( vec1[ i ], vec1[ j ] )
+                               || ( vec1[ i ] == vec1[ j ]
+                                    && compare( vec2[ i ], vec2[ j ] ) );
                        } );
             return p;
         }
 
         template<typename T>
-        std::vector<std::size_t> sort_permutation_increasing( const std::vector<T>& vec ) {
-            return sort_permutation<T>( vec, 
-                [](T const& a, T const& b) { return a < b; } );
+        std::vector<std::size_t> sort_permutation_increasing(
+            const std::vector<T>& vec ) {
+            return sort_permutation<T>(
+                vec, []( T const& a, T const& b ) { return a < b; } );
         }
 
         template<typename T>
-        std::vector<std::size_t> sort_permutation_increasing( const std::vector<T>& vec1,
-        const std::vector<T>& vec2 ) {
-            return sort_permutation<T>( vec1, vec2,
-                [](T const& a, T const& b) { return a < b; } );
+        std::vector<std::size_t> sort_permutation_increasing(
+            const std::vector<T>& vec1, const std::vector<T>& vec2 ) {
+            return sort_permutation<T>(
+                vec1, vec2, []( T const& a, T const& b ) { return a < b; } );
         }
 
         template<typename T>
-        std::vector<std::size_t> sort_permutation_decreasing( const std::vector<T>& vec ) {
-            return sort_permutation<T>( vec, 
-                [](T const& a, T const& b) { return a > b; } );
+        std::vector<std::size_t> sort_permutation_decreasing(
+            const std::vector<T>& vec ) {
+            return sort_permutation<T>(
+                vec, []( T const& a, T const& b ) { return a > b; } );
         }
 
         template<typename T>
-        std::vector<std::size_t> sort_permutation_decreasing( const std::vector<T>& vec1,
-        const std::vector<T>& vec2 ) {
-            return sort_permutation<T>( vec1, vec2,
-                [](T const& a, T const& b) { return a > b; } );
+        std::vector<std::size_t> sort_permutation_decreasing(
+            const std::vector<T>& vec1, const std::vector<T>& vec2 ) {
+            return sort_permutation<T>(
+                vec1, vec2, []( T const& a, T const& b ) { return a > b; } );
         }
 
         // From https://stackoverflow.com/a/17074810
@@ -450,6 +456,49 @@ namespace NCPA {
                     prev_j    = j;
                     j         = p[ j ];
                 }
+            }
+        }
+
+        template<typename T, typename U>
+        void write( std::ostream& os, const std::vector<T> basevec,
+                    const std::vector<std::vector<U>>& items,
+                    const std::string& separator = " " ) {
+            for ( size_t i = 0; i < basevec.size(); i++ ) {
+                os << basevec[ i ];
+                for ( size_t j = 0; j < items.size(); j++ ) {
+                    os << separator << items[ j ][ i ];
+                }
+                os << std::endl;
+            }
+        }
+
+        // template<typename T, typename U>
+        // void write( std::ostream& os, const std::vector<T> basevec,
+        //             const std::vector<U> depvec,
+        //             const std::string& separator = " " ) {
+        //     for ( size_t i = 0; i < basevec.size(); i++ ) {
+        //         os << basevec[ i ] << separator << depvec[ i ] << std::endl;
+        //     }
+        // }
+
+        template<typename T, typename U>
+        void write( std::ostream& os, const std::vector<T> basevec,
+                    const std::vector<U> depvec,
+                    const std::string& separator = " ",
+                    ENABLE_FUNCTION_IF_ARITHMETIC( U ) ) {
+            for ( size_t i = 0; i < basevec.size(); i++ ) {
+                os << basevec[ i ] << separator << depvec[ i ] << std::endl;
+            }
+        }
+
+        template<typename T, typename U>
+        void write( std::ostream& os, const std::vector<T> basevec,
+                    const std::vector<U> depvec,
+                    const std::string& separator = " ",
+                    ENABLE_FUNCTION_IF_COMPLEX( U ) ) {
+            for ( size_t i = 0; i < basevec.size(); i++ ) {
+                os << basevec[ i ] << separator << depvec[ i ].real()
+                   << separator << depvec[ i ].imag() << std::endl;
             }
         }
 

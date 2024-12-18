@@ -114,7 +114,7 @@ namespace NCPA {
                 };
 
                 virtual bool is_zero() const {
-                    return !(_ptr && !(_ptr->is_zero()));
+                    return !( _ptr && !( _ptr->is_zero() ) );
                 }
 
                 virtual Vector<ELEMENTTYPE>& zero() {
@@ -399,6 +399,35 @@ namespace NCPA {
 
                 explicit operator bool() const {
                     return ( _ptr ? true : false );
+                }
+
+                template<typename U = ELEMENTTYPE,
+                         ENABLE_FUNCTION_IF_COMPLEX( U )>
+                void print_nonzero( std::ostream& os,
+                                    const std::string& sep = " " ) {
+                    ELEMENTTYPE element;
+                    os << this->size() << std::endl;
+                    auto nzinds = this->internal()->nonzero_indices();
+
+                    for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                          ++cit ) {
+                        element = this->get( *cit );
+                        os << *cit << sep << element.real() << sep
+                           << element.imag() << std::endl;
+                    }
+                }
+
+                template<typename U = ELEMENTTYPE,
+                         ENABLE_FUNCTION_IF_REAL( U )>
+                void print_nonzero( std::ostream& os,
+                                    const std::string& sep = " " ) {
+                    os << this->size() << std::endl;
+
+                    auto nzinds = this->internal()->nonzero_indices();
+                    for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                          ++cit ) {
+                        os << *cit << sep << this->get( *cit ) << std::endl;
+                    }
                 }
 
             protected:
