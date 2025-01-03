@@ -126,10 +126,10 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
     // std::vector<test_t> expected = { 1.0, -2.0, 3.0, -4.0 };
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    // cout << "dmat = " << endl << dmat << endl;
-    // cout << "b = " << invec << endl;
-    // cout << "expected = " << expected << endl;
-    // cout << "solution = " << solution << endl;
+    cout << "dmat = " << endl << dmat << endl;
+    cout << "b = " << invec << endl;
+    cout << "expected = " << expected << endl;
+    cout << "solution = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
@@ -156,21 +156,32 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
 // }
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
+    size_t n = 5;
     Vector<test_t> expected
         = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-    expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
-    invec.resize( 4 ).zero();
-    dmat.resize( 4, 4 ).zero();
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ), 1 );
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
+    expected.set( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
+    invec.resize( n ).zero();
+    dmat.resize( n, n ).zero();
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-1, -5.0, 5.0 ), 1 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-1, -5.0, 5.0 ),
                        -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
-        invec.set( i, dmat.get_row( i )->dot( expected ) );
-    }
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-2, -5.0, 5.0 ), -2 );
+    invec = dmat * expected;
+
+    cout << "dmat = " << endl << dmat << endl;
+    cout << "b = " << invec << endl;
+    cout << "expected = " << expected << endl;
+
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
+    cout << "solution = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
+}
+
+TEST_F( _TEST_TITLE_, DummyTestToCheckPivoting ) {
+    dmat.resize(5,5).zero().set_diagonal({5.0,4.0,3.0,2.0,1.0});
+    solver.set_system_matrix( dmat );
 }

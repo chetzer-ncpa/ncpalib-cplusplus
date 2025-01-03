@@ -57,8 +57,8 @@ namespace NCPA {
 
         template<typename ELEMENTTYPE>
         class LUDecomposition;
-        // template<typename ELEMENTTYPE>
-        // class BandDiagonalLUDecomposition;
+        template<typename ELEMENTTYPE>
+        class BandDiagonalLUDecomposition;
 
         // factories
         template<typename ELEMENTTYPE>

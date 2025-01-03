@@ -128,18 +128,16 @@ namespace NCPA {
                     }
 
                     virtual abstract_linear_system_solver<ELEMENTTYPE>&
-                        _decompose() {
+                        _decompose( bool pivot = true ) {
                         int i, j, k, l, mm;
                         ELEMENTTYPE dum;
+                        _pivot = pivot;
 
                         n  = (int)_mat.rows();
                         m1 = (int)_mat._n_lower;
                         m2 = (int)_mat._n_upper;
                         mm = m1 + m2 + 1;
 
-                        // NCPA_DEBUG << "n = " << n << ", m1 = " << m1
-                        //            << ", m2 = " << m2 << ", mm = " << mm
-                        //            << std::endl;
                         _indx = NCPA::arrays::zeros<int>( n );
 
                         std::vector<std::vector<ELEMENTTYPE>> a
@@ -239,31 +237,36 @@ namespace NCPA {
                             if ( l < n ) {
                                 l++;
                             }
-                            
-                            for ( j = k + 1; j < l; j++ ) {
-                                if ( std::abs( _au[ j ][ 0 ] )
-                                     > std::abs( dum ) ) {
-                                    dum = _au[ j ][ 0 ];
-                                    i   = j;
+                            // if ( _pivot ) {
+                                for ( j = k + 1; j < l; j++ ) {
+                                    if ( std::abs( _au[ j ][ 0 ] )
+                                         > std::abs( dum ) ) {
+                                        dum = _au[ j ][ 0 ];
+                                        i   = j;
+                                    }
                                 }
-                            }
-                            _indx[ k ] = i + 1;
-                            if ( dum == 0.0 ) {
-                                // matrix is algorithmically singular but
-                                // keep going with tiny pivot
-                                _au[ k ][ 0 ] = 1e-40;
-                                std::cout << "Singular!" << std::endl;
-                            }
-                            if ( i != k ) {
-                                // interchange rows
-                                d = -d;
-                                for ( j = 0; j < mm; j++ ) {
-                                    auto tmp      = _au[ k ][ j ];
-                                    _au[ k ][ j ] = _au[ i ][ j ];
-                                    _au[ i ][ j ] = tmp;
+                                // _indx[ k ] = i + 1;
+                                if ( dum == 0.0 ) {
+                                    // matrix is algorithmically singular but
+                                    // keep going with tiny pivot
+                                    _au[ k ][ 0 ] = 1e-40;
+                                    std::cout << "Singular!" << std::endl;
                                 }
+                            if ( _pivot ) {
+                                _indx[ k ] = i + 1;
+                                if ( i != k ) {
+                                    // interchange rows
+                                    d = -d;
+                                    for ( j = 0; j < mm; j++ ) {
+                                        auto tmp      = _au[ k ][ j ];
+                                        _au[ k ][ j ] = _au[ i ][ j ];
+                                        _au[ i ][ j ] = tmp;
+                                    }
+                                }
+                            } else {
+                                _indx[k] = k+1;
                             }
-                            
+
                             for ( i = k + 1; i < l; i++ ) {
                                 dum = _au[ i ][ 0 ] / _au[ k ][ 0 ];
                                 _al[ k ][ i - k - 1 ] = dum;
@@ -272,46 +275,45 @@ namespace NCPA {
                                         = _au[ i ][ j ] - dum * _au[ k ][ j ];
                                 }
                                 _au[ i ][ mm - 1 ] = _zero;
-                                
                             }
                         }
 
-                        // NCPA_DEBUG << "After decomposition _au = :"
-                        //            << std::endl;
-                        // for ( i = 0; i < n; i++ ) {
-                        //     NCPA_DEBUG << "[ ";
-                        //     for ( j = 0; j < mm; j++ ) {
-                        //         if ( j != 0 ) {
-                        //             NCPA_DEBUG << ", ";
-                        //         }
-                        //         NCPA_DEBUG << _au[ i ][ j ];
-                        //     }
-                        //     NCPA_DEBUG << "]" << std::endl;
-                        // }
+                        NCPA_DEBUG << "After decomposition _au = :"
+                                   << std::endl;
+                        for ( i = 0; i < n; i++ ) {
+                            NCPA_DEBUG << "[ ";
+                            for ( j = 0; j < mm; j++ ) {
+                                if ( j != 0 ) {
+                                    NCPA_DEBUG << ", ";
+                                }
+                                NCPA_DEBUG << _au[ i ][ j ];
+                            }
+                            NCPA_DEBUG << "]" << std::endl;
+                        }
 
-                        // NCPA_DEBUG << "After decomposition _al = :"
-                        //            << std::endl;
-                        // for ( i = 0; i < n; i++ ) {
-                        //     NCPA_DEBUG << "[ ";
-                        //     for ( j = 0; j < m1; j++ ) {
-                        //         if ( j != 0 ) {
-                        //             NCPA_DEBUG << ", ";
-                        //         }
-                        //         NCPA_DEBUG << _al[ i ][ j ];
-                        //     }
-                        //     NCPA_DEBUG << "]" << std::endl;
-                        // }
+                        NCPA_DEBUG << "After decomposition _al = :"
+                                   << std::endl;
+                        for ( i = 0; i < n; i++ ) {
+                            NCPA_DEBUG << "[ ";
+                            for ( j = 0; j < m1; j++ ) {
+                                if ( j != 0 ) {
+                                    NCPA_DEBUG << ", ";
+                                }
+                                NCPA_DEBUG << _al[ i ][ j ];
+                            }
+                            NCPA_DEBUG << "]" << std::endl;
+                        }
 
-                        // NCPA_DEBUG
-                        //     << "After decomposition, _indx = " << std::endl
-                        //     << "[ ";
-                        // for ( i = 0; i < n; i++ ) {
-                        //     if ( i != 0 ) {
-                        //         NCPA_DEBUG << ", ";
-                        //     }
-                        //     NCPA_DEBUG << _indx[ i ];
-                        // }
-                        // NCPA_DEBUG << " ]" << std::endl;
+                        NCPA_DEBUG
+                            << "After decomposition, _indx = " << std::endl
+                            << "[ ";
+                        for ( i = 0; i < n; i++ ) {
+                            if ( i != 0 ) {
+                                NCPA_DEBUG << ", ";
+                            }
+                            NCPA_DEBUG << _indx[ i ];
+                        }
+                        NCPA_DEBUG << " ]" << std::endl;
 
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
@@ -327,7 +329,6 @@ namespace NCPA {
                         mm = m1 + m2 + 1;
                         l  = m1;
 
-
                         size_t N = b.size();
                         std::vector<ELEMENTTYPE> x( N, _zero );
 
@@ -335,12 +336,12 @@ namespace NCPA {
                             x[ k ] = b[ k ];
                         }
                         for ( k = 0; k < n; k++ ) {
-                            if ( _pivot ) {
+                            // if ( _pivot ) {
                                 j = _indx[ k ] - 1;
                                 if ( j != k ) {
                                     std::swap( x[ k ], x[ j ] );
                                 }
-                            }
+                            // }
                             if ( l < n ) {
                                 l++;
                             }
@@ -428,7 +429,7 @@ namespace NCPA {
                     // std::vector<int> _indx;
                     // std::vector<std::vector<ELEMENTTYPE>> _au, _al;
                     const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
-                    const bool _pivot       = true;
+                    bool _pivot             = false;
             };
         }  // namespace details
     }  // namespace linear

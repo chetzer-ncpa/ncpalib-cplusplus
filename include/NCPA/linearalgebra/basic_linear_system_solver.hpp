@@ -97,6 +97,15 @@ namespace NCPA {
                         }
                         _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
                             new Matrix<ELEMENTTYPE>( M ) );
+                        if ( _lu ) {
+                            _lu->clear();
+                        } else {
+                            _build_lu();
+                        }
+                        // std::cout << "Decompose():" << std::endl;
+                        _lu->decompose( *_mat, false );
+                        // std::cout << "OK" << std::endl;
+                        
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );
@@ -150,12 +159,12 @@ namespace NCPA {
                                 << "] and input vector size " << b.size();
                             throw std::logic_error( oss.str() );
                         }
-                        if ( !_lu ) {
-                            _build_lu();
-                            // std::cout << "Decompose():" << std::endl;
-                            _lu->decompose( *_mat, false );
-                            // std::cout << "OK" << std::endl;
-                        }
+                        // if ( !_lu ) {
+                        //     _build_lu();
+                        //     // std::cout << "Decompose():" << std::endl;
+                        //     _lu->decompose( *_mat, false );
+                        //     // std::cout << "OK" << std::endl;
+                        // }
                         try {
                             return _solve_using_lu( b );
                         } catch ( std::invalid_argument& e1 ) {
