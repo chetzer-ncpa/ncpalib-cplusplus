@@ -23,11 +23,13 @@ typedef complex<double> ctest_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat   = MatrixFactory<test_t>::build( family_t::NCPA_BAND_DIAGONAL );
+            dmat
+                = MatrixFactory<test_t>::build( family_t::NCPA_BAND_DIAGONAL );
             invec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-            outvec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-            cmat   = MatrixFactory<ctest_t>::build( family_t::NCPA_BAND_DIAGONAL );
-            cinvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+            outvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            cmat   = MatrixFactory<ctest_t>::build(
+                family_t::NCPA_BAND_DIAGONAL );
+            cinvec  = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
             coutvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
         }  // void TearDown() override {}
 
@@ -37,7 +39,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         const ctest_t czero = NCPA::math::zero<ctest_t>(),
                       cone  = NCPA::math::one<ctest_t>();
 
-        Matrix<test_t> dmat;
+        Matrix<test_t> dmat, dmatinv;
         Vector<test_t> invec, outvec;
         Matrix<ctest_t> cmat;
         Vector<ctest_t> cinvec, coutvec;
@@ -45,6 +47,46 @@ class _TEST_TITLE_ : public ::testing::Test {
         details::basic_band_diagonal_linear_system_solver<test_t> solver;
         details::basic_band_diagonal_linear_system_solver<ctest_t> csolver;
 };
+
+TEST_F( _TEST_TITLE_, SolverIsRigorouslyCorrect2x2 ) {
+    size_t n = 2;
+    dmat.resize( n, n ).set_diagonal( 3 ).set_diagonal( 1, 1 ).set_diagonal(
+        -1, -1 );
+    dmatinv = dmat;
+    dmatinv.transpose().scale( 0.1 );
+    invec.resize( n ).set( 0, 2.0 ).set( 1, 4.0 );
+
+    solver.set_system_matrix( dmat );
+    Vector<test_t> solution = solver.solve( invec );
+    outvec                  = dmatinv * invec;
+    for ( size_t i = 0; i < n; i++ ) {
+        _TEST_EQ_( solution.get( i ), outvec.get( i ) );
+    }
+}
+
+TEST_F( _TEST_TITLE_, SolverIsRigorouslyCorrect3x3 ) {
+    size_t n = 3;
+    dmat.resize( n, n ).set_diagonal( -3 ).set_diagonal( 1, 1 ).set_diagonal(
+        1, -1 );
+    dmatinv
+        = MatrixFactory<test_t>::build( NCPA::linear::family_t::NCPA_DENSE );
+    dmatinv.resize( n, n )
+        .set_row(
+            0, { -0.380952380952381, -0.142857142857143, -0.047619047619048 } )
+        .set_row(
+            1, { -0.142857142857143, -0.428571428571429, -0.142857142857143 } )
+        .set_row( 2, { -0.047619047619048, -0.142857142857143,
+                       -0.380952380952381 } );
+
+    invec.resize( n ).set( { 2.0, 4.0, 6.0 } );
+
+    solver.set_system_matrix( dmat );
+    Vector<test_t> solution = solver.solve( invec );
+    outvec                  = dmatinv * invec;
+    for ( size_t i = 0; i < n; i++ ) {
+        EXPECT_NEAR( solution.get( i ), outvec.get( i ), 1e-12 );
+    }
+}
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForTrivialCase ) {
     dmat.identity( 4, 4 );
@@ -126,10 +168,10 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
     // std::vector<test_t> expected = { 1.0, -2.0, 3.0, -4.0 };
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    cout << "dmat = " << endl << dmat << endl;
-    cout << "b = " << invec << endl;
-    cout << "expected = " << expected << endl;
-    cout << "solution = " << solution << endl;
+    // cout << "dmat = " << endl << dmat << endl;
+    // cout << "b = " << invec << endl;
+    // cout << "expected = " << expected << endl;
+    // cout << "solution = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
@@ -138,11 +180,12 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
 // TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
 //     dmat.resize( 4, 4 ).zero()
 //         .set_diagonal( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) )
-//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), -1 )
-//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ), 1 );
+//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ),
+//         -1 ) .set_diagonal(  NCPA::math::random_numbers<test_t>( 3,
+//         -1.0, 1.0 ), 1 );
 //     Vector<test_t> x = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-//     x.resize(4).zero().set( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) );
-//     invec = dmat * x;
+//     x.resize(4).zero().set( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0
+//     ) ); invec = dmat * x;
 
 //     solver.set_system_matrix( dmat );
 //     Vector<test_t> solution = solver.solve( invec );
@@ -163,25 +206,27 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     invec.resize( n ).zero();
     dmat.resize( n, n ).zero();
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-1, -5.0, 5.0 ), 1 );
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-1, -5.0, 5.0 ),
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 1, -5.0, 5.0 ),
+                       1 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 1, -5.0, 5.0 ),
                        -1 );
-    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n-2, -5.0, 5.0 ), -2 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 2, -5.0, 5.0 ),
+                       -2 );
     invec = dmat * expected;
 
-    cout << "dmat = " << endl << dmat << endl;
-    cout << "b = " << invec << endl;
-    cout << "expected = " << expected << endl;
+    // cout << "dmat = " << endl << dmat << endl;
+    // cout << "b = " << invec << endl;
+    // cout << "expected = " << expected << endl;
 
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    cout << "solution = " << solution << endl;
+    // cout << "solution = " << solution << endl;
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }
 
 TEST_F( _TEST_TITLE_, DummyTestToCheckPivoting ) {
-    dmat.resize(5,5).zero().set_diagonal({5.0,4.0,3.0,2.0,1.0});
+    dmat.resize( 5, 5 ).zero().set_diagonal( { 5.0, 4.0, 3.0, 2.0, 1.0 } );
     solver.set_system_matrix( dmat );
 }
