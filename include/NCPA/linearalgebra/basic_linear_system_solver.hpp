@@ -97,6 +97,13 @@ namespace NCPA {
                         }
                         _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
                             new Matrix<ELEMENTTYPE>( M ) );
+                        // if ( _lu ) {
+                        //     _lu->clear();
+                        // } else {
+                        //     _build_lu();
+                        // }
+                        // _lu->decompose( *_mat, false );
+                        
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );
@@ -118,21 +125,21 @@ namespace NCPA {
                         for ( i = 0; i < iN; i++ ) {
                             // @todo is this loop necessary if no pivoting?
                             for ( j = 0; j < iN; j++ ) {
-                                Pb[ i ] += ( _lu->permutation().get( i, j ) )
+                                Pb[ i ] += ( _mat->lu().permutation().get( i, j ) )
                                          * b.get( j );
                             }
                             for ( j = 0; j < i; j++ ) {
-                                Pb[ i ] -= _lu->lower().get( i, j ) * y[ j ];
+                                Pb[ i ] -= _mat->lu().lower().get( i, j ) * y[ j ];
                             }
-                            y[ i ] = Pb[ i ] / _lu->lower().get( i, i );
+                            y[ i ] = Pb[ i ] / _mat->lu().lower().get( i, i );
                         }
 
                         for ( i = iN - 1; i >= 0; i-- ) {
                             for ( j = i + 1; j < iN; j++ ) {
                                 y[ i ]
-                                    -= _lu->upper().get( i, j ) * x.get( j );
+                                    -= _mat->lu().upper().get( i, j ) * x.get( j );
                             }
-                            x.set( i, y[ i ] / _lu->upper().get( i, i ) );
+                            x.set( i, y[ i ] / _mat->lu().upper().get( i, i ) );
                         }
 
                         return x;
@@ -150,19 +157,19 @@ namespace NCPA {
                                 << "] and input vector size " << b.size();
                             throw std::logic_error( oss.str() );
                         }
-                        if ( !_lu ) {
-                            _build_lu();
-                            // std::cout << "Decompose():" << std::endl;
-                            _lu->decompose( *_mat, false );
-                            // std::cout << "OK" << std::endl;
-                        }
-                        try {
+                        // if ( !_lu ) {
+                        //     _build_lu();
+                        //     // std::cout << "Decompose():" << std::endl;
+                        //     _lu->decompose( *_mat, false );
+                        //     // std::cout << "OK" << std::endl;
+                        // }
+                        // try {
                             return _solve_using_lu( b );
-                        } catch ( std::invalid_argument& e1 ) {
-                            _lu->clear();
-                            _lu->decompose( *_mat, true );
-                            return _solve_using_lu( b );
-                        }
+                        // } catch ( std::invalid_argument& e1 ) {
+                        //     _lu->clear();
+                        //     _lu->decompose( *_mat, true );
+                        //     return _solve_using_lu( b );
+                        // }
                     }
 
                     virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
@@ -179,11 +186,11 @@ namespace NCPA {
                     }
 
                 protected:
-                    void _build_lu() {
-                        _lu = std::unique_ptr<
-                            NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
-                            new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
-                    }
+                    // void _build_lu() {
+                    //     _lu = std::unique_ptr<
+                    //         NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
+                    //         new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
+                    // }
 
                 private:
                     std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>> _mat;

@@ -24,14 +24,14 @@ typedef complex<double> ctest_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat   = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
-            invec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-            cmat   = MatrixFactory<ctest_t>::build( family_t::NCPA_DENSE );
-            cinvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+            dmat   = MatrixFactory<test_t>::build( matrix_t::DENSE );
+            invec  = VectorFactory<test_t>::build( vector_t::DENSE );
+            cmat   = MatrixFactory<ctest_t>::build( matrix_t::DENSE );
+            cinvec = VectorFactory<ctest_t>::build( vector_t::DENSE );
             dsmat
-                = MatrixFactory<test_t>::build( family_t::NCPA_BAND_DIAGONAL );
+                = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
             csmat = MatrixFactory<ctest_t>::build(
-                family_t::NCPA_BAND_DIAGONAL );
+                matrix_t::BAND_DIAGONAL );
 
         }  // void TearDown() override {}
 
@@ -82,7 +82,7 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForComplexTrivialDenseCase ) {
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomDenseCase ) {
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
@@ -100,7 +100,7 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomDenseCase ) {
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomComplexDenseCase ) {
     Vector<ctest_t> expected
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinvec.resize( 4 ).zero();
     cmat.resize( 4, 4 );
@@ -149,7 +149,7 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForComplexTrivialBandDiagonalCase ) {
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomBandDiagonalCase ) {
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dsmat.resize( 4, 4 );
@@ -170,7 +170,7 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomBandDiagonalCase ) {
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomComplexBandDiagonalCase ) {
     Vector<ctest_t> expected
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 5, -5.0, 5.0 ) );
     cinvec.resize( 5 ).zero();
     csmat.resize( 5, 5 );
@@ -222,7 +222,7 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForComplexTrivialDenseCase ) {
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomDenseCase ) {
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
@@ -243,7 +243,7 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomDenseCase ) {
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomComplexDenseCase ) {
     Vector<ctest_t> expected
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinvec.resize( 4 ).zero();
     cmat.resize( 4, 4 );
@@ -297,7 +297,7 @@ TEST_F( _TEST_TITLE_,
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomBandDiagonalCase ) {
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dsmat.resize( 4, 4 );
@@ -320,7 +320,7 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomBandDiagonalCase ) {
 TEST_F( _TEST_TITLE_,
         TridiagonalSolverIsCorrectForRandomComplexBandDiagonalCase ) {
     Vector<ctest_t> expected
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinvec.resize( 4 ).zero();
     csmat.resize( 4, 4 );

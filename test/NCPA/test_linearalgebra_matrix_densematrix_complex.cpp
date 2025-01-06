@@ -32,7 +32,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             // cout << "square OK" << endl;
             dproduct = mat_t( dim1, dim1 );
             // cout << "dproduct OK" << endl;
-            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            testvec = VectorFactory<test_t>::build( vector_t::DENSE );
             testvec.resize( dim1 );
             // cout << "testvec OK" << endl;
             leftvec = testvec;
@@ -567,4 +567,15 @@ TEST_F( _TEST_TITLE_, OtherBinaryOperatorsWork ) {
     wrapper2  = wrapper1;
     wrapper1 *= 3.0;
     EXPECT_TRUE( wrapper1 == wrapper2 * 3.0 );
+}
+
+TEST_F( _TEST_TITLE_, InverseWorks ) {
+    wrapper2 = wrapper1;
+    wrapper1.zero( 0, 2 ).zero( 1, 1 ).zero( 2, 0 ).invert();
+    test_t base( 1.0, -1.0 );
+    wrapper2.zero()
+        .set_row( 0, { base*0.25, base*0.125, -base / 12.0 } )
+        .set_row( 1, { base*0.25, -base*0.125, base / 12.0 } )
+        .set_row( 2, { -base*0.25, base*0.125, base / 12.0 } );
+    EXPECT_TRUE( wrapper1 == wrapper2 );
 }

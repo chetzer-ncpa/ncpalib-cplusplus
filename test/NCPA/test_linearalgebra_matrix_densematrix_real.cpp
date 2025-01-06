@@ -26,26 +26,32 @@ typedef details::dense_vector<test_t> vec_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dim1   = 3;
+            dim1    = 3;
             testval = 42.0;
-            square = mat_t( dim1, dim1 );
-            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            square  = mat_t( dim1, dim1 );
+            testvec = VectorFactory<test_t>::build( vector_t::DENSE );
             testvec.resize( dim1 );
-            leftvec = testvec;
+            leftvec  = testvec;
             rightvec = testvec;
 
+            // square =
+            // [
+            //   [ 1, 1, 1 ],
+            //   [ 2, 2, 2 ],
+            //   [ 3, 3, 3 ]
+            // ]
             for ( size_t i = 0; i < dim1; i++ ) {
                 double di = (double)( i + 1 );
                 square.set_row( i, { di, di, di } );
-                testvec.set( i, 2.0*di );
-                rightvec.set( i, 12.0*di );
+                testvec.set( i, 2.0 * di );
+                rightvec.set( i, 12.0 * di );
             }
 
-            wrapper1 = Matrix<test_t>( square.clone() );
-            product = wrapper1;
-            product *= 6.0;
+            wrapper1  = Matrix<test_t>( square.clone() );
+            product   = wrapper1;
+            product  *= 6.0;
             leftvec.set( 28.0 );
-            
+
 
         }  // void TearDown() override {}
 
@@ -53,7 +59,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         details::dense_matrix<test_t> square, dproduct;
         std::vector<std::vector<test_t>> svd;
 
-        Matrix<test_t> wrapper1, wrapper2, product;
+        Matrix<test_t> wrapper1, wrapper2, product, inverse;
         size_t matrows, matcols, dim1, dim2;
         const test_t zero = NCPA::math::zero<test_t>(),
                      one  = NCPA::math::one<test_t>();
@@ -100,7 +106,7 @@ TEST_F( _TEST_TITLE_, IndexingOperatorsWork ) {
     wrapper2 = wrapper1;
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1.get(i,j), wrapper2.get( i, j ) );
+            _TEST_EQ_( wrapper1.get( i, j ), wrapper2.get( i, j ) );
         }
     }
 }
@@ -118,7 +124,7 @@ TEST_F( _TEST_TITLE_, ResizeWorks ) {
     wrapper1.resize( 2, 2 );
     EXPECT_EQ( wrapper1.rows(), 2 );
     EXPECT_EQ( wrapper1.columns(), 2 );
-    EXPECT_THROW( { wrapper1.get(2,2); }, std::range_error );
+    EXPECT_THROW( { wrapper1.get( 2, 2 ); }, std::range_error );
 }
 
 TEST_F( _TEST_TITLE_, ResizePreservesExistingValues ) {
@@ -443,7 +449,8 @@ TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
     wrapper1.add( testval );
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1.get( i, j ), (testval + wrapper2.get( i, j ) ) );
+            _TEST_EQ_( wrapper1.get( i, j ),
+                       ( testval + wrapper2.get( i, j ) ) );
         }
     }
 }
@@ -463,7 +470,8 @@ TEST_F( _TEST_TITLE_, SubtractWorksWithScalar ) {
     wrapper1.subtract( testval );
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1.get( i, j ), (wrapper2.get( i, j ) - testval) );
+            _TEST_EQ_( wrapper1.get( i, j ),
+                       ( wrapper2.get( i, j ) - testval ) );
         }
     }
 }
@@ -473,7 +481,8 @@ TEST_F( _TEST_TITLE_, ScaleWorksWithMatrix ) {
     wrapper1.scale( wrapper1 );
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1.get( i, j ), (wrapper2.get( i, j ) * wrapper2.get( i, j )) );
+            _TEST_EQ_( wrapper1.get( i, j ),
+                       ( wrapper2.get( i, j ) * wrapper2.get( i, j ) ) );
         }
     }
 }
@@ -483,7 +492,8 @@ TEST_F( _TEST_TITLE_, ScaleWorksWithScalar ) {
     wrapper1.scale( testval );
     for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
         for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
-            _TEST_EQ_( wrapper1.get( i, j ), (wrapper2.get( i, j ) * testval) );
+            _TEST_EQ_( wrapper1.get( i, j ),
+                       ( wrapper2.get( i, j ) * testval ) );
         }
     }
 }
@@ -496,7 +506,7 @@ TEST_F( _TEST_TITLE_, IdentityWorks ) {
 
 TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     wrapper1.resize( 2, 4 );
-    EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument);
+    EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument );
 }
 
 TEST_F( _TEST_TITLE_, RightMultiplyWorks ) {
@@ -520,17 +530,17 @@ TEST_F( _TEST_TITLE_, MultiplyWorks ) {
     Matrix<test_t> mat1 = wrapper1;
     mat1.identity();
     EXPECT_TRUE( wrapper1.multiply( mat1 ) == wrapper1 );
-    EXPECT_TRUE( wrapper1.multiply(wrapper1) == product );
+    EXPECT_TRUE( wrapper1.multiply( wrapper1 ) == product );
 
     Matrix<test_t> mat2 = mat1, mat3 = mat1;
     mat2.resize( 3, 5 ).set( 1.0 );
     mat3.resize( 5, 3 ).set( 1.0 );
     product.resize( 5, 5 ).set( 3.0 );
-    EXPECT_TRUE( mat3.multiply(mat2) == product );
+    EXPECT_TRUE( mat3.multiply( mat2 ) == product );
     mat2.resize( 3, 5 ).set( 1.0 );
     mat3.resize( 5, 2 ).set( 1.0 );
     product.resize( 3, 2 ).set( 5.0 );
-    EXPECT_TRUE( mat2.multiply(mat3) == product );
+    EXPECT_TRUE( mat2.multiply( mat3 ) == product );
 }
 
 TEST_F( _TEST_TITLE_, MultiplyOperatorWorks ) {
@@ -553,7 +563,17 @@ TEST_F( _TEST_TITLE_, OtherBinaryOperatorsWork ) {
     EXPECT_TRUE( wrapper1 + wrapper1 == wrapper1 * 2.0 );
     EXPECT_TRUE( wrapper1 - wrapper1 == wrapper1 * 0.0 );
     wrapper1.set( 1.0 );
-    wrapper2 = wrapper1;
+    wrapper2  = wrapper1;
     wrapper1 *= 3.0;
     EXPECT_TRUE( wrapper1 == wrapper2 * 3.0 );
+}
+
+TEST_F( _TEST_TITLE_, InverseWorks ) {
+    wrapper2 = wrapper1;
+    wrapper1.zero( 0, 2 ).zero( 1, 1 ).zero( 2, 0 ).invert();
+    wrapper2.zero()
+        .set_row( 0, { 0.5, 0.25, -1.0/6.0 } )
+        .set_row( 1, { 0.50, -0.25, 1.0/6.0 } )
+        .set_row( 2, { -0.50, 0.25, 1.0/6.0 } );
+    EXPECT_TRUE( wrapper1 == wrapper2 );
 }

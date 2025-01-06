@@ -17,15 +17,6 @@
 #include <sstream>
 #include <vector>
 
-// // forward declarations for operators and friend functions
-// namespace NCPA {
-//     namespace linear {
-//         namespace details {
-//             template<typename ELEMENTTYPE>
-//             class abstract_linear_system_solver;
-//         }  // namespace details
-//     }  // namespace linear
-// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::abstract_linear_system_solver, ELEMENTTYPE );

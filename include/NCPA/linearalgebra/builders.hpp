@@ -20,16 +20,16 @@ namespace NCPA {
         template<typename ELEMENTTYPE>
         class VectorFactory {
             public:
-                static Vector<ELEMENTTYPE> build( family_t family ) {
-                    switch ( family ) {
-                        case family_t::NCPA_DENSE:
+                static Vector<ELEMENTTYPE> build( vector_t vectype ) {
+                    switch ( vectype ) {
+                        case vector_t::DENSE:
                             return Vector<ELEMENTTYPE>(
                                 std::unique_ptr<
                                     details::abstract_vector<ELEMENTTYPE>>(
                                     new details::dense_vector<
                                         ELEMENTTYPE>() ) );
                             break;
-                        case family_t::NCPA_SPARSE:
+                        case vector_t::SPARSE:
                             return Vector<ELEMENTTYPE>(
                                 std::unique_ptr<
                                     details::abstract_vector<ELEMENTTYPE>>(
@@ -47,16 +47,16 @@ namespace NCPA {
         template<typename ELEMENTTYPE>
         class MatrixFactory {
             public:
-                static Matrix<ELEMENTTYPE> build( family_t family ) {
-                    switch ( family ) {
-                        case family_t::NCPA_DENSE:
+                static Matrix<ELEMENTTYPE> build( matrix_t mattype ) {
+                    switch ( mattype ) {
+                        case matrix_t::DENSE:
                             return Matrix<ELEMENTTYPE>(
                                 std::unique_ptr<
                                     details::abstract_matrix<ELEMENTTYPE>>(
                                     new details::dense_matrix<
                                         ELEMENTTYPE>() ) );
                             break;
-                        case family_t::NCPA_BAND_DIAGONAL:
+                        case matrix_t::BAND_DIAGONAL:
                             return Matrix<ELEMENTTYPE>(
                                 std::unique_ptr<
                                     details::abstract_matrix<ELEMENTTYPE>>(

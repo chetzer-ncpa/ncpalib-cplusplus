@@ -20,7 +20,7 @@ typedef double test_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
+            dmat = MatrixFactory<test_t>::build( matrix_t::DENSE );
             dmat.resize( 4, 4 );
             for ( size_t r = 0; r < 4; r++ ) {
                 for ( size_t c = 0; c < 4; c++ ) {
@@ -54,6 +54,17 @@ TEST_F( _TEST_TITLE_, LUDecompositionIsCorrectWithPivot ) {
     lu.decompose( dmat, true );
     Matrix<test_t> left  = lu.permutation() * dmat;
     Matrix<test_t> right = lu.lower() * lu.upper();
+    for ( size_t r = 0; r < left.rows(); r++ ) {
+        for ( size_t c = 0; c < left.columns(); c++ ) {
+            EXPECT_NEAR( left.get( r, c ), right.get( r, c ), 1e-10 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, LUDecompositionIsCorrectInsideMatrix ) {
+    // lu = dmat.lu();
+    Matrix<test_t> left  = dmat.lu().permutation() * dmat;
+    Matrix<test_t> right = dmat.lu().lower() * dmat.lu().upper();
     for ( size_t r = 0; r < left.rows(); r++ ) {
         for ( size_t c = 0; c < left.columns(); c++ ) {
             EXPECT_NEAR( left.get( r, c ), right.get( r, c ), 1e-10 );

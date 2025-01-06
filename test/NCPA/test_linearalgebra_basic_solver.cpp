@@ -21,19 +21,17 @@ typedef complex<double> ctest_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat  = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
-            inmat = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
-            cmat  = MatrixFactory<ctest_t>::build(
-                family_t::NCPA_DENSE );
-            cinmat = MatrixFactory<ctest_t>::build(
-                family_t::NCPA_DENSE );
+            dmat   = MatrixFactory<test_t>::build( matrix_t::DENSE );
+            inmat  = MatrixFactory<test_t>::build( matrix_t::DENSE );
+            cmat   = MatrixFactory<ctest_t>::build( matrix_t::DENSE );
+            cinmat = MatrixFactory<ctest_t>::build( matrix_t::DENSE );
         }  // void TearDown() override {}
 
         // declare stuff here
-        const test_t zero           = NCPA::math::zero<test_t>(),
-                     one            = NCPA::math::one<test_t>();
+        const test_t zero   = NCPA::math::zero<test_t>(),
+                     one    = NCPA::math::one<test_t>();
         const ctest_t czero = NCPA::math::zero<ctest_t>(),
-                              cone  = NCPA::math::one<ctest_t>();
+                      cone  = NCPA::math::one<ctest_t>();
 
         Matrix<test_t> dmat, inmat;
         Matrix<ctest_t> cmat, cinmat;
@@ -76,9 +74,8 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForComplexTrivialCase ) {
 }
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
-    Vector<test_t> expected = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-    expected.set( 
-        NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
+    Vector<test_t> expected = VectorFactory<test_t>::build( vector_t::DENSE );
+    expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     inmat.resize( 4, 1 ).zero();
     dmat.resize( 4, 4 );
     for ( size_t i = 0; i < 4; i++ ) {
@@ -99,9 +96,9 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
 }
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
-    Vector<ctest_t> expected = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
-    expected.set( 
-        NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
+    Vector<ctest_t> expected
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
+    expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinmat.resize( 4, 1 ).zero();
     cmat.resize( 4, 4 );
     for ( size_t i = 0; i < 4; i++ ) {
@@ -118,8 +115,9 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
     for ( size_t i = 0; i < 4; i++ ) {
         EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(), 1.0e-10 );
         EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(), 1.0e-10 );
-        
-        // EXPECT_NEAR( solution[ i ][ 0 ].real(), expected[ i ].real(), 1.0e-10 );
-        // EXPECT_NEAR( solution[ i ][ 0 ].imag(), expected[ i ].imag(), 1.0e-10 );
+
+        // EXPECT_NEAR( solution[ i ][ 0 ].real(), expected[ i
+        // ].real(), 1.0e-10 ); EXPECT_NEAR( solution[ i ][ 0 ].imag(),
+        // expected[ i ].imag(), 1.0e-10 );
     }
 }
