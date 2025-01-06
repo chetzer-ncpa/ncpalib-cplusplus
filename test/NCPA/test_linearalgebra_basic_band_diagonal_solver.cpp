@@ -177,27 +177,6 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
     }
 }
 
-// TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
-//     dmat.resize( 4, 4 ).zero()
-//         .set_diagonal( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0 ) )
-//         .set_diagonal(  NCPA::math::random_numbers<test_t>( 3, -1.0, 1.0 ),
-//         -1 ) .set_diagonal(  NCPA::math::random_numbers<test_t>( 3,
-//         -1.0, 1.0 ), 1 );
-//     Vector<test_t> x = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-//     x.resize(4).zero().set( NCPA::math::random_numbers<test_t>( 4, -1.0, 1.0
-//     ) ); invec = dmat * x;
-
-//     solver.set_system_matrix( dmat );
-//     Vector<test_t> solution = solver.solve( invec );
-//     cout << "dmat = " << endl << dmat << endl;
-//     cout << "b = " << invec << endl;
-//     cout << "expected = " << x << endl;
-//     cout << "solution = " << solution << endl;
-//     for ( size_t i = 0; i < 4; i++ ) {
-//         EXPECT_NEAR( solution.get( i ), x[ i ], 1.0e-10 );
-//     }
-// }
-
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     size_t n = 5;
     Vector<test_t> expected
@@ -212,12 +191,8 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
                        -1 );
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 2, -5.0, 5.0 ),
                        -2 );
+
     invec = dmat * expected;
-
-    // cout << "dmat = " << endl << dmat << endl;
-    // cout << "b = " << invec << endl;
-    // cout << "expected = " << expected << endl;
-
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
     // cout << "solution = " << solution << endl;
@@ -226,7 +201,45 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     }
 }
 
-TEST_F( _TEST_TITLE_, DummyTestToCheckPivoting ) {
-    dmat.resize( 5, 5 ).zero().set_diagonal( { 5.0, 4.0, 3.0, 2.0, 1.0 } );
+TEST_F( _TEST_TITLE_, AlternateSolverIsCorrectForRandomCase ) {
+    size_t n           = 5;
+    Vector<test_t> rhs = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+    rhs.set( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
+    dmat.resize( n, n ).zero();
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 1, -5.0, 5.0 ),
+                       1 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 1, -5.0, 5.0 ),
+                       -1 );
+    dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n - 2, -5.0, 5.0 ),
+                       -2 );
     solver.set_system_matrix( dmat );
+    Vector<test_t> solution = solver.solve( rhs );
+    Matrix<test_t> inverse  = dmat.invert();
+    Vector<test_t> prod     = inverse * rhs;
+    for ( size_t i = 0; i < 4; i++ ) {
+        EXPECT_NEAR( prod.get( i ), solution[ i ], 1.0e-10 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, AlternateSolverIsCorrectForComplexRandomCase ) {
+    size_t n = 5;
+    Vector<ctest_t> rhs
+        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+    rhs.set( NCPA::math::random_numbers<ctest_t>( n, -5.0, 5.0 ) );
+    cmat.resize( n, n )
+        .zero()
+        .set_diagonal( NCPA::math::random_numbers<ctest_t>( n, -5.0, 5.0 ) )
+        .set_diagonal( NCPA::math::random_numbers<ctest_t>( n - 1, -5.0, 5.0 ),
+                       1 ).set_diagonal( NCPA::math::random_numbers<ctest_t>( n - 1, -5.0, 5.0 ),
+                       -1 ).set_diagonal( NCPA::math::random_numbers<ctest_t>( n - 2, -5.0, 5.0 ),
+                       -2 );
+    csolver.set_system_matrix( cmat );
+    Vector<ctest_t> solution = csolver.solve( rhs );
+    Matrix<ctest_t> inverse  = cmat.invert();
+    Vector<ctest_t> prod     = inverse * rhs;
+    for ( size_t i = 0; i < 4; i++ ) {
+        EXPECT_NEAR( prod.get( i ).real(), solution[ i ].real(), 1.0e-10 );
+        EXPECT_NEAR( prod.get( i ).imag(), solution[ i ].imag(), 1.0e-10 );
+    }
 }

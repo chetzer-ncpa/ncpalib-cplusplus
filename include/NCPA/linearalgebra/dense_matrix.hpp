@@ -19,15 +19,6 @@
 #include <sstream>
 #include <vector>
 
-// namespace NCPA {
-//     namespace linear {
-//         namespace details {
-//             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_matrix,
-//                                                          abstract_matrix );
-//         }
-//     }  // namespace linear
-// }  // namespace NCPA
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
     NCPA::linear::details::dense_matrix, ELEMENTTYPE );
 

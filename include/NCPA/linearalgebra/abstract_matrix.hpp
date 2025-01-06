@@ -370,10 +370,6 @@ namespace NCPA {
                                 }
                                 product->set( row, col,
                                               a_row->dot( *b_cols[ col ] ) );
-                                // product->set( row, col,
-                                //               get_row( row )->dot(
-                                //                   *( b.get_column( col ) ) )
-                                //                   );
                             }
                         }
                         return product;

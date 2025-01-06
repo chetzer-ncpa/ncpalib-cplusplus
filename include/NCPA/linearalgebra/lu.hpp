@@ -52,6 +52,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                friend void ::swap<ELEMENTTYPE>(
+                    LUDecomposition<ELEMENTTYPE>& a,
+                    LUDecomposition<ELEMENTTYPE>& b ) noexcept;
+
                 explicit operator bool() const {
                     return ( _upper && _lower && _permutation
                              && !_upper.is_empty() && !_lower.is_empty()
@@ -78,11 +82,18 @@ namespace NCPA {
                             "LUDecomposition.set(): Base matrix must be "
                             "square" );
                     }
-                    _upper       = base;
-                    _lower       = base;
-                    _permutation = base;
-                    size_t N     = base.rows();
+                    // _upper       = base;
+                    // _lower       = base;
+                    // _permutation = base;
+                    size_t N = base.rows();
+                    _upper   = MatrixFactory<ELEMENTTYPE>::build(
+                        family_t::NCPA_DENSE );
+                    _lower = MatrixFactory<ELEMENTTYPE>::build(
+                        family_t::NCPA_DENSE );
+                    _permutation = MatrixFactory<ELEMENTTYPE>::build(
+                        family_t::NCPA_DENSE );
                     _lower.clear().resize( N, N );
+                    _upper.clear().resize( N, N ).copy( base );
                     _permutation.identity( N, N );
 
                     size_t i, j, k;
@@ -332,7 +343,7 @@ namespace NCPA {
                                 // auto tmp      = _au[ k ][ j ];
                                 // _au[ k ][ j ] = _au[ i ][ j ];
                                 // _au[ i ][ j ] = tmp;
-                                std::swap( _au[k][j], _au[i][j] );
+                                std::swap( _au[ k ][ j ], _au[ i ][ j ] );
                             }
                         }
                         // } else {
@@ -388,7 +399,8 @@ namespace NCPA {
                     _bdupper.clear();
 
                     return *static_cast<
-                        details::abstract_linear_system_solver<ELEMENTTYPE> *>( this );
+                        details::abstract_linear_system_solver<ELEMENTTYPE> *>(
+                        this );
                 }
 
                 virtual const Matrix<ELEMENTTYPE>& lower() const override {

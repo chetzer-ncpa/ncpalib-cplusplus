@@ -60,3 +60,14 @@ TEST_F( _TEST_TITLE_, LUDecompositionIsCorrectWithPivot ) {
         }
     }
 }
+
+TEST_F( _TEST_TITLE_, LUDecompositionIsCorrectInsideMatrix ) {
+    // lu = dmat.lu();
+    Matrix<test_t> left  = dmat.lu().permutation() * dmat;
+    Matrix<test_t> right = dmat.lu().lower() * dmat.lu().upper();
+    for ( size_t r = 0; r < left.rows(); r++ ) {
+        for ( size_t c = 0; c < left.columns(); c++ ) {
+            EXPECT_NEAR( left.get( r, c ), right.get( r, c ), 1e-10 );
+        }
+    }
+}

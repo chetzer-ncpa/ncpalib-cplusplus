@@ -25,6 +25,7 @@ namespace NCPA {
             class Matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
             public:
                 friend class Vector<ELEMENTTYPE>;
+                friend class LUDecomposition<ELEMENTTYPE>;
 
                 Matrix() {}
 
@@ -67,6 +68,11 @@ namespace NCPA {
                             details::abstract_matrix<ELEMENTTYPE>>(
                             other._ptr->clone() );
                     }
+                    if ( other._lu ) {
+                        _lu = std::unique_ptr<LUDecomposition<ELEMENTTYPE>>(
+                            new LUDecomposition<ELEMENTTYPE>( *other._lu ) );
+                    }
+                    return *this;
                 }
 
                 Matrix<ELEMENTTYPE>& identity() {
@@ -77,6 +83,7 @@ namespace NCPA {
                             "identity "
                             "matrix" );
                     }
+                    this->_clear_cache();
                     size_t ndiag = _ptr->diagonal_size( 0 );
                     _ptr->zero();
                     for ( size_t i = 0; i < ndiag; i++ ) {
@@ -241,13 +248,17 @@ namespace NCPA {
                     if ( _ptr ) {
                         _ptr->clear();
                     }
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& resize( size_t rows,
                                                      size_t cols ) {
                     check_pointer();
-                    _ptr->resize( rows, cols );
+                    if ( rows != this->rows() || cols != this->columns() ) {
+                        this->_clear_cache();
+                        _ptr->resize( rows, cols );
+                    }
                     return *this;
                 }
 
@@ -263,12 +274,14 @@ namespace NCPA {
                                                   ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->set( row, col, val );
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set( ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->set( val );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -284,12 +297,14 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
                     check_pointer();
                     _ptr->zero( row, col );
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& zero() {
                     check_pointer();
                     _ptr->zero();
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -310,6 +325,7 @@ namespace NCPA {
                                                       ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->set_row( row, val );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -318,6 +334,7 @@ namespace NCPA {
                     const ELEMENTTYPE *vals ) {
                     check_pointer();
                     _ptr->set_row( row, nvals, indices, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -326,6 +343,7 @@ namespace NCPA {
                     const std::vector<ELEMENTTYPE>& vals ) {
                     check_pointer();
                     _ptr->set_row( row, rowinds, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -333,6 +351,7 @@ namespace NCPA {
                     size_t row, const std::vector<ELEMENTTYPE>& vals ) {
                     check_pointer();
                     _ptr->set_row( row, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -341,6 +360,7 @@ namespace NCPA {
                     const std::initializer_list<ELEMENTTYPE> vals ) {
                     check_pointer();
                     _ptr->set_row( row, rowinds, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -356,6 +376,7 @@ namespace NCPA {
                     // return set_row( row, vec.as_std() );
                     check_pointer();
                     _ptr->set_row( row, vec );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -414,6 +435,7 @@ namespace NCPA {
                                                          ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->set_column( col, val );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -422,6 +444,7 @@ namespace NCPA {
                     const ELEMENTTYPE *vals ) {
                     check_pointer();
                     _ptr->set_column( col, nvals, indices, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -430,6 +453,7 @@ namespace NCPA {
                     const std::vector<ELEMENTTYPE>& vals ) {
                     check_pointer();
                     _ptr->set_column( col, colinds, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -437,6 +461,7 @@ namespace NCPA {
                     size_t col, const std::vector<ELEMENTTYPE>& vals ) {
                     check_pointer();
                     _ptr->set_column( col, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -445,6 +470,7 @@ namespace NCPA {
                     const std::initializer_list<ELEMENTTYPE> vals ) {
                     check_pointer();
                     _ptr->set_column( col, colinds, vals );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -515,6 +541,7 @@ namespace NCPA {
                                                            int offset = 0 ) {
                     check_pointer();
                     _ptr->set_diagonal( val, offset );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -522,6 +549,7 @@ namespace NCPA {
                     size_t nvals, const ELEMENTTYPE *vals, int offset = 0 ) {
                     check_pointer();
                     _ptr->set_diagonal( nvals, vals, offset );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -529,6 +557,7 @@ namespace NCPA {
                     const std::vector<ELEMENTTYPE>& vals, int offset = 0 ) {
                     check_pointer();
                     _ptr->set_diagonal( vals, offset );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -537,6 +566,7 @@ namespace NCPA {
                     int offset = 0 ) {
                     check_pointer();
                     _ptr->set_diagonal( vals, offset );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -554,6 +584,7 @@ namespace NCPA {
                 virtual Matrix<ELEMENTTYPE>& transpose() {
                     check_pointer();
                     _ptr->transpose();
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -561,6 +592,7 @@ namespace NCPA {
                                                         size_t ind2 ) {
                     check_pointer();
                     _ptr->swap_rows( ind1, ind2 );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -568,6 +600,7 @@ namespace NCPA {
                                                            size_t ind2 ) {
                     check_pointer();
                     _ptr->swap_columns( ind1, ind2 );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -577,12 +610,14 @@ namespace NCPA {
                     other.check_pointer();
                     check_same_size( other );
                     *_ptr += *( other._ptr );
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& add( ELEMENTTYPE other ) {
                     check_pointer();
                     *_ptr += other;
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -592,12 +627,14 @@ namespace NCPA {
                     other.check_pointer();
                     check_same_size( other );
                     *_ptr -= *( other._ptr );
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& subtract( ELEMENTTYPE other ) {
                     check_pointer();
                     *_ptr -= other;
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -607,13 +644,53 @@ namespace NCPA {
                     other.check_pointer();
                     check_same_size( other );
                     *_ptr *= *( other._ptr );
+                    this->_clear_cache();
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& scale( ELEMENTTYPE other ) {
                     check_pointer();
                     *_ptr *= other;
+                    this->_clear_cache();
                     return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& lu_decompose() {
+                    check_pointer();
+                    _lu.reset();
+                    _lu = std::unique_ptr<LUDecomposition<ELEMENTTYPE>>(
+                        new LUDecomposition<ELEMENTTYPE>() );
+                    _lu->decompose( *this );
+                    return *this;
+                }
+
+                virtual LUDecomposition<ELEMENTTYPE>& lu() {
+                    check_pointer();
+                    if ( !_lu ) {
+                        this->lu_decompose();
+                    }
+                    return *_lu;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& invert() {
+                    Solver<ELEMENTTYPE> solver = SolverFactory<ELEMENTTYPE>::build(solver_t::BASIC);
+                    solver.set_system_matrix( *this );
+                    Matrix<ELEMENTTYPE> inv = MatrixFactory<ELEMENTTYPE>::build(family_t::NCPA_DENSE );
+                    inv.resize( this->rows(), this->columns() );
+                    Vector<ELEMENTTYPE> vec = VectorFactory<ELEMENTTYPE>::build( family_t::NCPA_SPARSE );
+                    vec.resize( this->columns() );
+
+                    for (size_t i = 0; i < this->columns(); i++) {
+                        vec.zero().set( i, NCPA::math::one<ELEMENTTYPE>() );
+                        inv.set_column( i, solver.solve( vec ) );
+                    }
+                    swap( *this, inv );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE> inverse() const {
+                    Matrix<ELEMENTTYPE> inv = *this;
+                    return inv.invert();
                 }
 
                 virtual Matrix<ELEMENTTYPE>& multiply(
@@ -627,6 +704,7 @@ namespace NCPA {
                     auto newmat = Matrix<ELEMENTTYPE>(
                         _ptr->multiply( *( other._ptr ) ) );
                     swap( *this, newmat );
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -704,38 +782,38 @@ namespace NCPA {
                 // assignment operators
                 virtual Matrix<ELEMENTTYPE>& operator+=(
                     const Matrix<ELEMENTTYPE>& other ) {
-                    this->add( other );
-                    return *this;
+                    return this->add( other );
+                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator+=(
                     const ELEMENTTYPE& other ) {
-                    this->add( other );
-                    return *this;
+                    return this->add( other );
+                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator-=(
                     const Matrix<ELEMENTTYPE>& other ) {
-                    this->subtract( other );
-                    return *this;
+                    return this->subtract( other );
+                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator-=(
                     const ELEMENTTYPE& other ) {
-                    this->add( -other );
-                    return *this;
+                    return this->add( -other );
+                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator*=(
                     const Matrix<ELEMENTTYPE>& other ) {
-                    this->multiply( other );
-                    return *this;
+                    return this->multiply( other );
+                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator*=(
                     const ELEMENTTYPE& other ) {
-                    this->scale( other );
-                    return *this;
+                    return this->scale( other );
+                    // return *this;
                 }
 
                 // friend operators
@@ -762,9 +840,10 @@ namespace NCPA {
                     return os;
                 }
 
-                template<typename U=ELEMENTTYPE,ENABLE_FUNCTION_IF_COMPLEX( U )>
-                void print_nonzero(
-                    std::ostream& os, const std::string& sep = " " ) {
+                template<typename U = ELEMENTTYPE,
+                         ENABLE_FUNCTION_IF_COMPLEX( U )>
+                void print_nonzero( std::ostream& os,
+                                    const std::string& sep = " " ) {
                     ELEMENTTYPE element;
                     os << this->rows() << std::endl;
                     for ( size_t r = 0; r < this->rows(); r++ ) {
@@ -780,7 +859,8 @@ namespace NCPA {
                     }
                 }
 
-                template<typename U=ELEMENTTYPE,ENABLE_FUNCTION_IF_REAL( U )>
+                template<typename U = ELEMENTTYPE,
+                         ENABLE_FUNCTION_IF_REAL( U )>
                 void print_nonzero( std::ostream& os,
                                     const std::string& sep = " " ) {
                     os << this->rows() << std::endl;
@@ -901,6 +981,10 @@ namespace NCPA {
                 std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>> _ptr;
                 std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
+
+                std::unique_ptr<LUDecomposition<ELEMENTTYPE>> _lu;
+
+                void _clear_cache() { _lu.reset( nullptr ); }
         };
     }  // namespace linear
 }  // namespace NCPA
@@ -911,6 +995,7 @@ static void swap( NCPA::linear::Matrix<T>& a,
     // using std::swap;
     a._ptr.swap( b._ptr );
     swap( a._wrappers, b._wrappers );
+    a._lu.swap( b._lu );
 }
 
 // template<typename ELEMENTTYPE>
