@@ -24,13 +24,13 @@ class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
             dmat
-                = MatrixFactory<test_t>::build( family_t::NCPA_BAND_DIAGONAL );
-            invec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-            outvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+                = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+            invec  = VectorFactory<test_t>::build( vector_t::DENSE );
+            outvec = VectorFactory<test_t>::build( vector_t::DENSE );
             cmat   = MatrixFactory<ctest_t>::build(
-                family_t::NCPA_BAND_DIAGONAL );
-            cinvec  = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
-            coutvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+                matrix_t::BAND_DIAGONAL );
+            cinvec  = VectorFactory<ctest_t>::build( vector_t::DENSE );
+            coutvec = VectorFactory<ctest_t>::build( vector_t::DENSE );
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -69,7 +69,7 @@ TEST_F( _TEST_TITLE_, SolverIsRigorouslyCorrect3x3 ) {
     dmat.resize( n, n ).set_diagonal( -3 ).set_diagonal( 1, 1 ).set_diagonal(
         1, -1 );
     dmatinv
-        = MatrixFactory<test_t>::build( NCPA::linear::family_t::NCPA_DENSE );
+        = MatrixFactory<test_t>::build( matrix_t::DENSE );
     dmatinv.resize( n, n )
         .set_row(
             0, { -0.380952380952381, -0.142857142857143, -0.047619047619048 } )
@@ -180,7 +180,7 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForAsymmetricKnownCase ) {
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     size_t n = 5;
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
     invec.resize( n ).zero();
     dmat.resize( n, n ).zero();
@@ -203,7 +203,7 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
 
 TEST_F( _TEST_TITLE_, AlternateSolverIsCorrectForRandomCase ) {
     size_t n           = 5;
-    Vector<test_t> rhs = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+    Vector<test_t> rhs = VectorFactory<test_t>::build( vector_t::DENSE );
     rhs.set( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
     dmat.resize( n, n ).zero();
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( n, -5.0, 5.0 ) );
@@ -225,7 +225,7 @@ TEST_F( _TEST_TITLE_, AlternateSolverIsCorrectForRandomCase ) {
 TEST_F( _TEST_TITLE_, AlternateSolverIsCorrectForComplexRandomCase ) {
     size_t n = 5;
     Vector<ctest_t> rhs
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     rhs.set( NCPA::math::random_numbers<ctest_t>( n, -5.0, 5.0 ) );
     cmat.resize( n, n )
         .zero()

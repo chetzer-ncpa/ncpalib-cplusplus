@@ -29,7 +29,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             dim1    = 3;
             testval = 42.0;
             square  = mat_t( dim1, dim1 );
-            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            testvec = VectorFactory<test_t>::build( vector_t::DENSE );
             testvec.resize( dim1 );
             leftvec  = testvec;
             rightvec = testvec;

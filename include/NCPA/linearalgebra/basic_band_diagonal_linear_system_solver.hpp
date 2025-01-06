@@ -42,13 +42,6 @@ namespace NCPA {
                             ELEMENTTYPE>& other ) :
                         abstract_linear_system_solver<ELEMENTTYPE>() {
                         _mat = other._mat;
-                        // _au   = other._au;
-                        // _al   = other._al;
-                        // n     = other.n;
-                        // m1    = other.m1;
-                        // m2    = other.m2;
-                        // d     = other.d;
-                        // _indx = other._indx;
                     }
 
                     /**
@@ -87,22 +80,6 @@ namespace NCPA {
                     virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                         override {
                         _mat.clear();
-                        // if ( _al != nullptr ) {
-                        //     NCPA::arrays::free_array( _al, n, m1 );
-                        //     _al = nullptr;
-                        // }
-                        // if ( _au != nullptr ) {
-                        //     NCPA::arrays::free_array( _au, n, m1 + m2 + 1 );
-                        //     _au = nullptr;
-                        // }
-                        // if ( _indx != nullptr ) {
-                        //     NCPA::arrays::free_array( _indx, n );
-                        //     _indx = nullptr;
-                        // }
-                        // n  = 0;
-                        // m1 = 0;
-                        // m2 = 0;
-                        // d  = 0.0;
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );
@@ -121,7 +98,6 @@ namespace NCPA {
                         }
                         this->clear();
                         _mat.copy( M.internal() );
-                        // _decompose();
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );

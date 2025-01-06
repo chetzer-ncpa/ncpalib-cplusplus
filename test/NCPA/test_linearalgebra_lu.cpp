@@ -20,7 +20,7 @@ typedef double test_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
+            dmat = MatrixFactory<test_t>::build( matrix_t::DENSE );
             dmat.resize( 4, 4 );
             for ( size_t r = 0; r < 4; r++ ) {
                 for ( size_t c = 0; c < 4; c++ ) {

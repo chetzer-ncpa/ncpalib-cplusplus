@@ -32,7 +32,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             // cout << "square OK" << endl;
             dproduct = mat_t( dim1, dim1 );
             // cout << "dproduct OK" << endl;
-            testvec = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+            testvec = VectorFactory<test_t>::build( vector_t::DENSE );
             testvec.resize( dim1 );
             // cout << "testvec OK" << endl;
             leftvec = testvec;

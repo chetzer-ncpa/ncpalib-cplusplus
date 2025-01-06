@@ -21,10 +21,10 @@ typedef complex<double> ctest_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            dmat   = MatrixFactory<test_t>::build( family_t::NCPA_DENSE );
-            invec  = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
-            cmat   = MatrixFactory<ctest_t>::build( family_t::NCPA_DENSE );
-            cinvec = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+            dmat   = MatrixFactory<test_t>::build( matrix_t::DENSE );
+            invec  = VectorFactory<test_t>::build( vector_t::DENSE );
+            cmat   = MatrixFactory<ctest_t>::build( matrix_t::DENSE );
+            cinvec = VectorFactory<ctest_t>::build( vector_t::DENSE );
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -70,7 +70,7 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForComplexTrivialCase ) {
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
     Vector<test_t> expected
-        = VectorFactory<test_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
@@ -90,7 +90,7 @@ TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomCase ) {
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForRandomComplexCase ) {
     Vector<ctest_t> expected
-        = VectorFactory<ctest_t>::build( family_t::NCPA_DENSE );
+        = VectorFactory<ctest_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinvec.resize( 4 ).zero();
     cmat.resize( 4, 4 );

@@ -37,7 +37,7 @@ namespace NCPA {
                 using details::abstract_matrix<ELEMENTTYPE>::set_row;
                 using details::abstract_matrix<ELEMENTTYPE>::set_column;
                 using details::abstract_matrix<ELEMENTTYPE>::set_diagonal;
-                friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
+                // friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
                 friend class details::basic_band_diagonal_linear_system_solver<
                     ELEMENTTYPE>;
 

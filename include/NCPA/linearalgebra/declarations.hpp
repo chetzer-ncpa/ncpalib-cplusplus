@@ -4,6 +4,8 @@
 
 namespace NCPA {
     namespace linear {
+        enum class vector_t { INVALID, DENSE, SPARSE };
+        enum class matrix_t { INVALID, DENSE, BAND_DIAGONAL, TRIDIAGONAL };
         enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
         enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
 
@@ -57,8 +59,8 @@ namespace NCPA {
 
         template<typename ELEMENTTYPE>
         class LUDecomposition;
-        template<typename ELEMENTTYPE>
-        class BandDiagonalLUDecomposition;
+        // template<typename ELEMENTTYPE>
+        // class BandDiagonalLUDecomposition;
 
         // factories
         template<typename ELEMENTTYPE>

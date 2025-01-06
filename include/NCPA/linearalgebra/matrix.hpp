@@ -35,6 +35,12 @@ namespace NCPA {
                     _ptr = std::move( ptr );
                 }
 
+                Matrix( const details::abstract_matrix<ELEMENTTYPE>& mat ) :
+                    Matrix<ELEMENTTYPE>() {
+                    _ptr = std::unique_ptr<
+                        details::abstract_matrix<ELEMENTTYPE>>( mat.clone() );
+                }
+
                 // copy constructor
                 Matrix( const Matrix<ELEMENTTYPE>& other ) :
                     Matrix<ELEMENTTYPE>() {
@@ -673,14 +679,19 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& invert() {
-                    Solver<ELEMENTTYPE> solver = SolverFactory<ELEMENTTYPE>::build(solver_t::BASIC);
+                    Solver<ELEMENTTYPE> solver
+                        = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
                     solver.set_system_matrix( *this );
-                    Matrix<ELEMENTTYPE> inv = MatrixFactory<ELEMENTTYPE>::build(family_t::NCPA_DENSE );
+                    Matrix<ELEMENTTYPE> inv
+                        = MatrixFactory<ELEMENTTYPE>::build(
+                            matrix_t::DENSE );
                     inv.resize( this->rows(), this->columns() );
-                    Vector<ELEMENTTYPE> vec = VectorFactory<ELEMENTTYPE>::build( family_t::NCPA_SPARSE );
+                    Vector<ELEMENTTYPE> vec
+                        = VectorFactory<ELEMENTTYPE>::build(
+                            vector_t::SPARSE );
                     vec.resize( this->columns() );
 
-                    for (size_t i = 0; i < this->columns(); i++) {
+                    for ( size_t i = 0; i < this->columns(); i++ ) {
                         vec.zero().set( i, NCPA::math::one<ELEMENTTYPE>() );
                         inv.set_column( i, solver.solve( vec ) );
                     }
