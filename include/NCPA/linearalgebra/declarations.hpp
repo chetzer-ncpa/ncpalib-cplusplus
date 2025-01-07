@@ -6,7 +6,7 @@ namespace NCPA {
     namespace linear {
         enum class vector_t { INVALID, DENSE, SPARSE };
         enum class matrix_t { INVALID, DENSE, BAND_DIAGONAL, TRIDIAGONAL };
-        enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
+        // enum class family_t { INVALID, NCPA_DENSE, NCPA_SPARSE, NCPA_BAND_DIAGONAL };
         enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
 
         namespace details {
@@ -25,9 +25,6 @@ namespace NCPA {
             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( dense_matrix,
                                                          abstract_matrix );
             
-            // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( transposed_matrix_view,
-            //                                              abstract_matrix );
-
             // solvers
             template<typename ELEMENTTYPE>
             class abstract_linear_system_solver;
@@ -42,9 +39,6 @@ namespace NCPA {
             NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
                 basic_tridiagonal_linear_system_solver,
                 abstract_linear_system_solver );
-
-            
-
         }  // namespace details
 
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( band_diagonal_matrix,

@@ -18,45 +18,26 @@
 #include <sstream>
 #include <vector>
 
-// namespace NCPA {
-//     namespace linear {
-//         // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
-//         //     Vector, details::abstract_vector );
-//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
-//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector
-//         );
-//     }  // namespace linear
-// }  // namespace NCPA
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Vector,
                                              ELEMENTTYPE );
+
 template<typename ELEMENTTYPE>
 std::ostream& operator<<( std::ostream& os,
                           const NCPA::linear::Vector<ELEMENTTYPE>& vec );
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::WrapperVector,
                                              ELEMENTTYPE );
+
 template<typename ELEMENTTYPE>
 std::ostream& operator<<(
     std::ostream& os, const NCPA::linear::WrapperVector<ELEMENTTYPE>& vec );
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Vector,
-                                                    ELEMENTTYPE )
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS(
-    NCPA::linear::WrapperVector, ELEMENTTYPE )
+                                                    ELEMENTTYPE );
 
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator+(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 );
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator-(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 );
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 );
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS(
+    NCPA::linear::WrapperVector, ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
@@ -609,29 +590,3 @@ static void swap( NCPA::linear::WrapperVector<T>& a,
     swap( a._ptr, b._ptr );
 }
 
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator+(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 ) {
-//     NCPA::linear::Vector<ELEMENTTYPE> out( c1 );
-//     out += c2;
-//     return out;
-// }
-
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator-(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 ) {
-//     NCPA::linear::Vector<ELEMENTTYPE> out( c1 );
-//     out -= c2;
-//     return out;
-// }
-
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c1,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& c2 ) {
-//     NCPA::linear::Vector<ELEMENTTYPE> out( c1 );
-//     out *= c2;
-//     return out;
-// }
