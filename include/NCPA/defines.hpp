@@ -18,47 +18,86 @@
 #define ENABLE_IF_REAL( _TYPE_ ) \
     typename std::enable_if<std::is_floating_point<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_REAL( _TYPE_ ) \
-    typename std::enable_if<std::is_floating_point<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_REAL( _TYPE_ )                                     \
+    typename std::enable_if<std::is_floating_point<_TYPE_>::value, int>::type \
+        ENABLER                                                               \
+        = 0
+
+#define ENABLE_METHOD_IF_REAL( _TYPE_ )                            \
+    typename std::enable_if<std::is_floating_point<_TYPE_>::value, \
+                            std::nullptr_t>::type                  \
+        = nullptr
 
 #define ENABLE_IF_INTEGRAL( _TYPE_ ) \
     typename std::enable_if<std::is_integral<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_INTEGRAL( _TYPE_ ) \
-    typename std::enable_if<std::is_integral<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_INTEGRAL( _TYPE_ )                           \
+    typename std::enable_if<std::is_integral<_TYPE_>::value, int>::type \
+        ENABLER                                                         \
+        = 0
+
+#define ENABLE_METHOD_IF_INTEGRAL( _TYPE_ )                  \
+    typename std::enable_if<std::is_integral<_TYPE_>::value, \
+                            std::nullptr_t>::type            \
+        = nullptr
+
+#define ENABLE_IF_STRING( _TYPE_ ) \
+    typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value>::type
+
+#define ENABLE_FUNCTION_IF_STRING( _TYPE_ )                            \
+    typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value, \
+                            int>::type ENABLER                         \
+        = 0
+
+#define ENABLE_METHOD_IF_STRING( _TYPE_ )                              \
+    typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value, \
+                            std::nullptr_t>::type                      \
+        = nullptr
 
 #define ENABLE_IF_NUMERIC( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_NUMERIC( _TYPE_ ) \
-    typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_NUMERIC( _TYPE_ )                        \
+    typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value, \
+                            int>::type ENABLER                      \
+        = 0
 
 #define ENABLE_IF_ARITHMETIC( _TYPE_ ) \
     typename std::enable_if<std::is_arithmetic<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_ARITHMETIC( _TYPE_ ) \
-    typename std::enable_if<std::is_arithmetic<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_ARITHMETIC( _TYPE_ )                           \
+    typename std::enable_if<std::is_arithmetic<_TYPE_>::value, int>::type \
+        ENABLER                                                           \
+        = 0
 
 #define ENABLE_IF_COMPLEX( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_complex<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_COMPLEX( _TYPE_ ) \
-    typename std::enable_if<NCPA::types::is_complex<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_COMPLEX( _TYPE_ )                        \
+    typename std::enable_if<NCPA::types::is_complex<_TYPE_>::value, \
+                            int>::type ENABLER                      \
+        = 0
 
 #define ENABLE_IF_DELETEABLE( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_deleteable<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_DELETEABLE( _TYPE_ ) \
-    typename std::enable_if<NCPA::types::is_deleteable<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_DELETEABLE( _TYPE_ )                        \
+    typename std::enable_if<NCPA::types::is_deleteable<_TYPE_>::value, \
+                            int>::type ENABLER                         \
+        = 0
 
-#define ENABLE_FUNCTION_IF_NOT_DELETEABLE( _TYPE_ ) \
-    typename std::enable_if<!NCPA::types::is_deleteable<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_NOT_DELETEABLE( _TYPE_ )                     \
+    typename std::enable_if<!NCPA::types::is_deleteable<_TYPE_>::value, \
+                            int>::type ENABLER                          \
+        = 0
 
 #define ENABLE_IF_ITERABLE( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_iterable<_TYPE_>::value>::type
 
-#define ENABLE_FUNCTION_IF_ITERABLE( _TYPE_ ) \
-    typename std::enable_if<NCPA::types::is_iterable<_TYPE_>::value, int>::type ENABLER = 0
+#define ENABLE_FUNCTION_IF_ITERABLE( _TYPE_ )                        \
+    typename std::enable_if<NCPA::types::is_iterable<_TYPE_>::value, \
+                            int>::type ENABLER                       \
+        = 0
 
 
 #define DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( _CLASSNAME_ ) \
@@ -70,6 +109,11 @@
     class _CLASSNAME_ : public _SUPERCLASSNAME_<ELEMENTTYPE> {}
 
 #define DECLARE_SPECIALIZED_TEMPLATE( _TYPE_ ) template<typename _TYPE_>
+
+#define DECLARE_SWAP_FUNCTION( _CLASSNAME_ ) \
+    template<typename _TYPENAME_>                        \
+    static void swap( _CLASSNAME_<_TYPENAME_>& a,        \
+                      _CLASSNAME_<_TYPENAME_>& b ) noexcept;
 
 #define DECLARE_FRIEND_FUNCTIONS( _CLASSNAME_, _TYPENAME_ )  \
     template<typename _TYPENAME_>                            \
@@ -108,7 +152,17 @@
     _CLASSNAME_<_TYPENAME_> operator*( _TYPENAME_ c2,                       \
                                        const _CLASSNAME_<_TYPENAME_>& c1 );
 
-// #define DEFINE_AS_BOOL( _CONDITION_ )       \
-//     explicit operator bool() const { \
-//         return _CONDITION_;          \
-//     }
+#define DECLARE_METHOD_ENABLED_IF_STRING( _METHODNAME_, _RETURNTYPE_, \
+                                          _TYPENAME_ )                \
+    template<typename T_ = _TYPENAME_>                                \
+    _RETURNTYPE_ _METHODNAME_( ENABLE_METHOD_IF_STRING( T_ ) )
+
+#define DECLARE_METHOD_ENABLED_IF_INTEGRAL( _METHODNAME_, _RETURNTYPE_, \
+                                            _TYPENAME_ )                \
+    template<typename T_ = _TYPENAME_>                                  \
+    _RETURNTYPE_ _METHODNAME_( ENABLE_METHOD_IF_INTEGRAL( T_ ) )
+
+#define DECLARE_METHOD_ENABLED_IF_REAL( _METHODNAME_, _RETURNTYPE_, \
+                                        _TYPENAME_ )                \
+    template<typename T_ = _TYPENAME_>                              \
+    _RETURNTYPE_ _METHODNAME_( ENABLE_METHOD_IF_REAL( T_ ) )

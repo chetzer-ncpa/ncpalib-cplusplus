@@ -149,8 +149,6 @@ namespace NCPA {
             using void_t = typename make_void<Ts...>::type;
         }  // namespace details
 
-        
-
         // decltype( *std::declval<T>() ):
         // declval<T>.method() lets you get a dummy instance of t.method()
         // without having to actually create an object.  It can't be actually
@@ -169,12 +167,20 @@ namespace NCPA {
             T, details::void_t<decltype( *std::declval<T>() )>>
             : std::true_type {};
 
+        template<typename T>
+        struct is_std_string : std::false_type {};
+
+        template<typename CharT, typename Traits, typename Alloc>
+        struct is_std_string<std::basic_string<CharT, Traits, Alloc>>
+            : std::true_type {};
+
         template<typename T, typename = void, typename = void>
         struct is_complex : std::false_type {};
 
         template<typename T>
-        struct is_complex<T, details::void_t<decltype( std::declval<T>().real() )>,
-        details::void_t<decltype( std::declval<T>().imag() )>>
+        struct is_complex<
+            T, details::void_t<decltype( std::declval<T>().real() )>,
+            details::void_t<decltype( std::declval<T>().imag() )>>
             : std::true_type {};
 
         // Tester for deleteable: destructible and not a fundamental type.
@@ -225,7 +231,8 @@ namespace NCPA {
         // template<typename T>
         // struct is_complex {
         //         static constexpr bool value
-        //             = details::_hasComplexFunctions<T>( std::is_class<T> {} );
+        //             = details::_hasComplexFunctions<T>( std::is_class<T> {}
+        //             );
         // };
 
         // Numeric type: is_integral() or is_floating_point()
@@ -235,9 +242,6 @@ namespace NCPA {
                     = std::is_arithmetic<T>::value || is_complex<T>::value;
         };
 
-        
-
-        
         template<class T>
         struct is_iterable {
                 static constexpr bool value
@@ -252,7 +256,6 @@ namespace NCPA {
                             U, typename T::value_type>::value );
         };
 
-        
 
     }  // namespace types
 }  // namespace NCPA

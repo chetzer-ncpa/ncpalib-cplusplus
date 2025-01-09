@@ -164,34 +164,9 @@ namespace NCPA {
                         }
                     }
 
-                    // protected:
-                    //     void _build_lu() {
-                    //         _lu = std::unique_ptr<
-                    //             NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
-                    //             new
-                    //             NCPA::linear::BandDiagonalLUDecomposition<
-                    //                 ELEMENTTYPE>() );
-                    //     }
-
                 private:
-                    // bool _lu_ready() const {
-                    //     return ( _au != nullptr && _al != nullptr
-                    //              && _indx != nullptr );
-                    // }
-
                     NCPA::linear::band_diagonal_matrix<ELEMENTTYPE> _mat;
-                    // std::unique_ptr<
-                    //     NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE>>
-                    //     _lu;
-                    // int n, m1, m2;
-                    // ELEMENTTYPE d;
-                    // int *_indx        = nullptr;
-                    // ELEMENTTYPE **_au = nullptr, **_al = nullptr;
-
-                    // std::vector<int> _indx;
-                    // std::vector<std::vector<ELEMENTTYPE>> _au, _al;
                     const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
-                    // bool _pivot             = false;
             };
         }  // namespace details
     }  // namespace linear
