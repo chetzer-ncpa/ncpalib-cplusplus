@@ -37,7 +37,7 @@ namespace NCPA {
                 using details::abstract_matrix<ELEMENTTYPE>::set_row;
                 using details::abstract_matrix<ELEMENTTYPE>::set_column;
                 using details::abstract_matrix<ELEMENTTYPE>::set_diagonal;
-                // friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
+                friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
                 friend class details::basic_band_diagonal_linear_system_solver<
                     ELEMENTTYPE>;
 
@@ -872,6 +872,8 @@ namespace NCPA {
                 }
 
                 virtual size_t bandwidth() const { return _contents.size(); }
+                virtual size_t lower_bandwidth() const { return _n_lower; }
+                virtual size_t upper_bandwidth() const { return _n_upper; }
 
                 virtual std::vector<size_t> band_column_indices(
                     size_t row ) const {

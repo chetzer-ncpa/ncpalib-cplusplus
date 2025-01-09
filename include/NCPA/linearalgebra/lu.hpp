@@ -86,12 +86,12 @@ namespace NCPA {
                     // _lower       = base;
                     // _permutation = base;
                     size_t N = base.rows();
-                    _upper   = MatrixFactory<ELEMENTTYPE>::build(
-                        matrix_t::DENSE );
-                    _lower = MatrixFactory<ELEMENTTYPE>::build(
-                        matrix_t::DENSE );
-                    _permutation = MatrixFactory<ELEMENTTYPE>::build(
-                        matrix_t::DENSE );
+                    _upper
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    _lower
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    _permutation
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     _lower.clear().resize( N, N );
                     _upper.clear().resize( N, N ).copy( base );
                     _permutation.identity( N, N );
@@ -164,56 +164,91 @@ namespace NCPA {
                     return _permutation;
                 }
 
-            private:
+            protected:
                 ELEMENTTYPE _tolerance;
                 Matrix<ELEMENTTYPE> _lower, _upper, _permutation;
         };
 
-        // template<typename ELEMENTTYPE>
-        // class BandDiagonalLUDecomposition
-        //     : public LUDecomposition<ELEMENTTYPE> {
-        //     public:
-        //         friend class details::basic_band_diagonal_linear_system_solver<
-        //             ELEMENTTYPE>;
+        template<typename ELEMENTTYPE>
+        class BandDiagonalLUDecomposition
+            : public LUDecomposition<ELEMENTTYPE> {
+            public:
+                friend class details::basic_band_diagonal_linear_system_solver<
+                    ELEMENTTYPE>;
 
-        //         BandDiagonalLUDecomposition() :
-        //             LUDecomposition<ELEMENTTYPE>() {}
+                BandDiagonalLUDecomposition() :
+                    LUDecomposition<ELEMENTTYPE>() {}
 
-        //         BandDiagonalLUDecomposition(
-        //             const BandDiagonalLUDecomposition<ELEMENTTYPE>& other ) :
-        //             LUDecomposition<ELEMENTTYPE>( other ) {}
+                BandDiagonalLUDecomposition(
+                    const BandDiagonalLUDecomposition<ELEMENTTYPE>& other ) :
+                    LUDecomposition<ELEMENTTYPE>( other ) {}
 
-        //         BandDiagonalLUDecomposition<ELEMENTTYPE>& operator=(
-        //             BandDiagonalLUDecomposition<ELEMENTTYPE> other ) {
-        //             swap( *this, other );
-        //             return *this;
-        //         }
+                BandDiagonalLUDecomposition<ELEMENTTYPE>& operator=(
+                    BandDiagonalLUDecomposition<ELEMENTTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
 
-        //         virtual LUDecomposition<ELEMENTTYPE>& decompose(
-        //             const Matrix<ELEMENTTYPE>& Mbase,
-        //             bool pivot = true ) override {
-        //             if ( !Mbase ) {
-        //                 throw std::logic_error(
-        //                     "BandDiagonalLUDecomposition.compute(): base "
-        //                     "matrix has not "
-        //                     "been set up!" );
-        //             }
+                virtual LUDecomposition<ELEMENTTYPE>& clear() override {
+                    _A.clear();
+                    return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                }
 
-        //             if ( !Mbase.is_band_diagonal() ) {
-        //                 throw std::logic_error(
-        //                     "BandDiagonalLUDecomposition.decompose(): Base "
-        //                     "matrix must be band-diagonal" );
-        //             }
+                virtual LUDecomposition<ELEMENTTYPE>& decompose(
+                    const Matrix<ELEMENTTYPE>& Mbase,
+                    bool pivot = true ) override {
+                    if ( !Mbase ) {
+                        throw std::logic_error(
+                            "BandDiagonalLUDecomposition.compute(): base "
+                            "matrix has not "
+                            "been set up!" );
+                    }
 
-        //             if ( !Mbase.is_square() ) {
-        //                 throw std::logic_error(
-        //                     "BandDiagonalLUDecomposition.decompose(): Base "
-        //                     "matrix must be "
-        //                     "square" );
-        //             }
+                    if ( !Mbase.is_band_diagonal() ) {
+                        throw std::logic_error(
+                            "BandDiagonalLUDecomposition.decompose(): Base "
+                            "matrix must be band-diagonal" );
+                    }
 
-        //             _mat = dynamic_cast<band_diagonal_matrix<ELEMENTTYPE>&>(
-        //                 *Mbase.internal() );
+                    if ( !Mbase.is_square() ) {
+                        throw std::logic_error(
+                            "BandDiagonalLUDecomposition.decompose(): Base "
+                            "matrix must be "
+                            "square" );
+                    }
+
+                    _A.clear();
+                    _A.copy(dynamic_cast<const band_diagonal_matrix<ELEMENTTYPE>&>(
+                        Mbase.internal() ));
+
+                    size_t n = _A.rows(), p = _A.lower_bandwidth(),
+                           q = _A.upper_bandwidth();
+
+                    for ( auto k = 1; k <= n - 1; k++ ) {
+                        size_t ni = std::min( k + p, n );
+                        for ( auto i = k + 1; i <= ni; i++ ) {
+                            _A.set( i - 1, k - 1,
+                                    _A.get( i - 1, k - 1 )
+                                        / _A.get( k - 1, k - 1 ) );
+                        }
+                        size_t nj = std::min( k + q, n );
+                        for ( auto j = k + 1; j <= nj; j++ ) {
+                            ni = std::min( k + p, n );
+                            for ( auto i = k + 1; i <= ni; i++ ) {
+                                _A.set( i - 1, j - 1,
+                                        _A.get( i - 1, j - 1 )
+                                            - _A.get( i - 1, k - 1 )
+                                                  * _A.get( k - 1, j - 1 ) );
+                            }
+                        }
+                    }
+                    return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                }
+
+            protected:
+                band_diagonal_matrix<ELEMENTTYPE> _A;
+        };
+
         //             int i, j, k, l, mm;
         //             ELEMENTTYPE dum;
 
@@ -224,7 +259,8 @@ namespace NCPA {
 
         //             _indx = NCPA::arrays::zeros<int>( n );
 
-        //             std::vector<std::vector<ELEMENTTYPE>> a = _mat._contents;
+        //             std::vector<std::vector<ELEMENTTYPE>> a =
+        //             _mat._contents;
 
         //             // NCPA_DEBUG << "Before decomposition a = (" <<
         //             // a.size()
@@ -243,7 +279,8 @@ namespace NCPA {
 
         //             _au = NCPA::arrays::zeros<ELEMENTTYPE>( n, mm );
         //             if ( m1 > 0 ) {
-        //                 _al = NCPA::arrays::zeros<ELEMENTTYPE>( n, m1 );
+        //                 _al = NCPA::arrays::zeros<ELEMENTTYPE>( n,
+        //                 m1 );
         //             }
         //             for ( i = 0; i < mm; i++ ) {
         //                 for ( j = 0; j < n; j++ ) {
@@ -268,11 +305,13 @@ namespace NCPA {
 
         //             // _al.clear();
         //             // for ( i = 0; i < m1; i++ ) {
-        //             //     _al.push_back( std::vector<ELEMENTTYPE>( n ) );
+        //             //     _al.push_back( std::vector<ELEMENTTYPE>(
+        //             n ) );
         //             // }
 
         //             // if ( m1 > 0 ) {
-        //             //     NCPA_DEBUG << "Before decomposition _al ="
+        //             //     NCPA_DEBUG << "Before decomposition _al
+        //             ="
         //             //                << std::endl;
         //             //     for ( i = 0; i < n; i++ ) {
         //             //         NCPA_DEBUG << "[ ";
@@ -285,7 +324,8 @@ namespace NCPA {
         //             //         NCPA_DEBUG << "]" << std::endl;
         //             //     }
         //             // } else {
-        //             //     NCPA_DEBUG << "_al is empty" << std::endl;
+        //             //     NCPA_DEBUG << "_al is empty" <<
+        //             std::endl;
         //             // }
 
         //             l = m1;
@@ -330,7 +370,8 @@ namespace NCPA {
         //                 }
         //                 _indx[ k ] = i + 1;
         //                 if ( dum == 0.0 ) {
-        //                     // matrix is algorithmically singular but
+        //                     // matrix is algorithmically singular
+        //                     but
         //                     // keep going with tiny pivot
         //                     _au[ k ][ 0 ] = 1e-40;
         //                     std::cout << "Singular!" << std::endl;
@@ -343,7 +384,8 @@ namespace NCPA {
         //                         // auto tmp      = _au[ k ][ j ];
         //                         // _au[ k ][ j ] = _au[ i ][ j ];
         //                         // _au[ i ][ j ] = tmp;
-        //                         std::swap( _au[ k ][ j ], _au[ i ][ j ] );
+        //                         std::swap( _au[ k ][ j ], _au[ i ][
+        //                         j ] );
         //                     }
         //                 }
         //                 // } else {
@@ -355,14 +397,15 @@ namespace NCPA {
         //                     _al[ k ][ i - k - 1 ] = dum;
         //                     for ( j = 1; j < mm; j++ ) {
         //                         _au[ i ][ j - 1 ]
-        //                             = _au[ i ][ j ] - dum * _au[ k ][ j ];
+        //                             = _au[ i ][ j ] - dum * _au[ k
+        //                             ][ j ];
         //                     }
         //                     _au[ i ][ mm - 1 ] = _zero;
         //                 }
         //             }
 
-        //             NCPA_DEBUG << "After decomposition _au = :" << std::endl;
-        //             for ( i = 0; i < n; i++ ) {
+        //             NCPA_DEBUG << "After decomposition _au = :" <<
+        //             std::endl; for ( i = 0; i < n; i++ ) {
         //                 NCPA_DEBUG << "[ ";
         //                 for ( j = 0; j < mm; j++ ) {
         //                     if ( j != 0 ) {
@@ -373,8 +416,8 @@ namespace NCPA {
         //                 NCPA_DEBUG << "]" << std::endl;
         //             }
 
-        //             NCPA_DEBUG << "After decomposition _al = :" << std::endl;
-        //             for ( i = 0; i < n; i++ ) {
+        //             NCPA_DEBUG << "After decomposition _al = :" <<
+        //             std::endl; for ( i = 0; i < n; i++ ) {
         //                 NCPA_DEBUG << "[ ";
         //                 for ( j = 0; j < m1; j++ ) {
         //                     if ( j != 0 ) {
@@ -385,7 +428,8 @@ namespace NCPA {
         //                 NCPA_DEBUG << "]" << std::endl;
         //             }
 
-        //             NCPA_DEBUG << "After decomposition, _indx = " << std::endl
+        //             NCPA_DEBUG << "After decomposition, _indx = " <<
+        //             std::endl
         //                        << "[ ";
         //             for ( i = 0; i < n; i++ ) {
         //                 if ( i != 0 ) {
@@ -399,40 +443,46 @@ namespace NCPA {
         //             _bdupper.clear();
 
         //             return *static_cast<
-        //                 details::abstract_linear_system_solver<ELEMENTTYPE> *>(
-        //                 this );
+        //                 details::abstract_linear_system_solver<ELEMENTTYPE>
+        //                 *>( this );
         //         }
 
-        //         virtual const Matrix<ELEMENTTYPE>& lower() const override {
+        //         virtual const Matrix<ELEMENTTYPE>& lower() const
+        //         override {
         //             if ( !_bdlower ) {
-        //                 band_diagonal_matrix<ELEMENTTYPE> templower( n, n, m1,
+        //                 band_diagonal_matrix<ELEMENTTYPE> templower(
+        //                 n, n, m1,
         //                                                              0 );
         //                 templower._contents = _al;
-        //                 _bdlower = Matrix<ELEMENTTYPE>( templower.clone() );
+        //                 _bdlower = Matrix<ELEMENTTYPE>(
+        //                 templower.clone() );
         //             }
         //             return _bdlower;
         //         }
 
-        //         virtual const Matrix<ELEMENTTYPE>& upper() const override {
+        //         virtual const Matrix<ELEMENTTYPE>& upper() const
+        //         override {
         //             if ( !_bdlower ) {
-        //                 band_diagonal_matrix<ELEMENTTYPE> tempupper( n, n, m1,
+        //                 band_diagonal_matrix<ELEMENTTYPE> tempupper(
+        //                 n, n, m1,
         //                                                              m2 );
         //                 tempupper._contents = _au;
-        //                 _bdupper = Matrix<ELEMENTTYPE>( tempupper.clone() );
+        //                 _bdupper = Matrix<ELEMENTTYPE>(
+        //                 tempupper.clone() );
         //             }
         //             return _bdupper;
         //         }
 
         //     private:
-        //         // using nomenclature from Numerical Recipes for now, make
+        //         // using nomenclature from Numerical Recipes for
+        //         now, make
         //         // better later
-        //         NCPA::linear::band_diagonal_matrix<ELEMENTTYPE> _mat;
-        //         int n, m1, m2;
-        //         double d;
-        //         Vector<int> _indx;
+        //         NCPA::linear::band_diagonal_matrix<ELEMENTTYPE>
+        //         _mat; int n, m1, m2; double d; Vector<int> _indx;
         //         std::vector<std::vector<ELEMENTTYPE>> _au, _al;
-        //         const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
-        //         Matrix<ELEMENTTYPE> _bdlower, _bdupper;
+        //         const ELEMENTTYPE _zero =
+        //         NCPA::math::zero<ELEMENTTYPE>(); Matrix<ELEMENTTYPE>
+        //         _bdlower, _bdupper;
         // };
     }  // namespace linear
 }  // namespace NCPA
@@ -449,7 +499,8 @@ static void swap( NCPA::linear::LUDecomposition<T>& a,
 
 // template<typename T>
 // static void swap( NCPA::linear::BandDiagonalLUDecomposition<T>& a,
-//                   NCPA::linear::BandDiagonalLUDecomposition<T>& b ) noexcept {
+//                   NCPA::linear::BandDiagonalLUDecomposition<T>& b )
+//                   noexcept {
 //     using std::swap;
 //     std::swap( static_cast<NCPA::linear::LUDecomposition<T>&>( a ),
 //                static_cast<NCPA::linear::LUDecomposition<T>&>( b ) );
