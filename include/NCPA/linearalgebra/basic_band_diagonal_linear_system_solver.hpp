@@ -105,9 +105,11 @@ namespace NCPA {
                     }
 
                     virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
-                        const NCPA::linear::Vector<ELEMENTTYPE>& rhs ) override {
-                        size_t n                             = rhs.size();
-                        const band_diagonal_matrix<ELEMENTTYPE> *A = &( _lu._A );
+                        const NCPA::linear::Vector<ELEMENTTYPE>& rhs )
+                        override {
+                        int n = rhs.size();
+                        const band_diagonal_matrix<ELEMENTTYPE> *A
+                            = &( _lu._A );
                         if ( n != A->rows() ) {
                             std::ostringstream oss;
                             oss << "solver: size mismatch between system "
@@ -119,22 +121,26 @@ namespace NCPA {
                         }
 
                         NCPA::linear::Vector<ELEMENTTYPE> b = rhs;
-                        size_t p = A->lower_bandwidth(),
-                               q = A->upper_bandwidth();
-                        for ( size_t j = 1; j <= n; j++ ) {
-                            size_t ni
-                                = std::min( j + p, n ); 
-                            for ( auto i = j + 1; i <= ni; i++ ) {
-                                b[i-1] -= A->get(i-1,j-1)*b[j-1];
+                        int p = A->lower_bandwidth(), q = A->upper_bandwidth();
+                        size_t nloops = 0;
+                        for ( int j = 1; j <= n; j++ ) {
+                            int ni = std::min( j + p, n );
+                            for ( int i = j + 1; i <= ni; i++ ) {
+                                b[ i - 1 ]
+                                    -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
+                                nloops++;
                             }
                         }
-                        for (size_t j = n; j > 0; j--) {
-                            b[j-1] /= A->get(j-1,j-1);
-                            size_t ni = std::max(j-q,(size_t)1);
-                            for (auto i = ni; i <= j-1; i++) {
-                                b[i-1] -= A->get(i-1,j-1)*b[j-1];
+                        for ( int j = n; j > 0; j-- ) {
+                            b[ j - 1 ] /= A->get( j - 1, j - 1 );
+                            int ni      = std::max( j - q, 1 );
+                            for ( int i = ni; i <= j - 1; i++ ) {
+                                b[ i - 1 ]
+                                    -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
+                                nloops++;
                             }
                         }
+                        std::cout << nloops << " loops run" << std::endl;
                         return b;
                     }
 
