@@ -384,7 +384,7 @@ namespace NCPA {
 
                 virtual const ELEMENTTYPE& get( size_t row,
                                                 size_t col ) const override {
-                    this->check_size( row, col );
+                    // this->check_size( row, col );
                     int ind1, ind2;
                     if ( rowcol2internal( row, col, ind1, ind2 ) ) {
                         return _contents[ ind1 ][ ind2 ];
