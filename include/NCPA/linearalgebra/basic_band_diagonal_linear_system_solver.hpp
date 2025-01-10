@@ -122,13 +122,13 @@ namespace NCPA {
 
                         NCPA::linear::Vector<ELEMENTTYPE> b = rhs;
                         int p = A->lower_bandwidth(), q = A->upper_bandwidth();
-                        size_t nloops = 0;
+                        // size_t nloops = 0;
                         for ( int j = 1; j <= n; j++ ) {
                             int ni = std::min( j + p, n );
                             for ( int i = j + 1; i <= ni; i++ ) {
                                 b[ i - 1 ]
                                     -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
-                                nloops++;
+                                // nloops++;
                             }
                         }
                         for ( int j = n; j > 0; j-- ) {
@@ -137,10 +137,10 @@ namespace NCPA {
                             for ( int i = ni; i <= j - 1; i++ ) {
                                 b[ i - 1 ]
                                     -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
-                                nloops++;
+                                // nloops++;
                             }
                         }
-                        std::cout << nloops << " loops run" << std::endl;
+                        // std::cout << nloops << " loops run" << std::endl;
                         return b;
                     }
 
