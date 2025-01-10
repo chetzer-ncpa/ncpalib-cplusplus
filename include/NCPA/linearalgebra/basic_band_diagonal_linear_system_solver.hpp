@@ -124,6 +124,7 @@ namespace NCPA {
                         size_t nrows = _mat.rows();
                         size_t kl = _mat._n_lower, ku = _mat._n_upper;
                         size_t ni, nj;
+                        size_t nloops = 0;
 
                         for ( size_t k = 0; k < nrows - 1; k++ ) {
                             ni = std::min( k + kl + 1, nrows );
@@ -134,6 +135,7 @@ namespace NCPA {
                                 for ( size_t j = k + kl - i + 1; j < nj;
                                       j++ ) {
                                     T[ j ][ i ] -= T[ i + j - k ][ k ] * u;
+                                    nloops++;
                                 }
                                 x[ i ] -= x[ k ] * u;
                             }
@@ -145,9 +147,11 @@ namespace NCPA {
                             int j    = kl + 1;
                             while ( j < kl + ku + 1 && k < nrows ) {
                                 S += T[ j++ ][ i ] * x[ k++ ];
+                                nloops++;
                             }
                             x[ i ] = ( x[ i ] - S ) / T[ kl ][ i ];
                         }
+                        std::cout << nloops << " loops run" << std::endl;
                         return x;
                     }
 
