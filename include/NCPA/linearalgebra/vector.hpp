@@ -57,7 +57,7 @@ namespace NCPA {
                 // copy constructor
                 Vector( const Vector<ELEMENTTYPE>& other ) :
                     Vector<ELEMENTTYPE>() {
-                    _ptr = std::move( other.internal()->clone() );
+                    _ptr = std::move( other._ptr->clone() );
                 }
 
                 /**
@@ -91,7 +91,7 @@ namespace NCPA {
                 }
 
                 virtual size_t size() const {
-                    return internal() ? internal()->size() : 0;
+                    return _ptr ? _ptr->size() : 0;
                 };
 
                 virtual bool is_zero() const {
@@ -100,34 +100,34 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE>& zero() {
                     check_pointer();
-                    internal()->zero();
+                    _ptr->zero();
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& zero( size_t n ) {
                     check_pointer();
-                    internal()->zero( n );
+                    _ptr->zero( n );
                     return *this;
                 }
 
                 virtual ELEMENTTYPE& get( size_t n ) {
                     check_pointer();
-                    return internal()->get( n );
+                    return _ptr->get( n );
                 };
 
                 virtual const ELEMENTTYPE& get( size_t n ) const {
                     check_pointer();
-                    return internal()->get( n );
+                    return _ptr->get( n );
                 }
 
                 virtual std::vector<ELEMENTTYPE> as_std() const {
                     check_pointer();
-                    return internal()->as_std();
+                    return _ptr->as_std();
                 }
 
                 virtual Vector<ELEMENTTYPE>& clear() {
                     if ( _ptr ) {
-                        // internal()clear();
+                        // _ptrclear();
                         _ptr.reset();
                     }
                     return *this;
@@ -135,77 +135,77 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE>& resize( size_t n ) {
                     check_pointer();
-                    internal()->resize( n );
+                    _ptr->resize( n );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& as_array( size_t n,
                                                        ELEMENTTYPE *& vals ) {
                     check_pointer();
-                    internal()->as_array( n, vals );
+                    _ptr->as_array( n, vals );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& set( size_t n, ELEMENTTYPE val ) {
                     check_pointer();
-                    internal()->set( n, val );
+                    _ptr->set( n, val );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& set( size_t n,
                                                   ELEMENTTYPE *val ) {
                     check_pointer();
-                    internal()->set( n, val );
+                    _ptr->set( n, val );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& set(
                     const std::vector<ELEMENTTYPE>& v ) {
                     check_pointer();
-                    internal()->set( v );
+                    _ptr->set( v );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& set( const ELEMENTTYPE& val ) {
                     check_pointer();
-                    internal()->set( val );
+                    _ptr->set( val );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& scale( ELEMENTTYPE val ) {
                     check_pointer();
-                    internal()->scale( val );
+                    _ptr->scale( val );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& scale(
                     const Vector<ELEMENTTYPE>& b ) {
                     check_pointer();
-                    internal()->scale( *( b.internal() ) );
+                    _ptr->scale( *( b._ptr ) );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& add(
                     const Vector<ELEMENTTYPE>& b ) {
                     check_pointer();
-                    internal()->add( *( b.internal() ) );
+                    _ptr->add( *( b._ptr ) );
                     return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& add( ELEMENTTYPE b ) {
                     check_pointer();
-                    internal()->add( b );
+                    _ptr->add( b );
                     return *this;
                 }
 
                 virtual ELEMENTTYPE dot( const Vector<ELEMENTTYPE>& b ) const {
                     check_pointer();
-                    return internal()->dot( *( b.internal() ) );
+                    return _ptr->dot( *( b._ptr ) );
                 }
 
                 // implementations, not abstract
                 virtual bool equals( const Vector<ELEMENTTYPE>& other ) const {
-                    if ( !internal() || !( other.internal() ) ) {
+                    if ( !_ptr || !( other._ptr ) ) {
                         return false;
                     }
                     if ( size() != other.size() ) {
@@ -274,12 +274,12 @@ namespace NCPA {
                 }
 
                 virtual ELEMENTTYPE& operator[]( size_t i ) {
-                    check_pointer();
+                    // check_pointer();
                     return get( i );
                 }
 
                 virtual const ELEMENTTYPE& operator[]( size_t i ) const {
-                    check_pointer();
+                    // check_pointer();
                     return get( i );
                 }
 
@@ -372,7 +372,7 @@ namespace NCPA {
                 }
 
                 virtual void check_pointer() const {
-                    if ( internal() == nullptr ) {
+                    if ( _ptr == nullptr ) {
                         throw std::logic_error(
                             "Vector: Internal pointer has not been set!" );
                     }
@@ -388,7 +388,7 @@ namespace NCPA {
                                     const std::string& sep = " " ) {
                     ELEMENTTYPE element;
                     os << this->size() << std::endl;
-                    auto nzinds = this->internal()->nonzero_indices();
+                    auto nzinds = this->_ptr->nonzero_indices();
 
                     for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
                           ++cit ) {
@@ -404,7 +404,7 @@ namespace NCPA {
                                     const std::string& sep = " " ) {
                     os << this->size() << std::endl;
 
-                    auto nzinds = this->internal()->nonzero_indices();
+                    auto nzinds = this->_ptr->nonzero_indices();
                     for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
                           ++cit ) {
                         os << *cit << sep << this->get( *cit ) << std::endl;
