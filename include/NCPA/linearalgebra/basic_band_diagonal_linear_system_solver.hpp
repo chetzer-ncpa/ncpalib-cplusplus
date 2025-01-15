@@ -20,9 +20,15 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::details::basic_band_diagonal_linear_system_solver,
-    ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
+//     NCPA::linear::details::basic_band_diagonal_linear_system_solver,
+//     ELEMENTTYPE );
+template<typename ELEMENTTYPE>
+static void swap(
+    NCPA::linear::details::basic_band_diagonal_linear_system_solver<
+        ELEMENTTYPE>& a,
+    NCPA::linear::details::basic_band_diagonal_linear_system_solver<
+        ELEMENTTYPE>& b ) noexcept;
 
 namespace NCPA {
     namespace linear {
@@ -226,6 +232,6 @@ static void swap(
             a ),
         static_cast<NCPA::linear::details::abstract_linear_system_solver<T>&>(
             b ) );
-    swap( a._mat, b._mat );
+    // swap( a._mat, b._mat );
     swap( a._lu, b._lu );
 }

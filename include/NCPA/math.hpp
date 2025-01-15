@@ -120,6 +120,14 @@ namespace NCPA {
         }
 
         /**
+         * Computes the simple square with a multiply instead of an exponentiation.
+         */
+        template<typename T>
+        T square( T n ) {
+            return n*n;
+        }
+
+        /**
          * Finds and returns the indices of the array elements before and after
          * the supplied value.
          */
