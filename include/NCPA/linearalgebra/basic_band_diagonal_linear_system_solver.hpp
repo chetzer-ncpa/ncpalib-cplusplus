@@ -20,9 +20,15 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::details::basic_band_diagonal_linear_system_solver,
-    ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
+//     NCPA::linear::details::basic_band_diagonal_linear_system_solver,
+//     ELEMENTTYPE );
+template<typename ELEMENTTYPE>
+static void swap(
+    NCPA::linear::details::basic_band_diagonal_linear_system_solver<
+        ELEMENTTYPE>& a,
+    NCPA::linear::details::basic_band_diagonal_linear_system_solver<
+        ELEMENTTYPE>& b ) noexcept;
 
 namespace NCPA {
     namespace linear {
@@ -41,7 +47,7 @@ namespace NCPA {
                         const basic_band_diagonal_linear_system_solver<
                             ELEMENTTYPE>& other ) :
                         abstract_linear_system_solver<ELEMENTTYPE>() {
-                        _mat = other._mat;
+                        _lu = other._lu;
                     }
 
                     /**
@@ -79,7 +85,7 @@ namespace NCPA {
 
                     virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                         override {
-                        _mat.clear();
+                        _lu.clear();
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );
@@ -97,63 +103,101 @@ namespace NCPA {
                                 "System matrix must be square!" );
                         }
                         this->clear();
-                        _mat.copy( M.internal() );
+                        // _mat.copy( M.internal() );
+                        _lu.decompose( M );
                         return *static_cast<
                             abstract_linear_system_solver<ELEMENTTYPE> *>(
                             this );
                     }
 
-                    // Implements an adaptation of the Thomas algorithm as shown in 
-                    // https://github.com/aababaei/Thomas-Algorithm-Banded-Matrix/blob/main/THMS.f90
                     virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
-                        const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
-                        size_t N = b.size();
-                        if ( N != _mat.rows() ) {
+                        const NCPA::linear::Vector<ELEMENTTYPE>& rhs )
+                        override {
+                        int n = rhs.size();
+                        const band_diagonal_matrix<ELEMENTTYPE> *A
+                            = &( _lu._A );
+                        if ( n != A->rows() ) {
                             std::ostringstream oss;
                             oss << "solver: size mismatch between system "
                                    "matrix "
                                    "size ["
-                                << _mat.rows() << "x" << _mat.columns()
-                                << "] and input vector size " << b.size();
+                                << A->rows() << "x" << A->columns()
+                                << "] and input vector size " << n;
                             throw std::logic_error( oss.str() );
                         }
 
-                        NCPA::linear::Vector<ELEMENTTYPE> x = b;
-                        std::vector<std::vector<ELEMENTTYPE>> T
-                            = _mat._contents;
-                        size_t nrows = _mat.rows();
-                        size_t kl = _mat._n_lower, ku = _mat._n_upper;
-                        size_t ni, nj;
-                        size_t nloops = 0;
-
-                        for ( size_t k = 0; k < nrows - 1; k++ ) {
-                            ni = std::min( k + kl + 1, nrows );
-                            for ( size_t i = k + 1; i < ni; i++ ) {
-                                ELEMENTTYPE u
-                                    = T[ k + kl - i ][ i ] / T[ kl ][ k ];
-                                nj = k + kl + ku - i + 1;
-                                for ( size_t j = k + kl - i + 1; j < nj;
-                                      j++ ) {
-                                    T[ j ][ i ] -= T[ i + j - k ][ k ] * u;
-                                    nloops++;
-                                }
-                                x[ i ] -= x[ k ] * u;
+                        NCPA::linear::Vector<ELEMENTTYPE> b = rhs;
+                        int p = A->lower_bandwidth(), q = A->upper_bandwidth();
+                        // size_t nloops = 0;
+                        for ( int j = 1; j <= n; j++ ) {
+                            int ni = std::min( j + p, n );
+                            for ( int i = j + 1; i <= ni; i++ ) {
+                                b[ i - 1 ]
+                                    -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
+                                // nloops++;
                             }
                         }
-
-                        for ( int i = nrows - 1; i >= 0; i-- ) {
-                            int k    = i + 1;
-                            ELEMENTTYPE S = 0.0;
-                            int j    = kl + 1;
-                            while ( j < kl + ku + 1 && k < nrows ) {
-                                S += T[ j++ ][ i ] * x[ k++ ];
-                                nloops++;
+                        for ( int j = n; j > 0; j-- ) {
+                            b[ j - 1 ] /= A->get( j - 1, j - 1 );
+                            int ni      = std::max( j - q, 1 );
+                            for ( int i = ni; i <= j - 1; i++ ) {
+                                b[ i - 1 ]
+                                    -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
+                                // nloops++;
                             }
-                            x[ i ] = ( x[ i ] - S ) / T[ kl ][ i ];
                         }
-                        std::cout << nloops << " loops run" << std::endl;
-                        return x;
+                        // std::cout << nloops << " loops run" << std::endl;
+                        return b;
                     }
+
+                    // Implements an adaptation of the Thomas algorithm as
+                    // shown in
+                    // https://github.com/aababaei/Thomas-Algorithm-Banded-Matrix/blob/main/THMS.f90
+                    // virtual NCPA::linear::Vector<ELEMENTTYPE> solve_thomas(
+                    //     const NCPA::linear::Vector<ELEMENTTYPE>& b ) {
+                    //     size_t N = b.size();
+                    //     if ( N != _mat.rows() ) {
+                    //         std::ostringstream oss;
+                    //         oss << "solver: size mismatch between system "
+                    //                "matrix "
+                    //                "size ["
+                    //             << _mat.rows() << "x" << _mat.columns()
+                    //             << "] and input vector size " << b.size();
+                    //         throw std::logic_error( oss.str() );
+                    //     }
+
+                    //     NCPA::linear::Vector<ELEMENTTYPE> x = b;
+                    //     std::vector<std::vector<ELEMENTTYPE>> T
+                    //         = _mat._contents;
+                    //     size_t nrows = _mat.rows();
+                    //     size_t kl = _mat._n_lower, ku = _mat._n_upper;
+                    //     size_t ni, nj;
+
+                    //     for ( size_t k = 0; k < nrows - 1; k++ ) {
+                    //         ni = std::min( k + kl + 1, nrows );
+                    //         for ( size_t i = k + 1; i < ni; i++ ) {
+                    //             ELEMENTTYPE u
+                    //                 = T[ k + kl - i ][ i ] / T[ kl ][ k ];
+                    //             nj = k + kl + ku - i + 1;
+                    //             for ( size_t j = k + kl - i + 1; j < nj;
+                    //                   j++ ) {
+                    //                 T[ j ][ i ] -= T[ i + j - k ][ k ] * u;
+                    //             }
+                    //             x[ i ] -= x[ k ] * u;
+                    //         }
+                    //     }
+
+                    //     for ( int i = nrows - 1; i >= 0; i-- ) {
+                    //         int k         = i + 1;
+                    //         ELEMENTTYPE S = 0.0;
+                    //         int j         = kl + 1;
+                    //         while ( j < kl + ku + 1 && k < nrows ) {
+                    //             S += T[ j++ ][ i ] * x[ k++ ];
+                    //         }
+                    //         x[ i ] = ( x[ i ] - S ) / T[ kl ][ i ];
+                    //     }
+                    //     return x;
+                    // }
 
                     virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                         const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
@@ -169,7 +213,8 @@ namespace NCPA {
                     }
 
                 private:
-                    NCPA::linear::band_diagonal_matrix<ELEMENTTYPE> _mat;
+                    // NCPA::linear::band_diagonal_matrix<ELEMENTTYPE> _mat;
+                    NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE> _lu;
                     const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
             };
         }  // namespace details
@@ -187,6 +232,6 @@ static void swap(
             a ),
         static_cast<NCPA::linear::details::abstract_linear_system_solver<T>&>(
             b ) );
-    swap( a._mat, b._mat );
+    // swap( a._mat, b._mat );
     swap( a._lu, b._lu );
 }
