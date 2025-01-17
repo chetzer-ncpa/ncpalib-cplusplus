@@ -990,7 +990,7 @@ namespace NCPA {
 
             private:
                 std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>> _ptr;
-                std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
+                // std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
 
                 std::unique_ptr<LUDecomposition<ELEMENTTYPE>> _lu;
@@ -1005,7 +1005,7 @@ static void swap( NCPA::linear::Matrix<T>& a,
                   NCPA::linear::Matrix<T>& b ) noexcept {
     // using std::swap;
     a._ptr.swap( b._ptr );
-    swap( a._wrappers, b._wrappers );
+    // swap( a._wrappers, b._wrappers );
     a._lu.swap( b._lu );
 }
 

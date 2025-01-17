@@ -49,6 +49,9 @@ namespace NCPA {
                     virtual std::string id() const                = 0;
                     virtual size_t rows() const                   = 0;
                     virtual size_t columns() const                = 0;
+                    virtual size_t lower_bandwidth() const        = 0;
+                    virtual size_t upper_bandwidth() const        = 0;
+                    virtual size_t bandwidth() const              = 0;
                     virtual abstract_matrix<ELEMENTTYPE>& clear() = 0;
                     virtual abstract_matrix<ELEMENTTYPE>& set(
                         size_t row, size_t col, ELEMENTTYPE val )

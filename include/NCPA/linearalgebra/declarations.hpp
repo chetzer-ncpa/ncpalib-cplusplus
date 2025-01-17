@@ -45,7 +45,7 @@ namespace NCPA {
                                                          details::abstract_matrix );
 
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
+        // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( WrapperVector, Vector );
 
 
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );

@@ -26,18 +26,18 @@ template<typename ELEMENTTYPE>
 std::ostream& operator<<( std::ostream& os,
                           const NCPA::linear::Vector<ELEMENTTYPE>& vec );
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::WrapperVector,
-                                             ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::WrapperVector,
+//                                              ELEMENTTYPE );
 
-template<typename ELEMENTTYPE>
-std::ostream& operator<<(
-    std::ostream& os, const NCPA::linear::WrapperVector<ELEMENTTYPE>& vec );
+// template<typename ELEMENTTYPE>
+// std::ostream& operator<<(
+//     std::ostream& os, const NCPA::linear::WrapperVector<ELEMENTTYPE>& vec );
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Vector,
                                                     ELEMENTTYPE );
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS(
-    NCPA::linear::WrapperVector, ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS(
+//     NCPA::linear::WrapperVector, ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
@@ -424,153 +424,153 @@ namespace NCPA {
                 std::unique_ptr<details::abstract_vector<ELEMENTTYPE>> _ptr;
         };
 
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class WrapperVector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public Vector<ELEMENTTYPE> {
-            public:
-                WrapperVector() : Vector<ELEMENTTYPE>(), _ptr { nullptr } {}
+        // NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
+        //     class WrapperVector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+        //     : public Vector<ELEMENTTYPE> {
+        //     public:
+        //         WrapperVector() : Vector<ELEMENTTYPE>(), _ptr { nullptr } {}
 
-                WrapperVector( details::abstract_vector<ELEMENTTYPE>& vec ) {
-                    _ptr = &vec;
-                }
+        //         WrapperVector( details::abstract_vector<ELEMENTTYPE>& vec ) {
+        //             _ptr = &vec;
+        //         }
 
-                WrapperVector( const WrapperVector<ELEMENTTYPE>& other ) :
-                    WrapperVector<ELEMENTTYPE>() {
-                    _ptr = other._ptr;
-                }
+        //         WrapperVector( const WrapperVector<ELEMENTTYPE>& other ) :
+        //             WrapperVector<ELEMENTTYPE>() {
+        //             _ptr = other._ptr;
+        //         }
 
-                ~WrapperVector() {}
+        //         ~WrapperVector() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    WrapperVector<ELEMENTTYPE>& a,
-                    WrapperVector<ELEMENTTYPE>& b ) noexcept;
+        //         friend void ::swap<ELEMENTTYPE>(
+        //             WrapperVector<ELEMENTTYPE>& a,
+        //             WrapperVector<ELEMENTTYPE>& b ) noexcept;
 
-                /**
-                 * Assignment operator.
-                 * @param other The vector to assign to this.
-                 */
-                WrapperVector<ELEMENTTYPE>& operator=(
-                    WrapperVector<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
+        //         /**
+        //          * Assignment operator.
+        //          * @param other The vector to assign to this.
+        //          */
+        //         WrapperVector<ELEMENTTYPE>& operator=(
+        //             WrapperVector<ELEMENTTYPE> other ) {
+        //             ::swap( *this, other );
+        //             return *this;
+        //         }
 
-                friend bool operator==( const WrapperVector<ELEMENTTYPE>& a,
-                                        const WrapperVector<ELEMENTTYPE>& b ) {
-                    return a.equals( b );
-                }
+        //         friend bool operator==( const WrapperVector<ELEMENTTYPE>& a,
+        //                                 const WrapperVector<ELEMENTTYPE>& b ) {
+        //             return a.equals( b );
+        //         }
 
-                friend bool operator!=( const WrapperVector<ELEMENTTYPE>& a,
-                                        const WrapperVector<ELEMENTTYPE>& b ) {
-                    return !( a.equals( b ) );
-                }
+        //         friend bool operator!=( const WrapperVector<ELEMENTTYPE>& a,
+        //                                 const WrapperVector<ELEMENTTYPE>& b ) {
+        //             return !( a.equals( b ) );
+        //         }
 
-                virtual details::abstract_vector<ELEMENTTYPE> *internal()
-                    const override {
-                    return _ptr;
-                }
+        //         virtual details::abstract_vector<ELEMENTTYPE> *internal()
+        //             const override {
+        //             return _ptr;
+        //         }
 
-                virtual Vector<ELEMENTTYPE>& clear() override {
-                    _ptr = nullptr;
-                    return *static_cast<Vector<ELEMENTTYPE> *>( this );
-                }
+        //         virtual Vector<ELEMENTTYPE>& clear() override {
+        //             _ptr = nullptr;
+        //             return *static_cast<Vector<ELEMENTTYPE> *>( this );
+        //         }
 
-                virtual Vector<ELEMENTTYPE>& operator-=(
-                    const Vector<ELEMENTTYPE>& other ) override {
-                    this->check_pointer();
-                    this->_check_same_size( other );
-                    for ( size_t i = 0; i < this->size(); i++ ) {
-                        internal()->set( i, this->get( i ) - other.get( i ) );
-                    }
-                    // this->add( -other );
-                    return *this;
-                }
+        //         virtual Vector<ELEMENTTYPE>& operator-=(
+        //             const Vector<ELEMENTTYPE>& other ) override {
+        //             this->check_pointer();
+        //             this->_check_same_size( other );
+        //             for ( size_t i = 0; i < this->size(); i++ ) {
+        //                 internal()->set( i, this->get( i ) - other.get( i ) );
+        //             }
+        //             // this->add( -other );
+        //             return *this;
+        //         }
 
-                virtual Vector<ELEMENTTYPE>& operator-=(
-                    const ELEMENTTYPE& other ) override {
-                    this->check_pointer();
-                    this->add( -other );
-                    return *this;
-                }
+        //         virtual Vector<ELEMENTTYPE>& operator-=(
+        //             const ELEMENTTYPE& other ) override {
+        //             this->check_pointer();
+        //             this->add( -other );
+        //             return *this;
+        //         }
 
-                // friend binary operators
-                friend std::ostream& operator<<(
-                    std::ostream& os, const WrapperVector<ELEMENTTYPE>& vec ) {
-                    os << "[ ";
-                    for ( size_t r = 0; r < vec.size(); r++ ) {
-                        if ( r > 0 ) {
-                            os << ", ";
-                        }
-                        os << vec[ r ];
-                    }
-                    os << " ]";
-                    return os;
-                }
+        //         // friend binary operators
+        //         friend std::ostream& operator<<(
+        //             std::ostream& os, const WrapperVector<ELEMENTTYPE>& vec ) {
+        //             os << "[ ";
+        //             for ( size_t r = 0; r < vec.size(); r++ ) {
+        //                 if ( r > 0 ) {
+        //                     os << ", ";
+        //                 }
+        //                 os << vec[ r ];
+        //             }
+        //             os << " ]";
+        //             return os;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator+(
-                    const WrapperVector<ELEMENTTYPE>& c1,
-                    const WrapperVector<ELEMENTTYPE>& c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out += c2;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator+(
+        //             const WrapperVector<ELEMENTTYPE>& c1,
+        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out += c2;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator+(
-                    const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out += c2;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator+(
+        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out += c2;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator+(
-                    ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
-                    Vector<ELEMENTTYPE> out( c2 );
-                    out += c1;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator+(
+        //             ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
+        //             Vector<ELEMENTTYPE> out( c2 );
+        //             out += c1;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator-(
-                    const WrapperVector<ELEMENTTYPE>& c1,
-                    const WrapperVector<ELEMENTTYPE>& c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out -= c2;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator-(
+        //             const WrapperVector<ELEMENTTYPE>& c1,
+        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out -= c2;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator-(
-                    const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out -= c2;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator-(
+        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out -= c2;
+        //             return out;
+        //         }
 
-                friend NCPA::linear::Vector<ELEMENTTYPE> operator*(
-                    const WrapperVector<ELEMENTTYPE>& c1,
-                    const WrapperVector<ELEMENTTYPE>& c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out *= c2;
-                    return out;
-                }
+        //         friend NCPA::linear::Vector<ELEMENTTYPE> operator*(
+        //             const WrapperVector<ELEMENTTYPE>& c1,
+        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out *= c2;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator*(
-                    const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-                    Vector<ELEMENTTYPE> out( c1 );
-                    out *= c2;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator*(
+        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
+        //             Vector<ELEMENTTYPE> out( c1 );
+        //             out *= c2;
+        //             return out;
+        //         }
 
-                friend Vector<ELEMENTTYPE> operator*(
-                    ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
-                    Vector<ELEMENTTYPE> out( c2 );
-                    out *= c1;
-                    return out;
-                }
+        //         friend Vector<ELEMENTTYPE> operator*(
+        //             ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
+        //             Vector<ELEMENTTYPE> out( c2 );
+        //             out *= c1;
+        //             return out;
+        //         }
 
-                explicit operator bool() const { return ( _ptr != nullptr ); }
+        //         explicit operator bool() const { return ( _ptr != nullptr ); }
 
-            private:
-                details::abstract_vector<ELEMENTTYPE> *_ptr;
-        };
+        //     private:
+        //         details::abstract_vector<ELEMENTTYPE> *_ptr;
+        // };
     }  // namespace linear
 }  // namespace NCPA
 
@@ -581,12 +581,12 @@ static void swap( NCPA::linear::Vector<T>& a,
     a._ptr.swap( b._ptr );
 }
 
-template<typename T>
-static void swap( NCPA::linear::WrapperVector<T>& a,
-                  NCPA::linear::WrapperVector<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::Vector<T>&>( a ),
-            static_cast<NCPA::linear::Vector<T>&>( b ) );
-    swap( a._ptr, b._ptr );
-}
+// template<typename T>
+// static void swap( NCPA::linear::WrapperVector<T>& a,
+//                   NCPA::linear::WrapperVector<T>& b ) noexcept {
+//     using std::swap;
+//     ::swap( static_cast<NCPA::linear::Vector<T>&>( a ),
+//             static_cast<NCPA::linear::Vector<T>&>( b ) );
+//     swap( a._ptr, b._ptr );
+// }
 

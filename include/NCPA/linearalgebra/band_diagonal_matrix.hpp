@@ -199,6 +199,10 @@ namespace NCPA {
                     // return (size_t)icol;
                 }
 
+                virtual bool row_in_range( size_t row ) const {
+                    return (row >= 0 && row < this->rows());
+                }
+
                 virtual details::abstract_matrix<ELEMENTTYPE>& set(
                     size_t row, size_t col, ELEMENTTYPE val ) override {
                     this->check_size( row, col );
@@ -871,9 +875,9 @@ namespace NCPA {
                     // return vdiag;
                 }
 
-                virtual size_t bandwidth() const { return _contents.size(); }
-                virtual size_t lower_bandwidth() const { return _n_lower; }
-                virtual size_t upper_bandwidth() const { return _n_upper; }
+                virtual size_t bandwidth() const override { return _contents.size(); }
+                virtual size_t lower_bandwidth() const override { return _n_lower; }
+                virtual size_t upper_bandwidth() const override { return _n_upper; }
 
                 virtual std::vector<size_t> band_column_indices(
                     size_t row ) const {

@@ -12,7 +12,6 @@ test_linearalgebra_densevector.cpp \
 test_linearalgebra_densevector_complex.cpp \
 test_linearalgebra_sparsevector.cpp \
 test_linearalgebra_sparsevector_complex.cpp \
-test_linearalgebra_wrappervector.cpp \
 test_linearalgebra_densematrix.cpp \
 test_linearalgebra_densematrix_complex.cpp \
 test_linearalgebra_banddiagonalmatrix.cpp \
