@@ -26,8 +26,8 @@ class NCPALinearAlgebraSparseVectorTest : public ::testing::Test {
                 { 1.0, 2.0, 0.0, 4.0, 0.0, 0.0, 7.0, 8.0 } );
             vec_initlist = { 0.0, 0.0, 3.0, 0.0, 5.0, 6.0, 0.0, 0.0 };
 
-            vec_std      = details::sparse_vector<double>( svd );
-            vec_opposite = details::sparse_vector<double>( svd_opposite );
+            vec_std      = sparse_vector<double>( svd );
+            vec_opposite = sparse_vector<double>( svd_opposite );
 
             wrapper1         = Vector<double>( vec_std.clone() );
             wrapper_opposite = Vector<double>( vec_opposite.clone() );
@@ -39,7 +39,7 @@ class NCPALinearAlgebraSparseVectorTest : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::sparse_vector<double> vec_initlist, vec_std, vec_opposite, vec;
+        sparse_vector<double> vec_initlist, vec_std, vec_opposite, vec;
         std::vector<double> svd, svd_opposite;
         double svd_dot_svd;
 
@@ -52,7 +52,7 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, DefaultConstructorWorks ) {
 }
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, StdvectorConstructorWorks ) {
-    // details::sparse_vector<double> vec2( svd );
+    // sparse_vector<double> vec2( svd );
     // vec_std.set( svd );
     EXPECT_EQ( vec_std.size(), vecsize );
     for (size_t i = 0; i < vecsize; i++) {
@@ -72,7 +72,7 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, InitializerListConstructorWorks ) {
 
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, CopyConstructorWorks ) {
-    vec = details::sparse_vector<double>( vec_std );
+    vec = sparse_vector<double>( vec_std );
     EXPECT_EQ( vec.size(), vecsize );
     for (size_t i = 0; i < vecsize; i++) {
         EXPECT_DOUBLE_EQ( vec.get( i ), svd[ i ] );
@@ -80,7 +80,7 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, CopyConstructorWorks ) {
 }
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, CopyConstructorMakesDeepCopy ) {
-    vec = details::sparse_vector<double>( vec_std );
+    vec = sparse_vector<double>( vec_std );
     vec_std.clear();
     EXPECT_EQ( vec.size(), vecsize );
     for (size_t i = 0; i < vecsize; i++) {
@@ -146,14 +146,14 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, AsStdMatches ) {
 }
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, CloneClones ) {
-    std::unique_ptr<details::abstract_vector<double>> vptr = vec_std.clone();
+    std::unique_ptr<abstract_vector<double>> vptr = vec_std.clone();
     for ( size_t i = 0; i < vecsize; i++ ) {
         EXPECT_DOUBLE_EQ( vptr->get( i ), svd[ i ] );
     }
 }
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, CloneClonesDeep ) {
-    std::unique_ptr<details::abstract_vector<double>> vptr = vec_std.clone();
+    std::unique_ptr<abstract_vector<double>> vptr = vec_std.clone();
     vec_std.clear();
     for ( size_t i = 0; i < vecsize; i++ ) {
         EXPECT_DOUBLE_EQ( vptr->get( i ), svd[ i ] );

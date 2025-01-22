@@ -23,7 +23,7 @@
     }
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::details::transposed_matrix_view, ELEMENTTYPE );
+    NCPA::linear::transposed_matrix_view, ELEMENTTYPE );
 
 
 #define RETURN_SUPERCLASS_REFERENCE \
@@ -32,7 +32,6 @@ NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
 namespace NCPA {
     namespace linear {
 
-        namespace details {
             NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
                 class transposed_matrix_view<ELEMENTTYPE,
                                              _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
@@ -179,15 +178,14 @@ namespace NCPA {
                 private:
                     const abstract_matrix<ELEMENTTYPE> *_mat;
             };
-        }  // namespace details
     }  // namespace linear
 }  // namespace NCPA
 
 template<typename T>
-static void swap( NCPA::linear::details::transposed_matrix_view<T>& a,
-                  NCPA::linear::details::transposed_matrix_view<T>& b ) noexcept {
+static void swap( NCPA::linear::transposed_matrix_view<T>& a,
+                  NCPA::linear::transposed_matrix_view<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NCPA::linear::details::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::details::abstract_matrix<T>&>( b ) );
+    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
+            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
     swap( a._mat, b._mat );
 }

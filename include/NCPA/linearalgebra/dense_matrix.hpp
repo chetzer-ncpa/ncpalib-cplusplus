@@ -20,12 +20,12 @@
 #include <vector>
 
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::details::dense_matrix, ELEMENTTYPE );
+    NCPA::linear::dense_matrix, ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
 
-        namespace details {
+        
             NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
                 class dense_matrix<ELEMENTTYPE,
                                    _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
@@ -119,9 +119,34 @@ namespace NCPA {
                         }
                     }
 
-                    virtual size_t bandwidth() const override { return _contents.size(); }
-                    virtual size_t lower_bandwidth() const override { return _n_lower; }
-                    virtual size_t upper_bandwidth() const override { return _n_upper; }
+                    virtual size_t lower_bandwidth() const override {
+                    int off = this->max_off_diagonal();
+                    while ( off > 0 ) {
+                        if ( this->get_diagonal( -off )->count_nonzero_indices()
+                             > 0 ) {
+                            return (size_t)off;
+                        }
+                        off--;
+                    }
+                    return 0;
+                }
+
+                virtual size_t upper_bandwidth() const override {
+                    int off = this->max_off_diagonal();
+                    while ( off > 0 ) {
+                        if ( this->get_diagonal( off )->count_nonzero_indices()
+                             > 0 ) {
+                            return (size_t)off;
+                        }
+                        off--;
+                    }
+                    return 0;
+                }
+
+                virtual size_t bandwidth() const override {
+                    return this->upper_bandwidth() + this->lower_bandwidth() + 1;
+                }
+
 
                     // virtual ELEMENTTYPE& get( size_t row,
                     //                           size_t col ) override {
@@ -410,16 +435,15 @@ namespace NCPA {
                     std::vector<dense_vector<ELEMENTTYPE>> _elements;
                     // std::vector<WrapperVector<ELEMENTTYPE>> _wrappers;
             };
-        }  // namespace details
     }  // namespace linear
 }  // namespace NCPA
 
 template<typename T>
-static void swap( NCPA::linear::details::dense_matrix<T>& a,
-                  NCPA::linear::details::dense_matrix<T>& b ) noexcept {
+static void swap( NCPA::linear::dense_matrix<T>& a,
+                  NCPA::linear::dense_matrix<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NCPA::linear::details::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::details::abstract_matrix<T>&>( b ) );
+    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
+            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
     swap( a._elements, b._elements );
     swap( a._finalized, b._finalized );
 }

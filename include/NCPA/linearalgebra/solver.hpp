@@ -19,12 +19,6 @@
 #include <sstream>
 #include <vector>
 
-// namespace NCPA {
-//     namespace linear {
-//         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
-//     }
-// }  // namespace NCPA
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Solver,
                                              ELEMENTTYPE );
 
@@ -38,9 +32,9 @@ namespace NCPA {
             public:
                 Solver() {}
 
-                Solver( std::unique_ptr<
-                        details::abstract_linear_system_solver<ELEMENTTYPE>>
-                            ptr ) :
+                Solver(
+                    std::unique_ptr<abstract_linear_system_solver<ELEMENTTYPE>>
+                        ptr ) :
                     Solver<ELEMENTTYPE>() {
                     _ptr = std::move( ptr );
                 }
@@ -117,8 +111,7 @@ namespace NCPA {
                 }
 
             private:
-                std::unique_ptr<
-                    details::abstract_linear_system_solver<ELEMENTTYPE>>
+                std::unique_ptr<abstract_linear_system_solver<ELEMENTTYPE>>
                     _ptr;
         };
     }  // namespace linear

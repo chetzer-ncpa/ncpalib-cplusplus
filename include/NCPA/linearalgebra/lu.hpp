@@ -173,7 +173,7 @@ namespace NCPA {
         class BandDiagonalLUDecomposition
             : public LUDecomposition<ELEMENTTYPE> {
             public:
-                friend class details::basic_band_diagonal_linear_system_solver<
+                friend class basic_band_diagonal_linear_system_solver<
                     ELEMENTTYPE>;
 
                 BandDiagonalLUDecomposition() :
@@ -218,8 +218,9 @@ namespace NCPA {
                     }
 
                     _A.clear();
-                    _A.copy(dynamic_cast<const band_diagonal_matrix<ELEMENTTYPE>&>(
-                        Mbase.internal() ));
+                    _A.copy(
+                        dynamic_cast<const band_diagonal_matrix<ELEMENTTYPE>&>(
+                            Mbase.internal() ) );
 
                     size_t n = _A.rows(), p = _A.lower_bandwidth(),
                            q = _A.upper_bandwidth();
@@ -264,8 +265,7 @@ static void swap( NCPA::linear::LUDecomposition<T>& a,
 
 template<typename T>
 static void swap( NCPA::linear::BandDiagonalLUDecomposition<T>& a,
-                  NCPA::linear::BandDiagonalLUDecomposition<T>& b )
-                  noexcept {
+                  NCPA::linear::BandDiagonalLUDecomposition<T>& b ) noexcept {
     using std::swap;
     std::swap( static_cast<NCPA::linear::LUDecomposition<T>&>( a ),
                static_cast<NCPA::linear::LUDecomposition<T>&>( b ) );

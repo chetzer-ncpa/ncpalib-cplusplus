@@ -3,6 +3,7 @@
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
+#include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/sparse_vector.hpp"
@@ -19,74 +20,55 @@
 #include <sstream>
 #include <vector>
 
-#define RETURN_BAND_DIAGONAL_MATRIX_AS_BASE_CLASS \
+#define RETURN_TRIDIAGONAL_MATRIX_AS_BASE_CLASS \
     return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::band_diagonal_matrix, ELEMENTTYPE );
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::tridiagonal_matrix,
+                                             ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
 
 
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class band_diagonal_matrix<ELEMENTTYPE,
-                                       _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_matrix<ELEMENTTYPE> {
+            class tridiagonal_matrix<ELEMENTTYPE,
+                                     _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+            : public band_diagonal_matrix<ELEMENTTYPE> {
             public:
-                using abstract_matrix<ELEMENTTYPE>::set_row;
-                using abstract_matrix<ELEMENTTYPE>::set_column;
-                using abstract_matrix<ELEMENTTYPE>::set_diagonal;
-                friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
-                friend class basic_band_diagonal_linear_system_solver<
+                friend class basic_tridiagonal_linear_system_solver<
                     ELEMENTTYPE>;
 
-                band_diagonal_matrix( size_t nrows, size_t ncols,
-                                      size_t n_lower_offdiags,
-                                      size_t n_upper_offdiags ) :
-                    _nrows { nrows },
-                    _ncols { ncols },
-                    _n_lower { n_lower_offdiags },
-                    _n_upper { n_upper_offdiags } {
-                    _prep_diagonals();
-                }
+                tridiagonal_matrix( size_t nrows, size_t ncols ) :
+                    band_diagonal_matrix<ELEMENTTYPE>( nrows, ncols, 1, 1 ) {}
 
-                band_diagonal_matrix( size_t nrows, size_t ncols ) :
-                    band_diagonal_matrix<ELEMENTTYPE>( nrows, ncols, 0, 0 ) {}
+                tridiagonal_matrix() :
+                    band_diagonal_matrix<ELEMENTTYPE>( 0, 0, 1, 1 ) {}
 
-                band_diagonal_matrix() :
-                    band_diagonal_matrix<ELEMENTTYPE>( 0, 0, 0, 0 ) {}
+                tridiagonal_matrix(
+                    const tridiagonal_matrix<ELEMENTTYPE>& other ) :
+                    band_diagonal_matrix<ELEMENTTYPE>( other ) {}
 
-                band_diagonal_matrix(
-                    const band_diagonal_matrix<ELEMENTTYPE>& other ) :
-                    band_diagonal_matrix<ELEMENTTYPE>( other.rows(),
-                                                       other.columns() ) {
-                    _n_lower  = other._n_lower;
-                    _n_upper  = other._n_upper;
-                    _contents = other._contents;
-                }
-
-                band_diagonal_matrix(
+                tridiagonal_matrix(
                     const abstract_matrix<ELEMENTTYPE>& other ) :
-                    band_diagonal_matrix<ELEMENTTYPE>() {
+                    tridiagonal_matrix<ELEMENTTYPE>() {
                     this->copy( other );
                 }
 
-                band_diagonal_matrix(
-                    band_diagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
-                    band_diagonal_matrix<ELEMENTTYPE>() {
+                tridiagonal_matrix(
+                    tridiagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
+                    tridiagonal_matrix<ELEMENTTYPE>() {
                     ::swap( *this, source );
                 }
 
                 // constructors, destructors, copying, and assignment
-                virtual ~band_diagonal_matrix() {}
+                virtual ~tridiagonal_matrix() {}
 
                 friend void ::swap<ELEMENTTYPE>(
-                    band_diagonal_matrix<ELEMENTTYPE>& a,
-                    band_diagonal_matrix<ELEMENTTYPE>& b ) noexcept;
+                    tridiagonal_matrix<ELEMENTTYPE>& a,
+                    tridiagonal_matrix<ELEMENTTYPE>& b ) noexcept;
 
-                band_diagonal_matrix<ELEMENTTYPE>& operator=(
-                    band_diagonal_matrix<ELEMENTTYPE> other ) {
+                tridiagonal_matrix<ELEMENTTYPE>& operator=(
+                    tridiagonal_matrix<ELEMENTTYPE> other ) {
                     swap( *this, other );
                     return *this;
                 }
@@ -94,19 +76,22 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> clone()
                     const override {
                     return std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
-                        new band_diagonal_matrix( *this ) );
+                        new tridiagonal_matrix( *this ) );
                 }
 
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                     fresh_clone() const override {
                     return std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
-                        new band_diagonal_matrix() );
+                        new tridiagonal_matrix() );
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& copy(
                     const abstract_matrix<ELEMENTTYPE>& other ) override {
                     resize( other.rows(), other.columns() );
                     set_diagonal( *other.get_diagonal() );
+                    
+
+
                     int countdown = other.max_off_diagonal();
                     int ndiag     = 1;
                     // std::cout << "Getting off-diagonal " << -ndiag <<
@@ -171,7 +156,8 @@ namespace NCPA {
                                               int& ind2 ) const {
                     ind1 = (int)col - (int)row + (int)_n_lower;
                     ind2 = (int)row;
-                    return ( ind1 >= 0 && ind1 < (int)( this->contents().size() )
+                    return ( ind1 >= 0
+                             && ind1 < (int)( this->contents().size() )
                              && row < this->rows() && col < this->columns() );
                 }
 
@@ -231,8 +217,8 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
-                    for ( auto it1 = this->contents().begin(); it1 != this->contents().end();
-                          ++it1 ) {
+                    for ( auto it1 = this->contents().begin();
+                          it1 != this->contents().end(); ++it1 ) {
                         for ( auto it2 = it1->begin(); it2 != it1->end();
                               ++it2 ) {
                             *it2 = val;
@@ -334,11 +320,13 @@ namespace NCPA {
                         NCPA::arrays::fill( vals, nrows, ncols, _zero );
                     }
                     int row, col;
-                    for ( size_t ind1 = 0; ind1 < this->contents().size(); ind1++ ) {
+                    for ( size_t ind1 = 0; ind1 < this->contents().size();
+                          ind1++ ) {
                         for ( size_t ind2 = _min_ind2( ind1 );
                               ind2 < _max_ind2( ind1 ); ind2++ ) {
                             if ( internal2rowcol( ind1, ind2, row, col ) ) {
-                                vals[ row ][ col ] = this->contents()[ ind1 ][ ind2 ];
+                                vals[ row ][ col ]
+                                    = this->contents()[ ind1 ][ ind2 ];
                             }
                         }
                     }
@@ -351,7 +339,8 @@ namespace NCPA {
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> v(
                         new sparse_vector<ELEMENTTYPE>( this->columns() ) );
                     int r, c;
-                    for ( size_t ind1 = 0; ind1 < this->contents().size(); ind1++ ) {
+                    for ( size_t ind1 = 0; ind1 < this->contents().size();
+                          ind1++ ) {
                         if ( internal2rowcol( ind1, row, r, c ) ) {
                             v->set( c, this->contents()[ ind1 ][ row ] );
                         }
@@ -369,11 +358,13 @@ namespace NCPA {
                             v->set( r, this->contents()[ ind1 ][ ind2 ] );
                         }
                     }
-                    // for ( size_t ind1 = 0; ind1 < this->contents().size(); ind1++ )
+                    // for ( size_t ind1 = 0; ind1 < this->contents().size();
+                    // ind1++ )
                     // {
                     //     size_t ind2 = (size_t)std::max(
                     //         (int)( column + _n_lower ) - (int)ind1, 0 );
-                    //     ind2 = std::min( ind2, this->contents()[ ind1 ].size() - 1
+                    //     ind2 = std::min( ind2, this->contents()[ ind1
+                    //     ].size() - 1
                     //     ); v->set( ind2, this->contents()[ ind1 ][ ind2 ] );
                     // }
                     return v;
@@ -525,7 +516,8 @@ namespace NCPA {
                     if ( !this->is_square() || !this->is_diagonal() ) {
                         return false;
                     }
-                    for ( size_t i = 0; i < this->contents()[ 0 ].size(); i++ ) {
+                    for ( size_t i = 0; i < this->contents()[ 0 ].size();
+                          i++ ) {
                         if ( this->contents()[ 0 ][ i ]
                              != NCPA::math::one<ELEMENTTYPE>() ) {
                             return false;
@@ -574,8 +566,10 @@ namespace NCPA {
                         return true;
                     }
                     for ( size_t i = 0; i < _n_upper; i++ ) {
-                        for ( auto it = this->contents()[ _n_lower + i + 1 ].cbegin();
-                              it != this->contents()[ _n_lower + i + 1 ].cend();
+                        for ( auto it
+                              = this->contents()[ _n_lower + i + 1 ].cbegin();
+                              it
+                              != this->contents()[ _n_lower + i + 1 ].cend();
                               ++it ) {
                             if ( *it != _zero ) {
                                 return false;
@@ -608,13 +602,16 @@ namespace NCPA {
                         both = _n_lower;
                     }
                     for ( size_t ind1 = 0; ind1 < both; ind1++ ) {
-                        this->contents()[ ind1 + skip ] = NCPA::math::add_vectors(
-                            this->contents()[ ind1 + skip ],
-                            NCPA::math::scale_vector(
-                                b->contents()[ ind1 + add_on ], modifier ) );
+                        this->contents()[ ind1 + skip ]
+                            = NCPA::math::add_vectors(
+                                this->contents()[ ind1 + skip ],
+                                NCPA::math::scale_vector(
+                                    b->contents()[ ind1 + add_on ],
+                                    modifier ) );
                     }
-                    this->contents().insert( this->contents().begin(), b->contents().begin(),
-                                      b->contents().begin() + add_on );
+                    this->contents().insert( this->contents().begin(),
+                                             b->contents().begin(),
+                                             b->contents().begin() + add_on );
                     for ( size_t ind1 = 0; ind1 < add_on; ind1++ ) {
                         this->contents()[ ind1 ] = NCPA::math::scale_vector(
                             this->contents()[ ind1 ], modifier );
@@ -642,8 +639,8 @@ namespace NCPA {
                                     modifier ) );
                     }
                     this->contents().insert( this->contents().end(),
-                                      b->contents().end() - add_on,
-                                      b->contents().end() );
+                                             b->contents().end() - add_on,
+                                             b->contents().end() );
                     _n_upper += add_on;
                     for ( size_t ind1 = _n_lower + _n_upper - add_on;
                           ind1 < this->contents().size(); ind1++ ) {
@@ -659,7 +656,8 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& add(
                     ELEMENTTYPE b ) override {
-                    for ( size_t ind1 = 0; ind1 < this->contents().size(); ind1++ ) {
+                    for ( size_t ind1 = 0; ind1 < this->contents().size();
+                          ind1++ ) {
                         for ( size_t ind2 = _min_ind2( ind1 );
                               ind2 < _max_ind2( ind1 ); ind2++ ) {
                             this->contents()[ ind1 ][ ind2 ] += b;
@@ -694,12 +692,15 @@ namespace NCPA {
                     }
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> b(
                         new dense_vector<ELEMENTTYPE>( rows() ) );
-                    int n = (int)rows(); // , bw = (int)bandwidth();
+                    int n = (int)rows();  // , bw = (int)bandwidth();
                     for ( int i = 0; i < n; i++ ) {
-                        int minloop = std::max( 0, i - (int)this->lower_bandwidth() ),
-                            maxloop = std::min( i + (int)this->upper_bandwidth() + 1, (int)this->columns() );
+                        int minloop
+                            = std::max( 0, i - (int)this->lower_bandwidth() ),
+                            maxloop
+                            = std::min( i + (int)this->upper_bandwidth() + 1,
+                                        (int)this->columns() );
                         ELEMENTTYPE bval = _zero;
-                        for (int k = minloop; k < maxloop; k++) {
+                        for ( int k = minloop; k < maxloop; k++ ) {
                             bval += this->get( i, k ) * x.get( k );
                         }
                         b->set( i, bval );
@@ -708,8 +709,10 @@ namespace NCPA {
                     //     int k            = i - (int)_n_lower;
                     //     int tmploop      = std::min( bw, n - k );
                     //     ELEMENTTYPE bval = _zero;
-                    //     for ( int j = std::max( 0, -k ); j < tmploop; j++ ) {
-                    //         bval += this->contents()[ j ][ i ] * x.get( j + k );
+                    //     for ( int j = std::max( 0, -k ); j < tmploop; j++ )
+                    //     {
+                    //         bval += this->contents()[ j ][ i ] * x.get( j +
+                    //         k );
                     //     }
                     //     b->set( i, bval );
                     // }
@@ -731,25 +734,28 @@ namespace NCPA {
                         new dense_vector<ELEMENTTYPE>( this->columns() ) );
                     int n = (int)columns();
                     for ( int i = 0; i < n; i++ ) {
-                        int minloop = std::max( i - (int)this->upper_bandwidth(), 0 ),
-                            maxloop = std::min( i + this->lower_bandwidth() + 1, this->rows() );
+                        int minloop
+                            = std::max( i - (int)this->upper_bandwidth(), 0 ),
+                            maxloop
+                            = std::min( i + this->lower_bandwidth() + 1,
+                                        this->rows() );
                         ELEMENTTYPE bval = _zero;
-                        for ( int k = minloop; k < maxloop; k++) {
+                        for ( int k = minloop; k < maxloop; k++ ) {
                             bval += x.get( k ) * this->get( k, i );
                         }
                         b->set( i, bval );
                         // int k            = i - (int)_n_upper;
                         // int tmploop      = std::min( bw, n - k );
                         // ELEMENTTYPE bval = _zero;
-                        // for ( int j = std::max( 0, -k ); j < tmploop; j++ ) {
-                        //     bval += this->contents()[ j ][ i ] * x.get( j + k );
+                        // for ( int j = std::max( 0, -k ); j < tmploop; j++ )
+                        // {
+                        //     bval += this->contents()[ j ][ i ] * x.get( j +
+                        //     k );
                         // }
                         // b->set( i, bval );
                     }
                     return b;
                 }
-
-
 
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> multiply(
                     const abstract_matrix<ELEMENTTYPE>& other )
@@ -760,8 +766,10 @@ namespace NCPA {
                     const band_diagonal_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
-                    size_t new_n_lower = this->lower_bandwidth() + b->lower_bandwidth(),
-                           new_n_upper = this->upper_bandwidth() + b->upper_bandwidth();
+                    size_t new_n_lower
+                        = this->lower_bandwidth() + b->lower_bandwidth(),
+                        new_n_upper
+                        = this->upper_bandwidth() + b->upper_bandwidth();
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> product(
                         new band_diagonal_matrix<ELEMENTTYPE>(
                             this->rows(), b->columns(), new_n_lower,
@@ -775,13 +783,17 @@ namespace NCPA {
                               c++ ) {
                             ELEMENTTYPE val = _zero;
                             int kmin        = std::max(
-                                std::max( 0, r - (int)this->lower_bandwidth() ),
-                                std::max( 0, c - (int)( b->upper_bandwidth() ) ) );
+                                std::max( 0,
+                                                 r - (int)this->lower_bandwidth() ),
+                                std::max(
+                                    0, c - (int)( b->upper_bandwidth() ) ) );
                             int kmax = std::min(
                                 std::min( (int)columns(),
-                                          r + (int)this->upper_bandwidth() + 1 ),
+                                          r + (int)this->upper_bandwidth()
+                                              + 1 ),
                                 std::min( (int)( b->rows() ),
-                                          c + (int)( b->lower_bandwidth() ) + 1 ) );
+                                          c + (int)( b->lower_bandwidth() )
+                                              + 1 ) );
                             for ( int k = kmin; k < kmax; k++ ) {
                                 val += this->get( r, k ) * b->get( k, c );
                             }
@@ -795,11 +807,13 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& b ) override {
                     this->check_size( b );
                     int r, c;
-                    for ( size_t ind1 = 0; ind1 < this->contents().size(); ind1++ ) {
+                    for ( size_t ind1 = 0; ind1 < this->contents().size();
+                          ind1++ ) {
                         for ( size_t ind2 = _min_ind2( ind1 );
                               ind2 < _max_ind2( ind1 ); ind2++ ) {
                             if ( internal2rowcol( ind1, ind2, r, c ) ) {
-                                this->contents()[ ind1 ][ ind2 ] *= b.get( r, c );
+                                this->contents()[ ind1 ][ ind2 ]
+                                    *= b.get( r, c );
                             }
                         }
                     }
@@ -808,8 +822,8 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& scale(
                     ELEMENTTYPE val ) override {
-                    for ( auto it1 = this->contents().begin(); it1 != this->contents().end();
-                          ++it1 ) {
+                    for ( auto it1 = this->contents().begin();
+                          it1 != this->contents().end(); ++it1 ) {
                         for ( auto it2 = it1->begin(); it2 != it1->end();
                               ++it2 ) {
                             *it2 *= val;
@@ -844,7 +858,8 @@ namespace NCPA {
                             this->_add_superdiagonal();
                         }
                         for ( size_t i = 0; i < nvals; i++ ) {
-                            this->contents()[ _n_lower + offset ][ i ] = vals[ i ];
+                            this->contents()[ _n_lower + offset ][ i ]
+                                = vals[ i ];
                         }
                     } else if ( offset < 0 ) {
                         while ( -offset > (int)_n_lower ) {
@@ -852,7 +867,7 @@ namespace NCPA {
                         }
                         int ind1 = _n_lower + offset;
                         for ( size_t i = 0; i < nvals; i++ ) {
-                            int ind2                  = _min_ind2( ind1 ) + i;
+                            int ind2 = _min_ind2( ind1 ) + i;
                             this->contents()[ ind1 ][ ind2 ] = vals[ i ];
                         }
                     } else {
@@ -878,16 +893,18 @@ namespace NCPA {
                         //     << "ind1 = " << ind1
                         //     << " is in range for _n_upper = " << _n_upper
                         //     << " and _n_lower = " << _n_lower
-                        //     << ", this->contents().size() = " << this->contents().size()
+                        //     << ", this->contents().size() = " <<
+                        //     this->contents().size()
                         //     << std::endl;
                         // std::cout << "Fetching internal index " << ind1
                         //           << std::endl;
                         // std::cout << "Fetching ind2 = " << _min_ind2( ind1 )
                         //           << " to " << _max_ind2( ind1 ) <<
                         //           std::endl;
-                        diag.assign(
-                            this->contents()[ ind1 ].begin() + _min_ind2( ind1 ),
-                            this->contents()[ ind1 ].begin() + _max_ind2( ind1 ) );
+                        diag.assign( this->contents()[ ind1 ].begin()
+                                         + _min_ind2( ind1 ),
+                                     this->contents()[ ind1 ].begin()
+                                         + _max_ind2( ind1 ) );
                         // } else {
                         //     std::cout << "ind1 = " << ind1
                         //               << " out of rangefor _n_upper = " <<
@@ -945,7 +962,8 @@ namespace NCPA {
                     return _contents;
                 }
 
-                virtual const std::vector<std::vector<ELEMENTTYPE>>& contents() const {
+                virtual const std::vector<std::vector<ELEMENTTYPE>>& contents()
+                    const {
                     return _contents;
                 }
 

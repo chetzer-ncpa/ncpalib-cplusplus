@@ -55,8 +55,8 @@ class NCPALinearAlgebraComplexSparseVectorTest : public ::testing::Test {
                                   zero,         zero
             };
 
-            vec_std      = details::sparse_vector<test_t>( svd );
-            vec_opposite = details::sparse_vector<test_t>( svd_opposite );
+            vec_std      = sparse_vector<test_t>( svd );
+            vec_opposite = sparse_vector<test_t>( svd_opposite );
 
             wrapper1         = Vector<test_t>( vec_std.clone() );
             wrapper_opposite = Vector<test_t>( vec_opposite.clone() );
@@ -68,7 +68,7 @@ class NCPALinearAlgebraComplexSparseVectorTest : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::sparse_vector<test_t> vec_initlist, vec_std, vec_opposite,
+        sparse_vector<test_t> vec_initlist, vec_std, vec_opposite,
             vec;
         std::vector<test_t> svd, svd_opposite;
         test_t svd_dot_svd, zero, testval;
@@ -82,7 +82,7 @@ TEST_F( NCPALinearAlgebraComplexSparseVectorTest, DefaultConstructorWorks ) {
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, StdvectorConstructorWorks ) {
-    // details::sparse_vector<test_t> vec2( svd );
+    // sparse_vector<test_t> vec2( svd );
     // vec_std.set( svd );
     EXPECT_EQ( vec_std.size(), vecsize );
     _TEST_ARRAY_EQ_( vecsize, vec_std, svd );
@@ -95,14 +95,14 @@ TEST_F( NCPALinearAlgebraComplexSparseVectorTest,
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, CopyConstructorWorks ) {
-    vec = details::sparse_vector<test_t>( vec_std );
+    vec = sparse_vector<test_t>( vec_std );
     EXPECT_EQ( vec.size(), vecsize );
     _TEST_ARRAY_EQ_( vecsize, vec, svd );
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest,
         CopyConstructorMakesDeepCopy ) {
-    vec = details::sparse_vector<test_t>( vec_std );
+    vec = sparse_vector<test_t>( vec_std );
     vec_std.clear();
     EXPECT_EQ( vec.size(), vecsize );
     _TEST_ARRAY_EQ_( vecsize, vec, svd );
@@ -167,14 +167,14 @@ TEST_F( NCPALinearAlgebraComplexSparseVectorTest, AsStdMatches ) {
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, CloneClones ) {
-    std::unique_ptr<details::abstract_vector<test_t>> vptr = vec_std.clone();
+    std::unique_ptr<abstract_vector<test_t>> vptr = vec_std.clone();
     for ( size_t i = 0; i < vecsize; i++ ) {
         _TEST_EQ_( vptr->get( i ), svd[ i ] );
     }
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, CloneClonesDeep ) {
-    std::unique_ptr<details::abstract_vector<test_t>> vptr = vec_std.clone();
+    std::unique_ptr<abstract_vector<test_t>> vptr = vec_std.clone();
     vec_std.clear();
     for ( size_t i = 0; i < vecsize; i++ ) {
         _TEST_EQ_( vptr->get( i ), svd[ i ] );

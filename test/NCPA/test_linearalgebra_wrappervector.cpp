@@ -30,7 +30,7 @@ class _TEST_TITLE_ : public ::testing::Test {
                      one  = NCPA::math::one<test_t>();
         WrapperVector<test_t> wrapper1, wrapper2;
         Vector<test_t> newvec;
-        details::dense_vector<test_t> v1;
+        dense_vector<test_t> v1;
         size_t vecsize = 5;
 };
 

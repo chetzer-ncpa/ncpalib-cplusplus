@@ -17,8 +17,8 @@ using namespace NCPA::linear;
 #define _TEST_TITLE_    NCPALinearAlgebraLibraryComplexDenseMatrixTest
 
 typedef complex<double> test_t;
-typedef details::dense_matrix<test_t> mat_t;
-typedef details::dense_vector<test_t> vec_t;
+typedef dense_matrix<test_t> mat_t;
+typedef dense_vector<test_t> vec_t;
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:

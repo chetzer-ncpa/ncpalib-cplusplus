@@ -13,6 +13,7 @@
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
 #include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
+#include "NCPA/linearalgebra/symmetric_matrix.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
 
 // factories

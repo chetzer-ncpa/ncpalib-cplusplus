@@ -48,7 +48,7 @@ namespace NCPA {
 
                 Vector() {}
 
-                Vector( std::unique_ptr<details::abstract_vector<ELEMENTTYPE>>
+                Vector( std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                             ptr ) :
                     Vector<ELEMENTTYPE>() {
                     _ptr = std::move( ptr );
@@ -366,7 +366,7 @@ namespace NCPA {
                     return out;
                 }
 
-                virtual details::abstract_vector<ELEMENTTYPE> *internal()
+                virtual abstract_vector<ELEMENTTYPE> *internal()
                     const {
                     return _ptr.get();
                 }
@@ -421,7 +421,7 @@ namespace NCPA {
                 }
 
             private:
-                std::unique_ptr<details::abstract_vector<ELEMENTTYPE>> _ptr;
+                std::unique_ptr<abstract_vector<ELEMENTTYPE>> _ptr;
         };
 
         // NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
@@ -430,7 +430,7 @@ namespace NCPA {
         //     public:
         //         WrapperVector() : Vector<ELEMENTTYPE>(), _ptr { nullptr } {}
 
-        //         WrapperVector( details::abstract_vector<ELEMENTTYPE>& vec ) {
+        //         WrapperVector( abstract_vector<ELEMENTTYPE>& vec ) {
         //             _ptr = &vec;
         //         }
 
@@ -465,7 +465,7 @@ namespace NCPA {
         //             return !( a.equals( b ) );
         //         }
 
-        //         virtual details::abstract_vector<ELEMENTTYPE> *internal()
+        //         virtual abstract_vector<ELEMENTTYPE> *internal()
         //             const override {
         //             return _ptr;
         //         }
@@ -569,7 +569,7 @@ namespace NCPA {
         //         explicit operator bool() const { return ( _ptr != nullptr ); }
 
         //     private:
-        //         details::abstract_vector<ELEMENTTYPE> *_ptr;
+        //         abstract_vector<ELEMENTTYPE> *_ptr;
         // };
     }  // namespace linear
 }  // namespace NCPA

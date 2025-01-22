@@ -29,16 +29,15 @@ namespace NCPA {
 
                 Matrix() {}
 
-                Matrix( std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>>
-                            ptr ) :
+                Matrix( std::unique_ptr<abstract_matrix<ELEMENTTYPE>> ptr ) :
                     Matrix<ELEMENTTYPE>() {
                     _ptr = std::move( ptr );
                 }
 
-                Matrix( const details::abstract_matrix<ELEMENTTYPE>& mat ) :
+                Matrix( const abstract_matrix<ELEMENTTYPE>& mat ) :
                     Matrix<ELEMENTTYPE>() {
-                    _ptr = std::unique_ptr<
-                        details::abstract_matrix<ELEMENTTYPE>>( mat.clone() );
+                    _ptr = std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
+                        mat.clone() );
                 }
 
                 // copy constructor
@@ -70,8 +69,7 @@ namespace NCPA {
                     if ( _ptr ) {
                         _ptr->copy( *other._ptr );
                     } else {
-                        _ptr = std::unique_ptr<
-                            details::abstract_matrix<ELEMENTTYPE>>(
+                        _ptr = std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
                             other._ptr->clone() );
                     }
                     if ( other._lu ) {
@@ -155,6 +153,18 @@ namespace NCPA {
 
                 virtual size_t columns() const {
                     return ( _ptr ? _ptr->columns() : 0 );
+                }
+
+                virtual size_t lower_bandwidth() const {
+                    return ( _ptr ? _ptr->lower_bandwidth() : 0 );
+                }
+
+                virtual size_t upper_bandwidth() const {
+                    return ( _ptr ? _ptr->upper_bandwidth() : 0 );
+                }
+
+                virtual size_t bandwidth() const {
+                    return ( _ptr ? _ptr->bandwidth() : 1 );
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -377,8 +387,7 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row,
-                    const details::abstract_vector<ELEMENTTYPE>& vec ) {
+                    size_t row, const abstract_vector<ELEMENTTYPE>& vec ) {
                     // return set_row( row, vec.as_std() );
                     check_pointer();
                     _ptr->set_row( row, vec );
@@ -487,8 +496,7 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_column(
-                    size_t col,
-                    const details::abstract_vector<ELEMENTTYPE>& vec ) {
+                    size_t col, const abstract_vector<ELEMENTTYPE>& vec ) {
                     return set_column( col, vec.as_std() );
                 }
 
@@ -577,8 +585,7 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& set_diagonal(
-                    const details::abstract_vector<ELEMENTTYPE>& vec,
-                    int offset = 0 ) {
+                    const abstract_vector<ELEMENTTYPE>& vec, int offset = 0 ) {
                     return set_diagonal( vec.as_std(), offset );
                 }
 
@@ -683,8 +690,7 @@ namespace NCPA {
                         = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
                     solver.set_system_matrix( *this );
                     Matrix<ELEMENTTYPE> inv
-                        = MatrixFactory<ELEMENTTYPE>::build(
-                            matrix_t::DENSE );
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     inv.resize( this->rows(), this->columns() );
                     Vector<ELEMENTTYPE> vec
                         = VectorFactory<ELEMENTTYPE>::build(
@@ -777,7 +783,7 @@ namespace NCPA {
                 //     return _wrappers[ ind ];
                 // }
 
-                // virtual const details::abstract_vector<ELEMENTTYPE>&
+                // virtual const abstract_vector<ELEMENTTYPE>&
                 //     operator[]( size_t ind ) const {
                 //     if ( ind >= _ptr->rows() ) {
                 //         std::ostringstream oss;
@@ -984,12 +990,12 @@ namespace NCPA {
                     }
                 }
 
-                const details::abstract_matrix<ELEMENTTYPE>& internal() const {
+                const abstract_matrix<ELEMENTTYPE>& internal() const {
                     return *_ptr;
                 }
 
             private:
-                std::unique_ptr<details::abstract_matrix<ELEMENTTYPE>> _ptr;
+                std::unique_ptr<abstract_matrix<ELEMENTTYPE>> _ptr;
                 // std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
 

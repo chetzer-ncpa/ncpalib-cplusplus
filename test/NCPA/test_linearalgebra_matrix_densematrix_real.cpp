@@ -16,8 +16,8 @@ using namespace std;
 using namespace NCPA::linear;
 
 typedef double test_t;
-typedef details::dense_matrix<test_t> mat_t;
-typedef details::dense_vector<test_t> vec_t;
+typedef dense_matrix<test_t> mat_t;
+typedef dense_vector<test_t> vec_t;
 
 #define _TEST_EQ_       EXPECT_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_DOUBLE_EQ
@@ -56,7 +56,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::dense_matrix<test_t> square, dproduct;
+        dense_matrix<test_t> square, dproduct;
         std::vector<std::vector<test_t>> svd;
 
         Matrix<test_t> wrapper1, wrapper2, product, inverse;

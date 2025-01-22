@@ -16,7 +16,7 @@ using namespace std;
 using namespace NCPA::linear;
 
 typedef complex<double> test_t;
-typedef details::dense_matrix<test_t> mat_t;
+typedef dense_matrix<test_t> mat_t;
 
 #define _TEST_EQ_       EXPECT_COMPLEX_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_COMPLEX_DOUBLE_EQ

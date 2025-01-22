@@ -44,8 +44,8 @@ class _TEST_TITLE_ : public ::testing::Test {
         Matrix<ctest_t> cmat;
         Vector<ctest_t> cinvec, coutvec;
 
-        details::basic_band_diagonal_linear_system_solver<test_t> solver;
-        details::basic_band_diagonal_linear_system_solver<ctest_t> csolver;
+        basic_band_diagonal_linear_system_solver<test_t> solver;
+        basic_band_diagonal_linear_system_solver<ctest_t> csolver;
 };
 
 TEST_F( _TEST_TITLE_, SolverIsRigorouslyCorrect2x2 ) {

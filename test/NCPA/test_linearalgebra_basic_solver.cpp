@@ -36,8 +36,8 @@ class _TEST_TITLE_ : public ::testing::Test {
         Matrix<test_t> dmat, inmat;
         Matrix<ctest_t> cmat, cinmat;
 
-        details::basic_linear_system_solver<test_t> solver;
-        details::basic_linear_system_solver<ctest_t> csolver;
+        basic_linear_system_solver<test_t> solver;
+        basic_linear_system_solver<ctest_t> csolver;
 };
 
 TEST_F( _TEST_TITLE_, SolverIsCorrectForTrivialCase ) {

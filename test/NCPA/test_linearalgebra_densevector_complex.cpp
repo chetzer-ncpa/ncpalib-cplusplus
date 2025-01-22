@@ -29,7 +29,7 @@ class NCPALinearAlgebraComplexDenseVectorTest : public ::testing::Test {
                 { 4.0, 4.0 },
                 { 5.0, 5.0 }
             } );
-            dvec_std = details::dense_vector<test_t>( svd );
+            dvec_std = dense_vector<test_t>( svd );
 
             wrapper1 = Vector<test_t>( dvec_std.clone() );
             vecsize  = 5;
@@ -38,14 +38,14 @@ class NCPALinearAlgebraComplexDenseVectorTest : public ::testing::Test {
         }  // void TearDown() override {}
 
         // declare stuff here
-        details::dense_vector<test_t> dvec_initlist {
+        dense_vector<test_t> dvec_initlist {
             { 1.0, 1.0 },
             { 2.0, 2.0 },
             { 3.0, 3.0 },
             { 4.0, 4.0 },
             { 5.0, 5.0 }
         };
-        details::dense_vector<test_t> dvec_std, dvec_copy, dvec;
+        dense_vector<test_t> dvec_std, dvec_copy, dvec;
         std::vector<test_t> svd;
 
         Vector<test_t> wrapper1, wrapper2;
@@ -74,13 +74,13 @@ TEST_F( NCPALinearAlgebraComplexDenseVectorTest, StdVectorConstructorWorks ) {
 }
 
 TEST_F( NCPALinearAlgebraComplexDenseVectorTest, CopyConstructorWorks ) {
-    dvec = details::dense_vector<test_t>( dvec_std );
+    dvec = dense_vector<test_t>( dvec_std );
     EXPECT_EQ( dvec.size(), vecsize );
     _TEST_ARRAY_EQ_( vecsize, dvec_std, svd );
 }
 
 TEST_F( NCPALinearAlgebraComplexDenseVectorTest, CopyConstructorMakesDeepCopy ) {
-    dvec = details::dense_vector<test_t>( dvec_std );
+    dvec = dense_vector<test_t>( dvec_std );
     dvec_std.clear();
     EXPECT_EQ( dvec.size(), vecsize );
     _TEST_ARRAY_EQ_( vecsize, dvec, svd );
@@ -140,14 +140,14 @@ TEST_F( NCPALinearAlgebraComplexDenseVectorTest, AsStdMatches ) {
 }
 
 TEST_F( NCPALinearAlgebraComplexDenseVectorTest, CloneClones ) {
-    std::unique_ptr<details::abstract_vector<test_t>> vptr = dvec_std.clone();
+    std::unique_ptr<abstract_vector<test_t>> vptr = dvec_std.clone();
     for ( size_t i = 0; i < 5; i++ ) {
         _TEST_EQ_( vptr->get( i ), test_t( i + 1, i + 1 ) );
     }
 }
 
 TEST_F( NCPALinearAlgebraComplexDenseVectorTest, CloneClonesDeep ) {
-    std::unique_ptr<details::abstract_vector<test_t>> vptr = dvec_std.clone();
+    std::unique_ptr<abstract_vector<test_t>> vptr = dvec_std.clone();
     dvec_std.clear();
     for ( size_t i = 0; i < 5; i++ ) {
         _TEST_EQ_( vptr->get( i ), test_t( i + 1, i + 1 ) );
