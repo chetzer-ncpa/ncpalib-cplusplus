@@ -19,9 +19,6 @@
 #include <sstream>
 #include <vector>
 
-#define RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS \
-    return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::symmetric_matrix,
                                              ELEMENTTYPE );
 
@@ -120,7 +117,7 @@ namespace NCPA {
                         ndiag++;
                         diag = other.get_diagonal( ndiag );
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 const symmetric_matrix<ELEMENTTYPE> *downcast(
@@ -148,7 +145,7 @@ namespace NCPA {
                     _ncols     = 0;
                     _n_offdiag = 0;
                     contents().clear();
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -197,7 +194,7 @@ namespace NCPA {
                                 "set subdiagonals of symmetric_matrix" );
                         }
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_row(
@@ -214,7 +211,7 @@ namespace NCPA {
                     for (size_t col = row; col < std::min( this->columns(), row + _n_offdiag + 1); col++) {
                         this->set( row, col, val );
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
@@ -240,7 +237,7 @@ namespace NCPA {
                                 "symmetric_matrix" );
                         }
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
@@ -249,7 +246,7 @@ namespace NCPA {
                     for (int row = icol; row >= std::max( icol - (int)_n_offdiag, 0 ); row--) {
                         this->set( row, col, val );
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& as_array(
@@ -288,7 +285,7 @@ namespace NCPA {
                             }
                         }
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 // @todo make read-write vector view for columns
@@ -361,7 +358,7 @@ namespace NCPA {
                         _ncols = c;
                     }
 
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
@@ -372,7 +369,7 @@ namespace NCPA {
                         this->_add_offdiagonal();
                     }
                     contents().at( ind1 ).at( ind2 ) = val;
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_safe(
@@ -388,7 +385,7 @@ namespace NCPA {
                         throw std::out_of_range( oss.str() );
                     }
 
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
@@ -398,11 +395,11 @@ namespace NCPA {
                         contents()[ i ].assign( diag.begin(), diag.end() );
                         diag[ this->rows() - i - 1 ] = _zero;
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& transpose() override {
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 // virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
@@ -427,7 +424,7 @@ namespace NCPA {
                     contents().clear();
                     contents().push_back(
                         std::vector<ELEMENTTYPE>( this->diagonal_size() ) );
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -527,7 +524,7 @@ namespace NCPA {
                     contents()[ 0 ] = NCPA::math::add_vectors(
                         contents()[ 0 ], NCPA::math::scale_vector(
                                             b->contents()[ 0 ], modifier ) );
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& add(
@@ -538,7 +535,7 @@ namespace NCPA {
                             contents()[ ind1 ][ ind2 ] += b;
                         }
                     }
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual bool is_this_subclass(
@@ -670,7 +667,7 @@ namespace NCPA {
                 //             }
                 //         }
                 //     }
-                //     RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                //     RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 // }
 
                 // virtual abstract_matrix<ELEMENTTYPE>& scale(
@@ -683,7 +680,7 @@ namespace NCPA {
                 //             *it2 *= val;
                 //         }
                 //     }
-                //     RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                //     RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 // }
 
                 virtual abstract_matrix<ELEMENTTYPE>& identity(
@@ -696,7 +693,7 @@ namespace NCPA {
                         this->diagonal_size( 0 ),
                         NCPA::math::one<ELEMENTTYPE>() );
                     contents().push_back( diag );
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
@@ -716,7 +713,7 @@ namespace NCPA {
                         contents()[ offset ][ i ] = vals[ i ];
                     }
 
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -836,7 +833,7 @@ namespace NCPA {
                     }
                     contents()  = newcontents;
                     _n_offdiag = new_n_offdiag;
-                    RETURN_SYMMETRIC_MATRIX_AS_BASE_CLASS;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
                 }
         };
 

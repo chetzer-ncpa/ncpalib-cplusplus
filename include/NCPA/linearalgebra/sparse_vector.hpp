@@ -33,7 +33,9 @@ namespace NCPA {
                 }
 
                 sparse_vector( size_t n ) : sparse_vector<ELEMENTTYPE>() {
-                    resize( n );
+                    if ( n > 0 ) {
+                        resize( n );
+                    }
                 }
 
                 sparse_vector( const std::initializer_list<ELEMENTTYPE>& v ) :

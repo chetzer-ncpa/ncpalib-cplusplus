@@ -16,6 +16,8 @@
 #include <sstream>
 #include <vector>
 
+
+
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::abstract_matrix,
                                              ELEMENTTYPE );
 

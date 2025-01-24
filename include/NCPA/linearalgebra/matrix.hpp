@@ -123,6 +123,10 @@ namespace NCPA {
                     return ( _ptr ? _ptr->is_identity() : true );
                 }
 
+                virtual bool is_symmetric() const {
+                    return ( _ptr ? _ptr->is_symmetric() : true );
+                }
+
                 virtual bool is_diagonal() const {
                     return ( _ptr ? _ptr->is_diagonal() : true );
                 }

@@ -7,9 +7,24 @@ namespace NCPA {
 
         // main recommended API
         enum class vector_t { INVALID, DENSE, SPARSE };
-        enum class matrix_t { INVALID, DENSE, BAND_DIAGONAL, TRIDIAGONAL, SYMMETRIC };
+        enum class matrix_t {
+            INVALID,
+            DENSE,
+            BAND_DIAGONAL,
+            // TRIDIAGONAL,
+            SYMMETRIC
+        };
         enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
+        enum class matrix_polynomial_algorithm_t {
+            INVALID,
+            MULTIPLY,
+            SYMMETRIC,
+            SYMMETRIC_REFLECTED,
+            FINITE_DIFFERENCE,
+            FINITE_DIFFERENCE_REFLECTED
+        };
 
+        // main public-facing classes
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
@@ -40,10 +55,10 @@ namespace NCPA {
                                                      abstract_matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( band_diagonal_matrix,
                                                      abstract_matrix );
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( tridiagonal_matrix,
-                                                     band_diagonal_matrix );
+        // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( tridiagonal_matrix,
+        //                                              band_diagonal_matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( symmetric_matrix,
-                                                     band_diagonal_matrix );                                    
+                                                     band_diagonal_matrix );
 
         // solvers
         template<typename ELEMENTTYPE>

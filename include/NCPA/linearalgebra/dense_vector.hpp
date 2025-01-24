@@ -33,7 +33,9 @@ namespace NCPA {
                 }
 
                 dense_vector( size_t n ) : dense_vector<ELEMENTTYPE>() {
-                    resize( n );
+                    if ( n > 0 ) {
+                        resize( n );
+                    }
                 }
 
                 dense_vector( const std::initializer_list<ELEMENTTYPE>& v ) :

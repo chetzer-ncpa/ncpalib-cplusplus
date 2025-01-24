@@ -16,6 +16,7 @@ test_linearalgebra_densematrix.cpp \
 test_linearalgebra_densematrix_complex.cpp \
 test_linearalgebra_banddiagonalmatrix.cpp \
 test_linearalgebra_banddiagonalmatrix_complex.cpp \
+test_linearalgebra_symmetricmatrix.cpp \
 test_linearalgebra_matrix_densematrix_real.cpp \
 test_linearalgebra_matrix_densematrix_complex.cpp \
 test_linearalgebra_matrix_bdmatrix_complex.cpp \
