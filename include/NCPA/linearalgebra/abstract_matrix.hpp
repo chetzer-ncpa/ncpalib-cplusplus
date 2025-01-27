@@ -96,12 +96,9 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& b ) const
                     = 0;
 
-                // virtual abstract_matrix<ELEMENTTYPE>* upcast() {
-                //     return static_cast<abstract_matrix<ELEMENTTYPE>*>(
-                //     this );
-                // }
-
-
+                virtual abstract_matrix<ELEMENTTYPE>& finalize() { return *this; }
+                virtual bool is_finalized() const { return true; }
+                
                 virtual bool equals(
                     const abstract_matrix<ELEMENTTYPE>& other ) const {
                     if ( rows() != other.rows() ) {
