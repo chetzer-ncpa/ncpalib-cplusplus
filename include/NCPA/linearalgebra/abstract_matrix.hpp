@@ -120,7 +120,7 @@ namespace NCPA {
                 }
 
                 virtual bool is_empty() const {
-                    return ( rows() == 0 && columns() == 0 );
+                    return ( rows() == 0 || columns() == 0 );
                 }
 
                 virtual bool is_square() const {

@@ -38,6 +38,11 @@ namespace NCPA {
                     }
                 }
 
+                dense_vector( size_t n, const ELEMENTTYPE *vals ) :
+                    dense_vector<ELEMENTTYPE>() {
+                    set( n, vals );
+                }
+
                 dense_vector( const std::initializer_list<ELEMENTTYPE>& v ) :
                     dense_vector<ELEMENTTYPE>() {
                     set( std::vector<ELEMENTTYPE>( v ) );
@@ -317,7 +322,7 @@ namespace NCPA {
                     }
                 }
 
-            private:
+            protected:
                 std::vector<ELEMENTTYPE> _elements;
                 const ELEMENTTYPE _zero = 0;
         };
