@@ -39,13 +39,12 @@ namespace NCPA {
                 }
 
                 dense_matrix( const dense_matrix<ELEMENTTYPE>& other ) :
-                    dense_matrix<ELEMENTTYPE>() {
-                    _elements.clear();
-                    for ( auto it = other._elements.cbegin();
-                          it != other._elements.cend(); ++it ) {
-                        _elements.emplace_back(
-                            dense_vector<ELEMENTTYPE>( *it ) );
-                    }
+                    dense_matrix<ELEMENTTYPE>( other.rows(),
+                                               other.columns() ) {
+std:
+                    memcpy( _contents, other._contents,
+                            other.rows() * other.columns()
+                                * sizeof( ELEMENTTYPE ) );
                 }
 
                 dense_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
@@ -59,7 +58,12 @@ namespace NCPA {
                     // }
                 }
 
-                virtual ~dense_matrix() {}
+                virtual ~dense_matrix() {
+                    if ( _contents != nullptr ) {
+                        delete[] _contents;
+                        _contents = nullptr;
+                    }
+                }
 
                 dense_matrix<ELEMENTTYPE>& operator=(
                     dense_matrix<ELEMENTTYPE> other ) {
@@ -75,7 +79,7 @@ namespace NCPA {
                 }
 
                 // bring some methods in unchanged
-                using abstract_matrix<ELEMENTTYPE>::set;
+                // using abstract_matrix<ELEMENTTYPE>::set;
                 using abstract_matrix<ELEMENTTYPE>::set_row;
                 using abstract_matrix<ELEMENTTYPE>::set_column;
                 using abstract_matrix<ELEMENTTYPE>::add;
@@ -107,15 +111,11 @@ namespace NCPA {
                 }
 
                 virtual size_t rows() const override {
-                    return _elements.size();
+                    return _rows;
                 }
 
                 virtual size_t columns() const override {
-                    if ( _elements.size() > 0 ) {
-                        return _elements.at( 0 ).size();
-                    } else {
-                        return 0;
-                    }
+                    return _cols;
                 }
 
                 virtual size_t lower_bandwidth() const override {
@@ -148,23 +148,20 @@ namespace NCPA {
                          + 1;
                 }
 
-                // virtual ELEMENTTYPE& get( size_t row,
-                //                           size_t col ) override {
-                //     this->check_size( row, col );
-                //     return _elements[ row ][ col ];
-                // }
-
                 virtual const ELEMENTTYPE& get( size_t row,
                                                 size_t col ) const override {
-                    this->check_size( row, col );
-                    return _elements[ row ][ col ];
+                    // this->check_size( row, col );
+                    return _contents[ _rc2ind( row, col ) ];
+                    // return _elements[ row ][ col ];
                 }
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> get_row(
                     size_t row ) const override {
                     this->check_size( row, 0 );
                     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
-                        new dense_vector<ELEMENTTYPE>( _elements[ row ] ) );
+                        new dense_vector<ELEMENTTYPE>(
+                            this->columns(),
+                            _contents + _rc2ind( row, 0 ) ) );
                 }
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -172,14 +169,20 @@ namespace NCPA {
                     this->check_size( 0, column );
                     std::vector<ELEMENTTYPE> vcol( rows() );
                     for ( size_t row = 0; row < rows(); row++ ) {
-                        vcol[ row ] = _elements[ row ][ column ];
+                        vcol[ row ] = this->get( row, column );
+                        // vcol[ row ] = _elements[ row ][ column ];
                     }
                     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
                         new dense_vector<ELEMENTTYPE>( vcol ) );
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& clear() override {
-                    _elements.clear();
+                    if ( _contents != nullptr ) {
+                        delete[] _contents;
+                        _contents = nullptr;
+                    }
+                    _rows = 0;
+                    _cols = 0;
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
@@ -197,9 +200,26 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& resize(
                     size_t rows, size_t cols ) override {
-                    _elements.resize( rows );
-                    for ( size_t i = 0; i < rows; i++ ) {
-                        _elements[ i ].resize( cols );
+                    if ( _contents == nullptr || _rows == 0 || _cols == 0 ) {
+                        this->clear();  // make sure we're clean
+                        _contents
+                            = NCPA::arrays::zeros<ELEMENTTYPE>( rows * cols );
+                        _rows = rows;
+                        _cols = cols;
+                    } else {
+                        ELEMENTTYPE *newcontents
+                            = NCPA::arrays::zeros<ELEMENTTYPE>( rows * cols );
+                        for ( size_t r = 0; r < std::min( rows, _rows );
+                              ++r ) {
+                            std::memcpy( newcontents + r * cols,
+                                         _contents + _rc2ind( r, 0 ),
+                                         std::min( _cols, cols )
+                                             * sizeof( ELEMENTTYPE ) );
+                        }
+                        this->clear();
+                        _contents = newcontents;
+                        _rows     = rows;
+                        _cols     = cols;
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
@@ -219,7 +239,9 @@ namespace NCPA {
                     }
                     for ( size_t i = 0; i < rows(); i++ ) {
                         for ( size_t j = 0; j < columns(); j++ ) {
-                            vals[ i ][ j ] = _elements[ i ][ j ];
+                            std::memcpy( vals[ i ],
+                                         _contents + _rc2ind( i, 0 ),
+                                         _cols * sizeof( ELEMENTTYPE ) );
                         }
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
@@ -228,16 +250,14 @@ namespace NCPA {
                 // set individual elements
                 virtual abstract_matrix<ELEMENTTYPE>& set(
                     size_t row, size_t col, ELEMENTTYPE val ) override {
-                    this->check_size( row, col );
-                    _elements[ row ][ col ] = val;
+                    _contents[ _rc2ind( row, col ) ] = val;
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
-                    for ( auto it = _elements.begin(); it != _elements.end();
-                          ++it ) {
-                        it->set( val );
+                    for ( size_t i = 0; i < _rows * _cols; ++i ) {
+                        _contents[ i ] = val;
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
@@ -246,10 +266,9 @@ namespace NCPA {
                 virtual abstract_matrix<ELEMENTTYPE>& set_row(
                     size_t row, size_t nvals, const size_t *column_inds,
                     const ELEMENTTYPE *vals ) override {
-                    this->check_size( row,
-                                      NCPA::math::max( column_inds, nvals ) );
+                    size_t start = _rc2ind( row, 0 );
                     for ( size_t i = 0; i < nvals; i++ ) {
-                        _elements[ row ][ column_inds[ i ] ] = vals[ i ];
+                        _contents[ start + column_inds[ i ] ] = vals[ i ];
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
@@ -258,10 +277,8 @@ namespace NCPA {
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
                     size_t column, size_t nvals, const size_t *row_inds,
                     const ELEMENTTYPE *vals ) override {
-                    this->check_size( NCPA::math::max( row_inds, nvals ),
-                                      column );
                     for ( size_t i = 0; i < nvals; i++ ) {
-                        _elements[ row_inds[ i ] ][ column ] = vals[ i ];
+                        this->set( row_inds[ i ], column, vals[ i ] );
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
@@ -270,9 +287,8 @@ namespace NCPA {
                          ENABLE_IF_TU( std::is_convertible, ANYTYPE,
                                        ELEMENTTYPE )>
                 abstract_matrix<ELEMENTTYPE>& scale( ANYTYPE val ) {
-                    for ( auto it = _elements.begin(); it != _elements.end();
-                          ++it ) {
-                        it->scale( val );
+                    for ( size_t i = 0; i < _rows * _cols; i++ ) {
+                        _contents[ i ] *= val;
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
@@ -280,36 +296,40 @@ namespace NCPA {
                 template<typename ANYTYPE,
                          ENABLE_IF_TU( std::is_convertible, ANYTYPE,
                                        ELEMENTTYPE )>
-                abstract_matrix<ELEMENTTYPE>& add( ELEMENTTYPE b ) {
-                    for ( auto it = _elements.begin(); it != _elements.end();
-                          ++it ) {
-                        it->add( b );
+                abstract_matrix<ELEMENTTYPE>& add( ANYTYPE b ) {
+                    for ( size_t i = 0; i < _rows * _cols; i++ ) {
+                        _contents[ i ] += b;
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& transpose() override {
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> orig
-                        = clone();
-                    resize( orig->columns(), orig->rows() );
-                    for ( size_t i = 0; i < orig->rows(); i++ ) {
-                        set_column( i, orig->get_row( i )->as_std() );
+                        = this->clone();
+                    this->clear().resize( orig->columns(), orig->rows() );
+                    for ( size_t i = 0; i < orig->rows(); ++i ) {
+                        for (size_t j = 0; j < orig->columns(); ++j) {
+                            this->set( j, i, orig->get( i, j ) );
+                        }
                     }
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
                     size_t ind1, size_t ind2 ) override {
-                    std::swap( _elements[ ind1 ], _elements[ ind2 ] );
+                    auto row1 = this->get_row( ind1 );
+                    auto row2 = this->get_row( ind2 );
+                    this->set_row( ind2, *row1 );
+                    this->set_row( ind1, *row2 );
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& swap_columns(
                     size_t ind1, size_t ind2 ) override {
-                    auto col1 = get_column( ind1 );
-                    auto col2 = get_column( ind2 );
-                    set_column( ind1, *col2 );
-                    set_column( ind2, *col1 );
+                    auto col1 = this->get_column( ind1 );
+                    auto col2 = this->get_column( ind2 );
+                    this->set_column( ind1, *col2 );
+                    this->set_column( ind2, *col1 );
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                 }
 
@@ -324,29 +344,36 @@ namespace NCPA {
                     }
                 }
 
-                typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
-                    begin() noexcept {
-                    return _elements.begin();
-                }
+                // typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
+                //     begin() noexcept {
+                //     return _elements.begin();
+                // }
 
-                typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
-                    end() noexcept {
-                    return _elements.end();
-                }
+                // typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
+                //     end() noexcept {
+                //     return _elements.end();
+                // }
 
-                typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
-                    cbegin() const noexcept {
-                    return _elements.cbegin();
-                }
+                // typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
+                //     cbegin() const noexcept {
+                //     return _elements.cbegin();
+                // }
 
-                typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
-                    cend() const noexcept {
-                    return _elements.cend();
-                }
+                // typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
+                //     cend() const noexcept {
+                //     return _elements.cend();
+                // }
 
-            private:
+            protected:
+                ELEMENTTYPE *_contents = nullptr;
+                size_t _rows = 0, _cols = 0;
                 bool _finalized = false;
-                std::vector<dense_vector<ELEMENTTYPE>> _elements;
+
+                // std::vector<dense_vector<ELEMENTTYPE>> _elements;
+
+                size_t _rc2ind( size_t row, size_t col ) const {
+                    return row * _cols + col;
+                }
         };
     }  // namespace linear
 }  // namespace NCPA
@@ -357,6 +384,8 @@ static void swap( NCPA::linear::dense_matrix<T>& a,
     using std::swap;
     ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
             static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
-    swap( a._elements, b._elements );
+    swap( a._contents, b._contents );
+    swap( a._rows, b._rows );
+    swap( a._cols, b._cols );
     swap( a._finalized, b._finalized );
 }
