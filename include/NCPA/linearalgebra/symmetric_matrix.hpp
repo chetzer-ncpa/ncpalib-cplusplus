@@ -41,7 +41,7 @@ namespace NCPA {
                     ELEMENTTYPE>;
 
                 symmetric_matrix( size_t nrows, size_t ncols,
-                                  size_t n_offdiags ) {
+                                  size_t n_offdiags, bool is_finite_difference ) {
                     if ( nrows != ncols ) {
                         throw std::invalid_argument(
                             "Symmetric matrix must be square!" );
@@ -49,21 +49,26 @@ namespace NCPA {
                     _nrows     = nrows;
                     _ncols     = ncols;
                     _n_offdiag = n_offdiags;
+                    _finite_difference = is_finite_difference;
                     _prep_diagonals();
                 }
 
+                symmetric_matrix( size_t nrows, size_t ncols, bool is_finite_difference ) :
+                    symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0, is_finite_difference ) {}
+
                 symmetric_matrix( size_t nrows, size_t ncols ) :
-                    symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0 ) {}
+                    symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0, false ) {}
 
                 symmetric_matrix() :
-                    symmetric_matrix<ELEMENTTYPE>( 0, 0, 0 ) {}
+                    symmetric_matrix<ELEMENTTYPE>( 0, 0, 0, false ) {}
 
                 symmetric_matrix(
                     const symmetric_matrix<ELEMENTTYPE>& other ) :
                     symmetric_matrix<ELEMENTTYPE>( other.rows(),
                                                    other.columns() ) {
                     _n_offdiag = other._n_offdiag;
-                    contents()  = other.contents();
+                    contents() = other.contents();
+                    _finite_difference = other._finite_difference;
                 }
 
                 symmetric_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
@@ -74,7 +79,6 @@ namespace NCPA {
                 symmetric_matrix(
                     symmetric_matrix<ELEMENTTYPE>&& source ) noexcept :
                     symmetric_matrix<ELEMENTTYPE>() {
-                    std::cout << "Moving" << std::endl;
                     ::swap( *this, source );
                 }
 
@@ -117,7 +121,8 @@ namespace NCPA {
                         ndiag++;
                         diag = other.get_diagonal( ndiag );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 const symmetric_matrix<ELEMENTTYPE> *downcast(
@@ -145,7 +150,8 @@ namespace NCPA {
                     _ncols     = 0;
                     _n_offdiag = 0;
                     contents().clear();
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -167,8 +173,6 @@ namespace NCPA {
                     }
                     ind1 = (int)col - (int)row;
                     ind2 = (int)row;
-                    // std::cout << "[" << row << "," << col << "] -> [" <<
-                    // ind1 << "," << ind2 << "]" << std::endl;
                     return ( ind1 >= 0 && ind1 < (int)( contents().size() )
                              && row < this->rows() && col < this->columns() );
                 }
@@ -194,7 +198,8 @@ namespace NCPA {
                                 "set subdiagonals of symmetric_matrix" );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_row(
@@ -208,10 +213,14 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_row(
                     size_t row, ELEMENTTYPE val ) override {
-                    for (size_t col = row; col < std::min( this->columns(), row + _n_offdiag + 1); col++) {
+                    for ( size_t col = row;
+                          col
+                          < std::min( this->columns(), row + _n_offdiag + 1 );
+                          col++ ) {
                         this->set( row, col, val );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
@@ -227,7 +236,6 @@ namespace NCPA {
                     size_t column, size_t nvals, const size_t *row_inds,
                     const ELEMENTTYPE *vals ) override {
                     for ( size_t i = 0; i < nvals; i++ ) {
-                        // std::cout << "Trying to set [" << row_inds[i] << "," << column << "]" << std::endl;
                         if ( column >= row_inds[ i ] ) {
                             this->set_safe( row_inds[ i ], column, vals[ i ] );
                         } else {
@@ -237,16 +245,20 @@ namespace NCPA {
                                 "symmetric_matrix" );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
                     size_t col, ELEMENTTYPE val ) override {
                     int icol = (int)col;
-                    for (int row = icol; row >= std::max( icol - (int)_n_offdiag, 0 ); row--) {
+                    for ( int row = icol;
+                          row >= std::max( icol - (int)_n_offdiag, 0 );
+                          row-- ) {
                         this->set( row, col, val );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& as_array(
@@ -277,7 +289,8 @@ namespace NCPA {
                         for ( size_t ind2 = 0; ind2 < _max_ind2( ind1 );
                               ind2++ ) {
                             if ( internal2rowcol( ind1, ind2, row, col ) ) {
-                                vals[ row ][ col ] = contents()[ ind1 ][ ind2 ];
+                                vals[ row ][ col ]
+                                    = contents()[ ind1 ][ ind2 ];
                                 if ( row != col ) {
                                     vals[ col ][ row ]
                                         = contents()[ ind1 ][ ind2 ];
@@ -285,13 +298,13 @@ namespace NCPA {
                             }
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 // @todo make read-write vector view for columns
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> get_row(
                     size_t row ) const override {
-                    // std::cout << "row = " << row << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> v(
                         new sparse_vector<ELEMENTTYPE>( this->columns() ) );
                     int ind1, ind2;
@@ -309,7 +322,6 @@ namespace NCPA {
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                     get_column( size_t col ) const override {
-                    // std::cout << "row = " << row << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> v(
                         new sparse_vector<ELEMENTTYPE>( this->rows() ) );
                     int ind1, ind2;
@@ -358,7 +370,8 @@ namespace NCPA {
                         _ncols = c;
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
@@ -369,7 +382,8 @@ namespace NCPA {
                         this->_add_offdiagonal();
                     }
                     contents().at( ind1 ).at( ind2 ) = val;
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_safe(
@@ -385,7 +399,8 @@ namespace NCPA {
                         throw std::out_of_range( oss.str() );
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set(
@@ -395,11 +410,13 @@ namespace NCPA {
                         contents()[ i ].assign( diag.begin(), diag.end() );
                         diag[ this->rows() - i - 1 ] = _zero;
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& transpose() override {
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 // virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
@@ -424,7 +441,8 @@ namespace NCPA {
                     contents().clear();
                     contents().push_back(
                         std::vector<ELEMENTTYPE>( this->diagonal_size() ) );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -509,12 +527,12 @@ namespace NCPA {
                     for ( size_t ind1 = 0; ind1 < both; ind1++ ) {
                         contents()[ ind1 + 1 ] = NCPA::math::add_vectors(
                             contents()[ ind1 + 1 ],
-                            NCPA::math::scale_vector( b->contents()[ ind1 + 1 ],
-                                                      modifier ) );
+                            NCPA::math::scale_vector(
+                                b->contents()[ ind1 + 1 ], modifier ) );
                     }
                     contents().insert( contents().end(),
-                                      b->contents().end() - add_on,
-                                      b->contents().end() );
+                                       b->contents().end() - add_on,
+                                       b->contents().end() );
                     _n_offdiag += add_on;
                     for ( size_t ind1 = _n_offdiag - add_on;
                           ind1 < contents().size(); ind1++ ) {
@@ -523,8 +541,9 @@ namespace NCPA {
                     }
                     contents()[ 0 ] = NCPA::math::add_vectors(
                         contents()[ 0 ], NCPA::math::scale_vector(
-                                            b->contents()[ 0 ], modifier ) );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                                             b->contents()[ 0 ], modifier ) );
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& add(
@@ -535,7 +554,8 @@ namespace NCPA {
                             contents()[ ind1 ][ ind2 ] += b;
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual bool is_this_subclass(
@@ -550,138 +570,57 @@ namespace NCPA {
                 }
 
                 using band_diagonal_matrix<ELEMENTTYPE>::right_multiply;
-                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
-                //     right_multiply( const abstract_vector<ELEMENTTYPE>& x )
-                //         const override {
-                //     if ( columns() != x.size() ) {
-                //         std::ostringstream oss;
-                //         oss << "Size mismatch in matrix-vector "
-                //                "multiplication: "
-                //             << columns() << " columns in matrix vs "
-                //             << x.size() << " elements in vector";
-                //         throw std::invalid_argument( oss.str() );
-                //     }
-                //     std::unique_ptr<abstract_vector<ELEMENTTYPE>> b(
-                //         new dense_vector<ELEMENTTYPE>( rows() ) );
-                //     int n = (int)rows();
-                //     for ( int i = 0; i < n; i++ ) {
-                //         int minloop = std::max( 0, i - (int)this->lower_bandwidth() ),
-                //             maxloop = std::min( i + (int)this->upper_bandwidth() + 1, (int)this->columns() );
-                //         ELEMENTTYPE bval = _zero;
-                //         for (int k = minloop; k < maxloop; k++) {
-                //             bval += this->get( i, k ) * x.get( k );
-                //         }
-                //         b->set( i, bval );
-                //     }
-                //         // int k            = i;
-                //         // int tmploop      = std::min( bw, n - k );
-                //         // std::cout << "i = " << i << ", tmploop = " << tmploop << ", looping j in [" << std::max(0,-k)<< std::endl;
-                //         // ELEMENTTYPE bval = _zero;
-
-                //         // for ( int j = std::max( 0, -k ); j < tmploop; j++ ) {
-                //         //     std::cout << "Getting contents()[" << j << "," << i << "] and x[" << j+k << "]" << std::endl;
-                //         //     bval += contents()[ j ][ i ] * x.get( j + k );
-                //         // }
-                //         // b->set( i, bval );
-                //     // }
-                //     return b;
-                // }
-
                 using band_diagonal_matrix<ELEMENTTYPE>::left_multiply;
-                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
-                //     left_multiply( const abstract_vector<ELEMENTTYPE>& x )
-                //         const override {
-                //     if ( this->rows() != x.size() ) {
-                //         std::ostringstream oss;
-                //         oss << "Size mismatch in vector-matrix "
-                //                "multiplication: "
-                //             << x.size() << " elements in vector vs "
-                //             << columns() << " rows in matrix";
-                //         throw std::invalid_argument( oss.str() );
-                //     }
-                //     std::unique_ptr<abstract_vector<ELEMENTTYPE>> b(
-                //         new dense_vector<ELEMENTTYPE>( this->columns() ) );
-                //     int n = (int)columns();
-                //     for ( int i = 0; i < n; i++ ) {
-                //         int minloop = std::max( i - (int)_n_offdiag, 0 ),
-                //             maxloop = std::min( i + (int)_n_offdiag + 1, (int)this->rows() );
-                //         ELEMENTTYPE bval = _zero;
-                //         for ( int k = minloop; k < maxloop; k++) {
-                //             bval += x.get( k ) * this->get( k, i );
-                //         }
-                //         b->set( i, bval );
-                //     }
-                //     return b;
-                // }
 
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> multiply(
                     const abstract_matrix<ELEMENTTYPE>& other )
                     const override {
                     if ( !is_this_subclass( other ) ) {
-                        return abstract_matrix<ELEMENTTYPE>::multiply( other );
+                        return band_diagonal_matrix<ELEMENTTYPE>::multiply(
+                            other );
                     }
                     const symmetric_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
-                    // size_t new_n_lower = this->_n_lower + b->_n_lower,
-                    //        new_n_upper = this->_n_upper + b->_n_upper;
                     size_t new_n_offdiag = this->_n_offdiag + b->_n_offdiag;
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> product(
                         new symmetric_matrix<ELEMENTTYPE>(
                             this->rows(), b->columns(), new_n_offdiag ) );
-                    int prows = (int)( product->rows() );
-                    int pcols = (int)( product->columns() );
+                    int prows      = (int)( product->rows() );
+                    int pcols      = (int)( product->columns() );
+                    // size_t counter = 0;
                     for ( int r = 0; r < prows; r++ ) {
                         for ( int c = r;
                               c < std::min( (int)( product->columns() ),
                                             r + (int)new_n_offdiag + 1 );
                               c++ ) {
-                            ELEMENTTYPE val = _zero;
-                            int kmin        = std::max(
-                                std::max( 0, r - (int)_n_offdiag ),
-                                std::max( 0, c - (int)( b->_n_offdiag ) ) );
-                            int kmax = std::min(
-                                std::min( (int)columns(),
-                                          r + (int)_n_offdiag + 1 ),
-                                std::min( (int)( b->rows() ),
-                                          c + (int)( b->_n_offdiag ) + 1 ) );
-                            for ( int k = kmin; k < kmax; k++ ) {
-                                val += this->get( r, k ) * b->get( k, c );
+                            ELEMENTTYPE val;
+                            if ( _finite_difference
+                                 && ( (c - r) == new_n_offdiag ) ) {
+                                val = _one;
+                            } else {
+                                val     = _zero;
+                                int kmin = std::max(
+                                    std::max( 0, r - (int)_n_offdiag ),
+                                    std::max( 0,
+                                              c - (int)( b->_n_offdiag ) ) );
+                                int kmax = std::min(
+                                    std::min( (int)columns(),
+                                              r + (int)_n_offdiag + 1 ),
+                                    std::min( (int)( b->rows() ),
+                                              c + (int)( b->_n_offdiag )
+                                                  + 1 ) );
+                                for ( int k = kmin; k < kmax; k++ ) {
+                                    val += this->get( r, k ) * b->get( k, c );
+                                    // counter++;
+                                }
                             }
                             product->set( (size_t)r, (size_t)c, val );
                         }
                     }
+                    // std::cout << counter << " multiplications" << std::endl;
                     return product;
                 }
-
-                // virtual abstract_matrix<ELEMENTTYPE>& scale(
-                //     const abstract_matrix<ELEMENTTYPE>& b ) override {
-                //     this->check_size( b );
-                //     int r, c;
-                //     for ( size_t ind1 = 0; ind1 < contents().size(); ind1++ )
-                //     {
-                //         for ( size_t ind2 = _min_ind2( ind1 );
-                //               ind2 < _max_ind2( ind1 ); ind2++ ) {
-                //             if ( internal2rowcol( ind1, ind2, r, c ) ) {
-                //                 contents()[ ind1 ][ ind2 ] *= b.get( r, c );
-                //             }
-                //         }
-                //     }
-                //     RETURN_THIS_AS_ABSTRACT_MATRIX;;
-                // }
-
-                // virtual abstract_matrix<ELEMENTTYPE>& scale(
-                //     ELEMENTTYPE val ) override {
-                //     for ( auto it1 = contents().begin(); it1 !=
-                //     contents().end();
-                //           ++it1 ) {
-                //         for ( auto it2 = it1->begin(); it2 != it1->end();
-                //               ++it2 ) {
-                //             *it2 *= val;
-                //         }
-                //     }
-                //     RETURN_THIS_AS_ABSTRACT_MATRIX;;
-                // }
 
                 virtual abstract_matrix<ELEMENTTYPE>& identity(
                     size_t nrows, size_t ncols ) override {
@@ -693,7 +632,8 @@ namespace NCPA {
                         this->diagonal_size( 0 ),
                         NCPA::math::one<ELEMENTTYPE>() );
                     contents().push_back( diag );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
@@ -713,7 +653,8 @@ namespace NCPA {
                         contents()[ offset ][ i ] = vals[ i ];
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -768,9 +709,10 @@ namespace NCPA {
 
             protected:
                 size_t _nrows, _ncols, _n_offdiag;
-                // std::vector<std::vector<ELEMENTTYPE>> _contents;
+                bool _finite_difference;
 
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
+                const ELEMENTTYPE _one  = NCPA::math::one<ELEMENTTYPE>();
 
                 void _prep_diagonals() {
                     contents().clear();
@@ -781,22 +723,11 @@ namespace NCPA {
                     }
                 }
 
-                // void _add_subdiagonal() {
-                //     std::vector<ELEMENTTYPE> diag( this->diagonal_size( 0 )
-                //     ); contents().insert( contents().cbegin(), diag );
-                //     _n_lower++;
-                // }
-
                 void _add_offdiagonal() {
                     std::vector<ELEMENTTYPE> diag( this->diagonal_size( 0 ) );
                     contents().push_back( diag );
                     _n_offdiag++;
                 }
-
-                // size_t _min_ind2( size_t ind1 ) const {
-                //     return (size_t)std::max( (int)_n_offdiag - (int)ind1, 0
-                //     );
-                // }
 
                 size_t _max_ind2( size_t ind1 ) const {
                     return (size_t)std::min(
@@ -815,7 +746,7 @@ namespace NCPA {
                     // diagonals first
                     newcontents[ 0 ] = NCPA::math::add_vectors(
                         contents()[ 0 ], NCPA::math::scale_vector(
-                                            b.contents()[ 0 ], modifier ) );
+                                             b.contents()[ 0 ], modifier ) );
 
                     // superdiagonals
                     for ( size_t n = 1; n < new_n_offdiag; n++ ) {
@@ -831,9 +762,10 @@ namespace NCPA {
                                 b.contents()[ n ], modifier );
                         }
                     }
-                    contents()  = newcontents;
+                    contents() = newcontents;
                     _n_offdiag = new_n_offdiag;
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;;
+                    RETURN_THIS_AS_ABSTRACT_MATRIX;
+                    ;
                 }
         };
 
@@ -850,4 +782,5 @@ static void swap( NCPA::linear::symmetric_matrix<T>& a,
     swap( a._ncols, b._ncols );
     swap( a._n_offdiag, b._n_offdiag );
     swap( a.contents(), b.contents() );
+    swap( a._finite_difference, b._finite_difference );
 }

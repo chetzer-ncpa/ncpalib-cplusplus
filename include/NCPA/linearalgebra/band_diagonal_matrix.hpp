@@ -1098,7 +1098,6 @@ namespace NCPA {
                     _n_lower  = new_n_lower;
                     _n_upper  = new_n_upper;
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
                 }
 
                 static void _do_band_diagonal_multiply(
@@ -1109,10 +1108,10 @@ namespace NCPA {
                     int pcols       = (int)( product.columns() );
                     int new_n_lower = product.lower_bandwidth();
                     int new_n_upper = product.upper_bandwidth();
+                    size_t counter = 0;
                     for ( int r = 0; r < prows; r++ ) {
                         for ( int c = std::max( 0, r - (int)new_n_lower );
-                              c < std::min( (int)( product.columns() ),
-                                            r + (int)new_n_upper + 1 );
+                              c < std::min( pcols, r + (int)new_n_upper + 1 );
                               c++ ) {
                             ELEMENTTYPE val = a._zero;
                             int kmin        = std::max(
@@ -1128,10 +1127,12 @@ namespace NCPA {
                                               + 1 ) );
                             for ( int k = kmin; k < kmax; k++ ) {
                                 val += a.get( r, k ) * b.get( k, c );
+                                counter++;
                             }
                             product.set( (size_t)r, (size_t)c, val );
                         }
-                    }
+                    }               
+                    std::cout << counter << " multiplications" << std::endl;             
                 }
         };
 

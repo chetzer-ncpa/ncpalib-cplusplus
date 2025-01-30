@@ -11,8 +11,8 @@ namespace NCPA {
             INVALID,
             DENSE,
             BAND_DIAGONAL,
-            // TRIDIAGONAL,
-            SYMMETRIC
+            SYMMETRIC,
+            SYMMETRIC_FINITE_DIFFERENCE
         };
         enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
         enum class matrix_polynomial_algorithm_t {

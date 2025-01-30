@@ -65,12 +65,12 @@ namespace NCPA {
                                     new symmetric_matrix<ELEMENTTYPE>(
                                         nrows, ncols ) ) );
                             break;
-                        // case matrix_t::TRIDIAGONAL:
-                        //     return Matrix<ELEMENTTYPE>(
-                        //         std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
-                        //             new tridiagonal_matrix<ELEMENTTYPE>(
-                        //                 nrows, ncols ) ) );
-                        //     break;
+                        case matrix_t::SYMMETRIC_FINITE_DIFFERENCE:
+                            return Matrix<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
+                                    new symmetric_matrix<ELEMENTTYPE>(
+                                        nrows, ncols, true ) ) );
+                            break;
                         default:
                             throw std::logic_error( "Unknown or unsupported "
                                                     "matrix type requested" );
