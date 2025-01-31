@@ -41,7 +41,7 @@ namespace NCPA {
                     ELEMENTTYPE>;
 
                 symmetric_matrix( size_t nrows, size_t ncols,
-                                  size_t n_offdiags, bool is_finite_difference ) {
+                                  size_t n_offdiags, bool has_ones_on_last_diagonals ) {
                     if ( nrows != ncols ) {
                         throw std::invalid_argument(
                             "Symmetric matrix must be square!" );
@@ -49,12 +49,12 @@ namespace NCPA {
                     _nrows     = nrows;
                     _ncols     = ncols;
                     _n_offdiag = n_offdiags;
-                    _finite_difference = is_finite_difference;
+                    _ones_on_last_diagonals = has_ones_on_last_diagonals;
                     _prep_diagonals();
                 }
 
-                symmetric_matrix( size_t nrows, size_t ncols, bool is_finite_difference ) :
-                    symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0, is_finite_difference ) {}
+                symmetric_matrix( size_t nrows, size_t ncols, bool has_ones_on_last_diagonals ) :
+                    symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0, has_ones_on_last_diagonals ) {}
 
                 symmetric_matrix( size_t nrows, size_t ncols ) :
                     symmetric_matrix<ELEMENTTYPE>( nrows, ncols, 0, false ) {}
@@ -68,7 +68,7 @@ namespace NCPA {
                                                    other.columns() ) {
                     _n_offdiag = other._n_offdiag;
                     contents() = other.contents();
-                    _finite_difference = other._finite_difference;
+                    _ones_on_last_diagonals = other._ones_on_last_diagonals;
                 }
 
                 symmetric_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
@@ -582,10 +582,10 @@ namespace NCPA {
                     const symmetric_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
-                    size_t new_n_offdiag = this->_n_offdiag + b->_n_offdiag;
+                    size_t new_n_offdiag = this->upper_bandwidth() + b->upper_bandwidth();
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> product(
                         new symmetric_matrix<ELEMENTTYPE>(
-                            this->rows(), b->columns(), new_n_offdiag ) );
+                            this->rows(), b->columns(), new_n_offdiag, this->_ones_on_last_diagonals ) );
                     int prows      = (int)( product->rows() );
                     int pcols      = (int)( product->columns() );
                     // size_t counter = 0;
@@ -595,7 +595,7 @@ namespace NCPA {
                                             r + (int)new_n_offdiag + 1 );
                               c++ ) {
                             ELEMENTTYPE val;
-                            if ( _finite_difference
+                            if ( _ones_on_last_diagonals
                                  && ( (c - r) == new_n_offdiag ) ) {
                                 val = _one;
                             } else {
@@ -709,7 +709,7 @@ namespace NCPA {
 
             protected:
                 size_t _nrows, _ncols, _n_offdiag;
-                bool _finite_difference;
+                bool _ones_on_last_diagonals;
 
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
                 const ELEMENTTYPE _one  = NCPA::math::one<ELEMENTTYPE>();
@@ -782,5 +782,5 @@ static void swap( NCPA::linear::symmetric_matrix<T>& a,
     swap( a._ncols, b._ncols );
     swap( a._n_offdiag, b._n_offdiag );
     swap( a.contents(), b.contents() );
-    swap( a._finite_difference, b._finite_difference );
+    swap( a._ones_on_last_diagonals, b._ones_on_last_diagonals );
 }
