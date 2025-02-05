@@ -459,6 +459,18 @@ namespace NCPA {
             }
         }
 
+        template<typename T>
+        void write( std::ostream& os, const std::vector<T> basevec,
+                    const std::string& separator = ", " ) {
+            for ( size_t i = 0; i < basevec.size(); ++i ) {
+                if ( i > 0 ) {
+                    os << separator;
+                }
+                os << basevec[i];
+            }
+            // os << std::endl;
+        }
+
         template<typename T, typename U>
         void write( std::ostream& os, const std::vector<T> basevec,
                     const std::vector<std::vector<U>>& items,

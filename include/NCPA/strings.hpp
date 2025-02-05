@@ -11,6 +11,29 @@
 namespace NCPA {
     namespace strings {
 
+        template<typename T>
+        std::string to_string( const std::vector<T>& v,
+                               const std::string& sep = ", " ) {
+            std::ostringstream oss;
+            for ( size_t i = 0; i < v.size(); ++i ) {
+                if ( i > 0 ) {
+                    oss << sep;
+                }
+                oss << v[ i ];
+            }
+            return oss.str();
+        }
+
+        template<typename T>
+        std::string to_string_indexed( const std::vector<T>& v ) {
+            std::ostringstream oss;
+            for ( size_t i = 0; i < v.size(); ++i ) {
+                oss << i << ": " << v[i] << std::endl;
+            }
+            oss << std::endl;
+            return oss.str();
+        }
+
         /**
         Removes leading and trailing whitespace from a string, using
         specified whitespace characters.
@@ -22,7 +45,8 @@ namespace NCPA {
         removed.
         */
         static inline std::string deblank( const std::string& str,
-                             const std::string& whitespace = " \t\n\r" ) {
+                                           const std::string& whitespace
+                                           = " \t\n\r" ) {
             const size_t strBegin = str.find_first_not_of( whitespace );
             if ( strBegin == std::string::npos ) {
                 return "";
@@ -43,7 +67,8 @@ namespace NCPA {
         @returns A vector of the string tokens.
          */
         static inline std::vector<std::string> split( std::string input,
-                                        std::string delimiters = " \t\n\r" ) {
+                                                      std::string delimiters
+                                                      = " \t\n\r" ) {
             std::vector<std::string> tokens;
             tokens.clear();
             size_t firstind, lastind;

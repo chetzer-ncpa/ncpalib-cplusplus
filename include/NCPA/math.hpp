@@ -300,12 +300,31 @@ namespace NCPA {
         @returns The maximum value found in the vector.
         */
         template<typename T>
-        T max( std::vector<T> vals ) {
+        T max( const std::vector<T>& vals ) {
             T maxval = vals.front();
             for ( auto cit = vals.cbegin(); cit != vals.cend(); ++cit ) {
                 maxval = std::max( *cit, maxval );
             }
             return maxval;
+        }
+
+        /**
+        @brief Returns the index of the maximum value from an array.
+        @param vals The array holding the values to check.
+        @param size The size of the array.
+        @returns The index of the maximum value found in the array.
+        */
+        template<typename T>
+        size_t index_of_max( const T *vals, size_t size ) {
+            T maxval = vals[ 0 ];
+            size_t ind = 0;
+            for ( size_t i = 1; i < size; i++ ) {
+                if (vals[i] > maxval) {
+                    maxval = vals[i];
+                    ind = i;
+                }
+            }
+            return ind;
         }
 
         /**
@@ -324,6 +343,24 @@ namespace NCPA {
         }
 
         /**
+        @brief Returns the index of the maximum value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the maximum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_max( const std::vector<T>& vals  ) {
+            T maxval = vals[ 0 ];
+            size_t ind = 0;
+            for ( size_t i = 1; i < vals.size(); i++ ) {
+                if (vals[i] > maxval) {
+                    maxval = vals[i];
+                    ind = i;
+                }
+            }
+            return ind;
+        }
+
+        /**
         @brief Returns the minimum value from an array.
         @param vals The array holding the values to check.
         @param size The size of the array.
@@ -339,17 +376,54 @@ namespace NCPA {
         }
 
         /**
-        @brief Returns the maximum value from a vector.
-        @param vals The vector holding the values to check.
-        @returns The maximum value found in the vector.
+        @brief Returns the index of the minimum value from an array.
+        @param vals The array holding the values to check.
+        @param size The size of the array.
+        @returns The index of the minimum value found in the array.
         */
         template<typename T>
-        T min( std::vector<T> vals ) {
+        size_t index_of_min( const T *vals, size_t size ) {
+            T minval = vals[ 0 ];
+            size_t ind = 0;
+            for ( size_t i = 1; i < size; i++ ) {
+                if (vals[i] < minval) {
+                    minval = vals[i];
+                    ind = i;
+                }
+            }
+            return ind;
+        }
+
+        /**
+        @brief Returns the minimum value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The minimum value found in the vector.
+        */
+        template<typename T>
+        T min( const std::vector<T>& vals ) {
             T minval = vals.front();
             for ( auto cit = vals.cbegin(); cit != vals.cend(); ++cit ) {
                 minval = std::min( *cit, minval );
             }
             return minval;
+        }
+
+        /**
+        @brief Returns the index of the minimum value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the minimum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_min( const std::vector<T>& vals ) {
+            T minval = vals.front();
+            size_t ind = 0;
+            for ( size_t i = 1; i < vals.size(); i++ ) {
+                if (vals[i] < minval) {
+                    minval = vals[i];
+                    ind = i;
+                }
+            }
+            return ind;
         }
 
         /**
