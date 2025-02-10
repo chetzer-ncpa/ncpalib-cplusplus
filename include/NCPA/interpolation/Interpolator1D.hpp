@@ -19,13 +19,11 @@ namespace NCPA {
             public:
                 Interpolator1D() {}
 
-                Interpolator1D(
-                    std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> engine ) {
+                Interpolator1D( spline_engine_1d_t<INDEPTYPE,DEPTYPE> engine ) {
                     set_engine( engine );
                 }
 
-                void set_engine(
-                    std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> engine ) {
+                void set_engine( spline_engine_1d_t<INDEPTYPE,DEPTYPE> engine ) {
                     _engine = std::move( engine );
                 }
 
@@ -85,7 +83,7 @@ namespace NCPA {
                 }
 
             private:
-                std::unique_ptr<_spline_1d<INDEPTYPE, DEPTYPE>> _engine;
+                spline_engine_1d_t<INDEPTYPE,DEPTYPE> _engine;
         };
 
     }  // namespace interpolation

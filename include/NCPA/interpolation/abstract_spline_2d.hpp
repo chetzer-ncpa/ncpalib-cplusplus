@@ -2,9 +2,10 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/interpolation/defines.hpp"
+#include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
-#include "NCPA/interpolation/types.hpp"
 
 #include <cmath>
 #include <complex>
@@ -124,76 +125,90 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 namespace NCPA {
     namespace interpolation {
-       
-            template<typename INDEPTYPE, typename DEPTYPE>
-            class _abstract_spline_1d {
-                public:
-                    virtual ~_abstract_spline_1d() {}
+        template<typename INDEPTYPE, typename DEPTYPE>
+        class _abstract_spline_2d {
+            public:
+                virtual ~_abstract_spline_2d() {}
 
-                    virtual void fill( size_t N, const INDEPTYPE *x,
-                                       const DEPTYPE *f )
-                        = 0;
-                    virtual void fill( const std::vector<INDEPTYPE>& x,
-                                       const std::vector<DEPTYPE>& f )
-                        = 0;
-                    virtual void init( size_t N )            = 0;
-                    virtual void clear()                     = 0;
-                    virtual void ready()                     = 0;
-                    virtual DEPTYPE eval_f( INDEPTYPE x )    = 0;
-                    virtual DEPTYPE eval_df( INDEPTYPE x )   = 0;
-                    virtual DEPTYPE eval_ddf( INDEPTYPE x )  = 0;
-                    virtual DEPTYPE eval_dddf( INDEPTYPE x ) = 0;
-            };
-        
+                virtual void fill( size_t N1, size_t N2, const INDEPTYPE *x1,
+                                   const INDEPTYPE *x2, const DEPTYPE **f1 )
+                    = 0;
+                virtual void fill( const std::vector<INDEPTYPE>& x1,
+                                   const std::vector<INDEPTYPE>& x2,
+                                   const NCPA::arrays::vector2d_t<DEPTYPE>& f )
+                    = 0;
+                virtual void init( size_t N1, size_t N2 )            = 0;
+                virtual void clear()                                 = 0;
+                virtual void ready()                                 = 0;
+                virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2 ) = 0;
+                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2,
+                                         size_t dim )
+                    = 0;
+                virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2,
+                                          size_t dim1, size_t dim2 )
+                    = 0;
+                virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2,
+                                           size_t dim1, size_t dim2,
+                                           size_t dim3 )
+                    = 0;
+        };
 
-        // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_1d,
-        //                                        _abstract_spline_1d );
+        // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_2d,
+        //                                        _abstract_spline_2d );
 
         _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-            class _spline_1d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
+            class _spline_2d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
                              _ENABLE_IF_DEP_IS_REAL>
-            : public _abstract_spline_1d<INDEPTYPE, DEPTYPE> {
+            : public _abstract_spline_2d<INDEPTYPE, DEPTYPE> {
             public:
-                virtual ~_spline_1d() {}
+                virtual ~_spline_2d() {}
         };
 
         _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-            class _spline_1d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
+            class _spline_2d<INDEPTYPE, DEPTYPE, _ENABLE_IF_INDEP_IS_REAL,
                              _ENABLE_IF_DEP_IS_COMPLEX>
-            : public _abstract_spline_1d<INDEPTYPE, DEPTYPE> {
+            : public _abstract_spline_2d<INDEPTYPE, DEPTYPE> {
             public:
-                virtual ~_spline_1d() {}
+                virtual ~_spline_2d() {}
 
-                virtual void fill( size_t N, const INDEPTYPE *x,
-                                   const DEPTYPE *f ) override {
-                    auto *r
+                virtual void fill( size_t N1, size_t N2, const INDEPTYPE *x1,
+                                   const INDEPTYPE *x2,
+                                   const DEPTYPE **f ) override {
+                    auto **rl
                         = NCPA::arrays::zeros<typename DEPTYPE::value_type>(
-                            N ),
-                        *i = NCPA::arrays::zeros<typename DEPTYPE::value_type>(
-                            N );
-                    NCPA::math::complex2real( N, f, r, i );
-                    real()->fill( N, x, r );
-                    imag()->fill( N, x, i );
-                    delete[] r;
-                    delete[] i;
+                            N1, N2 ),
+                        **im
+                        = NCPA::arrays::zeros<typename DEPTYPE::value_type>(
+                            N1, N2 );
+                    for ( size_t i = 0; i < N1; ++i ) {
+                        NCPA::math::complex2real( N2, f[ i ], rl[ i ],
+                                                  im[ i ] );
+                    }
+                    this->real()->fill( N1, N2, x1, x2, rl );
+                    this->imag()->fill( N1, N2, x1, x2, im );
+                    NCPA::arrays::free_array( rl, N1, N2 );
+                    NCPA::arrays::free_array( im, N1, N2 );
                 }
 
-                virtual void fill( const std::vector<INDEPTYPE>& x,
-                                   const std::vector<DEPTYPE>& f ) override {
-                    size_t N = x.size();
-                    if ( N != f.size() ) {
+                virtual void fill( const std::vector<INDEPTYPE>& x1,
+                                   const std::vector<INDEPTYPE>& x2,
+                                   const NCPA::arrays::vector2d_t<DEPTYPE>& f ) override {
+                    size_t N1 = x1.size();
+                    if ( N1 != f.size() ) {
                         throw std::invalid_argument(
                             "Vectors must be same size" );
                     }
-                    std::vector<typename DEPTYPE::value_type> r, i;
-                    NCPA::math::complex2real( f, r, i );
-                    real()->fill( x, r );
-                    imag()->fill( x, i );
+                    NCPA::arrays::vector2d_t<typename DEPTYPE::value_type> rl, im;
+                    for ( size_t i = 0; i < N1; ++i ) {
+                        NCPA::math::complex2real( f[ i ], rl[ i ], im[ i ] );
+                    }
+                    real()->fill( x1, x2, rl );
+                    imag()->fill( x1, x2, im );
                 }
 
-                virtual void init( size_t N ) override {
-                    real()->init( N );
-                    imag()->init( N );
+                virtual void init( size_t N1, size_t N2 ) override {
+                    real()->init( N1, N2 );
+                    imag()->init( N1, N2 );
                 }
 
                 virtual void clear() override {
@@ -206,27 +221,30 @@ namespace NCPA {
                     imag()->ready();
                 }
 
-                virtual DEPTYPE eval_f( INDEPTYPE x ) override {
-                    return DEPTYPE( real()->eval_f( x ), imag()->eval_f( x ) );
+                virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2 ) override {
+                    return DEPTYPE( real()->eval_f( x1, x2 ),
+                                    imag()->eval_f( x1, x2 ) );
                 }
 
-                virtual DEPTYPE eval_df( INDEPTYPE x ) override {
-                    return DEPTYPE( real()->eval_df( x ),
-                                    imag()->eval_df( x ) );
+                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2, size_t dim ) override {
+                    return DEPTYPE( real()->eval_df( x1, x2, dim ),
+                                    imag()->eval_df( x1, x2, dim ) );
                 }
 
-                virtual DEPTYPE eval_ddf( INDEPTYPE x ) override {
-                    return DEPTYPE( real()->eval_ddf( x ),
-                                    imag()->eval_ddf( x ) );
+                virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2,
+                                          size_t dim1, size_t dim2) override {
+                    return DEPTYPE( real()->eval_ddf( x1, x2, dim1, dim2 ),
+                                    imag()->eval_ddf( x1, x2, dim1, dim2 ) );
                 }
 
-                virtual DEPTYPE eval_dddf( INDEPTYPE x ) override {
-                    return DEPTYPE( real()->eval_dddf( x ),
-                                    imag()->eval_dddf( x ) );
+                virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2,
+                                          size_t dim1, size_t dim2, size_t dim3 ) override {
+                    return DEPTYPE( real()->eval_dddf( x1, x2, dim1, dim2, dim3 ),
+                                    imag()->eval_dddf( x1, x2, dim1, dim2, dim3 ) );
                 }
 
-                virtual _SUBSPLINE_PTR_T real() = 0;
-                virtual _SUBSPLINE_PTR_T imag() = 0;
+                virtual _SUBSPLINE_2D_PTR_T real() = 0;
+                virtual _SUBSPLINE_2D_PTR_T imag() = 0;
         };
     }  // namespace interpolation
 }  // namespace NCPA

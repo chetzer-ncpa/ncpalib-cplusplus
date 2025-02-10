@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/atmosphere/abstract_atmosphere_1d.hpp"
-#include "NCPA/atmosphere/atmospheric_property_1d.hpp"
+#include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
 #include "NCPA/atmosphere/calculations.hpp"
 #include "NCPA/atmosphere/types.hpp"
 #include "NCPA/defines.hpp"
@@ -65,7 +65,7 @@ namespace NCPA {
                     virtual size_t nz() const override { return _z.size(); }
 
                     virtual abstract_atmosphere_1d& set_interpolator(
-                        NCPA::interpolation::interpolator_type_t interp_type )
+                        NCPA::interpolation::interpolator_1d_type_t interp_type )
                         override {
                         _interpolator_type = interp_type;
                         for ( auto it = _properties.begin();
@@ -400,8 +400,8 @@ namespace NCPA {
                     std::unordered_map<std::string, scalar_t>
                         _scalar_properties;
                     vector_t _z;
-                    NCPA::interpolation::interpolator_type_t _interpolator_type
-                        = NCPA::interpolation::interpolator_type_t::GSL_STEFFEN;
+                    NCPA::interpolation::interpolator_1d_type_t _interpolator_type
+                        = NCPA::interpolation::interpolator_1d_type_t::GSL_STEFFEN;
             };
         }  // namespace details
     }  // namespace atmos

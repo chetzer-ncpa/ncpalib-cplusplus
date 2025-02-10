@@ -21,8 +21,8 @@
 namespace NCPA {
     namespace interpolation {
         // Simple nearest neighbor interpolator
-        DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( nearest_neighbor_spline_1d,
-                                               details::_abstract_spline_1d );
+        // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( nearest_neighbor_spline_1d,
+        //                                        _spline_1d );
 
         _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
             class nearest_neighbor_spline_1d<INDEPTYPE, DEPTYPE, void,
@@ -88,7 +88,7 @@ namespace NCPA {
                 size_t _size = 0;
         };
         DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( nearest_neighbor_spline_1d,
-                                                details::_abstract_spline_1d )
+                                                _abstract_spline_1d )
     }
 }
 
