@@ -17,6 +17,8 @@
     // typename std::enable_if<NCPA::types::is_numeric<DEPTYPE>::value>::type
 #define _SUBSPLINE_PTR_T \
     NCPA::interpolation::_spline_1d<INDEPTYPE, typename DEPTYPE::value_type> *
+#define _SUBSPLINE_2D_PTR_T \
+    NCPA::interpolation::_spline_2d<INDEPTYPE, typename DEPTYPE::value_type> *
 #define _SUBSPLINE_T( _CLASSNAME_ ) \
     _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>
 

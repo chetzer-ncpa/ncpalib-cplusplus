@@ -141,7 +141,7 @@ TEST_F( _TEST_TITLE_, NewInterpolatorIsUsedCorrectly ) {
     double dz   = 0.1;
     double half = dz * 0.5;
     test_atmos.set_interpolator(
-        NCPA::interpolation::interpolator_type_t::LANL_LINEAR );
+        NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
     for ( double z = dz; z < 100.0; z += dz ) {
         EXPECT_NEAR(
             test_atmos.get( "T", z - half ),

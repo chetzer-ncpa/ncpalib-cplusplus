@@ -54,7 +54,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere1D set_interpolator(
-                    NCPA::interpolation::interpolator_type_t interp_type ) {
+                    NCPA::interpolation::interpolator_1d_type_t interp_type ) {
                     check_pointer();
                     if ( NCPA::interpolation::InterpolatorFactory::can_build(
                              interp_type ) ) {

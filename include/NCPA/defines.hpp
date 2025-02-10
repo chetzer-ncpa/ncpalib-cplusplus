@@ -2,6 +2,18 @@
 
 #include "NCPA/types.hpp"
 
+#include <stdexcept>
+#include <string>
+
+namespace NCPA {
+    class NotImplementedError : public std::logic_error {
+        public:
+            NotImplementedError( const std::string& message
+                                 = "Not implemented" ) :
+                std::logic_error( message ) {}
+    };
+}  // namespace NCPA
+
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -110,9 +122,9 @@
 
 #define DECLARE_SPECIALIZED_TEMPLATE( _TYPE_ ) template<typename _TYPE_>
 
-#define DECLARE_SWAP_FUNCTION( _CLASSNAME_ ) \
-    template<typename _TYPENAME_>                        \
-    static void swap( _CLASSNAME_<_TYPENAME_>& a,        \
+#define DECLARE_SWAP_FUNCTION( _CLASSNAME_ )      \
+    template<typename _TYPENAME_>                 \
+    static void swap( _CLASSNAME_<_TYPENAME_>& a, \
                       _CLASSNAME_<_TYPENAME_>& b ) noexcept;
 
 #define DECLARE_FRIEND_FUNCTIONS( _CLASSNAME_, _TYPENAME_ )  \

@@ -8,8 +8,8 @@
 
 #include <cmath>
 #include <complex>
-#include <vector>
 #include <fstream>
+#include <vector>
 
 #include <gtest/gtest-spi.h>
 
@@ -22,6 +22,8 @@
 using namespace testing;
 using namespace NCPA::interpolation;
 using namespace std;
+
+#define _TEST_TITLE_ NCPAInterpolationLibraryTest
 
 template<typename T>
 T eval_cubic( double x, vector<T> coeffs ) {
@@ -41,7 +43,7 @@ vector<T> make_cubic( vector<double>& x, vector<T>& coeffs ) {
     return out;
 }
 
-class NCPAInterpolationLibraryTest : public ::testing::Test {
+class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
             x_lin  = { 0, 1, 2, 3, 4, 5 };
@@ -79,6 +81,35 @@ class NCPAInterpolationLibraryTest : public ::testing::Test {
             gsl_clin_spline_1d.fill( x_lin, cf_lin );
             gsl_clin_spline_1d.ready();
 #endif
+
+            x2 = { 0, 1, 2, 3, 4 };
+            y2 = { 0, 1, 2, 3, 4 };
+            z2 = { 0, 1, 2, 3, 4 };
+            f2d_x.resize2d( 5, 5 );
+            f2d_y.resize2d( 5, 5 );
+            f3d.resize3d( 5, 5, 5 );
+
+            for ( size_t i = 0; i < 5; i++ ) {
+                double di = (double)i;
+                vector<double> xrow { di, di, di, di, di };
+                f2d_x[ i ] = xrow;
+                f2d_y[ i ] = x2;
+                for ( size_t j = 0; j < 5; j++ ) {
+                    f3d[ i ][ j ] = z2;
+                }
+            }
+
+            lanl_natural_2d.init( 5, 5 );
+            lanl_natural_2d.fill( x2, y2, f2d_x );
+            lanl_natural_2d.ready();
+            lanl_bicubic_2d.init( 5, 5 );
+            lanl_bicubic_2d.fill( x2, y2, f2d_x );
+            lanl_bicubic_2d.ready();
+            lanl_hybrid_3d.init( 5, 5, 5 );
+            lanl_hybrid_3d.fill( x2, y2, z2, f3d );
+            lanl_hybrid_3d.ready();
+
+
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -94,10 +125,17 @@ class NCPAInterpolationLibraryTest : public ::testing::Test {
         GSL::gsl_spline_1d<double, double> gsl_lin_spline_1d;
         GSL::gsl_spline_1d<double, complex<double>> gsl_clin_spline_1d;
 #endif
-        double cub_tol = 0.01;
+        double cub_tol = 0.01, nat_tol = 0.001, hyb_tol = 0.01;
+
+        NCPA::arrays::vector2d_t<double> f2d_x, f2d_y;
+        NCPA::arrays::vector3d_t<double> f3d;
+        vector<double> x2, y2, z2;
+        LANL::natural_spline_2d<double, double> lanl_natural_2d;
+        LANL::bicubic_spline_2d<double, double> lanl_bicubic_2d;
+        LANL::hybrid_spline_3d<double, double> lanl_hybrid_3d;
 };
 
-TEST_F( NCPAInterpolationLibraryTest, LANLLinearInterpolationIsCorrect ) {
+TEST_F( _TEST_TITLE_, LANLLinearInterpolationIsCorrect ) {
     for ( size_t i = 0; i < 6; i++ ) {
         EXPECT_DOUBLE_EQ( lanl_lin_spline_1d.eval_f( x_lin[ i ] ),
                           f_lin[ i ] );
@@ -107,8 +145,7 @@ TEST_F( NCPAInterpolationLibraryTest, LANLLinearInterpolationIsCorrect ) {
     }
 }
 
-TEST_F( NCPAInterpolationLibraryTest,
-        LANLLinearInterpolationOfComplexValuesIsCorrect ) {
+TEST_F( _TEST_TITLE_, LANLLinearInterpolationOfComplexValuesIsCorrect ) {
     for ( size_t i = 0; i < 6; i++ ) {
         std::complex<double> cval = lanl_clin_spline_1d.eval_f( x_lin[ i ] );
         EXPECT_DOUBLE_EQ( cval.real(), cf_lin[ i ].real() );
@@ -121,8 +158,7 @@ TEST_F( NCPAInterpolationLibraryTest,
     }
 }
 
-TEST_F( NCPAInterpolationLibraryTest,
-        LANLCubicSplineInterpolationAgreesWithinTolerance ) {
+TEST_F( _TEST_TITLE_, LANLCubicSplineInterpolationAgreesWithinTolerance ) {
     for ( size_t i = 0; i < x_cub.size(); i++ ) {
         EXPECT_DOUBLE_EQ( lanl_cub_spline_1d.eval_f( x_cub[ i ] ),
                           f_cub[ i ] );
@@ -130,13 +166,12 @@ TEST_F( NCPAInterpolationLibraryTest,
     for ( double d  = NCPA::math::min( x_cub ); d <= NCPA::math::max( x_cub );
           d        += 0.1 ) {
         double expected = eval_cubic( d, cub_coeffs ),
-                actual = lanl_cub_spline_1d.eval_f( d );
-        EXPECT_NEAR( actual, expected,
-                     std::abs( expected * cub_tol ) );
+               actual   = lanl_cub_spline_1d.eval_f( d );
+        EXPECT_NEAR( actual, expected, std::abs( expected * cub_tol ) );
     }
 }
 
-TEST_F( NCPAInterpolationLibraryTest,
+TEST_F( _TEST_TITLE_,
         LANLComplexCubicSplineInterpolationAgreesWithinTolerance ) {
     for ( size_t i = 0; i < x_cub.size(); i++ ) {
         EXPECT_NEAR( lanl_ccub_spline_1d.eval_f( x_cub[ i ] ).real(),
@@ -148,7 +183,7 @@ TEST_F( NCPAInterpolationLibraryTest,
     for ( double d  = NCPA::math::min( x_cub ); d <= NCPA::math::max( x_cub );
           d        += 0.1 ) {
         complex<double> expected = eval_cubic( d, ccub_coeffs ),
-                        actual = lanl_ccub_spline_1d.eval_f( d );
+                        actual   = lanl_ccub_spline_1d.eval_f( d );
         // testout << d << " " << expected << " " << actual << endl;
         EXPECT_NEAR( actual.real(), expected.real(),
                      std::abs( expected.real() * cub_tol ) );
@@ -157,8 +192,34 @@ TEST_F( NCPAInterpolationLibraryTest,
     }
 }
 
+TEST_F( _TEST_TITLE_, LANL2DIsCorrect ) {
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
+    lanl_natural_2d.clear();
+    lanl_natural_2d.init( 5, 5 );
+    lanl_natural_2d.fill( x2, y2, f2d_y );
+    lanl_natural_2d.ready();
+    lanl_bicubic_2d.clear();
+    lanl_bicubic_2d.init( 5, 5 );
+    lanl_bicubic_2d.fill( x2, y2, f2d_y );
+    lanl_bicubic_2d.ready();
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.3 ), 3.3, cub_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.9 ), 3.9, cub_tol );
+}
+
+TEST_F( _TEST_TITLE_, LANL3DIsCorrect ) {
+    EXPECT_NEAR( lanl_hybrid_3d.eval_f( 2.5, 2.5, 2.5 ), 2.5, hyb_tol );
+    EXPECT_NEAR( lanl_hybrid_3d.eval_f( 1.5, 3.5, 1.5 ), 1.5, hyb_tol );
+    EXPECT_NEAR( lanl_hybrid_3d.eval_f( 1.2, 2.3, 3.4 ), 3.4, hyb_tol );
+    EXPECT_NEAR( lanl_hybrid_3d.eval_f( 3.9, 3.9, 3.9 ), 3.9, hyb_tol );
+}
+
 #ifdef HAVE_GSL_INTERPOLATION_LIBRARY
-TEST_F( NCPAInterpolationLibraryTest, GSLLinearInterpolationIsCorrect ) {
+TEST_F( _TEST_TITLE_, GSLLinearInterpolationIsCorrect ) {
     for ( size_t i = 0; i < 6; i++ ) {
         EXPECT_DOUBLE_EQ( gsl_lin_spline_1d.eval_f( x_lin[ i ] ), f_lin[ i ] );
     }
@@ -167,8 +228,7 @@ TEST_F( NCPAInterpolationLibraryTest, GSLLinearInterpolationIsCorrect ) {
     }
 }
 
-TEST_F( NCPAInterpolationLibraryTest,
-        GSLLinearInterpolationOfComplexValuesIsCorrect ) {
+TEST_F( _TEST_TITLE_, GSLLinearInterpolationOfComplexValuesIsCorrect ) {
     for ( size_t i = 0; i < 6; i++ ) {
         std::complex<double> cval = gsl_clin_spline_1d.eval_f( x_lin[ i ] );
         EXPECT_DOUBLE_EQ( cval.real(), cf_lin[ i ].real() );

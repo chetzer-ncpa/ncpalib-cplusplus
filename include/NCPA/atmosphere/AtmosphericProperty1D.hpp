@@ -28,7 +28,7 @@ namespace NCPA {
             public:
                 AtmosphericProperty1D() {
                     set_interpolator(
-                        NCPA::interpolation::interpolator_type_t::
+                        NCPA::interpolation::interpolator_1d_type_t::
                             NEAREST_NEIGHBOR );
                 }
 
@@ -62,7 +62,7 @@ namespace NCPA {
                 virtual size_t size() const { return _z.size(); }
 
                 virtual AtmosphericProperty1D& set_interpolator(
-                    NCPA::interpolation::interpolator_type_t interp_type ) {
+                    NCPA::interpolation::interpolator_1d_type_t interp_type ) {
                     _spline = NCPA::interpolation::InterpolatorFactory::build<
                         double, double>( interp_type );
                     _init_spline();

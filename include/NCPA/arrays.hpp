@@ -14,6 +14,60 @@ namespace NCPA {
     namespace arrays {
 
         template<typename T>
+        class vector2d_t : public std::vector<std::vector<T>> {
+            public:
+                vector2d_t() : std::vector<std::vector<T>>() {}
+
+                vector2d_t( size_t nx1, size_t nx2, const T& val ) :
+                    std::vector<std::vector<T>>() {
+                    this->resize2d( nx1, nx2, val );
+                }
+
+                virtual void resize2d( size_t nx1, size_t nx2,
+                                       const T& val = (T)0 ) {
+                    this->resize( nx1, std::vector<T>( nx2, val ) );
+                }
+
+                virtual void size2d( size_t& nx1, size_t& nx2 ) const {
+                    nx1 = this->size();
+                    if ( nx1 > 0 ) {
+                        nx2 = this->at( 0 ).size();
+                    } else {
+                        nx2 = 0;
+                    }
+                }
+        };
+
+        template<typename T>
+        class vector3d_t : public std::vector<vector2d_t<T>> {
+            public:
+                vector3d_t() : std::vector<vector2d_t<T>>() {}
+
+                vector3d_t( size_t nx1, size_t nx2, size_t nx3,
+                            const T& val ) :
+                    std::vector<vector2d_t<T>>() {
+                    this->resize3d( nx1, nx2, val );
+                }
+
+                virtual void resize3d( size_t nx1, size_t nx2, size_t nx3,
+                                       const T& val = (T)0 ) {
+                    this->resize( nx1, vector2d_t<T>( nx2, nx3, val ) );
+                }
+
+                virtual void size3d( size_t& nx1, size_t& nx2,
+                                     size_t& nx3 ) const {
+                    nx1 = this->size();
+                    if ( nx1 > 0 ) {
+                        this->at( 0 ).size2d( nx2, nx3 );
+                    } else {
+                        nx2 = 0;
+                        nx3 = 0;
+                    }
+                }
+        };
+
+
+        template<typename T>
         T *as_array( std::vector<T>& in ) {
             return &in[ 0 ];
         }
