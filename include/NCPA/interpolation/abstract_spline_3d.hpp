@@ -123,6 +123,11 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 */
 
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::_spline_3d<T, U>& a,
+    NCPA::interpolation::_spline_3d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
         template<typename INDEPTYPE, typename DEPTYPE>
@@ -175,6 +180,10 @@ namespace NCPA {
             : public _abstract_spline_3d<INDEPTYPE, DEPTYPE> {
             public:
                 virtual ~_spline_3d() {}
+
+                friend void ::swap<INDEPTYPE, DEPTYPE>(
+                    _spline_3d<INDEPTYPE, DEPTYPE>& a,
+                    _spline_3d<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
                 virtual void fill( size_t N1, size_t N2, size_t N3,
                                    const INDEPTYPE *x1, const INDEPTYPE *x2,
@@ -267,3 +276,8 @@ namespace NCPA {
         };
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::_spline_3d<T, U>& a,
+    NCPA::interpolation::_spline_3d<T, U>& b ) noexcept {}

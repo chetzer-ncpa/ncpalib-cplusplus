@@ -45,9 +45,17 @@ claus@olemiss.edu
 #include "NCPA/interpolation/abstract_spline_1d.hpp"
 #include "NCPA/interpolation/defines.hpp"
 #include "NCPA/interpolation/lanl/lanl_common.hpp"
+#include "NCPA/interpolation/lanl/lanl_declarations.hpp"
 #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+
+#include <cstring>
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::_lanl_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::_lanl_spline_1d<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -65,7 +73,55 @@ namespace NCPA {
                                   ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~_lanl_spline_1d() { clear(); }
+                    _lanl_spline_1d() :
+                        _length { 0 },
+                        _accel { 0 },
+                        _x_vals { nullptr },
+                        _f_vals { nullptr },
+                        _slopes { nullptr } {}
+
+                    virtual ~_lanl_spline_1d() { this->clear(); }
+
+                    _lanl_spline_1d(
+                        const _lanl_spline_1d<INDEPTYPE, DEPTYPE>& other ) :
+                        _lanl_spline_1d() {
+                        // _length { 0 },
+                        // _accel { 0 },
+                        // _x_vals { nullptr },
+                        // _f_vals { nullptr },
+                        // _slopes { nullptr } {
+                        _length = other._length;
+                        _accel  = other._accel;
+                        if ( other._x_vals != nullptr ) {
+                            std::memcpy( _x_vals, other._x_vals,
+                                         _length * sizeof( INDEPTYPE ) );
+                        }
+                        if ( other._f_vals != nullptr ) {
+                            std::memcpy( _f_vals, other._f_vals,
+                                         _length * sizeof( DEPTYPE ) );
+                        }
+                        if ( other._slopes != nullptr ) {
+                            std::memcpy( _slopes, other._slopes,
+                                         _length * sizeof( DEPTYPE ) );
+                        }
+                    }
+
+                    _lanl_spline_1d(
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>&& source ) noexcept
+                        :
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>& a,
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+
+                    _lanl_spline_1d<INDEPTYPE, DEPTYPE>& operator=(
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     virtual void fill( size_t N, const INDEPTYPE *x,
                                        const DEPTYPE *f ) override {
@@ -111,24 +167,51 @@ namespace NCPA {
                         }
                     }
 
+                    virtual std::pair<INDEPTYPE, INDEPTYPE> limits()
+                        const override {
+                        return std::pair<INDEPTYPE, INDEPTYPE>(
+                            { this->_get_x_vals()[ 0 ],
+                              this->_get_x_vals()[ _get_length() - 1 ] } );
+                    }
+
+                    virtual  std::vector<INDEPTYPE> source_x()
+                        const override {
+                        return std::vector<INDEPTYPE>( _x_vals,
+                                                       _x_vals + _length );
+                    }
+
+                    virtual  std::vector<DEPTYPE> source_f()
+                        const override {
+                        return std::vector<DEPTYPE>( _f_vals,
+                                                     _f_vals + _length );
+                    }
 
                 protected:
                     size_t& _get_length() { return _length; }
 
+                    const size_t& _get_length() const { return _length; }
+
                     size_t& _get_accel() { return _accel; }
+
+                    const size_t& _get_accel() const { return _accel; }
 
                     INDEPTYPE *_get_x_vals() { return _x_vals; }
 
+                    const INDEPTYPE *_get_x_vals() const { return _x_vals; }
+
                     DEPTYPE *_get_f_vals() { return _f_vals; }
 
+                    const DEPTYPE *_get_f_vals() const { return _f_vals; }
+
                     DEPTYPE *_get_slopes() { return _slopes; }
+
+                    const DEPTYPE *_get_slopes() const { return _slopes; }
 
                     bool _initialized() const {
                         return ( _length > 0 && _x_vals != nullptr
                                  && _f_vals != nullptr && _slopes != nullptr );
                     }
 
-                private:
                     size_t _length;  // Number of base points
                     size_t _accel;   // Index of previous table look up;
                                      // used to increase spline speed
@@ -146,3 +229,15 @@ namespace NCPA {
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::_lanl_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::_lanl_spline_1d<T, U>& b ) noexcept {
+    using std::swap;
+    swap( a._length, b._length );
+    swap( a._accel, b._accel );
+    swap( a._x_vals, b._x_vals );
+    swap( a._f_vals, b._f_vals );
+    swap( a._slopes, b._slopes );
+}

@@ -3,10 +3,12 @@ test_gtest.cpp \
 test_logging.cpp \
 test_types.cpp \
 test_arrays.cpp \
+test_ndvector.cpp \
 test_math.cpp \
 test_units.cpp \
 test_strings.cpp \
 test_atmosphere.cpp \
+test_interpolation_extrapolation.cpp \
 test_interpolation.cpp \
 test_linearalgebra_densevector.cpp \
 test_linearalgebra_densevector_complex.cpp \

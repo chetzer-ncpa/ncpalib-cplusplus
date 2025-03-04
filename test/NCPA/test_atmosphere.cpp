@@ -1,5 +1,6 @@
 #include "NCPA/atmosphere.hpp"
 #include "NCPA/gtest.hpp"
+#include "NCPA/ndvector.hpp"
 #include "NCPA/units.hpp"
 
 #include <gmock/gmock.h>
@@ -15,6 +16,8 @@
 using namespace testing;
 using namespace std;
 using namespace NCPA::atmos;
+using namespace NCPA::units;
+using namespace NCPA::arrays;
 
 typedef double test_t;
 
@@ -34,6 +37,25 @@ class _TEST_TITLE_ : public ::testing::Test {
                 = vector<double> { 4.709510e-04, 4.897540e-04, 5.092760e-04,
                                    5.295410e-04, 5.505760e-04 };
             first5[ "V" ] = vector<double> { 0, 0, 0, 0, 0 };
+
+            vector<double> upto5 { 0, 1, 2, 3, 4 };
+            VectorWithUnits<double> km5( upto5, KILOMETERS );
+            Vector2DWithUnits<double> kmgrid( 5, 5, KILOMETERS );
+            for ( auto it = kmgrid.begin(); it != kmgrid.end(); ++it ) {
+                *it = upto5;
+            }
+
+            prop2d
+                = AtmosphereFactory::build( atmospheric_property_2d_t::GRID );
+            prop2d.set( km5, km5, kmgrid );
+
+            strat.add_property( "U", prop2d );
+            // strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR);
+
+            stratwrap = AtmosphereFactory::build( atmosphere_2d_t::STRATIFIED );
+            // stratwrap.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR);
+            stratwrap.add_property( "U", prop2d );
+
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -43,6 +65,10 @@ class _TEST_TITLE_ : public ::testing::Test {
         std::string filename = "testdata/test_atmosphere_1d.ncpaprop";
         AtmosphereFactory factory;
         map<string, vector<double>> first5;
+
+        AtmosphericProperty2D prop2d;
+        stratified_atmosphere_2d strat;
+        Atmosphere2D stratwrap;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorWorks ) {
@@ -55,8 +81,7 @@ TEST_F( _TEST_TITLE_, BuilderReturnsValidAtmosphere ) {
 
 TEST_F( _TEST_TITLE_, AtmosphereHasCorrectScalarProperties ) {
     EXPECT_DOUBLE_EQ( test_atmos.get( "Z0" ), 0.0 );
-    EXPECT_TRUE(
-        test_atmos.get_property_units( "Z0" )->equals( NCPA::units::METERS ) );
+    EXPECT_TRUE( test_atmos.get_units( "Z0" )->equals( NCPA::units::METERS ) );
 }
 
 TEST_F( _TEST_TITLE_, AtmosphereHasCorrectNumberOfPoints ) {
@@ -68,11 +93,10 @@ TEST_F( _TEST_TITLE_, AtmosphereThrowsLogicErrorIfNotInitialized ) {
 }
 
 TEST_F( _TEST_TITLE_, DependentValuesAreCorrect ) {
-    EXPECT_TRUE(
-        test_atmos.get_property_units( "T" )->equals( NCPA::units::KELVIN ) );
-    EXPECT_TRUE( test_atmos.get_property_units( "U" )->equals(
+    EXPECT_TRUE( test_atmos.get_units( "T" )->equals( NCPA::units::KELVIN ) );
+    EXPECT_TRUE( test_atmos.get_units( "U" )->equals(
         NCPA::units::METERS_PER_SECOND ) );
-    EXPECT_TRUE( test_atmos.get_property_units( "V" )->equals(
+    EXPECT_TRUE( test_atmos.get_units( "V" )->equals(
         NCPA::units::METERS_PER_SECOND ) );
     for ( size_t i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( test_atmos.get( "T", first5[ "Z" ][ i ] ),
@@ -85,13 +109,12 @@ TEST_F( _TEST_TITLE_, DependentValuesAreCorrect ) {
 }
 
 TEST_F( _TEST_TITLE_, UnitsCanBeConverted ) {
-    test_atmos.convert_property_units( "U",
-                                       &NCPA::units::KILOMETERS_PER_SECOND );
+    test_atmos.convert_units( "U", &NCPA::units::KILOMETERS_PER_SECOND );
     for ( size_t i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( test_atmos.get( "U", first5[ "Z" ][ i ] ),
                           first5[ "U" ][ i ] * 0.001 );
     }
-    EXPECT_TRUE( test_atmos.get_property_units( "U" )->equals(
+    EXPECT_TRUE( test_atmos.get_units( "U" )->equals(
         NCPA::units::KILOMETERS_PER_SECOND ) );
 }
 
@@ -101,7 +124,7 @@ TEST_F( _TEST_TITLE_, ResampleWorksWithDZ ) {
 }
 
 TEST_F( _TEST_TITLE_, ResampleWorksWithZ ) {
-    vector_t new_z( vector<double>( 4000 ), "km" );
+    vector_u_t new_z( vector<double>( 4000 ), "km" );
     for ( size_t i = 0; i < 4000; i++ ) {
         double di  = (double)i;
         new_z[ i ] = di * 0.05;
@@ -112,12 +135,12 @@ TEST_F( _TEST_TITLE_, ResampleWorksWithZ ) {
 
 TEST_F( _TEST_TITLE_, AssignmentOperatorWorks ) {
     test_atmos2 = test_atmos;
-    EXPECT_TRUE( test_atmos2.get_property_units( "T" )->equals(
-        *test_atmos2.get_property_units( "T" ) ) );
-    EXPECT_TRUE( test_atmos2.get_property_units( "U" )->equals(
-        *test_atmos2.get_property_units( "U" ) ) );
-    EXPECT_TRUE( test_atmos2.get_property_units( "V" )->equals(
-        *test_atmos2.get_property_units( "V" ) ) );
+    EXPECT_TRUE( test_atmos2.get_units( "T" )->equals(
+        *test_atmos2.get_units( "T" ) ) );
+    EXPECT_TRUE( test_atmos2.get_units( "U" )->equals(
+        *test_atmos2.get_units( "U" ) ) );
+    EXPECT_TRUE( test_atmos2.get_units( "V" )->equals(
+        *test_atmos2.get_units( "V" ) ) );
     for ( size_t i = 0; i < 5; i++ ) {
         EXPECT_DOUBLE_EQ( test_atmos2.get( "T", first5[ "Z" ][ i ] ),
                           test_atmos.get( "T", first5[ "Z" ][ i ] ) );
@@ -154,7 +177,8 @@ TEST_F( _TEST_TITLE_, CopyPropertyWorks ) {
     test_atmos.add_property( "NEW_U", test_atmos.get_property( "U" ) );
     double dz = 0.1;
     for ( double z = dz; z < 100.0; z += dz ) {
-        EXPECT_NEAR( test_atmos.get( "U", z ), test_atmos.get( "NEW_U", z ), 1e-10 );
+        EXPECT_NEAR( test_atmos.get( "U", z ), test_atmos.get( "NEW_U", z ),
+                     1e-10 );
     }
 }
 
@@ -168,36 +192,35 @@ TEST_F( _TEST_TITLE_, TemperatureToSoundSpeedCalculationIsCorrect ) {
     for ( auto it = t.begin(); it != t.end(); ++it ) {
         cx.push_back( sqrt( 1.4 * 287 * *it ) );
     }
-    vector_t tv( t, NCPA::units::Units::from_string( "K" ) );
-    vector_t cv = t2c( tv );
-    for (auto i = 0; i < cv.size(); i++) {
+    vector_u_t tv( t, NCPA::units::Units::from_string( "K" ) );
+    vector_u_t cv = t2c( tv );
+    for ( auto i = 0; i < cv.size(); i++ ) {
         EXPECT_DOUBLE_EQ( cv.get( i ), cx[ i ] );
     }
 }
 
 TEST_F( _TEST_TITLE_, PressureAndDensityToSoundSpeedIsCorrect ) {
-    EXPECT_DOUBLE_EQ( pd2c( 
-        scalar_t( 1.0, "atm" ),
-        scalar_t( 1.225, "kg/m3" )
-    ).get(), std::sqrt( 101325.0 * 1.4 / 1.225 ) );
+    EXPECT_DOUBLE_EQ(
+        pd2c( scalar_u_t( 1.0, "atm" ), scalar_u_t( 1.225, "kg/m3" ) ).get(),
+        std::sqrt( 101325.0 * 1.4 / 1.225 ) );
 }
 
 TEST_F( _TEST_TITLE_, WindVectorsToSpeedAndDirectionAreCorrect ) {
-    scalar_t u( 0.0, "m/s" ), v( 0.0, "m/s" );
+    scalar_u_t u( 0.0, "m/s" ), v( 0.0, "m/s" );
     EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), 0.0 );
     u = 2.0;
     EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), 2.0 );
     EXPECT_DOUBLE_EQ( uv2wd( u, v ).get(), 90.0 );
     v = 2.0;
-    EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), sqrt(8.0) );
+    EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), sqrt( 8.0 ) );
     EXPECT_DOUBLE_EQ( uv2wd( u, v ).get(), 45.0 );
     u = -2.0;
-    EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), sqrt(8.0) );
+    EXPECT_DOUBLE_EQ( uv2ws( u, v ).get(), sqrt( 8.0 ) );
     EXPECT_DOUBLE_EQ( uv2wd( u, v ).get(), 315.0 );
 }
 
 TEST_F( _TEST_TITLE_, WindSpeedAndDirectionToComponentIsCorrect ) {
-    scalar_t ws( sqrt( 8.0 ), "m/s" ), wd( 45.0, "deg" );
+    scalar_u_t ws( sqrt( 8.0 ), "m/s" ), wd( 45.0, "deg" );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 45.0 ).get(), sqrt( 8.0 ) );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 0.0 ).get(), 2.0 );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 90.0 ).get(), 2.0 );
@@ -206,4 +229,98 @@ TEST_F( _TEST_TITLE_, WindSpeedAndDirectionToComponentIsCorrect ) {
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 225.0 ).get(), -sqrt( 8.0 ) );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 270.0 ).get(), -2.0 );
     EXPECT_NEAR( w2wc( ws, wd, 315.0 ).get(), 0.0, 1e-12 );
+}
+
+TEST_F( _TEST_TITLE_, Property2DReportsCorrectly ) {
+    EXPECT_DOUBLE_EQ( prop2d.get( 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.1, 1.1 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.6, 1.6 ), 2.0 );
+    prop2d.set_interpolator(
+        NCPA::interpolation::interpolator_2d_type_t::LANL_NATURAL );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.6, 1.6 ), 1.6 );
+    EXPECT_DOUBLE_EQ( prop2d.get_first_derivative( 1.6, 1.6, 0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get_first_derivative( 1.6, 1.6, 1 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get_second_derivative( 1.6, 1.6, 0, 0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get_second_derivative( 1.6, 1.6, 1, 0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get_second_derivative( 1.6, 1.6, 1, 1 ), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, Property2DConvertsUnitsCorrectly ) {
+    prop2d.convert_units( METERS );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.0, 1.0 ), 1000.0 );
+}
+
+TEST_F( _TEST_TITLE_, Property2DConvertsAxisUnitsCorrectly ) {
+    prop2d.convert_axis_units( 0, METERS );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1499.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1501.0, 1.0 ), 1.0 );
+    prop2d.convert_axis_units( 1, METERS );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1.0, 1.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1499.0, 1499.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( prop2d.get( 1501.0, 1501.0 ), 2.0 );
+}
+
+TEST_F( _TEST_TITLE_, Property2DResampleWorksCorrectly ) {
+    EXPECT_EQ( prop2d.size( 0 ), 5 );
+    EXPECT_EQ( prop2d.size( 1 ), 5 );
+    vector_u_t new_r( 4000, prop2d.get_axis_units( 0 ) );
+    for ( size_t i = 0; i < 4000; ++i ) {
+        new_r[ i ] = (double)i * 0.001;
+    }
+    vector_u_t new_z = prop2d.axis( 1 );
+    prop2d.resample( new_r, new_z );
+    EXPECT_EQ( prop2d.size( 0 ), 4000 );
+    EXPECT_EQ( prop2d.size( 1 ), 5 );
+}
+
+TEST_F( _TEST_TITLE_, Stratified2DWorksAsExpected ) {
+    // strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.1 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.6, 1.6 ), 1.6 );
+    strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.6, 1.6 ), 2.0 );
+}
+
+TEST_F( _TEST_TITLE_, Stratified2DWrapperWorksAsExpected ) {
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.1, 1.1 ), 1.1 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.6, 1.6 ), 1.6 );
+    stratwrap.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.1, 1.1 ), 1.0 );
+    EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.6, 1.6 ), 2.0 );
+}
+
+TEST_F( _TEST_TITLE_, Stratified2DCanBeBuiltFrom1D ) {
+    stratwrap.set( test_atmos );
+    // cout << "Set OK" << std::endl;
+    EXPECT_DOUBLE_EQ( stratwrap.get( "Z0" ), 0.0 );
+    // cout << "get OK," << std::endl;
+    EXPECT_TRUE( stratwrap.get_units( "Z0" )->equals( NCPA::units::METERS ) );
+    // cout << "getz OK" << std::endl;
+    EXPECT_TRUE( stratwrap.get_units( "T" )->equals( NCPA::units::KELVIN ) );
+    // cout << "gett OK" << std::endl;
+    EXPECT_TRUE( stratwrap.get_units( "U" )->equals(
+        NCPA::units::METERS_PER_SECOND ) );
+        // cout << "getu OK" << std::endl;
+    EXPECT_TRUE( stratwrap.get_units( "V" )->equals(
+        NCPA::units::METERS_PER_SECOND ) );
+        // cout << "getv OK" << std::endl;
+    for ( size_t i = 0; i < 5; i++ ) {
+        EXPECT_DOUBLE_EQ( stratwrap.get( "T", 0.0, first5[ "Z" ][ i ] ),
+                          first5[ "T" ][ i ] );
+        EXPECT_DOUBLE_EQ( stratwrap.get( "U", 0.0, first5[ "Z" ][ i ] ),
+                          first5[ "U" ][ i ] );
+        EXPECT_DOUBLE_EQ( stratwrap.get( "V", 0.0, first5[ "Z" ][ i ] ),
+                          first5[ "V" ][ i ] );
+    }
 }

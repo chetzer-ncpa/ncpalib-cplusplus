@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NCPA/atmosphere/constants.hpp"
-#include "NCPA/atmosphere/types.hpp"
+// #include "NCPA/atmosphere/constants.hpp"
+#include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/units.hpp"
 
 #include <cmath>
@@ -10,101 +10,101 @@ namespace NCPA {
     namespace atmos {
 
         // temperature to sound speed
-        static scalar_t t2c( const scalar_t& t ) {
-            return scalar_t( std::sqrt( t.get_as( "K" ) * _GAMMA_ * _R_ ),
+        static scalar_u_t t2c( const scalar_u_t& t ) {
+            return scalar_u_t( std::sqrt( t.get_as( "K" ) * constants::GAMMA() * constants::R() ),
                              "m/s" );
         }
 
-        static scalar_t t2c( double t, const std::string& units ) {
-            return t2c( scalar_t( t, units ) );
+        static scalar_u_t t2c( double t, const std::string& units ) {
+            return t2c( scalar_u_t( t, units ) );
         }
 
-        static vector_t t2c( const vector_t& t ) {
-            vector_t c( t.size(), NCPA::units::Units::from_string( "m/s" ) );
+        static vector_u_t t2c( const vector_u_t& t ) {
+            vector_u_t c( t.size(), NCPA::units::Units::from_string( "m/s" ) );
             for ( size_t i = 0; i < t.size(); i++ ) {
                 c.set( i, t2c( t.get_scalar( i ) ) );
-                // c[ i ] = std::sqrt( t.get_as( i, "K" ) * _GAMMA_ * _R_ );
+                // c[ i ] = std::sqrt( t.get_as( i, "K" ) * constants::GAMMA() * constants::R() );
             }
             return c;
         }
 
-        static vector_t t2c( const std::vector<double>& t,
+        static vector_u_t t2c( const std::vector<double>& t,
                              const std::string& units ) {
-            return t2c( vector_t( t, units ) );
+            return t2c( vector_u_t( t, units ) );
         }
 
         // sound speed to temperature
-        static scalar_t c2t( const scalar_t& c ) {
+        static scalar_u_t c2t( const scalar_u_t& c ) {
             double Cmps = c.get_as( "m/s" );
-            return scalar_t( Cmps * Cmps / _GAMMA_ / _R_, "K" );
+            return scalar_u_t( Cmps * Cmps / constants::GAMMA() / constants::R(), "K" );
         }
 
-        static scalar_t c2t( double t, const std::string& units ) {
-            return c2t( scalar_t( t, units ) );
+        static scalar_u_t c2t( double t, const std::string& units ) {
+            return c2t( scalar_u_t( t, units ) );
         }
 
-        static vector_t c2t( const vector_t& c ) {
-            vector_t t( c.size(), "K" );
+        static vector_u_t c2t( const vector_u_t& c ) {
+            vector_u_t t( c.size(), "K" );
             for ( size_t i = 0; i < c.size(); i++ ) {
                 t.set( i, c2t( c.get_scalar( i ) ) );
                 // t[ i ] = c2t( c.get_scalar( i ) ).get();
                 // double Cmps = c.get_as( i, "m/s" );
-                // t[ i ]      = std::sqrt( Cmps * Cmps / _GAMMA_ / _R_ );
+                // t[ i ]      = std::sqrt( Cmps * Cmps / constants::GAMMA() / constants::R() );
             }
             return t;
         }
 
-        static vector_t c2t( const std::vector<double>& c,
+        static vector_u_t c2t( const std::vector<double>& c,
                              const std::string& units ) {
-            return c2t( vector_t( c, units ) );
+            return c2t( vector_u_t( c, units ) );
         }
 
         // pressure and density to sound speed
-        static scalar_t pd2c( const scalar_t& p, const scalar_t& d ) {
-            return scalar_t(
-                std::sqrt( _GAMMA_ * p.get_as( "Pa" ) / d.get_as( "kg/m3" ) ),
+        static scalar_u_t pd2c( const scalar_u_t& p, const scalar_u_t& d ) {
+            return scalar_u_t(
+                std::sqrt( constants::GAMMA() * p.get_as( "Pa" ) / d.get_as( "kg/m3" ) ),
                 "m/s" );
         }
 
-        static scalar_t pd2c( double p, const std::string& p_units, double d,
+        static scalar_u_t pd2c( double p, const std::string& p_units, double d,
                               const std::string& d_units ) {
-            return pd2c( scalar_t( p, p_units ), scalar_t( d, d_units ) );
+            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ) );
         }
 
-        static vector_t pd2c( const vector_t& p, const vector_t& d ) {
-            vector_t c( p.size(), "m/s" );
+        static vector_u_t pd2c( const vector_u_t& p, const vector_u_t& d ) {
+            vector_u_t c( p.size(), "m/s" );
             for ( size_t i = 0; i < p.size(); i++ ) {
                 c.set( i, pd2c( p.get_scalar( i ), d.get_scalar( i ) ) );
                 // c[ i ] = pd2c( p.get_scalar( i ), d.get_scalar( i ) ).get();
-                // c[ i ] = std::sqrt( _GAMMA_ * p.get_as( i, "Pa" )
+                // c[ i ] = std::sqrt( constants::GAMMA() * p.get_as( i, "Pa" )
                 //                     / d.get_as( i, "kg/m3" ) );
             }
             return c;
         }
 
-        static vector_t pd2c( const std::vector<double>& p,
+        static vector_u_t pd2c( const std::vector<double>& p,
                               const std::string& p_units,
                               const std::vector<double>& d,
                               const std::string& d_units ) {
-            return pd2c( vector_t( p, p_units ), vector_t( d, d_units ) );
+            return pd2c( vector_u_t( p, p_units ), vector_u_t( d, d_units ) );
         }
 
         // U & V winds to wind speed
-        static scalar_t uv2ws( const scalar_t& u, const scalar_t& v ) {
-            scalar_t ws = u;
+        static scalar_u_t uv2ws( const scalar_u_t& u, const scalar_u_t& v ) {
+            scalar_u_t ws = u;
             ws          = std::sqrt( ( u.get() * u.get() )
                                      + ( v.get_as( *u.get_units() )
                                 * v.get_as( *u.get_units() ) ) );
             return ws;
         }
 
-        static scalar_t uv2ws( double u, const std::string& u_units, double v,
+        static scalar_u_t uv2ws( double u, const std::string& u_units, double v,
                                const std::string& v_units ) {
-            return uv2ws( scalar_t( u, u_units ), scalar_t( v, v_units ) );
+            return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) );
         }
 
-        static vector_t uv2ws( const vector_t& u, const vector_t& v ) {
-            vector_t ws( u.size(), u.get_units() );
+        static vector_u_t uv2ws( const vector_u_t& u, const vector_u_t& v ) {
+            vector_u_t ws( u.size(), u.get_units() );
             for ( size_t i = 0; i < u.size(); i++ ) {
                 ws.set( i, uv2ws( u.get_scalar( i ), v.get_scalar( i ) ) );
                 // ws[ i ] = uv2ws( u.get_scalar(i), v.get_scalar(i) ).get();
@@ -112,61 +112,61 @@ namespace NCPA {
             return ws;
         }
 
-        static vector_t uv2ws( const std::vector<double>& u,
+        static vector_u_t uv2ws( const std::vector<double>& u,
                                const std::string& u_units,
                                const std::vector<double>& v,
                                const std::string& v_units ) {
-            return uv2ws( vector_t( u, u_units ), vector_t( v, v_units ) );
+            return uv2ws( vector_u_t( u, u_units ), vector_u_t( v, v_units ) );
         }
 
         // U & V winds to wind direction
-        static scalar_t uv2wd( const scalar_t& u, const scalar_t& v ) {
-            return scalar_t(
+        static scalar_u_t uv2wd( const scalar_u_t& u, const scalar_u_t& v ) {
+            return scalar_u_t(
                 NCPA::math::math2az( NCPA::math::rad2deg(
                     // NCPA::math::PI / 2.0 -
                     std::atan2( v.get_as( *u.get_units() ), u.get() ) ) ),
                 "deg" );
         }
 
-        static scalar_t uv2wd( double u, const std::string& u_units, double v,
+        static scalar_u_t uv2wd( double u, const std::string& u_units, double v,
                                const std::string& v_units ) {
-            return uv2wd( scalar_t( u, u_units ), scalar_t( v, v_units ) );
+            return uv2wd( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) );
         }
 
-        static vector_t uv2wd( const vector_t& u, const vector_t& v ) {
-            vector_t wd( u.size(), "deg" );
+        static vector_u_t uv2wd( const vector_u_t& u, const vector_u_t& v ) {
+            vector_u_t wd( u.size(), "deg" );
             for ( size_t i = 0; i < u.size(); i++ ) {
                 wd.set( i, uv2wd( u.get_scalar( i ), v.get_scalar( i ) ) );
             }
             return wd;
         }
 
-        static vector_t uv2wd( const std::vector<double>& u,
+        static vector_u_t uv2wd( const std::vector<double>& u,
                                const std::string& u_units,
                                const std::vector<double>& v,
                                const std::string& v_units ) {
-            return uv2wd( vector_t( u, u_units ), vector_t( v, v_units ) );
+            return uv2wd( vector_u_t( u, u_units ), vector_u_t( v, v_units ) );
         }
 
         // wind speed and direction to wind component along an azimuth
-        static scalar_t w2wc( const scalar_t& ws, const scalar_t& wd,
+        static scalar_u_t w2wc( const scalar_u_t& ws, const scalar_u_t& wd,
                               double az ) {
-            return scalar_t( ws.get()
+            return scalar_u_t( ws.get()
                                  * std::cos( wd.get_as( "rad" )
                                              - NCPA::math::deg2rad( az ) ),
                              ws.get_units() );
         }
 
-        static scalar_t w2wc( double ws, const std::string& ws_units,
+        static scalar_u_t w2wc( double ws, const std::string& ws_units,
                               double wd, const std::string& wd_units,
                               double az ) {
-            return w2wc( scalar_t( ws, ws_units ), scalar_t( wd, wd_units ),
+            return w2wc( scalar_u_t( ws, ws_units ), scalar_u_t( wd, wd_units ),
                          az );
         }
 
-        static vector_t w2wc( const vector_t& ws, const vector_t& wd,
+        static vector_u_t w2wc( const vector_u_t& ws, const vector_u_t& wd,
                               double az ) {
-            vector_t wc = ws;
+            vector_u_t wc = ws;
             for ( size_t i = 0; i < ws.size(); i++ ) {
                 wc.set( i,
                         w2wc( ws.get_scalar( i ), wd.get_scalar( i ), az ) );
@@ -174,20 +174,20 @@ namespace NCPA {
             return wc;
         }
 
-        static vector_t w2wc( const std::vector<double>& ws,
+        static vector_u_t w2wc( const std::vector<double>& ws,
                               const std::string& ws_units,
                               const std::vector<double>& wd,
                               const std::string& wd_units, double az ) {
-            return w2wc( vector_t( ws, ws_units ), vector_t( wd, wd_units ),
+            return w2wc( vector_u_t( ws, ws_units ), vector_u_t( wd, wd_units ),
                          az );
         }
 
         // attenuation from altitude, temperature, pressure,  density and
         // frequency
-        static scalar_t attenuation_sutherland_bass( const scalar_t& zs,
-                                                     const scalar_t& ts,
-                                                     const scalar_t& ps,
-                                                     const scalar_t& ds,
+        static scalar_u_t attenuation_sutherland_bass( const scalar_u_t& zs,
+                                                     const scalar_u_t& ts,
+                                                     const scalar_u_t& ps,
+                                                     const scalar_u_t& ds,
                                                      double freq ) {
             double P_z = ps.get_as( "Pa" ), D_z = ds.get_as( "kg/m3" ),
                    T_z = ts.get_as( "K" ), z = zs.get_as( "km" );
@@ -205,7 +205,7 @@ namespace NCPA {
             const double theta[] = { 2239.1, 3352.0, 915.0, 1037.0 };
 
             // calculated parameters
-            double c_snd_z = std::sqrt( _GAMMA_ * P_z / D_z );  // m/s
+            double c_snd_z = std::sqrt( constants::GAMMA() * P_z / D_z );  // m/s
             double mu      = mu_o * std::sqrt( T_z / T_o )
                       * ( ( 1.0 + S / T_o )
                           / ( 1.0 + S / T_z ) );  // Viscosity [kg/(m*s)]
@@ -366,24 +366,24 @@ namespace NCPA {
                 a_vib = a_vib + a_vib_c[ m ];
             }
 
-            return scalar_t( a_cl + a_rot + a_diff + a_vib, "np/m" );
+            return scalar_u_t( a_cl + a_rot + a_diff + a_vib, "np/m" );
         }
 
-        static scalar_t attenuation_sutherland_bass(
+        static scalar_u_t attenuation_sutherland_bass(
             double z, const std::string& z_units, double t,
             const std::string& t_units, double p, const std::string& p_units,
             double d, const std::string& d_units, double freq ) {
             return attenuation_sutherland_bass(
-                scalar_t( z, z_units ), scalar_t( t, t_units ),
-                scalar_t( p, p_units ), scalar_t( d, d_units ), freq );
+                scalar_u_t( z, z_units ), scalar_u_t( t, t_units ),
+                scalar_u_t( p, p_units ), scalar_u_t( d, d_units ), freq );
         }
 
-        static vector_t attenuation_sutherland_bass( const vector_t& zs,
-                                                     const vector_t& ts,
-                                                     const vector_t& ps,
-                                                     const vector_t& ds,
+        static vector_u_t attenuation_sutherland_bass( const vector_u_t& zs,
+                                                     const vector_u_t& ts,
+                                                     const vector_u_t& ps,
+                                                     const vector_u_t& ds,
                                                      double freq ) {
-            vector_t alpha( zs.size(), "np/m" );
+            vector_u_t alpha( zs.size(), "np/m" );
             for ( size_t i = 0; i < zs.size(); i++ ) {
                 alpha.set( i, attenuation_sutherland_bass(
                                   zs.get_scalar( i ), ts.get_scalar( i ),
@@ -393,14 +393,14 @@ namespace NCPA {
             return alpha;
         }
 
-        static vector_t attenuation_sutherland_bass(
+        static vector_u_t attenuation_sutherland_bass(
             std::vector<double>& z, const std::string& z_units,
             std::vector<double>& t, const std::string& t_units,
             std::vector<double>& p, const std::string& p_units,
             std::vector<double>& d, const std::string& d_units, double freq ) {
             return attenuation_sutherland_bass(
-                vector_t( z, z_units ), vector_t( t, t_units ),
-                vector_t( p, p_units ), vector_t( d, d_units ), freq );
+                vector_u_t( z, z_units ), vector_u_t( t, t_units ),
+                vector_u_t( p, p_units ), vector_u_t( d, d_units ), freq );
         }
 
 

@@ -44,6 +44,7 @@ claus@olemiss.edu
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/exceptions.hpp"
 #include "NCPA/interpolation/abstract_spline_3d.hpp"
 #include "NCPA/interpolation/defines.hpp"
 #include "NCPA/interpolation/lanl/lanl_common.hpp"
@@ -51,6 +52,11 @@ claus@olemiss.edu
 #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& a,
+    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -68,7 +74,54 @@ namespace NCPA {
                                    ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_3d<INDEPTYPE, DEPTYPE> {
                 public:
+                    hybrid_spline_3d() :
+                        _length_x { 0 }, _length_y { 0 }, _length_z { 0 } {}
+
                     virtual ~hybrid_spline_3d() { clear(); }
+
+                    hybrid_spline_3d(
+                        const hybrid_spline_3d<INDEPTYPE, DEPTYPE>& other ) :
+                        NCPA::interpolation::_spline_3d<INDEPTYPE, DEPTYPE>(
+                            other ) {
+                        _length_x   = other._length_x;
+                        _length_y   = other._length_y;
+                        _length_z   = other._length_z;
+                        _accel[ 0 ] = other._accel[ 0 ];
+                        _accel[ 1 ] = other._accel[ 1 ];
+                        _accel[ 2 ] = other._accel[ 2 ];
+                        NCPA::arrays::copy( other._x_vals, _length_x,
+                                            _x_vals );
+                        NCPA::arrays::copy( other._y_vals, _length_y,
+                                            _y_vals );
+                        NCPA::arrays::copy( other._z_vals, _length_z,
+                                            _z_vals );
+                        NCPA::arrays::copy( other._f_vals, _length_x,
+                                            _length_y, _length_z, _f_vals );
+                        NCPA::arrays::copy( other._f_slopes, _length_x,
+                                            _length_y, _length_z, _f_slopes );
+                        NCPA::arrays::copy( other._dfdx_slopes, _length_x,
+                                            _length_y, _length_z,
+                                            _dfdx_slopes );
+                        NCPA::arrays::copy( other._dfdy_slopes, _length_x,
+                                            _length_y, _length_z,
+                                            _dfdy_slopes );
+                    }
+
+                    hybrid_spline_3d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                                          source ) noexcept :
+                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>& a,
+                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+
+                    hybrid_spline_3d<INDEPTYPE, DEPTYPE>& operator=(
+                        hybrid_spline_3d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     void init( size_t nx, size_t ny, size_t nz ) override {
                         this->clear();
@@ -1352,3 +1405,23 @@ namespace NCPA {
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& a,
+    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& b ) noexcept {
+    using std::swap;
+    ::swap( dynamic_cast<NCPA::interpolation::_spline_3d<T, U>&>( a ),
+            dynamic_cast<NCPA::interpolation::_spline_3d<T, U>&>( b ) );
+    swap( a._length_x, b._length_x );
+    swap( a._length_y, b._length_y );
+    swap( a._length_z, b._length_z );
+    swap( a._accel, b._accel );
+    swap( a._x_vals, b._x_vals );
+    swap( a._y_vals, b._y_vals );
+    swap( a._z_vals, b._z_vals );
+    swap( a._f_vals, b._f_vals );
+    swap( a._f_slopes, b._f_slopes );
+    swap( a._dfdx_slopes, b._dfdx_slopes );
+    swap( a._dfdy_slopes, b._dfdy_slopes );
+}

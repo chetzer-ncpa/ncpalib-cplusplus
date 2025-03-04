@@ -5,15 +5,6 @@
 #include <stdexcept>
 #include <string>
 
-namespace NCPA {
-    class NotImplementedError : public std::logic_error {
-        public:
-            NotImplementedError( const std::string& message
-                                 = "Not implemented" ) :
-                std::logic_error( message ) {}
-    };
-}  // namespace NCPA
-
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -72,6 +63,11 @@ namespace NCPA {
 #define ENABLE_FUNCTION_IF_NUMERIC( _TYPE_ )                        \
     typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value, \
                             int>::type ENABLER                      \
+        = 0
+
+#define ENABLE_FUNCTION_IF_NOT_NUMERIC( _TYPE_ )                     \
+    typename std::enable_if<!NCPA::types::is_numeric<_TYPE_>::value, \
+                            int>::type ENABLER                       \
         = 0
 
 #define ENABLE_IF_ARITHMETIC( _TYPE_ ) \
@@ -178,3 +174,105 @@ namespace NCPA {
                                         _TYPENAME_ )                \
     template<typename T_ = _TYPENAME_>                              \
     _RETURNTYPE_ _METHODNAME_( ENABLE_METHOD_IF_REAL( T_ ) )
+
+#define DECLARE_CLONE_FUNCTION( _THISCLASS_, _SUPERCLASS_ )               \
+    virtual std::unique_ptr<_SUPERCLASS_> clone() const override {        \
+        return std::unique_ptr<_SUPERCLASS_>( new _THISCLASS_( *this ) ); \
+    }
+
+#define DECLARE_CLONE_TEMPLATE( _THISCLASS_, _SUPERCLASS_, _TYPE_ )        \
+    virtual std::unique_ptr<_SUPERCLASS_<_TYPE_>> clone() const override { \
+        return std::unique_ptr<_SUPERCLASS_<_TYPE_>>(                      \
+            new _THISCLASS_( *this ) );                                    \
+    }
+
+#define DECLARE_CLONE_TEMPLATE2( _THISCLASS_, _SUPERCLASS_, _TYPE1_, \
+                                 _TYPE2_ )                           \
+    virtual std::unique_ptr<_SUPERCLASS_<_TYPE1_, _TYPE2_>> clone()  \
+        const override {                                             \
+        return std::unique_ptr<_SUPERCLASS_<_TYPE1_, _TYPE2_>>(      \
+            new _THISCLASS_( *this ) );                              \
+    }
+
+#define DECLARE_MOVE_CONSTRUCTOR( _THISCLASS_ )                    \
+    _THISCLASS_( _THISCLASS_&& source ) noexcept : _THISCLASS_() { \
+        ::swap( *this, source );                                   \
+    }
+
+#define DECLARE_MOVE_CONSTRUCTOR_TEMPLATE( _THISCLASS_, _TYPE1_ ) \
+    _THISCLASS_( _THISCLASS_<_TYPE1_>&& source ) noexcept :       \
+        _THISCLASS_<_TYPE1_>() {                                  \
+        ::swap( *this, source );                                  \
+    }
+
+#define DECLARE_MOVE_CONSTRUCTOR_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ ) \
+    _THISCLASS_( _THISCLASS_<_TYPE1_, _TYPE2_>&& source ) noexcept :        \
+        _THISCLASS_<_TYPE1_, _TYPE2_>() {                                   \
+        ::swap( *this, source );                                            \
+    }
+
+#define DECLARE_EMPTY_DESTRUCTOR( _THISCLASS_ ) \
+    virtual ~_THISCLASS_() {}
+
+#define DECLARE_ASSIGNMENT_OPERATOR( _THISCLASS_ ) \
+    _THISCLASS_& operator=( _THISCLASS_ other ) {  \
+        ::swap( *this, other );                    \
+        return *this;                              \
+    }
+
+#define DECLARE_ASSIGNMENT_OPERATOR_TEMPLATE( _THISCLASS_, _TYPE1_ ) \
+    _THISCLASS_<_TYPE1_>& operator=( _THISCLASS_<_TYPE1_> other ) {  \
+        ::swap( *this, other );                                      \
+        return *this;                                                \
+    }
+
+#define DECLARE_ASSIGNMENT_OPERATOR_TEMPLATE2( _THISCLASS_, _TYPE1_, \
+                                               _TYPE2_ )             \
+    _THISCLASS_<_TYPE1_, _TYPE2_>& operator=(                        \
+        _THISCLASS_<_TYPE1_, _TYPE2_> other ) {                      \
+        ::swap( *this, other );                                      \
+        return *this;                                                \
+    }
+
+#define DECLARE_FRIEND_SWAP_METHOD( _THISCLASS_ ) \
+    friend void ::swap( _THISCLASS_& a, _THISCLASS_& b ) noexcept;
+
+#define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE( _THISCLASS_, _TYPE1_ ) \
+    friend void ::swap( _THISCLASS_<_TYPE1_>& a,                    \
+                        _THISCLASS_<_TYPE1_>& b ) noexcept;
+
+#define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ ) \
+    friend void ::swap( _THISCLASS_<_TYPE1_, _TYPE2_>& a,                     \
+                        _THISCLASS_<_TYPE1_, _TYPE2_>& b ) noexcept;
+
+#define DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ ) \
+    DECLARE_MOVE_CONSTRUCTOR( _THISCLASS_ )                \
+    DECLARE_EMPTY_DESTRUCTOR( _THISCLASS_ )                \
+    DECLARE_ASSIGNMENT_OPERATOR( _THISCLASS_ )             \
+    DECLARE_FRIEND_SWAP_METHOD( _THISCLASS_ )
+
+#define DECLARE_BOILERPLATE_METHODS( _THISCLASS_, _SUPERCLASS_ ) \
+    DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ )           \
+    DECLARE_CLONE_FUNCTION( _THISCLASS_, _SUPERCLASS_ )
+
+#define DECLARE_BOILERPLATE_TEMPLATES( _THISCLASS_, _SUPERCLASS_, _TYPE1_ ) \
+    DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ )                      \
+    DECLARE_CLONE_TEMPLATE( _THISCLASS_, _SUPERCLASS_, _TYPE1_ )
+
+#define DECLARE_BOILERPLATE_TEMPLATES2( _THISCLASS_, _SUPERCLASS_, _TYPE1_, \
+                                        _TYPE2_ )                           \
+    DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ )                      \
+    DECLARE_CLONE_TEMPLATE2( _THISCLASS_, _SUPERCLASS_, _TYPE1_, _TYPE2_ )
+
+#define DECLARE_WRAPPER_BOILERPLATE_TEMPLATES( _THISCLASS_, _TYPE1_ ) \
+    DECLARE_MOVE_CONSTRUCTOR_TEMPLATE( _THISCLASS_, _TYPE1_ )         \
+    DECLARE_EMPTY_DESTRUCTOR( _THISCLASS_ )                           \
+    DECLARE_ASSIGNMENT_OPERATOR_TEMPLATE( _THISCLASS_, _TYPE1_ )      \
+    DECLARE_FRIEND_SWAP_METHOD_TEMPLATE( _THISCLASS_, _TYPE1_ )
+
+#define DECLARE_WRAPPER_BOILERPLATE_TEMPLATES2( _THISCLASS_, _TYPE1_,      \
+                                                _TYPE2_ )                  \
+    DECLARE_MOVE_CONSTRUCTOR_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ )    \
+    DECLARE_EMPTY_DESTRUCTOR( _THISCLASS_ )                                \
+    DECLARE_ASSIGNMENT_OPERATOR_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ ) \
+    DECLARE_FRIEND_SWAP_METHOD_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ )

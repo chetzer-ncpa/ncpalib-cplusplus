@@ -52,19 +52,44 @@ claus@olemiss.edu
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::linear_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::linear_spline_1d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
         namespace LANL {
-            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( linear_spline_1d,
-            //                                        _lanl_spline_1d );
-
             _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
                 class linear_spline_1d<INDEPTYPE, DEPTYPE, void,
                                        ENABLE_IF_REAL( INDEPTYPE ),
                                        ENABLE_IF_REAL( DEPTYPE )>
                 : public _lanl_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
+                    linear_spline_1d() :
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>() {}
+
                     virtual ~linear_spline_1d() {}
+
+                    linear_spline_1d(
+                        const linear_spline_1d<INDEPTYPE, DEPTYPE>& other ) :
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>( other ) {}
+
+                    linear_spline_1d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                                          source ) noexcept :
+                        linear_spline_1d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        linear_spline_1d<INDEPTYPE, DEPTYPE>& a,
+                        linear_spline_1d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+
+                    linear_spline_1d<INDEPTYPE, DEPTYPE>& operator=(
+                        linear_spline_1d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     virtual void ready() override {
                         DEPTYPE *slopes   = this->_get_slopes();
@@ -105,6 +130,10 @@ namespace NCPA {
                     virtual DEPTYPE eval_dddf( INDEPTYPE x ) override {
                         return 0.0;
                     }
+
+                    virtual interpolator_1d_type_t interptype() const override {
+                        return interpolator_1d_type_t::LANL_LINEAR;
+                    } 
             };
 
             DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( linear_spline_1d,
@@ -112,3 +141,12 @@ namespace NCPA {
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::linear_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::linear_spline_1d<T, U>& b ) noexcept {
+    ::swap(
+        dynamic_cast<NCPA::interpolation::LANL::_lanl_spline_1d<T, U>&>( a ),
+        dynamic_cast<NCPA::interpolation::LANL::_lanl_spline_1d<T, U>&>( b ) );
+}

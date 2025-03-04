@@ -11,6 +11,10 @@
 #include <memory>
 #include <stdexcept>
 
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator3D<T, U>& a,
+                  NCPA::interpolation::Interpolator3D<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
 
@@ -94,3 +98,10 @@ namespace NCPA {
 
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator3D<T, U>& a,
+                  NCPA::interpolation::Interpolator3D<T, U>& b ) noexcept {
+                    using std::swap;
+                    swap( a._engine, b._engine );
+                  }

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "NCPA/constants.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/ndvector.hpp"
 #include "NCPA/types.hpp"
 
 #include <algorithm>
@@ -14,58 +16,135 @@ namespace NCPA {
     namespace arrays {
 
         template<typename T>
-        class vector2d_t : public std::vector<std::vector<T>> {
+        // class vector2d_t : public std::vector<std::vector<T>> {
+        class vector2d_t : public ndvector<2, T> {
             public:
-                vector2d_t() : std::vector<std::vector<T>>() {}
+                using ndvector<2,T>::set;
+                vector2d_t() : ndvector<2, T>() {}
 
-                vector2d_t( size_t nx1, size_t nx2, const T& val ) :
-                    std::vector<std::vector<T>>() {
+                vector2d_t( size_t nx1, size_t nx2, const T& val = (T)0 ) :
+                    ndvector<2, T>() {
                     this->resize2d( nx1, nx2, val );
+                }
+
+                vector2d_t( size_t nx1, size_t nx2, const T **vals ) :
+                    vector2d_t( nx1, nx2 ) {
+                    for ( size_t i = 0; i < nx1; ++i ) {
+                        this->at( i ).assign( vals[ i ], vals[ i ] + nx2 );
+                    }
                 }
 
                 virtual void resize2d( size_t nx1, size_t nx2,
                                        const T& val = (T)0 ) {
-                    this->resize( nx1, std::vector<T>( nx2, val ) );
+                    // this->resize( nx1, std::vector<T>( nx2, val ) );
+                    this->reshape( { nx1, nx2 }, val );
                 }
 
                 virtual void size2d( size_t& nx1, size_t& nx2 ) const {
-                    nx1 = this->size();
-                    if ( nx1 > 0 ) {
-                        nx2 = this->at( 0 ).size();
-                    } else {
-                        nx2 = 0;
-                    }
+                    auto dims = this->shape();
+                    nx1       = dims[ 0 ];
+                    nx2       = dims[ 1 ];
+                    // nx1 = this->size();
+                    // if ( nx1 > 0 ) {
+                    //     nx2 = this->at( 0 ).size();
+                    // } else {
+                    //     nx2 = 0;
+                    // }
+                }
+
+                virtual size_t dim( size_t dimnum ) const {
+                    return this->shape()[ dimnum ];
+                    // switch ( dimnum ) {
+                    //     case 0:
+                    //         return this->size();
+                    //         break;
+                    //     case 1:
+                    //         return ( this->size() > 0 ? this->at( 0 ).size()
+                    //                                   : 0 );
+                    //         break;
+                    //     default:
+                    //         throw std::range_error(
+                    //             "vector2d_t.dim(): Invalid dimension "
+                    //             "requested" );
+                    // }
+                }
+
+                virtual void fill( T val ) {
+                    this->set( val );
+                    // for ( auto it = this->begin(); it != this->end(); ++it )
+                    // {
+                    //     it->assign( this->dim( 1 ), val );
+                    // }
                 }
         };
 
         template<typename T>
-        class vector3d_t : public std::vector<vector2d_t<T>> {
+        // class vector3d_t : public std::vector<vector2d_t<T>> {
+        class vector3d_t : public ndvector<3, T> {
             public:
-                vector3d_t() : std::vector<vector2d_t<T>>() {}
+                vector3d_t() : ndvector<3, T>() {}
 
                 vector3d_t( size_t nx1, size_t nx2, size_t nx3,
-                            const T& val ) :
-                    std::vector<vector2d_t<T>>() {
-                    this->resize3d( nx1, nx2, val );
+                            const T& val = (T)0 ) :
+                            ndvector<3, T>() {
+                    this->resize3d( nx1, nx2, nx3, val );
+                }
+
+                vector3d_t( size_t nx1, size_t nx2, size_t nx3,
+                            const T ***vals ) :
+                    vector3d_t( nx1, nx2, nx3 ) {
+                    for ( size_t i = 0; i < nx1; ++i ) {
+                        for ( size_t j = 0; j < nx2; ++j ) {
+                            this->at( i ).at( j ).assign(
+                                vals[ i ][ j ], vals[ i ][ j ] + nx3 );
+                        }
+                    }
                 }
 
                 virtual void resize3d( size_t nx1, size_t nx2, size_t nx3,
                                        const T& val = (T)0 ) {
-                    this->resize( nx1, vector2d_t<T>( nx2, nx3, val ) );
+                    this->reshape( { nx1, nx2, nx3 }, val );
+                    // this->resize( nx1, vector2d_t<T>( nx2, nx3, val ) );
                 }
 
                 virtual void size3d( size_t& nx1, size_t& nx2,
                                      size_t& nx3 ) const {
-                    nx1 = this->size();
-                    if ( nx1 > 0 ) {
-                        this->at( 0 ).size2d( nx2, nx3 );
-                    } else {
-                        nx2 = 0;
-                        nx3 = 0;
-                    }
+                    auto dims = this->shape();
+                    nx1 = dims[0];
+                    nx2 = dims[1];
+                    nx3 = dims[2];
+                    // nx1 = this->size();
+                    // if ( nx1 > 0 ) {
+                    //     this->at( 0 ).size2d( nx2, nx3 );
+                    // } else {
+                    //     nx2 = 0;
+                    //     nx3 = 0;
+                    // }
+                }
+
+                virtual size_t dim( size_t dimnum ) const {
+                    return this->shape()[ dimnum ];
+                    // switch ( dimnum ) {
+                    //     case 0:
+                    //         return this->size();
+                    //         break;
+                    //     case 1:
+                    //         return ( this->size() > 0 ? this->at( 0 ).size()
+                    //                                   : 0 );
+                    //         break;
+                    //     case 2:
+                    //         return ( this->size() > 0
+                    //                          && this->at( 0 ).size() > 0
+                    //                      ? this->at( 0 ).at( 0 ).size()
+                    //                      : 0 );
+                    //         break;
+                    //     default:
+                    //         throw std::range_error(
+                    //             "vector3d_t.dim(): Invalid dimension "
+                    //             "requested" );
+                    // }
                 }
         };
-
 
         template<typename T>
         T *as_array( std::vector<T>& in ) {
@@ -324,7 +403,11 @@ namespace NCPA {
         */
         template<typename T>
         void copy( const T *from, size_t n, T *to ) {
-            std::copy( from, from + n, to );
+            if ( from != nullptr ) {
+                std::copy( from, from + n, to );
+            } else if ( to != nullptr ) {
+                free_array( to, n );
+            }
         }
 
         /**
@@ -336,8 +419,12 @@ namespace NCPA {
         */
         template<typename T>
         void copy( const T **from, size_t n1, size_t n2, T **to ) {
-            for ( size_t i = 0; i < n1; i++ ) {
-                copy( from[ i ], n2, to[ i ] );
+            if ( from != nullptr ) {
+                for ( size_t i = 0; i < n1; i++ ) {
+                    copy( from[ i ], n2, to[ i ] );
+                }
+            } else if ( to != nullptr ) {
+                free_array( to, n1, n2 );
             }
         }
 
@@ -352,8 +439,12 @@ namespace NCPA {
         template<typename T>
         void copy( const T ***from, size_t n1, size_t n2, size_t n3,
                    T ***to ) {
-            for ( size_t i = 0; i < n1; i++ ) {
-                copy( from[ i ], n2, n3, to[ i ] );
+            if ( from != nullptr ) {
+                for ( size_t i = 0; i < n1; i++ ) {
+                    copy( from[ i ], n2, n3, to[ i ] );
+                }
+            } else if ( to != nullptr ) {
+                free_array( to, n1, n2, n3 );
             }
         }
 
@@ -520,7 +611,7 @@ namespace NCPA {
                 if ( i > 0 ) {
                     os << separator;
                 }
-                os << basevec[i];
+                os << basevec[ i ];
             }
             // os << std::endl;
         }
@@ -568,6 +659,294 @@ namespace NCPA {
             }
         }
 
+        /**
+        @brief Performs element-wise array addition.
+        @param v1 The first array to add.
+        @param v2 The second array to add.
+        @returns The array holding the sum.
+        */
+        template<typename T>
+        T add_vectors( const T& v1, const T& v2,
+                       ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+            size_t N = std::min<size_t>( v1.size(), v2.size() );
+            T v3     = v1.size() >= v2.size() ? v1 : v2;
+            std::transform( v1.cbegin(), v1.cbegin() + N, v2.cbegin(),
+                            v3.begin(), std::plus<typename T::value_type> {} );
+            return v3;
+        }
+
+        /**
+        @brief Performs element-wise array addition.
+        @param N The number of points in the array.
+        @param v1 The first array to add.
+        @param v2 The second array to add.
+        @param v12 The array to hold the sum.  Can be the same as either input
+        array, in which case the values are replaced.
+        */
+        template<typename T>
+        void add_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+            T *tempvec = NCPA::arrays::zeros<T>( N );
+            for ( size_t i = 0; i < N; i++ ) {
+                tempvec[ i ] = v1[ i ] + v2[ i ];
+            }
+            std::memcpy( v12, tempvec, N * sizeof( T ) );
+            delete[] tempvec;
+        }
+
+        /**
+        Performs element-wise array division.  If arrays are different lengths,
+        all values beyond the length of the shorter vector will be zero.
+        @brief Performs element-wise array division.
+        @param v1 The array to divide.
+        @param v2 The array to divide by.
+        @returns The array holding the quotient.
+        */
+        template<typename T>
+        T divide_vectors( const T& v1, const T& v2,
+                          ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+            T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
+            std::transform( v1.cbegin(),
+                            v1.cbegin()
+                                + std::min<size_t>( v1.size(), v2.size() ),
+                            v2.cbegin(), v3.begin(),
+                            std::divides<typename T::value_type> {} );
+            return v3;
+        }
+
+        /**
+        Divides one array by another element-wise, returning the
+        quotient in a supplied array.
+        @brief Performs element-wise array division.
+        @param N The number of points in the array.
+        @param v1 The array to divide.
+        @param v2 The array to divide by.
+        @param v12 The array to hold the quotient.  Can be the same as either
+        input array, in which case the values are replaced.
+        */
+        template<typename T>
+        void divide_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+            T *tempvec = NCPA::arrays::zeros<T>( N );
+            for ( size_t i = 0; i < N; i++ ) {
+                tempvec[ i ] = v1[ i ] / v2[ i ];
+            }
+            std::memcpy( v12, tempvec, N * sizeof( T ) );
+            delete[] tempvec;
+        }
+
+        /**
+        Performs element-wise array multiplication.  If arrays are different
+        lengths, all values beyond the length of the shorter vector will be
+        zero.
+        @brief Performs element-wise array multiplication.
+        @param v1 The first array to multiply.
+        @param v2 The second array to multiply.
+        @returns The array holding the product.
+        */
+        template<typename T>
+        T multiply_vectors( const T& v1, const T& v2,
+                            ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+            T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
+            std::transform( v1.cbegin(),
+                            v1.cbegin()
+                                + std::min<size_t>( v1.size(), v2.size() ),
+                            v2.cbegin(), v3.begin(),
+                            std::multiplies<typename T::value_type> {} );
+            return v3;
+        }
+
+        /**
+        Multiplies two arrays together element-wise, returning the
+        product in a supplied array.
+        @brief Performs element-wise array multiplication.
+        @param N The number of points in the array.
+        @param v1 The first array to multiply.
+        @param v2 The second array to multiply.
+        @param v12 The array to hold the product.  Can be the same as either
+        input array, in which case the values are replaced.
+        */
+        template<typename T>
+        void multiply_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+            T *tempvec = NCPA::arrays::zeros<T>( N );
+            for ( size_t i = 0; i < N; i++ ) {
+                tempvec[ i ] = v1[ i ] * v2[ i ];
+            }
+            std::memcpy( v12, tempvec, N * sizeof( T ) );
+            delete[] tempvec;
+        }
+
+        /**
+        Scales an array of values by a constant value, returning the
+        result in a dynamically-allocated array.
+        @brief Scales an array by a constant value.
+        @param N The number of points in the array.
+        @param in The array to scale.
+        @param factor The factor to scale by.
+        @param out The new, dynamically-allocated scaled array.
+        */
+        template<typename T, typename U>
+        void scale_array( size_t N, const U *in, T factor, U *& out ) {
+            U *tempvec = NCPA::arrays::zeros<U>( N );
+            for ( size_t i = 0; i < N; i++ ) {
+                tempvec[ i ] = in[ i ] * (U)factor;
+            }
+            std::memcpy( out, tempvec, N * sizeof( U ) );
+            delete[] tempvec;
+        }
+
+        /**
+        Scales an array.
+        @brief Performs array scaling.
+        @param v1 The array to multiply.
+        @param scalar The scalar to multiply by.
+        @returns The scaled array.
+        */
+        template<typename T, typename U>
+        T scale_vector(
+            const T& v1, U scalar,
+            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+                                    int>::type ENABLER
+            = 0 ) {
+            if ( scalar == NCPA::constants::one<U>() ) {
+                return v1;
+            }
+            T v3 = v1;
+            std::transform( v3.begin(), v3.end(), v3.begin(),
+                            [ scalar ]( U num ) { return num * scalar; } );
+            return v3;
+        }
+
+        /**
+        Scales an array of values in-place by a constant value
+        @brief Scales an array by a constant value in place.
+        @param N The number of points in the array.
+        @param in The array to scale.
+        @param factor The factor to scale by.
+        */
+        template<typename T, typename U>
+        void scale_array( size_t N, U *in, T factor ) {
+            if ( factor != NCPA::constants::one<T>() ) {
+                for ( size_t i = 0; i < N; i++ ) {
+                    in[ i ] *= factor;
+                }
+            }
+        }
+
+        /**
+        Scales an array.
+        @brief Performs array scaling.
+        @param v1 The array to multiply.
+        @param scalar The scalar to multiply by.
+        @returns The scaled array.
+        */
+        template<typename T, typename U>
+        T offset_vector(
+            const T& v1, U scalar,
+            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+                                    int>::type ENABLER
+            = 0 ) {
+            if ( NCPA::constants::is_zero<U>( scalar ) ) {
+                return v1;
+            }
+            T v3 = v1;
+            for ( auto i = 0; i < v1.size(); i++ ) {
+                v3[ i ] += scalar;
+            }
+            return v3;
+        }
+
+        /**
+        Scales an array of values in-place by a constant value
+        @brief Scales an array by a constant value in place.
+        @param N The number of points in the array.
+        @param in The array to scale.
+        @param factor The factor to scale by.
+        */
+        template<typename T, typename U>
+        void offset_array( size_t N, U *in, T factor ) {
+            if ( !NCPA::constants::is_zero<T>( factor ) ) {
+                for ( size_t i = 0; i < N; i++ ) {
+                    in[ i ] += factor;
+                }
+            }
+        }
+
+        /**
+        @brief Performs element-wise array subtraction.
+        @param v1 The first array to add.
+        @param v2 The second array to add.
+        @returns The array holding the sum.
+        */
+        template<typename T>
+        T subtract_vectors(
+            const T& v1, const T& v2,
+            typename std::enable_if<NCPA::types::is_iterable<T>::value,
+                                    int>::type ENABLER
+            = 0 ) {
+            T v3 = scale_vector( v2, -1.0 );
+            return add_vectors( v1, v3 );
+        }
+
+        /**
+        Subtracts one array from another element-wise, returning the
+        difference in a supplied array.
+        @brief Performs element-wise array subtraction.
+        @param N The number of points in the array.
+        @param v1 The array to subtract from.
+        @param v2 The array to subtract.
+        @param v12 The array to hold the difference.  Can be the same as either
+        input array, in which case the values are replaced.
+        */
+        template<typename T>
+        void subtract_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+            T *tempvec = NCPA::arrays::zeros<T>( N );
+            for ( size_t i = 0; i < N; i++ ) {
+                tempvec[ i ] = v1[ i ] - v2[ i ];
+            }
+            std::memcpy( v12, tempvec, N * sizeof( T ) );
+            delete[] tempvec;
+        }
 
     }  // namespace arrays
 }  // namespace NCPA
+
+template<typename T>
+std::vector<T> operator+( const std::vector<T>& a, const std::vector<T>& b ) {
+    return NCPA::arrays::add_vectors<std::vector<T>>( a, b );
+}
+
+template<typename T>
+std::vector<T> operator+( const std::vector<T>& a, const T& b ) {
+    return NCPA::arrays::offset_vector<std::vector<T>>( a, b );
+}
+
+template<typename T>
+std::vector<T> operator-( const std::vector<T>& a, const std::vector<T>& b ) {
+    return NCPA::arrays::subtract_vectors<std::vector<T>>( a, b );
+}
+
+template<typename T>
+std::vector<T> operator-( const std::vector<T>& a, const T& b ) {
+    return NCPA::arrays::offset_vector<std::vector<T>>( a, -b );
+}
+
+template<typename T>
+std::vector<T> operator*( const std::vector<T>& a, const std::vector<T>& b ) {
+    return NCPA::arrays::multiply_vectors<std::vector<T>>( a, b );
+}
+
+template<typename T>
+std::vector<T> operator*( const std::vector<T>& a, const T& b ) {
+    return NCPA::arrays::scale_vector<std::vector<T>>( a, b );
+}
+
+template<typename T>
+std::vector<T> operator/( const std::vector<T>& a, const T& b ) {
+    return NCPA::arrays::scale_vector<std::vector<T>>( a,
+                                                       std::pow( b, -1.0 ) );
+}
+
+template<typename T>
+std::vector<T> operator-( const std::vector<T>& a ) {
+    return NCPA::arrays::scale_vector<std::vector<T>>(
+        a, -NCPA::constants::one<T>() );
+}

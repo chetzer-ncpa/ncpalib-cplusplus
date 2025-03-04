@@ -2,21 +2,32 @@
 
 #include "NCPA/defines.hpp"
 
+
 #if __has_include( "gsl/gsl_spline.h" )
 #  define NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE true
+#  if GSL_MAJOR_VERSION >= 2
+#    define NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE true
+#  else
+#    define NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE false
+#  endif
+#else
+#  define NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE false
 #endif
 
 // Convenience #defines
 #define _ENABLE_IF_INDEP_IS_REAL ENABLE_IF_REAL( INDEPTYPE )
-    // typename std::enable_if<std::is_floating_point<INDEPTYPE>::value>::type
+// typename std::enable_if<std::is_floating_point<INDEPTYPE>::value>::type
 #define _ENABLE_IF_DEP_IS_REAL ENABLE_IF_REAL( DEPTYPE )
-    // typename std::enable_if<std::is_floating_point<DEPTYPE>::value>::type
+// typename std::enable_if<std::is_floating_point<DEPTYPE>::value>::type
 #define _ENABLE_IF_DEP_IS_COMPLEX ENABLE_IF_COMPLEX( DEPTYPE )
-    // typename std::enable_if<NCPA::types::is_complex<DEPTYPE>::value>::type
+// typename std::enable_if<NCPA::types::is_complex<DEPTYPE>::value>::type
 #define _ENABLE_IF_DEP_IS_NUMERIC ENABLE_IF_NUMERIC( DEPTYPE )
-    // typename std::enable_if<NCPA::types::is_numeric<DEPTYPE>::value>::type
+// typename std::enable_if<NCPA::types::is_numeric<DEPTYPE>::value>::type
 #define _SUBSPLINE_PTR_T \
     NCPA::interpolation::_spline_1d<INDEPTYPE, typename DEPTYPE::value_type> *
+#define _SUBEXTRAPOLATOR_PTR_T                      \
+    NCPA::interpolation::_abstract_extrapolator_1d< \
+        INDEPTYPE, typename DEPTYPE::value_type> *
 #define _SUBSPLINE_2D_PTR_T \
     NCPA::interpolation::_spline_2d<INDEPTYPE, typename DEPTYPE::value_type> *
 #define _SUBSPLINE_T( _CLASSNAME_ ) \
@@ -83,55 +94,95 @@
         _CLASSNAME_, _SUPERCLASSNAME_ ) { public: ~_CLASSNAME_() {} };
 
 
-#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAM(                  \
-    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                            \
-    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAM               \
-    class _CLASSNAME_<INDEPTYPE, DEPTYPE, PARAMTYPE,                        \
-                      _ENABLE_IF_INDEP_IS_REAL, _ENABLE_IF_DEP_IS_COMPLEX>  \
-        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                     \
-        public:                                                             \
-            _CLASSNAME_() : _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE>() {}       \
-            _CLASSNAME_( PARAMTYPE param ) :                                \
-                _CLASSNAME_<INDEPTYPE, DEPTYPE, PARAMTYPE>() {              \
-                _real_spline                                                \
-                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type,  \
-                                  PARAMTYPE>( param );                      \
-                _imag_spline                                                \
-                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type,  \
-                                  PARAMTYPE>( param );                      \
-            }                                                               \
-            virtual ~_CLASSNAME_() {                                        \
-                this->clear();                                              \
-            }                                                               \
-            virtual _SUBSPLINE_PTR_T real() override {                      \
-                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );      \
-            }                                                               \
-            virtual _SUBSPLINE_PTR_T imag() override {                      \
-                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );      \
-            }                                                               \
-                                                                            \
-        private:                                                            \
-            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type, PARAMTYPE> \
-                _real_spline, _imag_spline;                                 \
+#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAM(                   \
+    _CLASSNAME_, _SUPERCLASSNAME_, _PARAMTYPE_ )                             \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAM                \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, PARAMTYPE,                         \
+                      _ENABLE_IF_INDEP_IS_REAL, _ENABLE_IF_DEP_IS_COMPLEX>   \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                      \
+        public:                                                              \
+            _CLASSNAME_() : _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE>() {}        \
+            _CLASSNAME_( PARAMTYPE param ) :                                 \
+                _CLASSNAME_<INDEPTYPE, DEPTYPE, PARAMTYPE>() {               \
+                _real_spline                                                 \
+                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type,   \
+                                  PARAMTYPE>( param );                       \
+                _imag_spline                                                 \
+                    = _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type,   \
+                                  PARAMTYPE>( param );                       \
+            }                                                                \
+            virtual ~_CLASSNAME_() {                                         \
+                this->clear();                                               \
+            }                                                                \
+            virtual _SUBSPLINE_PTR_T real() override {                       \
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );       \
+            }                                                                \
+            virtual _SUBSPLINE_PTR_T imag() override {                       \
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );       \
+            }                                                                \
+            virtual const _SUBSPLINE_PTR_T real() const override {           \
+                return static_cast<const _SUBSPLINE_PTR_T>( &_real_spline ); \
+            }                                                                \
+            virtual const _SUBSPLINE_PTR_T imag() const override {           \
+                return static_cast<const _SUBSPLINE_PTR_T>( &_imag_spline ); \
+            }                                                                \
+                                                                             \
+        protected:                                                           \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type, PARAMTYPE>  \
+                _real_spline, _imag_spline;                                  \
     };
-#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,              \
-                                                _SUPERCLASSNAME_ )        \
-    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                        \
-    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL, \
-                      _ENABLE_IF_DEP_IS_COMPLEX>                          \
-        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                   \
-        public:                                                           \
-            virtual ~_CLASSNAME_() {                                      \
-                this->clear();                                            \
-            }                                                             \
-            virtual _SUBSPLINE_PTR_T real() override {                    \
-                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );    \
-            }                                                             \
-            virtual _SUBSPLINE_PTR_T imag() override {                    \
-                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );    \
-            }                                                             \
-                                                                          \
-        private:                                                          \
-            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>          \
-                _real_spline, _imag_spline;                               \
+#define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,                 \
+                                                _SUPERCLASSNAME_ )           \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                           \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL,    \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                             \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                      \
+        public:                                                              \
+            virtual ~_CLASSNAME_() {                                         \
+                this->clear();                                               \
+            }                                                                \
+            virtual _SUBSPLINE_PTR_T real() override {                       \
+                return static_cast<_SUBSPLINE_PTR_T>( &_real_spline );       \
+            }                                                                \
+            virtual _SUBSPLINE_PTR_T imag() override {                       \
+                return static_cast<_SUBSPLINE_PTR_T>( &_imag_spline );       \
+            }                                                                \
+            virtual const _SUBSPLINE_PTR_T real() const override {           \
+                return static_cast<const _SUBSPLINE_PTR_T>( &_real_spline ); \
+            }                                                                \
+            virtual const _SUBSPLINE_PTR_T imag() const override {           \
+                return static_cast<const _SUBSPLINE_PTR_T>( &_imag_spline ); \
+            }                                                                \
+                                                                             \
+        protected:                                                           \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>             \
+                _real_spline, _imag_spline;                                  \
+    };
+
+#define DEFINE_COMPLEX_VERSION_OF_EXTRAPOLATOR( _CLASSNAME_,                 \
+                                                _SUPERCLASSNAME_ )           \
+    _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                           \
+    class _CLASSNAME_<INDEPTYPE, DEPTYPE, void, _ENABLE_IF_INDEP_IS_REAL,    \
+                      _ENABLE_IF_DEP_IS_COMPLEX>                             \
+        : public _SUPERCLASSNAME_<INDEPTYPE, DEPTYPE> {                      \
+        public:                                                              \
+            virtual ~_CLASSNAME_() {}                                        \
+            virtual _SUBEXTRAPOLATOR_PTR_T real() override {                 \
+                return static_cast<_SUBEXTRAPOLATOR_PTR_T>( &_real_extrap ); \
+            }                                                                \
+            virtual _SUBEXTRAPOLATOR_PTR_T imag() override {                 \
+                return static_cast<_SUBEXTRAPOLATOR_PTR_T>( &_imag_extrap ); \
+            }                                                                \
+            virtual const _SUBEXTRAPOLATOR_PTR_T real() const override {     \
+                return static_cast<const _SUBEXTRAPOLATOR_PTR_T>(            \
+                    &_real_extrap );                                         \
+            }                                                                \
+            virtual const _SUBEXTRAPOLATOR_PTR_T imag() const override {     \
+                return static_cast<const _SUBEXTRAPOLATOR_PTR_T>(            \
+                    &_imag_extrap );                                         \
+            }                                                                \
+                                                                             \
+        protected:                                                           \
+            _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type>             \
+                _real_extrap, _imag_extrap;                                  \
     };

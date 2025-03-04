@@ -2,9 +2,9 @@
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
-#include "NCPA/interpolation/types.hpp"
 
 #include <cmath>
 #include <complex>
@@ -14,6 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 /*
@@ -122,29 +123,37 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 */
 
+template<typename T, typename U>
+static void swap( NCPA::interpolation::_spline_1d<T, U>& a,
+                  NCPA::interpolation::_spline_1d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
-       
-            template<typename INDEPTYPE, typename DEPTYPE>
-            class _abstract_spline_1d {
-                public:
-                    virtual ~_abstract_spline_1d() {}
 
-                    virtual void fill( size_t N, const INDEPTYPE *x,
-                                       const DEPTYPE *f )
-                        = 0;
-                    virtual void fill( const std::vector<INDEPTYPE>& x,
-                                       const std::vector<DEPTYPE>& f )
-                        = 0;
-                    virtual void init( size_t N )            = 0;
-                    virtual void clear()                     = 0;
-                    virtual void ready()                     = 0;
-                    virtual DEPTYPE eval_f( INDEPTYPE x )    = 0;
-                    virtual DEPTYPE eval_df( INDEPTYPE x )   = 0;
-                    virtual DEPTYPE eval_ddf( INDEPTYPE x )  = 0;
-                    virtual DEPTYPE eval_dddf( INDEPTYPE x ) = 0;
-            };
-        
+        template<typename INDEPTYPE, typename DEPTYPE>
+        class _abstract_spline_1d {
+            public:
+                virtual ~_abstract_spline_1d() {}
+
+                virtual void fill( size_t N, const INDEPTYPE *x,
+                                   const DEPTYPE *f )
+                    = 0;
+                virtual void fill( const std::vector<INDEPTYPE>& x,
+                                   const std::vector<DEPTYPE>& f )
+                    = 0;
+                virtual void init( size_t N )            = 0;
+                virtual void clear()                     = 0;
+                virtual void ready()                     = 0;
+                virtual DEPTYPE eval_f( INDEPTYPE x )    = 0;
+                virtual DEPTYPE eval_df( INDEPTYPE x )   = 0;
+                virtual DEPTYPE eval_ddf( INDEPTYPE x )  = 0;
+                virtual DEPTYPE eval_dddf( INDEPTYPE x ) = 0;
+
+                virtual std::pair<INDEPTYPE, INDEPTYPE> limits() const = 0;
+                virtual interpolator_1d_type_t interptype() const      = 0;
+                virtual std::vector<INDEPTYPE> source_x() const        = 0;
+                virtual std::vector<DEPTYPE> source_f() const          = 0;
+        };
 
         // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_1d,
         //                                        _abstract_spline_1d );
@@ -154,6 +163,8 @@ namespace NCPA {
                              _ENABLE_IF_DEP_IS_REAL>
             : public _abstract_spline_1d<INDEPTYPE, DEPTYPE> {
             public:
+                using _abstract_spline_1d<INDEPTYPE, DEPTYPE>::interptype;
+
                 virtual ~_spline_1d() {}
         };
 
@@ -163,6 +174,10 @@ namespace NCPA {
             : public _abstract_spline_1d<INDEPTYPE, DEPTYPE> {
             public:
                 virtual ~_spline_1d() {}
+
+                friend void ::swap<INDEPTYPE, DEPTYPE>(
+                    _spline_1d<INDEPTYPE, DEPTYPE>& a,
+                    _spline_1d<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
                 virtual void fill( size_t N, const INDEPTYPE *x,
                                    const DEPTYPE *f ) override {
@@ -206,6 +221,10 @@ namespace NCPA {
                     imag()->ready();
                 }
 
+                virtual interpolator_1d_type_t interptype() const override {
+                    return real()->interptype();
+                }
+
                 virtual DEPTYPE eval_f( INDEPTYPE x ) override {
                     return DEPTYPE( real()->eval_f( x ), imag()->eval_f( x ) );
                 }
@@ -225,8 +244,35 @@ namespace NCPA {
                                     imag()->eval_dddf( x ) );
                 }
 
-                virtual _SUBSPLINE_PTR_T real() = 0;
-                virtual _SUBSPLINE_PTR_T imag() = 0;
+                virtual std::pair<INDEPTYPE, INDEPTYPE> limits()
+                    const override {
+                    return this->real()->limits();
+                }
+
+                virtual const std::vector<INDEPTYPE> source_x()
+                    const override {
+                    return this->real()->source_x();
+                }
+
+                virtual const std::vector<DEPTYPE> source_f() const override {
+                    std::vector<typename DEPTYPE::value_type> rl
+                        = this->real()->source_f(),
+                        im = this->imag()->source_f();
+                    std::vector<DEPTYPE> out( rl.size() );
+                    for ( size_t i = 0; i < rl.size(); ++i ) {
+                        out[ i ] = DEPTYPE { rl[ i ], im[ i ] };
+                    }
+                    return out;
+                }
+
+                virtual _SUBSPLINE_PTR_T real()             = 0;
+                virtual const _SUBSPLINE_PTR_T real() const = 0;
+                virtual _SUBSPLINE_PTR_T imag()             = 0;
+                virtual const _SUBSPLINE_PTR_T imag() const = 0;
         };
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::_spline_1d<T, U>& a,
+                  NCPA::interpolation::_spline_1d<T, U>& b ) noexcept {}

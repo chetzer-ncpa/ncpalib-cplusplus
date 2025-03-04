@@ -286,36 +286,6 @@ namespace NCPA {
                     return _units->convert_to( this->at( ind ), units );
                 }
 
-                // virtual ScalarWithUnits<T> get( size_t ind ) {
-                //     return ScalarWithUnits( this->at( ind ),
-                //     *this->get_units() );
-                // }
-
-                // virtual bool is_normalized() const {
-                //     if ( !this->empty() ) {
-                //         const Unit *base = this->front().get_units();
-                //         for ( auto it = this->cbegin(); it != this->cend();
-                //               ++it ) {
-                //             // NCPA::units_t u = it->get_units();
-                //             if ( !( it->get_units()->equals( *base ) ) ) {
-                //                 return false;
-                //             }
-                //         }
-                //     }
-                //     return true;
-                // }
-
-                // virtual void normalize_units() {
-                //     if ( !this->empty() ) {
-                //         const Unit *base = this->front().get_units();
-                //         for ( auto it = this->begin() + 1; it !=
-                //         this->end();
-                //               ++it ) {
-                //             it->convert_units( *base );
-                //         }
-                //     }
-                // }
-
                 virtual void set( size_t index, T value ) {
                     this->at( index ) = value;
                 }
@@ -404,11 +374,9 @@ namespace NCPA {
                     }
                 }
 
-            private:
+            protected:
                 const Unit *_units = nullptr;
         };
-
-
     }  // namespace units
 }  // namespace NCPA
 

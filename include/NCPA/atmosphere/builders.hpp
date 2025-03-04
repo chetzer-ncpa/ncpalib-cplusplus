@@ -1,8 +1,13 @@
 #pragma once
 
-#include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/abstract_atmosphere_1d.hpp"
-#include "NCPA/atmosphere/stratified_atmosphere_1d.hpp"
+#include "NCPA/atmosphere/abstract_atmosphere_2d.hpp"
+#include "NCPA/atmosphere/Atmosphere1D.hpp"
+#include "NCPA/atmosphere/Atmosphere2D.hpp"
+#include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
+#include "NCPA/atmosphere/AtmosphericProperty2D.hpp"
+#include "NCPA/atmosphere/tuple_atmosphere_1d.hpp"
+#include "NCPA/atmosphere/stratified_atmosphere_2d.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/units.hpp"
 
@@ -14,14 +19,83 @@ namespace NCPA {
     namespace atmos {
         class AtmosphereFactory {
             public:
-                
+                static bool can_build( atmospheric_property_1d_t proptype ) {
+                    switch ( proptype ) {
+                        case atmospheric_property_1d_t::TUPLE:
+                            return true;
+                            break;
+                        default:
+                            return false;
+                    }
+                }
 
-                // Atmosphere1D build( const std::string& filename ) {
-                //     return build( filename, "" );
-                // }
+                static AtmosphericProperty1D build(
+                    atmospheric_property_1d_t proptype ) {
+                    // AtmosphericProperty1D prop;
+
+                    switch ( proptype ) {
+                        case atmospheric_property_1d_t::TUPLE:
+                            return AtmosphericProperty1D( _atm_prop_1d_ptr_t(
+                                new tuple_atmospheric_property_1d() ) );
+                            break;
+                        default:
+                            throw std::range_error(
+                                "Requested 1-D atmospheric property type "
+                                "unrecognized or not yet implemented" );
+                    }
+                }
+
+                static AtmosphericProperty2D build(
+                    atmospheric_property_2d_t proptype ) {
+                    // AtmosphericProperty2D prop;
+
+                    switch ( proptype ) {
+                        case atmospheric_property_2d_t::STRATIFIED:
+                            return AtmosphericProperty2D( _atm_prop_2d_ptr_t(
+                                new stratified_atmospheric_property_2d() ) );
+                            break;
+                        case atmospheric_property_2d_t::GRID:
+                            return AtmosphericProperty2D( _atm_prop_2d_ptr_t(
+                                new grid_atmospheric_property_2d() ) );
+                            break;
+                        default:
+                            throw std::range_error(
+                                "Requested 2-D atmospheric property type "
+                                "unrecognized or not yet implemented" );
+                    }
+                }
+
+                static Atmosphere1D build( atmosphere_1d_t atmostype ) {
+                    Atmosphere1D atmos;
+                    switch ( atmostype ) {
+                        case atmosphere_1d_t::TUPLE:
+                            return Atmosphere1D( _atm_1d_ptr_t(
+                                new tuple_atmosphere_1d() ) );
+                            break;
+                        default:
+                            throw std::range_error(
+                                "Requested 1-D atmosphere type "
+                                "unrecognized or not yet implemented" );
+                    }
+                }
+
+                static Atmosphere2D build( atmosphere_2d_t atmostype ) {
+                    Atmosphere1D atmos;
+                    switch ( atmostype ) {
+                        case atmosphere_2d_t::STRATIFIED:
+                            return Atmosphere2D( _atm_2d_ptr_t(
+                                new stratified_atmosphere_2d() ) );
+                            break;
+                        default:
+                            throw std::range_error(
+                                "Requested 1-D atmosphere type "
+                                "unrecognized or not yet implemented" );
+                    }
+                }
 
                 static Atmosphere1D build( const std::string& filename,
-                                    const std::string& headerfilename = "" ) {
+                                           const std::string& headerfilename
+                                           = "" ) {
                     std::string hfile( headerfilename );
                     if ( headerfilename.size() == 0 ) {
                         hfile = filename;
@@ -31,19 +105,22 @@ namespace NCPA {
                     // header_in.close();
 
                     std::ifstream in( filename );
-                    Atmosphere1D atm = read_values_from_stream( in, header_in );
+                    Atmosphere1D atm
+                        = read_values_from_stream( in, header_in );
                     in.close();
                     header_in.close();
                     // headerlines.clear();
                     return atm;
                 }
 
-                static std::vector<std::string> read_header_from_stream( std::istream& in ) {
+                static std::vector<std::string> read_header_from_stream(
+                    std::istream& in ) {
                     std::string line;
                     std::vector<std::string> headerlines;
                     if ( !in.good() ) {
                         throw std::runtime_error(
-                            "Atmosphere1D - Header input stream not in good state" );
+                            "Atmosphere1D - Header input stream not in good "
+                            "state" );
                     }
 
                     std::getline( in, line );
@@ -64,9 +141,11 @@ namespace NCPA {
                     return headerlines;
                 }
 
-                static Atmosphere1D read_values_from_stream( std::istream& in, std::istream& header_in ) {
-                    std::vector<std::string> headerlines = read_header_from_stream( header_in );
-                    
+                static Atmosphere1D read_values_from_stream(
+                    std::istream& in, std::istream& header_in ) {
+                    std::vector<std::string> headerlines
+                        = read_header_from_stream( header_in );
+
                     if ( !in.good() ) {
                         throw std::runtime_error(
                             "Atmosphere1D - Input stream not in good state" );
@@ -76,7 +155,7 @@ namespace NCPA {
                     std::vector<std::string> atmlines, scalarlines;
                     std::ostringstream oss;  // for exceptions
                     size_t i;                // repeated index variable
-                    details::stratified_atmosphere_1d atm;
+                    tuple_atmosphere_1d atm;
 
                     std::getline( in, line );
                     while ( in.good() ) {
@@ -173,7 +252,8 @@ namespace NCPA {
 
                         // add to header vectors
                         column_numbers.push_back( col );
-                        keys.push_back( NCPA::strings::deblank( fields[ 1 ] ) );
+                        keys.push_back(
+                            NCPA::strings::deblank( fields[ 1 ] ) );
                         units.push_back( tempunits );
                         values.push_back( tempval );  // this will be ignored
                                                       // for vector quantities
@@ -256,22 +336,24 @@ namespace NCPA {
                         row++;
                     }
 
-                    atm.set_altitude_vector(
-                        vector_t( nlines, columns[ 0 ], depunits ) );
-                    // z_ = new NCPA::VectorWithUnits( nlines, columns[ 0 ],
-                    //                                 depunits );
+                    atm.set_axis(
+                        vector_u_t( nlines, columns[ 0 ], depunits ) );
 
                     for ( i = 0; i < keys.size(); i++ ) {
                         if ( column_numbers[ i ] == 0 ) {
                             atm.add_property(
                                 keys[ i ],
-                                scalar_t( values[ i ], *units[ i ] ) );
+                                scalar_u_t( values[ i ], *units[ i ] ) );
                         } else if ( column_numbers[ i ] > 1 ) {
-                            atm.add_property(
-                                keys[ i ],
-                                vector_t( nlines,
-                                          columns[ column_numbers[ i ] - 1 ],
-                                          units[ i ] ) );
+                            AtmosphericProperty1D prop
+                                = AtmosphereFactory::build(
+                                    atmospheric_property_1d_t::TUPLE );
+                            prop.set(
+                                atm.get_axis_vector(),
+                                vector_u_t( nlines,
+                                            columns[ column_numbers[ i ] - 1 ],
+                                            units[ i ] ) );
+                            atm.add_property( keys[ i ], prop );
                         }
                     }
 
@@ -280,8 +362,8 @@ namespace NCPA {
                     }
 
                     return Atmosphere1D(
-                        std::unique_ptr<details::abstract_atmosphere_1d>(
-                            new details::stratified_atmosphere_1d( atm ) ) );
+                        std::unique_ptr<abstract_atmosphere_1d>(
+                            new tuple_atmosphere_1d( atm ) ) );
                 }
 
             private:

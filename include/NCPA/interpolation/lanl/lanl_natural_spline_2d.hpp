@@ -51,6 +51,12 @@ claus@olemiss.edu
 #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+#include <array>
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::natural_spline_2d<T, U>& a,
+    NCPA::interpolation::LANL::natural_spline_2d<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -64,11 +70,49 @@ namespace NCPA {
 
             template<typename INDEPTYPE, typename DEPTYPE>
             class natural_spline_2d<INDEPTYPE, DEPTYPE, void,
-                                         ENABLE_IF_REAL( INDEPTYPE ),
-                                         ENABLE_IF_REAL( DEPTYPE )>
+                                    ENABLE_IF_REAL( INDEPTYPE ),
+                                    ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~natural_spline_2d() { clear(); }
+                    natural_spline_2d() :
+                        NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE>() {
+                    }
+
+                    virtual ~natural_spline_2d() { this->clear(); }
+
+                    natural_spline_2d(
+                        const natural_spline_2d<INDEPTYPE, DEPTYPE>& other ) :
+                        NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE>(
+                            other ) {
+                        _length_x   = other._length_x;
+                        _length_y   = other._length_y;
+                        _accel[ 0 ] = other._accel[ 0 ];
+                        _accel[ 1 ] = other._accel[ 1 ];
+                        NCPA::arrays::copy( other._x_vals, _length_x, _x_vals );
+                        NCPA::arrays::copy( other._y_vals, _length_y, _y_vals );
+                        NCPA::arrays::copy( other._f_vals, _length_x, _length_y, _f_vals );
+                        NCPA::arrays::copy( other._f_slopes, _length_x, _length_y, _f_slopes );
+                        NCPA::arrays::copy( other._new_c, _length_y-1, _new_c );
+                        NCPA::arrays::copy( other._new_d, _length_y, _new_d );
+                        NCPA::arrays::copy( other._node_vals, _length_x, _node_vals );
+                        NCPA::arrays::copy( other._node_slopes, _length_x, _node_slopes );
+                    }
+
+                    natural_spline_2d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                                           source ) noexcept :
+                        natural_spline_2d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        natural_spline_2d<INDEPTYPE, DEPTYPE>& a,
+                        natural_spline_2d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+
+                    natural_spline_2d<INDEPTYPE, DEPTYPE>& operator=(
+                        natural_spline_2d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     void init( size_t nx, size_t ny ) override {
                         this->clear();
@@ -110,7 +154,7 @@ namespace NCPA {
                         const std::vector<INDEPTYPE>& x2,
                         const NCPA::arrays::vector2d_t<DEPTYPE>& f ) override {
                         size_t N1 = x1.size(), N2 = x2.size();
-                        if ( N1 != f.size() ) {
+                        if ( N1 != f.dim( 0 ) ) {
                             throw std::invalid_argument(
                                 "Vectors must be same size" );
                         }
@@ -318,7 +362,8 @@ namespace NCPA {
                             if ( n1 + n2 == 0 ) {
                                 _node_vals[ nx ] = _eval_node_f( y, nx, ky );
                             } else if ( n1 + n2 == 1 ) {
-                                _node_vals[ nx ] = _eval_node_dfdy( y, nx, ky );
+                                _node_vals[ nx ]
+                                    = _eval_node_dfdy( y, nx, ky );
                             } else {
                                 _node_vals[ nx ]
                                     = _eval_node_ddfdydy( y, nx, ky );
@@ -403,6 +448,12 @@ namespace NCPA {
                                                  * ( A * ( 1.0 - X )
                                                      + B * X ) );
                         }
+                    }
+
+                    virtual std::array<INDEPTYPE,4> limits() const override {
+                        return std::array<INDEPTYPE,4>{
+                            _x_vals[0], _x_vals[_length_x-1], _y_vals[0], _y_vals[_length_y-1]
+                        };
                     }
 
                 protected:
@@ -553,15 +604,37 @@ namespace NCPA {
                                     // node, describes f(x[i], y)
 
                     // cache variables
-                    DEPTYPE *_new_c       = nullptr;
-                    DEPTYPE *_new_d       = nullptr;
-                    DEPTYPE *_node_vals   = nullptr;
-                    DEPTYPE *_node_slopes = nullptr;
+                    DEPTYPE *_new_c       = nullptr;    // size() = _length_y - 1
+                    DEPTYPE *_new_d       = nullptr;    // size() = _length_y
+                    DEPTYPE *_node_vals   = nullptr;    // size() = _length_x
+                    DEPTYPE *_node_slopes = nullptr;    // size() = _length_x
+
+                    
             };
 
             DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
-                natural_spline_2d, NCPA::interpolation::_spline_2d);
+                natural_spline_2d, NCPA::interpolation::_spline_2d );
 
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::natural_spline_2d<T, U>& a,
+    NCPA::interpolation::LANL::natural_spline_2d<T, U>& b ) noexcept {
+    using std::swap;
+    ::swap( dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( a ),
+            dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( b ) );
+    swap( a._length_x, b._length_x );
+    swap( a._length_y, b._length_y );
+    swap( a._accel, b._accel );
+    swap( a._x_vals, b._x_vals );
+    swap( a._y_vals, b._y_vals );
+    swap( a._f_vals, b._f_vals );
+    swap( a._f_slopes, b._f_slopes );
+    swap( a._new_c, b._new_c );
+    swap( a._new_d, b._new_d );
+    swap( a._node_vals, b._node_vals );
+    swap( a._node_slopes, b._node_slopes );
+}
