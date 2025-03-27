@@ -37,6 +37,7 @@ namespace NCPA {
         class Vector2DWithUnits : public NCPA::arrays::vector2d_t<T> {
             public:
                 using NCPA::arrays::vector2d_t<T>::dim;
+
                 // constructors
                 Vector2DWithUnits() :
                     NCPA::arrays::vector2d_t<T>(), _units { nullptr } {}
@@ -86,34 +87,6 @@ namespace NCPA {
                                    const char *units ) :
                     Vector2DWithUnits<T>( values,
                                           Units::from_string( units ) ) {}
-
-                // construct with values from a 2-D array
-                // Vector2DWithUnits( size_t dim1, size_t dim2,
-                //                    const T **property_values,
-                //                    const Unit *property_units ) :
-                //     Vector2DWithUnits<T>( NCPA::arrays::vector2d_t<T>(
-                //                               dim1, dim2, property_values ),
-                //                           property_units ) {}
-
-                // Vector2DWithUnits( size_t dim1, size_t dim2,
-                //                    const T **property_values,
-                //                    const Unit& property_units ) :
-                //     Vector2DWithUnits<T>( NCPA::arrays::vector2d_t<T>(
-                //                               dim1, dim2, property_values ),
-                //                           &property_units ) {}
-
-                // Vector2DWithUnits( size_t dim1, size_t dim2,
-                //                    const T **property_values,
-                //                    const std::string& property_units ) :
-                //     Vector2DWithUnits<T>(
-                //         dim1, dim2, property_values,
-                //         Units::from_string( property_units ) ) {}
-
-                // Vector2DWithUnits( size_t dim1, size_t dim2, const T *values,
-                //                    const char *property_units ) :
-                //     Vector2DWithUnits<T>(
-                //         NCPA::arrays::vector2d_t<T>( dim1, dim2, values ),
-                //         Units::from_string( property_units ) ) {}
 
                 // construct with a constant value
                 Vector2DWithUnits( size_t dim1, size_t dim2,
@@ -173,12 +146,12 @@ namespace NCPA {
                 // methods
                 virtual void as_array( ScalarWithUnits<T> **& buffer ) {
                     size_t dim0 = this->dim( 0 ), dim1 = this->dim( 1 );
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = NCPA::arrays::zeros<ScalarWithUnits<T>>(
                             dim0, dim1 );
                     }
-                    for ( size_t i = 0; i < dim0; ++i ) {
-                        for ( size_t j = 0; j < dim1; ++j ) {
+                    for (size_t i = 0; i < dim0; ++i) {
+                        for (size_t j = 0; j < dim1; ++j) {
                             buffer[ i ][ j ].set( this->at( i ).at( j ),
                                                   this->get_units() );
                         }
@@ -186,7 +159,7 @@ namespace NCPA {
                 }
 
                 virtual void as_array( T **& buffer ) {
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = NCPA::arrays::zeros<T>( this->dim( 0 ),
                                                          this->dim( 1 ) );
                     }
@@ -198,9 +171,9 @@ namespace NCPA {
                     // unchanged if there's an error.  If there's no change in
                     // units, don't bother with the calculation
                     const Unit *oldunits = this->get_units();
-                    if ( !new_units.equals( *oldunits ) ) {
+                    if (!new_units.equals( *oldunits )) {
                         Vector2DWithUnits<T> buffer( *this );
-                        for ( size_t i = 0; i < this->dim( 0 ); ++i ) {
+                        for (size_t i = 0; i < this->dim( 0 ); ++i) {
                             buffer.at( i ) = oldunits->convert_to(
                                 this->at( i ), new_units );
                         }
@@ -220,7 +193,8 @@ namespace NCPA {
                 // Fill the vector with identical values.  Does not resize.
                 virtual void fill( T value, const Unit *units ) {
                     for (auto it1 = this->begin(); it1 != this->end(); ++it1) {
-                        for (auto it2 = it1->begin(); it2 != it1->end(); ++it2) {
+                        for (auto it2 = it1->begin(); it2 != it1->end();
+                             ++it2) {
                             *it2 = value;
                         }
                     }
@@ -242,10 +216,9 @@ namespace NCPA {
                 virtual const Unit *get_units() const { return _units; }
 
                 virtual void get_values( size_t& n1, size_t& n2, T **buffer ) {
-                    if ( n1 == 0 && n2 == 0 ) {
+                    if (n1 == 0 && n2 == 0) {
                         this->size2d( n1, n2 );
-                    } else if ( n1 != this->dim( 0 )
-                                || n2 != this->dim( 1 ) ) {
+                    } else if (n1 != this->dim( 0 ) || n2 != this->dim( 1 )) {
                         std::ostringstream oss;
                         oss << "get_values: Size mismatch: vector has "
                             << this->dim( 0 ) << "x" << this->dim( 1 )
@@ -253,11 +226,11 @@ namespace NCPA {
                             << " elements were requested.";
                         throw std::invalid_argument( oss.str() );
                     }
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = NCPA::arrays::zeros<T>( n1, n2 );
                     }
-                    for ( size_t i = 0; i < n1; ++i ) {
-                        for ( size_t j = 0; j < n2; ++j ) {
+                    for (size_t i = 0; i < n1; ++i) {
+                        for (size_t j = 0; j < n2; ++j) {
                             buffer[ i ][ j ] = this->at( i ).at( j );
                         }
                     }
@@ -328,7 +301,7 @@ namespace NCPA {
                 }
 
                 virtual void set( const NCPA::arrays::vector2d_t<T>& values,
-                                  const Unit &units ) {
+                                  const Unit& units ) {
                     this->assign( values.cbegin(), values.cend() );
                     _units = &units;
                 }
@@ -362,7 +335,7 @@ namespace NCPA {
                 }
 
                 virtual void set( size_t n1, size_t n2, const T **values,
-                                  const Unit &units ) {
+                                  const Unit& units ) {
                     this->set( NCPA::arrays::vector2d_t<T>( n1, n2, values ),
                                &units );
                 }
@@ -370,15 +343,13 @@ namespace NCPA {
                 virtual void set( size_t n1, size_t n2,
                                   const ScalarWithUnits<T> **values ) {
                     NCPA::arrays::vector2d_t<T> v( n1, n2 );
-                    for ( size_t i = 0; i < n1; i++ ) {
-                        for ( size_t j = 0; j < n2; ++j ) {
+                    for (size_t i = 0; i < n1; i++) {
+                        for (size_t j = 0; j < n2; ++j) {
                             v[ i ][ j ] = values[ i ][ j ].get();
                         }
                     }
                     this->set( v, values[ 0 ][ 0 ].get_units() );
                 }
-
-                
 
                 virtual void set_units( const Unit& new_units ) {
                     _units = &new_units;
@@ -392,7 +363,11 @@ namespace NCPA {
                     _units = Units::from_string( new_units );
                 }
 
-                explicit operator bool() const { return !this->empty(); }
+                explicit operator bool() const { 
+                    // return !this->empty(); 
+                    auto dims = this->shape();
+                    return (dims[0] > 0 && dims[1] > 0);
+                }
 
                 Vector2DWithUnits operator+(
                     const Vector2DWithUnits<T>& second ) const {
@@ -403,9 +378,9 @@ namespace NCPA {
 
                 Vector2DWithUnits operator+=(
                     const Vector2DWithUnits<T>& second ) {
-                    if ( this->_units->is_convertible_to(
-                             *( second._units ) ) ) {
-                        for ( size_t i = 0; i < this->size(); i++ ) {
+                    if (this->_units->is_convertible_to(
+                            *( second._units ) )) {
+                        for (size_t i = 0; i < this->size(); i++) {
                             this->at( i )
                                 = this->at( i )
                                 + second.get_as( i, this->get_units() );

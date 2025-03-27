@@ -14,4 +14,4 @@
 #include "NCPA/interpolation/stratified_spline_2d.hpp"
 #include "NCPA/interpolation/Interpolator1D.hpp"
 #include "NCPA/interpolation/Interpolator2D.hpp"
-
+#include "NCPA/interpolation/Interpolator3D.hpp"

@@ -23,7 +23,7 @@ namespace NCPA {
         class InterpolatorFactory {
             public:
                 static bool can_build( interpolator_1d_type_t interptype ) {
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_1d_type_t::NEAREST_NEIGHBOR:
                         case interpolator_1d_type_t::LANL_LINEAR:
                         case interpolator_1d_type_t::LANL_CUBIC:
@@ -46,22 +46,23 @@ namespace NCPA {
                 }
 
                 static bool can_build( interpolator_2d_type_t interptype ) {
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_2d_type_t::NEAREST_NEIGHBOR:
                         case interpolator_2d_type_t::LANL_NATURAL:
                         case interpolator_2d_type_t::LANL_BICUBIC:
-                        case interpolator_2d_type_t::LANL_LINEAR_X:
-                        case interpolator_2d_type_t::LANL_LINEAR_Y:
-                        case interpolator_2d_type_t::LANL_CUBIC_X:
-                        case interpolator_2d_type_t::LANL_CUBIC_Y:
-#ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-                        case interpolator_2d_type_t::GSL_LINEAR_X:
-                        case interpolator_2d_type_t::GSL_LINEAR_Y:
-#  if GSL_MAJOR_VERSION >= 2
-                        case interpolator_2d_type_t::GSL_STEFFEN_X:
-                        case interpolator_2d_type_t::GSL_STEFFEN_Y:
-#  endif
-#endif
+                            // case interpolator_2d_type_t::LANL_LINEAR_X:
+                            // case interpolator_2d_type_t::LANL_LINEAR_Y:
+                            // case interpolator_2d_type_t::LANL_CUBIC_X:
+                            // case interpolator_2d_type_t::LANL_CUBIC_Y:
+                            // #ifdef
+                            // NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
+                            // case interpolator_2d_type_t::GSL_LINEAR_X:
+                            // case interpolator_2d_type_t::GSL_LINEAR_Y:
+                            // #  if GSL_MAJOR_VERSION >= 2
+                            // case interpolator_2d_type_t::GSL_STEFFEN_X:
+                            // case interpolator_2d_type_t::GSL_STEFFEN_Y:
+                            // #  endif
+                            // #endif
                             return true;
                             break;
                         default:
@@ -70,7 +71,7 @@ namespace NCPA {
                 }
 
                 static bool can_build( interpolator_3d_type_t interptype ) {
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_3d_type_t::LANL_HYBRID:
                             return true;
                             break;
@@ -84,7 +85,7 @@ namespace NCPA {
                     interpolator_1d_type_t interptype ) {
                     Interpolator1D<INDEPTYPE, DEPTYPE> interp;
 
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_1d_type_t::NEAREST_NEIGHBOR:
                             interp.set_engine(
                                 spline_engine_1d_t<INDEPTYPE, DEPTYPE>(
@@ -164,7 +165,7 @@ namespace NCPA {
                     interpolator_2d_type_t interptype ) {
                     Interpolator2D<INDEPTYPE, DEPTYPE> interp;
 
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_2d_type_t::NEAREST_NEIGHBOR:
                             interp.set_engine(
                                 spline_engine_2d_t<INDEPTYPE, DEPTYPE>(
@@ -183,38 +184,46 @@ namespace NCPA {
                                     new LANL::bicubic_spline_2d<INDEPTYPE,
                                                                 DEPTYPE>() ) );
                             break;
-                        case interpolator_2d_type_t::LANL_LINEAR_X:
-                            interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                                                                  DEPTYPE>(
-                                new stratified_spline_2d<INDEPTYPE, DEPTYPE>(
-                                    std::pair<size_t, interpolator_1d_type_t> {
-                                        1, interpolator_1d_type_t::
-                                               LANL_LINEAR } ) ) );
-                            break;
-                        case interpolator_2d_type_t::LANL_LINEAR_Y:
-                            interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                                                                  DEPTYPE>(
-                                new stratified_spline_2d<INDEPTYPE, DEPTYPE>(
-                                    std::pair<size_t, interpolator_1d_type_t> {
-                                        0, interpolator_1d_type_t::
-                                               LANL_LINEAR } ) ) );
-                            break;
-                        case interpolator_2d_type_t::LANL_CUBIC_X:
-                            interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                                                                  DEPTYPE>(
-                                new stratified_spline_2d<INDEPTYPE, DEPTYPE>(
-                                    std::pair<size_t, interpolator_1d_type_t> {
-                                        1, interpolator_1d_type_t::
-                                               LANL_CUBIC } ) ) );
-                            break;
-                        case interpolator_2d_type_t::LANL_CUBIC_Y:
-                            interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                                                                  DEPTYPE>(
-                                new stratified_spline_2d<INDEPTYPE, DEPTYPE>(
-                                    std::pair<size_t, interpolator_1d_type_t> {
-                                        0, interpolator_1d_type_t::
-                                               LANL_CUBIC } ) ) );
-                            break;
+                        // case interpolator_2d_type_t::LANL_LINEAR_X:
+                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
+                        //                                           DEPTYPE>(
+                        //         new stratified_spline_2d<INDEPTYPE,
+                        //         DEPTYPE>(
+                        //             std::pair<size_t,
+                        //             interpolator_1d_type_t> {
+                        //                 1, interpolator_1d_type_t::
+                        //                        LANL_LINEAR } ) ) );
+                        //     break;
+                        // case interpolator_2d_type_t::LANL_LINEAR_Y:
+                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
+                        //                                           DEPTYPE>(
+                        //         new stratified_spline_2d<INDEPTYPE,
+                        //         DEPTYPE>(
+                        //             std::pair<size_t,
+                        //             interpolator_1d_type_t> {
+                        //                 0, interpolator_1d_type_t::
+                        //                        LANL_LINEAR } ) ) );
+                        //     break;
+                        // case interpolator_2d_type_t::LANL_CUBIC_X:
+                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
+                        //                                           DEPTYPE>(
+                        //         new stratified_spline_2d<INDEPTYPE,
+                        //         DEPTYPE>(
+                        //             std::pair<size_t,
+                        //             interpolator_1d_type_t> {
+                        //                 1, interpolator_1d_type_t::
+                        //                        LANL_CUBIC } ) ) );
+                        //     break;
+                        // case interpolator_2d_type_t::LANL_CUBIC_Y:
+                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
+                        //                                           DEPTYPE>(
+                        //         new stratified_spline_2d<INDEPTYPE,
+                        //         DEPTYPE>(
+                        //             std::pair<size_t,
+                        //             interpolator_1d_type_t> {
+                        //                 0, interpolator_1d_type_t::
+                        //                        LANL_CUBIC } ) ) );
+                        //     break;
                         default:
                             throw std::range_error(
                                 "Requested 2-D interpolator type "
@@ -230,7 +239,7 @@ namespace NCPA {
                     interpolator_3d_type_t interptype ) {
                     Interpolator3D<INDEPTYPE, DEPTYPE> interp;
 
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case interpolator_3d_type_t::LANL_HYBRID:
                             interp.set_engine(
                                 spline_engine_3d_t<INDEPTYPE, DEPTYPE>(
@@ -238,11 +247,12 @@ namespace NCPA {
                                                                DEPTYPE>() ) );
                             break;
                         default:
-                            throw std::range_error(
-                                "Requested 3-D interpolator type "
-                                "unrecognized; either it is undefined, not "
-                                "applicable, or you don't have the libraries "
-                                "available." );
+                            std::ostringstream oss;
+                            oss << "Requested 3-D interpolator type "
+                                   "unrecognized; either it is undefined, "
+                                   "not applicable, or you don't have the "
+                                   "libraries available.";
+                            throw std::range_error( oss.str() );
                     }
                     return interp;
                 }
@@ -251,7 +261,7 @@ namespace NCPA {
                     extrapolator_1d_type_t interptype ) {
                     Extrapolator1D<INDEPTYPE, DEPTYPE> extrap;
 
-                    switch ( interptype ) {
+                    switch (interptype) {
                         case extrapolator_1d_type_t::CONSTANT:
                             extrap.set_engine(
                                 extrapolator_engine_1d_t<INDEPTYPE, DEPTYPE>(

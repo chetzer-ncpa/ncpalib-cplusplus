@@ -114,6 +114,10 @@ namespace NCPA {
                         return *this;
                     }
 
+                    virtual interpolator_2d_type_t interptype() const override {
+                        return NCPA::interpolation::interpolator_2d_type_t::LANL_NATURAL;
+                    }
+
                     void init( size_t nx, size_t ny ) override {
                         this->clear();
                         _length_x   = nx;

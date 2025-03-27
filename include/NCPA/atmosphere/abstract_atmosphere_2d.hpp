@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
 #include "NCPA/atmosphere/calculations.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
@@ -36,6 +37,11 @@ namespace NCPA {
                     abstract_atmosphere_1d& atmos1d )
                     = 0;
 
+                virtual abstract_atmosphere_2d& set(
+                    const vector_u_t ranges,
+                    std::vector<abstract_atmosphere_1d *> components )
+                    = 0;
+
                 virtual abstract_atmosphere_2d& append(
                     scalar_u_t range, abstract_atmosphere_1d& atmos1d )
                     = 0;
@@ -59,6 +65,13 @@ namespace NCPA {
                     = 0;
                 virtual abstract_atmosphere_2d& add_property(
                     const std::string& key, const vector2d_u_t& property )
+                    = 0;
+                virtual abstract_atmosphere_2d& add_property(
+                    const std::string& key, const vector_u_t& property,
+                    const vector_u_t& index )
+                    = 0;
+                virtual abstract_atmosphere_2d& add_property(
+                    const std::string& key, const vector_u_t& property )
                     = 0;
                 virtual abstract_atmosphere_2d& add_property(
                     const std::string& key, const scalar_u_t& property )
@@ -101,6 +114,8 @@ namespace NCPA {
                                                       size_t wrt1,
                                                       size_t wrt2 )
                     = 0;
+                virtual bool same( scalar_u_t r1, scalar_u_t r2 ) const = 0;
+                virtual bool same( double r1, double r2 ) const         = 0;
 
                 virtual units_ptr_t get_axis_units( size_t n ) const = 0;
                 virtual units_ptr_t get_units( const std::string& key ) const
@@ -137,7 +152,7 @@ namespace NCPA {
                 virtual void print( std::ostream& os ) = 0;
 
                 virtual void validate_axis( size_t n ) const {
-                    if ( n >= 2 ) {
+                    if (n >= 2) {
                         throw std::range_error( "Only axis 0 and 1 are valid "
                                                 "for 2-D atmosphere!" );
                     }

@@ -78,15 +78,15 @@ namespace NCPA {
         enum class interpolator_2d_type_t {
             NEAREST_NEIGHBOR,
             LANL_NATURAL,
-            LANL_BICUBIC,
-            LANL_LINEAR_X,
-            LANL_LINEAR_Y,
-            LANL_CUBIC_X,
-            LANL_CUBIC_Y,
-            GSL_LINEAR_X,
-            GSL_LINEAR_Y,
-            GSL_STEFFEN_X,
-            GSL_STEFFEN_Y
+            LANL_BICUBIC
+            // , LANL_LINEAR_X,
+            // LANL_LINEAR_Y,
+            // LANL_CUBIC_X,
+            // LANL_CUBIC_Y,
+            // GSL_LINEAR_X,
+            // GSL_LINEAR_Y,
+            // GSL_STEFFEN_X,
+            // GSL_STEFFEN_Y
         };
 
         enum class interpolator_3d_type_t { LANL_HYBRID };

@@ -380,6 +380,10 @@ namespace NCPA {
                         };
                     }
 
+                    virtual interpolator_2d_type_t interptype() const override {
+                        return NCPA::interpolation::interpolator_2d_type_t::LANL_BICUBIC;
+                    }
+
 
                 protected:
                     bool _initialized() const {

@@ -119,6 +119,10 @@ namespace NCPA {
                     }
                 }
 
+                virtual interpolator_2d_type_t interptype() const override {
+                    return NCPA::interpolation::interpolator_2d_type_t::NEAREST_NEIGHBOR;
+                }
+
                 virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2 ) override {
                     std::pair<size_t, size_t> coord
                         = NCPA::math::find_closest_point( _x1, _x2, x1, x2 );

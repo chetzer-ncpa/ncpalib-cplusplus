@@ -158,6 +158,7 @@ namespace NCPA {
                                            size_t wrt3 )
                     = 0;
                 virtual std::array<INDEPTYPE,4> limits() const = 0;
+                virtual interpolator_2d_type_t interptype() const  = 0;
         };
 
         // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_2d,

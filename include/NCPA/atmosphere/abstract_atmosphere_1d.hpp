@@ -100,6 +100,24 @@ namespace NCPA {
                 virtual bool contains_key( const std::string& key ) const = 0;
 
                 virtual void print( std::ostream& os ) = 0;
+
+                virtual std::vector<AtmosphericProperty1D> properties() const {
+                    std::vector<AtmosphericProperty1D> props;
+                    auto keys = this->get_vector_keys();
+                    for (auto keyit = keys.cbegin(); keyit != keys.cend(); ++keyit) {
+                        props.emplace_back( this->get_property( *keyit ) );
+                    }
+                    return props;
+                }
+
+                virtual std::vector<scalar_u_t> scalars() const {
+                    std::vector<scalar_u_t> sc;
+                    auto keys = this->get_scalar_keys();
+                    for (auto keyit = keys.cbegin(); keyit != keys.cend(); ++keyit) {
+                        sc.emplace_back( this->get( *keyit ), this->get_units( *keyit ) );
+                    }
+                    return sc;
+                }
         };
 
         typedef std::unique_ptr<abstract_atmosphere_1d> _atm_1d_ptr_t;

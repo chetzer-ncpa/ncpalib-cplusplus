@@ -100,7 +100,7 @@ namespace NCPA {
                 }
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& clear() {
-                    _engine.reset();
+                    _engine->clear();
                     return *this;
                 }
 

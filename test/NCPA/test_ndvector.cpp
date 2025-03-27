@@ -45,7 +45,7 @@ TEST_F( _TEST_TITLE_, _dimarrayAssigns ) {
 TEST_F( _TEST_TITLE_, _dimarraySubdimsIsCorrect ) {
     auto sub = dims.subdims();
     EXPECT_EQ( sub.size(), 2 );
-    for ( size_t i = 0; i < 2; i++ ) {
+    for (size_t i = 0; i < 2; i++) {
         EXPECT_EQ( sub[ i ], dims[ i + 1 ] );
     }
     auto subsub = dims.subdims().subdims();
@@ -155,11 +155,11 @@ TEST_F( _TEST_TITLE_, SquareBracketsWorkOnSize3 ) {
 }
 
 TEST_F( _TEST_TITLE_, SquareBracketsWithArrayWorksOnSize3 ) {
-    EXPECT_TRUE( (d3[ {0 , 0 , 0} ] == 4.2) );
-    EXPECT_TRUE( (d3[ {1 , 1 , 1} ] == 3.1) );
-    EXPECT_TRUE( (d3[ {2 , 0 , 2} ] == 2.0) );
-    d3[ {0 , 0 , 0} ] = 10.0;
-    EXPECT_TRUE( (d3[ {0 , 0 , 0} ] == 10.0) );
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 4.2 ));
+    EXPECT_TRUE(( d3[ { 1, 1, 1 } ] == 3.1 ));
+    EXPECT_TRUE(( d3[ { 2, 0, 2 } ] == 2.0 ));
+    d3[ { 0, 0, 0 } ] = 10.0;
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 10.0 ));
 }
 
 TEST_F( _TEST_TITLE_, ReshapeWorksOnSize3 ) {
@@ -170,4 +170,9 @@ TEST_F( _TEST_TITLE_, ReshapeWorksOnSize3 ) {
     EXPECT_TRUE(( d3[ { 2, 2, 2 } ] == 0.0 ));
     d3.reshape( { 1, 3, 3 } );
     EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 4.2 ));
+}
+
+TEST_F( _TEST_TITLE_, ConstructorWorksWithDimarray ) {
+    d3 = ndvector<3, double>( dims );
+    EXPECT_TRUE( d3.shape() == dims );
 }

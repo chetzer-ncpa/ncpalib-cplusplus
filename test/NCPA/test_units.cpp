@@ -72,6 +72,17 @@ class _TEST_TITLE_ : public ::testing::Test {
             }
             v2d_2 = Vector2DWithUnits<double>( testnums, CELSIUS );
             v2d_3 = Vector2DWithUnits<double>( 5, 5, 10.0, CELSIUS );
+
+            NCPA::arrays::vector3d_t<double> testnums3( 5, 5, 5 );
+            for ( auto i = 0; i < 5; ++i ) {
+                for ( auto j = 0; j < 5; ++j ) {
+                    for ( auto k = 0; k < 5; ++k ) {
+                        testnums3[ i ][ j ][ k ] = (double)i * 10.0;
+                    }
+                }
+            }
+            v3d_2 = Vector3DWithUnits<double>( testnums3, CELSIUS );
+            v3d_3 = Vector3DWithUnits<double>( 5, 5, 5, 10.0, CELSIUS );
         }  // void TearDown() override {}
 
         // declare stuff here
@@ -98,6 +109,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         double all10[ 10 ] = { 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 };
 
         Vector2DWithUnits<double> v2d_1, v2d_2, v2d_3;
+        Vector3DWithUnits<double> v3d_1, v3d_2, v3d_3;
 };
 
 TEST_F( _TEST_TITLE_, ReferenceReturnedCorrectly ) {
@@ -994,7 +1006,7 @@ TEST_F( _TEST_TITLE_, ConstructorWithVector2DWorks ) {
 }
 
 TEST_F( _TEST_TITLE_, CopyConstructor2DWorks ) {
-    Vector2DWithUnits<double> tester(v2d_2);
+    Vector2DWithUnits<double> tester( v2d_2 );
     EXPECT_EQ( tester.dim( 0 ), 5 );
     EXPECT_EQ( tester.dim( 1 ), 5 );
     EXPECT_TRUE( tester.get_units()->equals( CELSIUS ) );
@@ -1021,12 +1033,12 @@ TEST_F( _TEST_TITLE_, SwapWorks2D ) {
     v2d_1.set_units( KILOGRAMS );
     swap( v2d_1, v2d_2 );
 
-    EXPECT_EQ( v2d_1.dim(0), 5 );
-    EXPECT_EQ( v2d_1.dim(1), 5 );
-    EXPECT_EQ( v2d_2.dim(0), 0 );
-    EXPECT_EQ( v2d_2.dim(1), 0 );
+    EXPECT_EQ( v2d_1.dim( 0 ), 5 );
+    EXPECT_EQ( v2d_1.dim( 1 ), 5 );
+    EXPECT_EQ( v2d_2.dim( 0 ), 0 );
+    EXPECT_EQ( v2d_2.dim( 1 ), 0 );
     EXPECT_TRUE( v2d_1.get_units()->equals( CELSIUS ) );
-    EXPECT_TRUE( v2d_2.get_units()->equals( KILOGRAMS ));
+    EXPECT_TRUE( v2d_2.get_units()->equals( KILOGRAMS ) );
 
     for ( size_t i = 0; i < v2d_1.dim( 0 ); i++ ) {
         for ( size_t j = 0; j < v2d_1.dim( 1 ); j++ ) {
@@ -1087,7 +1099,8 @@ TEST_F( _TEST_TITLE_, ConvertUnitsWithStringCreatesCorrectValues2D ) {
 }
 
 TEST_F( _TEST_TITLE_, ConvertUnitsThrowsInvalidConversionCorrectly2D ) {
-    EXPECT_THROW( { v2d_2.convert_units( KILOGRAMS ); }, invalid_conversion<> );
+    EXPECT_THROW(
+        { v2d_2.convert_units( KILOGRAMS ); }, invalid_conversion<> );
 }
 
 TEST_F( _TEST_TITLE_, FillSetsValuesCorrectly2D ) {
@@ -1106,15 +1119,206 @@ TEST_F( _TEST_TITLE_, FillSetsUnitsCorrectly2D ) {
 }
 
 TEST_F( _TEST_TITLE_, SetWorksCorrectly2D ) {
-    ASSERT_EQ( v2d_2.dim(0), 5 );
-    ASSERT_EQ( v2d_2.dim(1), 5 );
+    ASSERT_EQ( v2d_2.dim( 0 ), 5 );
+    ASSERT_EQ( v2d_2.dim( 1 ), 5 );
     NCPA::arrays::vector2d_t<double> z( 10, 10, 0.0 );
     v2d_2.set( z, CELSIUS );
-    EXPECT_EQ( v2d_2.dim(0), 10 );
-    EXPECT_EQ( v2d_2.dim(1), 10 );
+    EXPECT_EQ( v2d_2.dim( 0 ), 10 );
+    EXPECT_EQ( v2d_2.dim( 1 ), 10 );
     for ( size_t i = 0; i < v2d_2.dim( 0 ); i++ ) {
         for ( size_t j = 0; j < v2d_2.dim( 1 ); j++ ) {
             EXPECT_DOUBLE_EQ( v2d_2[ i ][ j ], 0.0 );
+        }
+    }
+}
+
+//////////////////////////////////////
+// Tests for Vector3DWithUnits class
+TEST_F( _TEST_TITLE_, Default3DConstructorIsEmpty ) {
+    ASSERT_EQ( v3d_1.dim( 0 ), 0 );
+    ASSERT_EQ( v3d_1.dim( 1 ), 0 );
+    ASSERT_EQ( v3d_1.dim( 2 ), 0 );
+}
+
+TEST_F( _TEST_TITLE_, Constructor3DWithConstantDoubleWorks ) {
+    // EXPECT_THAT( v4, SizeIs( 10 ) );
+    EXPECT_EQ( v3d_3.dim( 0 ), 5 );
+    EXPECT_EQ( v3d_3.dim( 1 ), 5 );
+    EXPECT_EQ( v3d_3.dim( 2 ), 5 );
+    EXPECT_TRUE( v3d_3.get_units()->equals( CELSIUS ) );
+    for ( size_t i = 0; i < v3d_3.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < v3d_3.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_3.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_3[ i ][ j ][ k ], 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, ConstructorWithVector3DWorks ) {
+    EXPECT_EQ( v3d_2.dim( 0 ), 5 );
+    EXPECT_EQ( v3d_2.dim( 1 ), 5 );
+    EXPECT_EQ( v3d_3.dim( 2 ), 5 );
+    EXPECT_TRUE( v3d_2.get_units()->equals( CELSIUS ) );
+    for ( size_t i = 0; i < v3d_2.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < v3d_2.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_3.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_2[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, CopyConstructor3DWorks ) {
+    Vector3DWithUnits<double> tester( v3d_2 );
+    EXPECT_EQ( tester.dim( 0 ), 5 );
+    EXPECT_EQ( tester.dim( 1 ), 5 );
+    EXPECT_EQ( tester.dim( 2 ), 5 );
+    EXPECT_TRUE( tester.get_units()->equals( CELSIUS ) );
+    for ( size_t i = 0; i < tester.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < tester.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_3.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( tester[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, AssignmentOperatorWorks3D ) {
+    Vector3DWithUnits<double> tester = v3d_2;
+    EXPECT_EQ( tester.dim( 0 ), 5 );
+    EXPECT_EQ( tester.dim( 1 ), 5 );
+    EXPECT_EQ( tester.dim( 2 ), 5 );
+    EXPECT_TRUE( tester.get_units()->equals( CELSIUS ) );
+    for ( size_t i = 0; i < tester.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < tester.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_3.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( tester[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, SwapWorks3D ) {
+    v3d_1.set_units( KILOGRAMS );
+    swap( v3d_1, v3d_2 );
+
+    EXPECT_EQ( v3d_1.dim( 0 ), 5 );
+    EXPECT_EQ( v3d_1.dim( 1 ), 5 );
+    EXPECT_EQ( v3d_1.dim( 2 ), 5 );
+    EXPECT_EQ( v3d_2.dim( 0 ), 0 );
+    EXPECT_EQ( v3d_2.dim( 1 ), 0 );
+    EXPECT_EQ( v3d_2.dim( 2 ), 0 );
+    EXPECT_TRUE( v3d_1.get_units()->equals( CELSIUS ) );
+    EXPECT_TRUE( v3d_2.get_units()->equals( KILOGRAMS ) );
+
+    for ( size_t i = 0; i < v3d_1.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < v3d_1.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_3.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_1[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, AsArrayReturnsCorrectArray3D ) {
+    ScalarWithUnits<double> ***tester = nullptr;
+    v3d_2.as_array( tester );
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( tester[ i ][ j ][ k ].get(),
+                                  (double)i * 10.0 );
+            }
+        }
+    }
+    delete[] tester;
+}
+
+TEST_F( _TEST_TITLE_, AsArrayReturnsCorrectDoubleArray3D ) {
+    double ***tester = nullptr;
+    v3d_2.as_array( tester );
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( tester[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+    delete[] tester;
+}
+
+TEST_F( _TEST_TITLE_, AsArrayReturnsCorrectDoubleVector3D ) {
+    NCPA::arrays::vector3d_t<double> tester = v3d_2;
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( tester[ i ][ j ][ k ], (double)i * 10.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, ConvertUnitsCreatesCorrectValues3D ) {
+    v3d_2.set_units( KILOMETERS );
+    v3d_2.convert_units( METERS );
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_2[ i ][ j ][ k ], (double)i * 10000.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, ConvertUnitsWithStringCreatesCorrectValues3D ) {
+    v3d_2.set_units( "km" );
+    v3d_2.convert_units( "m" );
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_2[ i ][ j ][ k ], (double)i * 10000.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, ConvertUnitsThrowsInvalidConversionCorrectly3D ) {
+    EXPECT_THROW(
+        { v3d_2.convert_units( KILOGRAMS ); }, invalid_conversion<> );
+}
+
+TEST_F( _TEST_TITLE_, FillSetsValuesCorrectly3D ) {
+    v3d_2.fill( 12.0, Units::from_string( "kg/m3" ) );
+    for ( size_t i = 0; i < 5; i++ ) {
+        for ( size_t j = 0; j < 5; j++ ) {
+            for ( size_t k = 0; k < 5; k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_2[ i ][ j ][ k ], 12.0 );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, FillSetsUnitsCorrectly3D ) {
+    const Unit *u = Units::from_string( "kg/m3" );
+    v3d_2.fill( 12.0, u );
+    EXPECT_TRUE( v3d_2.get_units()->equals( u ) );
+}
+
+TEST_F( _TEST_TITLE_, SetWorksCorrectly3D ) {
+    ASSERT_EQ( v3d_2.dim( 0 ), 5 );
+    ASSERT_EQ( v3d_2.dim( 1 ), 5 );
+    ASSERT_EQ( v3d_2.dim( 2 ), 5 );
+    NCPA::arrays::vector3d_t<double> z( 10, 10, 10, 0.0 );
+    v3d_2.set( z, CELSIUS );
+    EXPECT_EQ( v3d_2.dim( 0 ), 10 );
+    EXPECT_EQ( v3d_2.dim( 1 ), 10 );
+    EXPECT_EQ( v3d_2.dim( 2 ), 10 );
+    for ( size_t i = 0; i < v3d_2.dim( 0 ); i++ ) {
+        for ( size_t j = 0; j < v3d_2.dim( 1 ); j++ ) {
+            for ( size_t k = 0; k < v3d_2.dim( 2 ); k++ ) {
+                EXPECT_DOUBLE_EQ( v3d_2[ i ][ j ][ k ], 0.0 );
+            }
         }
     }
 }

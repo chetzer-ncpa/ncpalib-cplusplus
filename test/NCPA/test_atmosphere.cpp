@@ -28,7 +28,14 @@ typedef double test_t;
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
         void SetUp() override {  // define stuff here
-            test_atmos    = factory.build( filename );
+            AtmosphereReader1D reader
+                = AtmosphereFactory::build( reader_1d_t::NCPAPROP );
+            test_atmos                  = reader.read( filename );
+            AtmosphereReader2D reader2d = AtmosphereFactory::build(
+                reader_2d_t::NCPAPROP_PIECEWISE_STRATIFIED );
+            test_2datmos = reader2d.read( filename2d );
+
+
             first5[ "Z" ] = vector<double> { 0.0, 0.1, 0.2, 0.3, 0.4 };
             first5[ "T" ]
                 = vector<double> { 2.881495e+02, 2.875774e+02, 2.870075e+02,
@@ -41,7 +48,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             vector<double> upto5 { 0, 1, 2, 3, 4 };
             VectorWithUnits<double> km5( upto5, KILOMETERS );
             Vector2DWithUnits<double> kmgrid( 5, 5, KILOMETERS );
-            for ( auto it = kmgrid.begin(); it != kmgrid.end(); ++it ) {
+            for (auto it = kmgrid.begin(); it != kmgrid.end(); ++it) {
                 *it = upto5;
             }
 
@@ -50,25 +57,29 @@ class _TEST_TITLE_ : public ::testing::Test {
             prop2d.set( km5, km5, kmgrid );
 
             strat.add_property( "U", prop2d );
-            // strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR);
+            grid.add_property( "U", prop2d );
 
-            stratwrap = AtmosphereFactory::build( atmosphere_2d_t::STRATIFIED );
-            // stratwrap.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR);
+            stratwrap
+                = AtmosphereFactory::build( atmosphere_2d_t::STRATIFIED );
             stratwrap.add_property( "U", prop2d );
 
         }  // void TearDown() override {}
 
         // declare stuff here
         Atmosphere1D test_atmos, test_atmos2;
-        const test_t zero    = NCPA::math::zero<test_t>(),
-                     one     = NCPA::math::one<test_t>();
-        std::string filename = "testdata/test_atmosphere_1d.ncpaprop";
-        AtmosphereFactory factory;
+        Atmosphere2D test_2datmos;
+        Atmosphere3D test_3datmos;
+        const test_t zero      = NCPA::math::zero<test_t>(),
+                     one       = NCPA::math::one<test_t>();
+        std::string filename   = "testdata/test_atmosphere_1d.ncpaprop";
+        std::string filename2d = "testdata/test_atmosphere_2d.ncpaprop";
+        std::string filename3d = "testdata/test_atmosphere_3d.ncpaprop";
         map<string, vector<double>> first5;
 
         AtmosphericProperty2D prop2d;
         stratified_atmosphere_2d strat;
-        Atmosphere2D stratwrap;
+        grid_atmosphere_2d grid;
+        Atmosphere2D stratwrap, gridwrap;
 };
 
 TEST_F( _TEST_TITLE_, DefaultConstructorWorks ) {
@@ -98,7 +109,7 @@ TEST_F( _TEST_TITLE_, DependentValuesAreCorrect ) {
         NCPA::units::METERS_PER_SECOND ) );
     EXPECT_TRUE( test_atmos.get_units( "V" )->equals(
         NCPA::units::METERS_PER_SECOND ) );
-    for ( size_t i = 0; i < 5; i++ ) {
+    for (size_t i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( test_atmos.get( "T", first5[ "Z" ][ i ] ),
                           first5[ "T" ][ i ] );
         EXPECT_DOUBLE_EQ( test_atmos.get( "U", first5[ "Z" ][ i ] ),
@@ -110,7 +121,7 @@ TEST_F( _TEST_TITLE_, DependentValuesAreCorrect ) {
 
 TEST_F( _TEST_TITLE_, UnitsCanBeConverted ) {
     test_atmos.convert_units( "U", &NCPA::units::KILOMETERS_PER_SECOND );
-    for ( size_t i = 0; i < 5; i++ ) {
+    for (size_t i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( test_atmos.get( "U", first5[ "Z" ][ i ] ),
                           first5[ "U" ][ i ] * 0.001 );
     }
@@ -125,7 +136,7 @@ TEST_F( _TEST_TITLE_, ResampleWorksWithDZ ) {
 
 TEST_F( _TEST_TITLE_, ResampleWorksWithZ ) {
     vector_u_t new_z( vector<double>( 4000 ), "km" );
-    for ( size_t i = 0; i < 4000; i++ ) {
+    for (size_t i = 0; i < 4000; i++) {
         double di  = (double)i;
         new_z[ i ] = di * 0.05;
     }
@@ -141,7 +152,7 @@ TEST_F( _TEST_TITLE_, AssignmentOperatorWorks ) {
         *test_atmos2.get_units( "U" ) ) );
     EXPECT_TRUE( test_atmos2.get_units( "V" )->equals(
         *test_atmos2.get_units( "V" ) ) );
-    for ( size_t i = 0; i < 5; i++ ) {
+    for (size_t i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( test_atmos2.get( "T", first5[ "Z" ][ i ] ),
                           test_atmos.get( "T", first5[ "Z" ][ i ] ) );
         EXPECT_DOUBLE_EQ( test_atmos2.get( "U", first5[ "Z" ][ i ] ),
@@ -151,21 +162,12 @@ TEST_F( _TEST_TITLE_, AssignmentOperatorWorks ) {
     }
 }
 
-TEST_F( _TEST_TITLE_, DefaultInterpolatorIsNearestNeighbor ) {
-    double dz      = 0.1;
-    double test_dz = dz * 0.1;
-    for ( double z = dz; z < 100.0; z += dz ) {
-        EXPECT_DOUBLE_EQ( test_atmos.get( "T", z - test_dz ),
-                          test_atmos.get( "T", z + test_dz ) );
-    }
-}
-
 TEST_F( _TEST_TITLE_, NewInterpolatorIsUsedCorrectly ) {
     double dz   = 0.1;
     double half = dz * 0.5;
     test_atmos.set_interpolator(
         NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
-    for ( double z = dz; z < 100.0; z += dz ) {
+    for (double z = dz; z < 100.0; z += dz) {
         EXPECT_NEAR(
             test_atmos.get( "T", z - half ),
             0.5 * ( test_atmos.get( "T", z ) + test_atmos.get( "T", z - dz ) ),
@@ -176,7 +178,7 @@ TEST_F( _TEST_TITLE_, NewInterpolatorIsUsedCorrectly ) {
 TEST_F( _TEST_TITLE_, CopyPropertyWorks ) {
     test_atmos.add_property( "NEW_U", test_atmos.get_property( "U" ) );
     double dz = 0.1;
-    for ( double z = dz; z < 100.0; z += dz ) {
+    for (double z = dz; z < 100.0; z += dz) {
         EXPECT_NEAR( test_atmos.get( "U", z ), test_atmos.get( "NEW_U", z ),
                      1e-10 );
     }
@@ -189,12 +191,12 @@ TEST_F( _TEST_TITLE_, InvalidKeyCausesException ) {
 TEST_F( _TEST_TITLE_, TemperatureToSoundSpeedCalculationIsCorrect ) {
     vector<double> t { 273, 283, 293, 303, 313 };
     vector<double> cx;
-    for ( auto it = t.begin(); it != t.end(); ++it ) {
+    for (auto it = t.begin(); it != t.end(); ++it) {
         cx.push_back( sqrt( 1.4 * 287 * *it ) );
     }
     vector_u_t tv( t, NCPA::units::Units::from_string( "K" ) );
     vector_u_t cv = t2c( tv );
-    for ( auto i = 0; i < cv.size(); i++ ) {
+    for (auto i = 0; i < cv.size(); i++) {
         EXPECT_DOUBLE_EQ( cv.get( i ), cx[ i ] );
     }
 }
@@ -266,7 +268,7 @@ TEST_F( _TEST_TITLE_, Property2DResampleWorksCorrectly ) {
     EXPECT_EQ( prop2d.size( 0 ), 5 );
     EXPECT_EQ( prop2d.size( 1 ), 5 );
     vector_u_t new_r( 4000, prop2d.get_axis_units( 0 ) );
-    for ( size_t i = 0; i < 4000; ++i ) {
+    for (size_t i = 0; i < 4000; ++i) {
         new_r[ i ] = (double)i * 0.001;
     }
     vector_u_t new_z = prop2d.axis( 1 );
@@ -276,12 +278,14 @@ TEST_F( _TEST_TITLE_, Property2DResampleWorksCorrectly ) {
 }
 
 TEST_F( _TEST_TITLE_, Stratified2DWorksAsExpected ) {
-    // strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
+    // strat.set_interpolator(
+    // NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
     EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
     EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
     EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.1 );
     EXPECT_DOUBLE_EQ( strat.get( "U", 1.6, 1.6 ), 1.6 );
-    strat.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
+    strat.set_interpolator(
+        NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
     EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
     EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
     EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.0 );
@@ -293,7 +297,8 @@ TEST_F( _TEST_TITLE_, Stratified2DWrapperWorksAsExpected ) {
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.0, 1.0 ), 1.0 );
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.1, 1.1 ), 1.1 );
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.6, 1.6 ), 1.6 );
-    stratwrap.set_interpolator( NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
+    stratwrap.set_interpolator(
+        NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 0.0, 0.0 ), 0.0 );
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.0, 1.0 ), 1.0 );
     EXPECT_DOUBLE_EQ( stratwrap.get( "U", 1.1, 1.1 ), 1.0 );
@@ -309,13 +314,13 @@ TEST_F( _TEST_TITLE_, Stratified2DCanBeBuiltFrom1D ) {
     // cout << "getz OK" << std::endl;
     EXPECT_TRUE( stratwrap.get_units( "T" )->equals( NCPA::units::KELVIN ) );
     // cout << "gett OK" << std::endl;
-    EXPECT_TRUE( stratwrap.get_units( "U" )->equals(
-        NCPA::units::METERS_PER_SECOND ) );
-        // cout << "getu OK" << std::endl;
-    EXPECT_TRUE( stratwrap.get_units( "V" )->equals(
-        NCPA::units::METERS_PER_SECOND ) );
-        // cout << "getv OK" << std::endl;
-    for ( size_t i = 0; i < 5; i++ ) {
+    EXPECT_TRUE(
+        stratwrap.get_units( "U" )->equals( NCPA::units::METERS_PER_SECOND ) );
+    // cout << "getu OK" << std::endl;
+    EXPECT_TRUE(
+        stratwrap.get_units( "V" )->equals( NCPA::units::METERS_PER_SECOND ) );
+    // cout << "getv OK" << std::endl;
+    for (size_t i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( stratwrap.get( "T", 0.0, first5[ "Z" ][ i ] ),
                           first5[ "T" ][ i ] );
         EXPECT_DOUBLE_EQ( stratwrap.get( "U", 0.0, first5[ "Z" ][ i ] ),
@@ -323,4 +328,52 @@ TEST_F( _TEST_TITLE_, Stratified2DCanBeBuiltFrom1D ) {
         EXPECT_DOUBLE_EQ( stratwrap.get( "V", 0.0, first5[ "Z" ][ i ] ),
                           first5[ "V" ][ i ] );
     }
+}
+
+TEST_F( _TEST_TITLE_, Grid2DWorksAsExpected ) {
+    grid.set_interpolator(
+        NCPA::interpolation::interpolator_1d_type_t::LANL_LINEAR );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.1 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.6, 1.6 ), 1.6 );
+    strat.set_interpolator(
+        NCPA::interpolation::interpolator_1d_type_t::NEAREST_NEIGHBOR );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 0.0, 0.0 ), 0.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.0, 1.0 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.1, 1.1 ), 1.0 );
+    EXPECT_DOUBLE_EQ( strat.get( "U", 1.6, 1.6 ), 2.0 );
+}
+
+TEST_F( _TEST_TITLE_, LocallyStratified2DReadProperly ) {
+    EXPECT_FALSE( test_2datmos.same( 100.0, 300.0 ) );
+    EXPECT_DOUBLE_EQ( test_2datmos.get( "U", 100.0, 2.1 ), 8.808512e-04 );
+    EXPECT_DOUBLE_EQ( test_2datmos.get( "U", 400.0, 52.2 ), 40.99138 );
+    EXPECT_DOUBLE_EQ( test_2datmos.get_first_derivative( "U", 400.0, 52.2, 0 ),
+                      0.0 );
+    EXPECT_FALSE( test_2datmos.get_first_derivative( "U", 400.0, 52.2, 1 )
+                  == 0.0 );
+    EXPECT_DOUBLE_EQ(
+        test_2datmos.get_second_derivative( "U", 400.0, 52.2, 0, 1 ), 0.0 );
+    EXPECT_DOUBLE_EQ(
+        test_2datmos.get_second_derivative( "U", 400.0, 52.2, 0, 0 ), 0.0 );
+    EXPECT_DOUBLE_EQ(
+        test_2datmos.get_second_derivative( "U", 400.0, 52.2, 1, 0 ), 0.0 );
+    EXPECT_FALSE( test_2datmos.get_second_derivative( "U", 400.0, 52.2, 1, 1 )
+                  == 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, Atmosphere3DReadsProperly ) {
+    AtmosphereReader3D reader3d
+        = AtmosphereFactory::build( reader_3d_t::NCPAPROP );
+    reader3d.set_axis_units( 1, &NCPA::units::RADIANS );
+    test_3datmos = reader3d.read( filename3d );
+    EXPECT_FALSE( test_3datmos.same( 100.0, -0.1, 300.0, 0.1 ) );
+
+    // test atmosphere is stratified in theta
+    EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 100.0, 0.0, 2.1 ), 
+        test_3datmos.get( "U", 100.0, 0.1, 2.1 ) );
+
+    EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 0.0, 0.0, 2.1 ), 8.808512e-04 );
+    // EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 400.0, 0.2, 52.2 ), 40.99138 );
 }

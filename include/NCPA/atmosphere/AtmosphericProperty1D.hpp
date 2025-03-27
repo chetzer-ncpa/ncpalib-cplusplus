@@ -41,6 +41,7 @@ namespace NCPA {
                 virtual size_t size() const = 0;
                 virtual std::unique_ptr<abstract_atmospheric_property_1d>
                     clone1d() const = 0;
+                virtual abstract_atmospheric_property_1d& clear() = 0;
                 virtual abstract_atmospheric_property_1d& set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type )
                     = 0;
@@ -49,6 +50,9 @@ namespace NCPA {
                     = 0;
                 virtual NCPA::interpolation::Interpolator1D<double, double>&
                     interpolator()
+                    = 0;
+                virtual abstract_atmospheric_property_1d& set(
+                    const vector_u_t& z, const units_ptr_t units )
                     = 0;
                 virtual abstract_atmospheric_property_1d& set(
                     const vector_u_t& z, const vector_u_t& p )
@@ -83,9 +87,9 @@ namespace NCPA {
             public:
                 tuple_atmospheric_property_1d() {
                     set_interpolator(
-                        NCPA::interpolation::interpolator_1d_type_t::
-                            NEAREST_NEIGHBOR );
-                    set_extrapolator( NCPA::interpolation::extrapolator_1d_type_t::CONSTANT );
+                        NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR );
+                    set_extrapolator( NCPA::interpolation::
+                                          extrapolator_1d_type_t::CONSTANT );
                 }
 
                 tuple_atmospheric_property_1d( const vector_u_t& z,
@@ -98,6 +102,15 @@ namespace NCPA {
                     const tuple_atmospheric_property_1d& source ) :
                     tuple_atmospheric_property_1d() {
                     set( source._z, source._x );
+                    set_interpolator( source._spline.interptype() );
+                    _init_spline();
+                }
+
+                virtual abstract_atmospheric_property_1d& clear() override {
+                    _z.clear();
+                    _x.clear();
+                    _spline.clear();
+                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERIC_PROPERTY_1D;
                 }
 
                 DECLARE_BOILERPLATE_METHODS( tuple_atmospheric_property_1d,
@@ -110,6 +123,15 @@ namespace NCPA {
                 }
 
                 virtual size_t size() const override { return _z.size(); }
+
+                virtual abstract_atmospheric_property_1d& set(
+                    const vector_u_t& z, const units_ptr_t units ) override {
+                    this->clear();
+                    _z = z;
+                    _x = vector_u_t( _z.size(), units );
+                    this->_init_spline();
+                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERIC_PROPERTY_1D;
+                }
 
                 virtual abstract_atmospheric_property& copy(
                     const abstract_atmospheric_property& source ) override {
@@ -389,11 +411,11 @@ namespace NCPA {
                     _ptr = std::move( newptr );
                 }
 
-                abstract_atmospheric_property_1d* internal() {
+                abstract_atmospheric_property_1d *internal() {
                     return _ptr.get();
                 }
 
-                const abstract_atmospheric_property_1d* internal() const {
+                const abstract_atmospheric_property_1d *internal() const {
                     return _ptr.get();
                 }
 
@@ -410,9 +432,8 @@ namespace NCPA {
     }  // namespace atmos
 }  // namespace NCPA
 
-static void swap(
-    NCPA::atmos::AtmosphericProperty1D& a,
-    NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
+static void swap( NCPA::atmos::AtmosphericProperty1D& a,
+                  NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
     using std::swap;
     swap( a._ptr, b._ptr );
 }

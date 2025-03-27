@@ -57,7 +57,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Interpolator2D& clear() { _engine.reset(); return *this;}
+                virtual Interpolator2D& clear() { _engine->clear(); return *this;}
 
                 virtual Interpolator2D& ready() {
                     check_engine();
@@ -103,6 +103,11 @@ namespace NCPA {
                 virtual std::array<INDEPTYPE,4> limits() const {
                     check_engine();
                     return _engine->limits();
+                }
+
+                virtual interpolator_2d_type_t interptype() const {
+                    check_engine();
+                    return _engine->interptype();
                 }
 
             protected:

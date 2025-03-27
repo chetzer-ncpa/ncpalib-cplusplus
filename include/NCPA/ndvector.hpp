@@ -5,6 +5,7 @@
 // #include <array>
 #include <algorithm>
 #include <initializer_list>
+#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
@@ -73,7 +74,7 @@ namespace NCPA {
 
                 _dimarray( const std::vector<size_t>& v ) :
                     std::vector<size_t>( v ) {
-                    if ( v.size() != N ) {
+                    if (v.size() != N) {
                         std::ostringstream oss;
                         oss << "_dimarray(): For dimensionality " << N
                             << ", expected dimension vector of size " << N
@@ -92,7 +93,7 @@ namespace NCPA {
                 }
 
                 _dimarray<N>& operator=( std::vector<size_t> other ) {
-                    if ( other.size() != this->size() ) {
+                    if (other.size() != this->size()) {
                         throw std::invalid_argument(
                             "_dimarray.operator=(): Dimension vectors must be "
                             "the same size!" );
@@ -110,7 +111,7 @@ namespace NCPA {
 
                 _dimarray<N - 1> subdims() const {
                     _dimarray<N - 1> sub;
-                    for ( size_t i = 1; i < this->size(); ++i ) {
+                    for (size_t i = 1; i < this->size(); ++i) {
                         sub[ i - 1 ] = this->at( i );
                     }
                     return sub;
@@ -197,7 +198,7 @@ namespace NCPA {
                     //     this->reshape( dims );
                     // }
                     // return _v[ inds[ 0 ] ][ inds.subdims() ];
-                    if ( inds[ 0 ] > this->size() ) {
+                    if (inds[ 0 ] > this->size()) {
                         _dimarray<N> dims = this->shape();
                         dims[ 0 ]         = inds[ 0 ];
                         this->reshape( dims );
@@ -212,7 +213,7 @@ namespace NCPA {
                 }
 
                 void set( const T& val ) {
-                    for ( auto it = this->begin(); it != this->end(); ++it ) {
+                    for (auto it = this->begin(); it != this->end(); ++it) {
                         it->set( val );
                     }
                     // this->assign( this->size(), val );
@@ -221,7 +222,7 @@ namespace NCPA {
                 void reshape( const _dimarray<N>& newshape ) {
                     this->resize( newshape[ 0 ] );
                     // _v.resize( newshape[ 0 ] );
-                    for ( size_t i = 0; i < newshape[ 0 ]; ++i ) {
+                    for (size_t i = 0; i < newshape[ 0 ]; ++i) {
                         this->at( i ).reshape( newshape.subdims() );
                         // _v[ i ].reshape( newshape.subdims() );
                     }
@@ -230,7 +231,7 @@ namespace NCPA {
                 void reshape( const _dimarray<N>& newshape, const T& val ) {
                     this->resize( newshape[ 0 ] );
                     // _v.resize( newshape[ 0 ] );
-                    for ( size_t i = 0; i < newshape[ 0 ]; ++i ) {
+                    for (size_t i = 0; i < newshape[ 0 ]; ++i) {
                         // _v[ i ].reshape( newshape.subdims(), val );
                         this->at( i ).reshape( newshape.subdims(), val );
                     }
@@ -247,12 +248,12 @@ namespace NCPA {
 
                 _dimarray<N> shape() const {
                     _dimarray<N> dims;
-                    if ( this->size() > 0 ) {
+                    if (this->size() > 0) {
                         dims[ 0 ]                 = this->size();
                         // dims[ 0 ]                 = _v.size();
                         _dimarray<N - 1> subshape = this->front().shape();
                         // _dimarray<N - 1> subshape = _v[ 0 ].shape();
-                        for ( size_t i = 1; i < N; ++i ) {
+                        for (size_t i = 1; i < N; ++i) {
                             dims[ i ] = subshape[ i - 1 ];
                         }
                     }
@@ -276,12 +277,18 @@ namespace NCPA {
                 ndvector( size_t n ) : std::vector<T>( n ) {}
 
                 ndvector( const ndvector<1, T>& other ) :
-                    std::vector<T>( other ) {}
+                    std::vector<T>( other ) {
+        
+                    }
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<1, T>() {
                     ::swap( *this, source );
                 }
+
+                ndvector( const _dimarray<1>& dims ) :
+                    ndvector<1, T>( dims[ 0 ] ) {
+                    }
 
                 ndvector<1, T>& operator=( ndvector<1, T> other ) {
                     ::swap( *this, other );
@@ -308,7 +315,7 @@ namespace NCPA {
                 }
 
                 void reshape( const std::vector<size_t> newsize ) {
-                    if ( newsize.size() != 1 ) {
+                    if (newsize.size() != 1) {
                         throw std::invalid_argument(
                             "ndvector<1>.reshape(): dimension vector must be "
                             "size 1" );
@@ -318,7 +325,7 @@ namespace NCPA {
 
                 void reshape( const std::vector<size_t> newsize,
                               const T& val ) {
-                    if ( newsize.size() != 1 ) {
+                    if (newsize.size() != 1) {
                         throw std::invalid_argument(
                             "ndvector<1>.reshape(): dimension vector must be "
                             "size 1" );
@@ -327,7 +334,7 @@ namespace NCPA {
                 }
 
                 T& operator[]( size_t n ) {
-                    if ( n > this->size() ) {
+                    if (n > this->size()) {
                         this->resize( n );
                     }
                     return ( static_cast<std::vector<T>&>( *this )[ n ] );
