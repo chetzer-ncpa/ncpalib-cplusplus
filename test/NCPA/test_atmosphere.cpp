@@ -201,10 +201,61 @@ TEST_F( _TEST_TITLE_, TemperatureToSoundSpeedCalculationIsCorrect ) {
     }
 }
 
+TEST_F( _TEST_TITLE_,
+        MultidimensionalTemperatureToSoundSpeedCalculationIsCorrect ) {
+    vector<double> t { 273, 283, 293, 303, 313 };
+    NCPA::arrays::ndvector<3, double> t3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> cx( { 3, 4, 5 } );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                t3[ i ][ j ][ k ] = t[ k ];
+                cx[ i ][ j ][ k ] = sqrt( 1.4 * 287.0 * t[ k ] );
+            }
+        }
+    }
+    // vector_u_t tv( t, NCPA::units::Units::from_string( "K" ) );
+    NCPA::arrays::ndvector<3, double> cv
+        = t2c( t3, NCPA::units::Units::from_string( "K" ) );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                EXPECT_DOUBLE_EQ( cv[ i ][ j ][ k ], cx[ i ][ j ][ k ] );
+            }
+        }
+    }
+}
+
 TEST_F( _TEST_TITLE_, PressureAndDensityToSoundSpeedIsCorrect ) {
     EXPECT_DOUBLE_EQ(
         pd2c( scalar_u_t( 1.0, "atm" ), scalar_u_t( 1.225, "kg/m3" ) ).get(),
         std::sqrt( 101325.0 * 1.4 / 1.225 ) );
+}
+
+TEST_F( _TEST_TITLE_,
+        MultidimensionalPressureAndDensityToSoundSpeedIsCorrect ) {
+    NCPA::arrays::ndvector<3, double> p3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> d3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> c3( { 3, 4, 5 } );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                p3[ i ][ j ][ k ] = 1.0;
+                d3[ i ][ j ][ k ] = 1.225;
+                c3[ i ][ j ][ k ] = std::sqrt( 101325.0 * 1.4 / 1.225 );
+            }
+        }
+    }
+    NCPA::arrays::ndvector<3, double> cv
+        = pd2c( p3, NCPA::units::Units::from_string( "atm" ), d3,
+                NCPA::units::Units::from_string( "kg/m3" ) );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                EXPECT_DOUBLE_EQ( cv[ i ][ j ][ k ], c3[ i ][ j ][ k ] );
+            }
+        }
+    }
 }
 
 TEST_F( _TEST_TITLE_, WindVectorsToSpeedAndDirectionAreCorrect ) {
@@ -221,6 +272,38 @@ TEST_F( _TEST_TITLE_, WindVectorsToSpeedAndDirectionAreCorrect ) {
     EXPECT_DOUBLE_EQ( uv2wd( u, v ).get(), 315.0 );
 }
 
+TEST_F( _TEST_TITLE_,
+        MultidimensionalWindVectorsToSpeedAndDirectionAreCorrect ) {
+    NCPA::arrays::ndvector<3, double> u3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> v3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> ws3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wd3( { 3, 4, 5 } );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                u3[ i ][ j ][ k ]  = -2.0;
+                v3[ i ][ j ][ k ]  = 2.0;
+                ws3[ i ][ j ][ k ] = sqrt( 8.0 );
+                wd3[ i ][ j ][ k ] = 315.0;
+            }
+        }
+    }
+    NCPA::arrays::ndvector<3, double> wsv
+        = uv2ws( u3, NCPA::units::Units::from_string( "m/s" ), v3,
+                 NCPA::units::Units::from_string( "m/s" ) );
+    NCPA::arrays::ndvector<3, double> wdv
+        = uv2wd( u3, NCPA::units::Units::from_string( "m/s" ), v3,
+                 NCPA::units::Units::from_string( "m/s" ) );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                EXPECT_DOUBLE_EQ( ws3[ i ][ j ][ k ], wsv[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wd3[ i ][ j ][ k ], wdv[ i ][ j ][ k ] );
+            }
+        }
+    }
+}
+
 TEST_F( _TEST_TITLE_, WindSpeedAndDirectionToComponentIsCorrect ) {
     scalar_u_t ws( sqrt( 8.0 ), "m/s" ), wd( 45.0, "deg" );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 45.0 ).get(), sqrt( 8.0 ) );
@@ -231,6 +314,74 @@ TEST_F( _TEST_TITLE_, WindSpeedAndDirectionToComponentIsCorrect ) {
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 225.0 ).get(), -sqrt( 8.0 ) );
     EXPECT_DOUBLE_EQ( w2wc( ws, wd, 270.0 ).get(), -2.0 );
     EXPECT_NEAR( w2wc( ws, wd, 315.0 ).get(), 0.0, 1e-12 );
+}
+
+TEST_F( _TEST_TITLE_, MultidimensionalWindVectorsToComponentIsCorrect ) {
+    NCPA::arrays::ndvector<3, double> ws3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wd3( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_000( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_045( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_090( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_135( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_180( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_225( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_270( { 3, 4, 5 } );
+    NCPA::arrays::ndvector<3, double> wc3_315( { 3, 4, 5 } );
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                ws3[ i ][ j ][ k ]     = sqrt( 8.0 );
+                wd3[ i ][ j ][ k ]     = 45.0;
+                wc3_000[ i ][ j ][ k ] = 2.0;
+                wc3_045[ i ][ j ][ k ] = sqrt( 8.0 );
+                wc3_090[ i ][ j ][ k ] = 2.0;
+                wc3_135[ i ][ j ][ k ] = 0.0;
+                wc3_180[ i ][ j ][ k ] = -2.0;
+                wc3_225[ i ][ j ][ k ] = -sqrt( 8.0 );
+                wc3_270[ i ][ j ][ k ] = -2.0;
+                wc3_315[ i ][ j ][ k ] = 0.0;
+            }
+        }
+    }
+    NCPA::arrays::ndvector<3, double> wcv_000
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 0.0 );
+    NCPA::arrays::ndvector<3, double> wcv_045
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 45.0 );
+    NCPA::arrays::ndvector<3, double> wcv_090
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 90.0 );
+    NCPA::arrays::ndvector<3, double> wcv_135
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 135.0 );
+    NCPA::arrays::ndvector<3, double> wcv_180
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 180.0 );
+    NCPA::arrays::ndvector<3, double> wcv_225
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 225.0 );
+    NCPA::arrays::ndvector<3, double> wcv_270
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 270.0 );
+    NCPA::arrays::ndvector<3, double> wcv_315
+        = w2wc( ws3, NCPA::units::Units::from_string( "m/s" ), wd3,
+                NCPA::units::Units::from_string( "deg" ), 315.0 );
+
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < 5; ++k) {
+                EXPECT_DOUBLE_EQ( wc3_000[ i ][ j ][ k ], wcv_000[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_045[ i ][ j ][ k ], wcv_045[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_090[ i ][ j ][ k ], wcv_090[ i ][ j ][ k ] );
+                EXPECT_NEAR( wc3_135[ i ][ j ][ k ], wcv_135[ i ][ j ][ k ], 1e-12 );
+                EXPECT_DOUBLE_EQ( wc3_180[ i ][ j ][ k ], wcv_180[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_225[ i ][ j ][ k ], wcv_225[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_270[ i ][ j ][ k ], wcv_270[ i ][ j ][ k ] );
+                EXPECT_NEAR( wc3_315[ i ][ j ][ k ], wcv_315[ i ][ j ][ k ], 1e-12 );
+            }
+        }
+    }
 }
 
 TEST_F( _TEST_TITLE_, Property2DReportsCorrectly ) {
@@ -371,8 +522,8 @@ TEST_F( _TEST_TITLE_, Atmosphere3DReadsProperly ) {
     EXPECT_FALSE( test_3datmos.same( 100.0, -0.1, 300.0, 0.1 ) );
 
     // test atmosphere is stratified in theta
-    EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 100.0, 0.0, 2.1 ), 
-        test_3datmos.get( "U", 100.0, 0.1, 2.1 ) );
+    EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 100.0, 0.0, 2.1 ),
+                      test_3datmos.get( "U", 100.0, 0.1, 2.1 ) );
 
     EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 0.0, 0.0, 2.1 ), 8.808512e-04 );
     // EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 400.0, 0.2, 52.2 ), 40.99138 );

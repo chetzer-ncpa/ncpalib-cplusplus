@@ -313,6 +313,13 @@ namespace NCPA {
                     return _properties.at( key ).get( x1, x2, x3 );
                 }
 
+                virtual vector3d_u_t get(
+                    const std::string& key, const std::vector<double>& v1,
+                    const std::vector<double>& v2,
+                    const std::vector<double>& v3 ) override {
+                    return _properties.at( key ).get( v1, v2, v3 );
+                }
+
                 virtual double get_first_derivative( const std::string& key,
                                                      double x1, double x2,
                                                      size_t wrt ) override {
@@ -873,6 +880,23 @@ namespace NCPA {
                     return _1d_atmos.get( key, x3 );
                 }
 
+                virtual vector3d_u_t get(
+                    const std::string& key, const std::vector<double>& v1,
+                    const std::vector<double>& v2,
+                    const std::vector<double>& v3 ) override {
+                    vector3d_u_t out3d( v1.size(), v2.size(), v3.size(),
+                                        this->get_units( key ) );
+                    for (size_t k = 0; k < v3.size(); ++k) {
+                        double v = _1d_atmos.get( key, v3[ k ] );
+                        for (size_t i = 0; i < v1.size(); ++i) {
+                            for (size_t j = 0; j < v2.size(); ++j) {
+                                out3d[ i ][ j ][ k ] = v;
+                            }
+                        }
+                    }
+                    return out3d;
+                }
+
                 virtual double get_first_derivative( const std::string& key,
                                                      double x1, double x2,
                                                      double x3,
@@ -1343,6 +1367,14 @@ namespace NCPA {
                                     double x2, double x3 ) {
                     check_pointer();
                     return _ptr->get( key, x1, x2, x3 );
+                }
+
+                virtual vector3d_u_t get( const std::string& key,
+                                          const std::vector<double>& v1,
+                                          const std::vector<double>& v2,
+                                          const std::vector<double>& v3 ) {
+                    check_pointer();
+                    return _ptr->get( key, v1, v2, v3 );
                 }
 
                 virtual double get(

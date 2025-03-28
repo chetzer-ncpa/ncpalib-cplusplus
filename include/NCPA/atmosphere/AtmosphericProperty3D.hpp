@@ -66,6 +66,7 @@ namespace NCPA {
                 virtual size_t dim( size_t n ) const = 0;
                 virtual double get( double val1, double val2, double val3 )
                     = 0;
+
                 virtual const units_ptr_t get_axis_units( size_t n ) const = 0;
                 virtual double get_first_derivative( double val1, double val2,
                                                      double val3, size_t rel )
@@ -116,6 +117,30 @@ namespace NCPA {
                 virtual const vector3d_u_t& values() const = 0;
 
                 // convenience defines and fixed-value methods
+                virtual vector3d_u_t get( const std::vector<double>& v1,
+                                          const std::vector<double>& v2,
+                                          const std::vector<double>& v3 ) {
+                    vector3d_u_t v_out( v1.size(), v2.size(), v3.size(),
+                                        this->get_units() );
+                    for (auto i = 0; i < v1.size(); ++i) {
+                        for (auto j = 0; j < v2.size(); ++j) {
+                            for (auto k = 0; k < v3.size(); ++k) {
+                                v_out[ i ][ j ][ k ]
+                                    = this->get( v1[ i ], v2[ j ], v3[ k ] );
+                            }
+                        }
+                    }
+                    return v_out;
+                }
+
+                virtual vector3d_u_t get( const vector_u_t& v1,
+                                          const vector_u_t& v2,
+                                          const vector_u_t& v3 ) {
+                    return this->get( v1.as( this->get_axis_units( 0 ) ),
+                                      v2.as( this->get_axis_units( 1 ) ),
+                                      v3.as( this->get_axis_units( 2 ) ) );
+                }
+
                 virtual double ddf( double val1, double val2, double val3,
                                     size_t rel1, size_t rel2 ) {
                     return this->get_second_derivative( val1, val2, val3, rel1,
@@ -165,6 +190,7 @@ namespace NCPA {
             : public abstract_atmospheric_property_3d {
             public:
                 using abstract_atmospheric_property_3d::resample;
+                using abstract_atmospheric_property_3d::get;
 
                 grid_atmospheric_property_3d() {
                     set_interpolator(
@@ -671,6 +697,7 @@ namespace NCPA {
             : public abstract_atmospheric_property_3d {
             public:
                 using abstract_atmospheric_property_3d::resample;
+                using abstract_atmospheric_property_3d::get;
 
                 stratified_atmospheric_property_3d() {
                     _dummy = vector_u_t( { 0 }, NCPA::units::KILOMETERS );
@@ -1255,6 +1282,20 @@ namespace NCPA {
                 virtual double f( double val1, double val2, double val3 ) {
                     _check_pointer();
                     return _ptr->f( val1, val2, val3 );
+                }
+
+                virtual vector3d_u_t get( const vector_u_t& v1,
+                                          const vector_u_t& v2,
+                                          const vector_u_t& v3 ) {
+                    _check_pointer();
+                    return _ptr->get( v1, v2, v3 );
+                }
+
+                virtual vector3d_u_t get( const std::vector<double>& v1,
+                                          const std::vector<double>& v2,
+                                          const std::vector<double>& v3 ) {
+                    _check_pointer();
+                    return _ptr->get( v1, v2, v3 );
                 }
 
                 virtual double get_first_derivative( double val1, double val2,

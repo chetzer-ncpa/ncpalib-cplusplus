@@ -133,6 +133,9 @@ namespace NCPA {
                     // _v = std::vector<_subvector>( dims[ 0 ], sv );
                 }
 
+                ndvector( const std::initializer_list<size_t>& dims ) :
+                    ndvector<N, T>( _dimarray<N>{ dims } ) {}
+
                 ndvector( const std::vector<_subvector>& v ) {
                     // _v = v;
                     this->assign( v.cbegin(), v.cend() );
@@ -212,6 +215,14 @@ namespace NCPA {
                     // return _v[ inds[ 0 ] ][ inds.subdims() ];
                 }
 
+                _subvector& operator[]( size_t n ) {
+                    return this->at(n);
+                }
+
+                const _subvector& operator[]( size_t n ) const {
+                    return this->at(n);
+                }
+
                 void set( const T& val ) {
                     for (auto it = this->begin(); it != this->end(); ++it) {
                         it->set( val );
@@ -277,9 +288,7 @@ namespace NCPA {
                 ndvector( size_t n ) : std::vector<T>( n ) {}
 
                 ndvector( const ndvector<1, T>& other ) :
-                    std::vector<T>( other ) {
-        
-                    }
+                    std::vector<T>( other ) {}
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<1, T>() {
@@ -287,8 +296,10 @@ namespace NCPA {
                 }
 
                 ndvector( const _dimarray<1>& dims ) :
-                    ndvector<1, T>( dims[ 0 ] ) {
-                    }
+                    ndvector<1, T>( dims[ 0 ] ) {}
+
+                    ndvector( const std::initializer_list<size_t>& dims ) :
+                    ndvector<1, T>( _dimarray<1>{dims}[ 0 ] ) {}
 
                 ndvector<1, T>& operator=( ndvector<1, T> other ) {
                     ::swap( *this, other );

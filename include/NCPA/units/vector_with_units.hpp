@@ -248,6 +248,10 @@ namespace NCPA {
                     this->get_values( n, buffer );
                 }
 
+                virtual std::vector<T> get_values() const {
+                    return std::vector<T>( *this );
+                }
+
                 virtual VectorWithUnits<T> as( const Unit &units ) const {
                     VectorWithUnits<T> converted( *this );
                     converted.convert_units( units );

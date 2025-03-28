@@ -107,6 +107,11 @@ namespace NCPA {
                 virtual double get( const std::string& key, double x1,
                                     double x2, double x3 )
                     = 0;
+                virtual vector3d_u_t get( const std::string& key,
+                                          const std::vector<double>& v1,
+                                          const std::vector<double>& v2,
+                                          const std::vector<double>& v3 )
+                    = 0;
                 virtual double get_first_derivative( const std::string& key,
                                                      double x1, double x2,
                                                      double x3, size_t wrt )
