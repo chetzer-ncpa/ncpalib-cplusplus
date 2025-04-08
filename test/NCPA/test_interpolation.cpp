@@ -133,6 +133,12 @@ class _TEST_TITLE_ : public ::testing::Test {
         LANL::natural_spline_2d<double, double> lanl_natural_2d;
         LANL::bicubic_spline_2d<double, double> lanl_bicubic_2d;
         LANL::hybrid_spline_3d<double, double> lanl_hybrid_3d;
+
+        stratified_spline_2d<double,double> strat;
+
+        Interpolator1D<double, double> wrapper;
+        Interpolator1D<double,complex<double>> cwrapper;
+        Interpolator2D<double, double> wrapper2;
 };
 
 TEST_F( _TEST_TITLE_, LANLLinearInterpolationIsCorrect ) {
@@ -211,6 +217,18 @@ TEST_F( _TEST_TITLE_, LANL2DIsCorrect ) {
     EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.9 ), 3.9, cub_tol );
 }
 
+TEST_F( _TEST_TITLE_, Stratified2DIsCorrect ) {
+    // strat = InterpolatorFactory<double,double>::build( interpolator_2d_type_t::LANL_LINEAR_Y );
+    strat = stratified_spline_2d<double,double>( stratified_axis_type_t{0,interpolator_1d_type_t::LANL_LINEAR} );
+    strat.init( 1, 5 );
+    strat.fill( x2, y2, f2d_y );
+    strat.ready();
+    EXPECT_NEAR( strat.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( strat.eval_f( 1.5, 3.5 ), 3.5, nat_tol );
+    EXPECT_NEAR( strat.eval_f( -3.0, 3.5 ), 3.5, nat_tol );
+    EXPECT_THROW( {strat.eval_f( 1.5, 6.5 );}, std::logic_error );
+}
+
 TEST_F( _TEST_TITLE_, LANL3DIsCorrect ) {
     EXPECT_NEAR( lanl_hybrid_3d.eval_f( 2.5, 2.5, 2.5 ), 2.5, hyb_tol );
     EXPECT_NEAR( lanl_hybrid_3d.eval_f( 1.5, 3.5, 1.5 ), 1.5, hyb_tol );
@@ -241,3 +259,55 @@ TEST_F( _TEST_TITLE_, GSLLinearInterpolationOfComplexValuesIsCorrect ) {
     }
 }
 #endif
+
+TEST_F( _TEST_TITLE_, InterpolatorWrapperWorksCorrectlyWithExtrapolation ) {
+    wrapper = InterpolatorFactory<double, double>::build(
+        interpolator_1d_type_t::LANL_LINEAR );
+    wrapper.set_extrapolation( extrapolator_1d_type_t::LINEAR )
+        .init( 6 )
+        .fill( x_lin, f_lin )
+        .ready();
+    for ( size_t i = 0; i < 6; i++ ) {
+        EXPECT_DOUBLE_EQ( wrapper.eval_f( x_lin[ i ] ), f_lin[ i ] );
+    }
+    for ( double d = 0.5; d < 5.0; d += 1.0 ) {
+        EXPECT_DOUBLE_EQ( wrapper.eval_f( d ), 0.0 );
+    }
+    EXPECT_DOUBLE_EQ( wrapper.eval_f( -1.0 ), -3.0 );
+    EXPECT_DOUBLE_EQ( wrapper.eval_f( 6.0 ), 3.0 );
+}
+
+TEST_F( _TEST_TITLE_, ComplexInterpolatorWrapperWorksCorrectlyWithExtrapolation ) {
+    cwrapper = InterpolatorFactory<double, complex<double>>::build(
+        interpolator_1d_type_t::LANL_LINEAR );
+    cwrapper.set_extrapolation( extrapolator_1d_type_t::LINEAR )
+        .init( 6 )
+        .fill( x_lin, cf_lin )
+        .ready();
+    for ( size_t i = 0; i < 6; i++ ) {
+        std::complex<double> cval = cwrapper.eval_f( x_lin[ i ] );
+        EXPECT_DOUBLE_EQ( cval.real(), cf_lin[ i ].real() );
+        EXPECT_DOUBLE_EQ( cval.imag(), cf_lin[ i ].imag() );
+    }
+    for ( double d = 0.5; d < 5.0; d += 1.0 ) {
+        std::complex<double> cval = cwrapper.eval_f( d );
+        EXPECT_DOUBLE_EQ( cval.real(), 0.0 );
+        EXPECT_DOUBLE_EQ( cval.imag(), 0.0 );
+    }
+    EXPECT_DOUBLE_EQ( cwrapper.eval_f( -1.0 ).real(), -3.0 );
+    EXPECT_DOUBLE_EQ( cwrapper.eval_f( 6.0 ).real(), 3.0 );
+    EXPECT_DOUBLE_EQ( cwrapper.eval_f( -1.0 ).imag(), -3.0 );
+    EXPECT_DOUBLE_EQ( cwrapper.eval_f( 6.0 ).imag(), 3.0 );
+}
+
+TEST_F( _TEST_TITLE_, Stratified2DWrapperIsCorrect ) {
+    wrapper2 = InterpolatorFactory<double,double>::build( interpolator_2d_type_t::LANL_LINEAR_Y );
+    // strat = stratified_spline_2d<double,double>( stratified_axis_type_t{0,interpolator_1d_type_t::LANL_LINEAR} );
+    wrapper2.init( 1, 5 );
+    wrapper2.fill( x2, y2, f2d_y );
+    wrapper2.ready();
+    EXPECT_NEAR( wrapper2.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( wrapper2.eval_f( 1.5, 3.5 ), 3.5, nat_tol );
+    EXPECT_NEAR( wrapper2.eval_f( -3.0, 3.5 ), 3.5, nat_tol );
+    EXPECT_THROW( {wrapper2.eval_f( 1.5, 6.5 );}, std::logic_error );
+}

@@ -11,6 +11,10 @@
 #include <memory>
 #include <stdexcept>
 
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator3D<T, U>& a,
+                  NCPA::interpolation::Interpolator3D<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
 
@@ -19,65 +23,86 @@ namespace NCPA {
             public:
                 Interpolator3D() {}
 
-                Interpolator3D( spline_engine_3d_t engine ) {
+                Interpolator3D( spline_engine_3d_t<INDEPTYPE,DEPTYPE> engine ) {
                     set_engine( engine );
                 }
 
-                void set_engine( spline_engine_3d_t engine ) {
+                virtual Interpolator3D& set_engine(
+                    spline_engine_3d_t<INDEPTYPE,DEPTYPE> engine ) {
                     _engine = std::move( engine );
+                    return *this;
                 }
 
-                virtual void fill( size_t N1, size_t N2, size_t N3, const INDEPTYPE *x1,
-                                   const INDEPTYPE *x2, const INDEPTYPE *x3, const DEPTYPE ***f ) {
+                virtual Interpolator3D& fill( size_t N1, size_t N2, size_t N3,
+                                              const INDEPTYPE *x1,
+                                              const INDEPTYPE *x2,
+                                              const INDEPTYPE *x3,
+                                              const DEPTYPE ***f ) {
                     check_engine();
                     _engine->fill( N1, N2, N3, x1, x2, x3, f );
+                    return *this;
                 }
 
-                virtual void fill( const std::vector<INDEPTYPE>& x1,
-                                   const std::vector<INDEPTYPE>& x2,
-                                   const std::vector<INDEPTYPE>& x3,
-                                   const NCPA::arrays::vector3d_t<DEPTYPE>& f ) {
+                virtual Interpolator3D& fill(
+                    const std::vector<INDEPTYPE>& x1,
+                    const std::vector<INDEPTYPE>& x2,
+                    const std::vector<INDEPTYPE>& x3,
+                    const NCPA::arrays::vector3d_t<DEPTYPE>& f ) {
                     check_engine();
                     _engine->fill( x1, x2, x3, f );
+                    return *this;
                 }
 
-                virtual void init( size_t N1, size_t N2, size_t N3 ) {
+                virtual Interpolator3D& init( size_t N1, size_t N2,
+                                              size_t N3 ) {
                     check_engine();
                     _engine->init( N1, N2, N3 );
+                    return *this;
                 }
 
-                virtual void clear() { _engine.reset(); }
+                virtual Interpolator3D& clear() {
+                    _engine->clear();
+                    return *this;
+                }
 
-                virtual void ready() {
+                virtual Interpolator3D& ready() {
                     check_engine();
                     _engine->ready();
+                    return *this;
                 }
 
-                virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2, INDEPTYPE x3 ) {
+                virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2,
+                                        INDEPTYPE x3 ) {
                     check_engine();
                     return _engine->eval_f( x1, x2, x3 );
                 }
 
-                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2, INDEPTYPE x3,
-                                         size_t dim1 ) {
+                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2,
+                                         INDEPTYPE x3, size_t dim1 ) {
                     check_engine();
                     return _engine->eval_df( x1, x2, x3, dim1 );
                 }
 
-                virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2, INDEPTYPE x3,
-                                          size_t dim1, size_t dim2 ) {
+                virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2,
+                                          INDEPTYPE x3, size_t dim1,
+                                          size_t dim2 ) {
                     check_engine();
                     return _engine->eval_ddf( x1, x2, x3, dim1, dim2 );
                 }
 
-                virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2, INDEPTYPE x3,
-                                           size_t dim1, size_t dim2,
-                                           size_t dim3 ) {
+                virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2,
+                                           INDEPTYPE x3, size_t dim1,
+                                           size_t dim2, size_t dim3 ) {
                     check_engine();
                     return _engine->eval_dddf( x1, x2, x3, dim1, dim2, dim3 );
                 }
 
-                virtual void check_engine() {
+                virtual interpolator_3d_type_t interptype() const {
+                    check_engine();
+                    return _engine->interptype();
+                }
+
+                virtual void check_engine() const {
                     if ( !_engine ) {
                         throw std::logic_error(
                             "Interpolator3D: no engine has been set" );
@@ -89,8 +114,15 @@ namespace NCPA {
                 }
 
             private:
-                spline_engine_3d_t _engine;
+                spline_engine_3d_t<INDEPTYPE,DEPTYPE> _engine;
         };
 
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator3D<T, U>& a,
+                  NCPA::interpolation::Interpolator3D<T, U>& b ) noexcept {
+    using std::swap;
+    swap( a._engine, b._engine );
+}

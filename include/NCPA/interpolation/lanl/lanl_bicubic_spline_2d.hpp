@@ -44,6 +44,7 @@ claus@olemiss.edu
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
+#include "NCPA/exceptions.hpp"
 #include "NCPA/interpolation/abstract_spline_2d.hpp"
 #include "NCPA/interpolation/defines.hpp"
 #include "NCPA/interpolation/lanl/lanl_common.hpp"
@@ -51,6 +52,12 @@ claus@olemiss.edu
 #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+#include <array>
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& a,
+    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -68,7 +75,55 @@ namespace NCPA {
                                     ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~bicubic_spline_2d() { clear(); }
+                    bicubic_spline_2d() : _length_x { 0 }, _length_y { 0 } {}
+
+                    virtual ~bicubic_spline_2d() { this->clear(); }
+
+                    bicubic_spline_2d(
+                        const bicubic_spline_2d<INDEPTYPE, DEPTYPE>& other ) :
+                        NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE>(
+                            other ) {
+                        _length_x   = other._length_x;
+                        _length_y   = other._length_y;
+                        _accel[ 0 ] = other._accel[ 0 ];
+                        _accel[ 1 ] = other._accel[ 1 ];
+                        NCPA::arrays::copy( other._x_vals, _length_x,
+                                            _x_vals );
+                        NCPA::arrays::copy( other._y_vals, _length_y,
+                                            _y_vals );
+                        NCPA::arrays::copy( other._f_vals, _length_x,
+                                            _length_y, _f_vals );
+                        NCPA::arrays::copy( other._dfdx_vals, _length_x,
+                                            _length_y, _dfdx_vals );
+                        NCPA::arrays::copy( other._dfdy_vals, _length_x,
+                                            _length_y, _dfdy_vals );
+                        for ( size_t i = 0; i < 4; i++ ) {
+                            for ( size_t j = 0; j < 4; j++ ) {
+                                _dfdx_coeffs[ i ][ j ]
+                                    = other._dfdx_coeffs[ i ][ j ];
+                                _dfdy_coeffs[ i ][ j ]
+                                    = other._dfdy_coeffs[ i ][ j ];
+                                _f_coeffs[ i ][ j ]
+                                    = other._f_coeffs[ i ][ j ];
+                            }
+                        }
+                    }
+
+                    bicubic_spline_2d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                                           source ) noexcept :
+                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>& a,
+                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+
+                    bicubic_spline_2d<INDEPTYPE, DEPTYPE>& operator=(
+                        bicubic_spline_2d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     void init( size_t nx, size_t ny ) override {
                         this->clear();
@@ -319,6 +374,16 @@ namespace NCPA {
                             "interpolators." );
                     }
 
+                    virtual std::array<INDEPTYPE,4> limits() const override {
+                        return std::array<INDEPTYPE,4>{
+                            _x_vals[0], _x_vals[_length_x-1], _y_vals[0], _y_vals[_length_y-1]
+                        };
+                    }
+
+                    virtual interpolator_2d_type_t interptype() const override {
+                        return NCPA::interpolation::interpolator_2d_type_t::LANL_BICUBIC;
+                    }
+
 
                 protected:
                     bool _initialized() const {
@@ -445,3 +510,23 @@ namespace NCPA {
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& a,
+    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& b ) noexcept {
+    using std::swap;
+    ::swap( dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( a ),
+            dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( b ) );
+    swap( a._length_x, b._length_x );
+    swap( a._length_y, b._length_y );
+    swap( a._accel, b._accel );
+    swap( a._x_vals, b._x_vals );
+    swap( a._y_vals, b._y_vals );
+    swap( a._f_vals, b._f_vals );
+    swap( a._dfdx_vals, b._dfdx_vals );
+    swap( a._dfdy_vals, b._dfdy_vals );
+    swap( a._f_coeffs, b._f_coeffs );
+    swap( a._dfdx_coeffs, b._dfdx_coeffs );
+    swap( a._dfdy_coeffs, b._dfdy_coeffs );
+}

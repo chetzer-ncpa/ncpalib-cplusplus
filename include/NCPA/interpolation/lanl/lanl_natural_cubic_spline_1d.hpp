@@ -52,6 +52,11 @@ claus@olemiss.edu
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
         namespace LANL {
@@ -64,7 +69,33 @@ namespace NCPA {
                                               ENABLE_IF_REAL( DEPTYPE )>
                 : public _lanl_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
-                    virtual ~natural_cubic_spline_1d() { this->clear(); }
+                    natural_cubic_spline_1d() :
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>() {}
+
+                    virtual ~natural_cubic_spline_1d() {}
+
+                    natural_cubic_spline_1d(
+                        const natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&
+                            other ) :
+                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>( other ) {}
+
+                    natural_cubic_spline_1d(
+                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&&
+                            source ) noexcept :
+                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>() {
+                        ::swap( *this, source );
+                    }
+
+                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>& a,
+                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&
+                            b ) noexcept;
+
+                    natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>& operator=(
+                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE> other ) {
+                        ::swap( *this, other );
+                        return *this;
+                    }
 
                     virtual void ready() override {
                         DEPTYPE *_f_vals   = this->_get_f_vals();
@@ -220,6 +251,10 @@ namespace NCPA {
 
                         return 6.0 * ( A - B ) / std::pow( dx, 3 );
                     }
+
+                    virtual interpolator_1d_type_t interptype() const override {
+                        return interpolator_1d_type_t::LANL_CUBIC;
+                    } 
             };
 
             DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( natural_cubic_spline_1d,
@@ -229,3 +264,14 @@ namespace NCPA {
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& a,
+    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& b ) noexcept {
+    ::swap(
+        dynamic_cast<
+            NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>&>( a ),
+        dynamic_cast<
+            NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>&>( b ) );
+}

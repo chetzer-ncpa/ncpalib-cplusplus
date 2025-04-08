@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/constants.hpp"
 #include "NCPA/defines.hpp"
 
 #include <cassert>
@@ -12,57 +13,29 @@
 #include <limits>
 #include <random>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace NCPA {
     namespace math {
 
-        // double precision to enable DOUBLE_EQUAL unit tests
-        constexpr double PI
-            = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+        using NCPA::constants::PI;
+        using NCPA::constants::I;
+        using NCPA::constants::zero;
+        using NCPA::constants::one;
+        using NCPA::constants::is_zero;
 
-        constexpr std::complex<double> I = std::complex<double>( 0.0, 1.0 );
+        // template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
+        // bool is_zero( T val ) {
+            // return ( std::fpclassify( val ) == FP_ZERO );
+        // }
 
-        /**
-         * Returns zero as the specified type.
-         */
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
-        constexpr T zero() {
-            // T z = 0;
-            return (T)( 0 );
-        }
+        // template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
+        // bool is_zero( T val ) {
+        //     return is_zero( val.real() ) && is_zero( val.imag() );
+        // }
 
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
-        constexpr T zero() {
-            // T z( 0, 0 );
-            return T( 0, 0 );
-        }
-
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
-        bool is_zero( T val ) {
-            return ( std::fpclassify( val ) == FP_ZERO );
-        }
-
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
-        bool is_zero( T val ) {
-            return is_zero( val.real() ) && is_zero( val.imag() );
-        }
-
-        /**
-         * Returns unity as the specified type.
-         *
-         */
-        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
-        constexpr T one() {
-            // T z = 1;
-            return (T)( 1 );
-        }
-
-        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
-        constexpr T one() {
-            // T z( 1, 0 );
-            return T( 1, 0 );
-        }
+        
 
         template<typename T>
         bool equals( T x, T y, size_t n = 1,
@@ -120,11 +93,12 @@ namespace NCPA {
         }
 
         /**
-         * Computes the simple square with a multiply instead of an exponentiation.
+         * Computes the simple square with a multiply instead of an
+         * exponentiation.
          */
         template<typename T>
         T square( T n ) {
-            return n*n;
+            return n * n;
         }
 
         /**
@@ -132,9 +106,9 @@ namespace NCPA {
          * the supplied value.
          */
         template<typename T>
-        bool find_interval_inclusive( T *z, size_t NZ, T val, size_t& bottom,
-                                      size_t& top ) {
-            double *it  = std::lower_bound( z, z + NZ, val );
+        bool find_interval_inclusive( const T *z, size_t NZ, T val,
+                                      size_t& bottom, size_t& top ) {
+            const double *it  = std::lower_bound( z, z + NZ, val );
             size_t diff = it - z;
             if ( diff == 0 ) {
                 bottom = 0;
@@ -159,6 +133,13 @@ namespace NCPA {
                 top    = diff;
                 return true;
             }
+        }
+
+        template<typename T>
+        bool find_interval_inclusive( const std::vector<T>& z, T val,
+                                      size_t& bottom, size_t& top ) {
+            return find_interval_inclusive( &z[ 0 ], z.size(), val, bottom,
+                                            top );
         }
 
         /**
@@ -214,6 +195,8 @@ namespace NCPA {
             }
             return tmpind;
         }
+
+        
 
         /**
         @brief Converts from Cartesian to polar coordinates.
@@ -316,12 +299,12 @@ namespace NCPA {
         */
         template<typename T>
         size_t index_of_max( const T *vals, size_t size ) {
-            T maxval = vals[ 0 ];
+            T maxval   = vals[ 0 ];
             size_t ind = 0;
             for ( size_t i = 1; i < size; i++ ) {
-                if (vals[i] > maxval) {
-                    maxval = vals[i];
-                    ind = i;
+                if ( vals[ i ] > maxval ) {
+                    maxval = vals[ i ];
+                    ind    = i;
                 }
             }
             return ind;
@@ -348,13 +331,13 @@ namespace NCPA {
         @returns The index of the maximum value found in the vector.
         */
         template<typename T>
-        size_t index_of_max( const std::vector<T>& vals  ) {
-            T maxval = vals[ 0 ];
+        size_t index_of_max( const std::vector<T>& vals ) {
+            T maxval   = vals[ 0 ];
             size_t ind = 0;
             for ( size_t i = 1; i < vals.size(); i++ ) {
-                if (vals[i] > maxval) {
-                    maxval = vals[i];
-                    ind = i;
+                if ( vals[ i ] > maxval ) {
+                    maxval = vals[ i ];
+                    ind    = i;
                 }
             }
             return ind;
@@ -383,12 +366,12 @@ namespace NCPA {
         */
         template<typename T>
         size_t index_of_min( const T *vals, size_t size ) {
-            T minval = vals[ 0 ];
+            T minval   = vals[ 0 ];
             size_t ind = 0;
             for ( size_t i = 1; i < size; i++ ) {
-                if (vals[i] < minval) {
-                    minval = vals[i];
-                    ind = i;
+                if ( vals[ i ] < minval ) {
+                    minval = vals[ i ];
+                    ind    = i;
                 }
             }
             return ind;
@@ -415,15 +398,68 @@ namespace NCPA {
         */
         template<typename T>
         size_t index_of_min( const std::vector<T>& vals ) {
-            T minval = vals.front();
+            T minval   = vals.front();
             size_t ind = 0;
             for ( size_t i = 1; i < vals.size(); i++ ) {
-                if (vals[i] < minval) {
-                    minval = vals[i];
-                    ind = i;
+                if ( vals[ i ] < minval ) {
+                    minval = vals[ i ];
+                    ind    = i;
                 }
             }
             return ind;
+        }
+
+        /**
+        Finds and returns the indices of a grid point nearest to a supplied point.
+        @brief Finds the index of the closest grid point to a coordinate pair.
+        @param _x1 The first dimension grid points
+        @param _x2 The second dimension grid points
+        @param x1 The first coordinate to check
+        @param x2 The second coordinate to check
+        @returns The coordinates of the closest grid point
+        */
+        template<typename T>
+        std::pair<size_t, size_t> find_closest_point( std::vector<T> _x1,
+                                                      std::vector<T> _x2, T x1,
+                                                      T x2 ) {
+            size_t minind1, maxind1, minind2, maxind2, ind1, ind2;
+            if (!NCPA::math::find_interval_inclusive( _x1, x1, minind1, maxind1 ) && minind1 > 0) {
+                --minind1;
+                --maxind1;
+            }
+            
+            if (!NCPA::math::find_interval_inclusive( _x2, x2, minind2, maxind2 ) && minind2 > 0) {
+                --minind2;
+                --maxind2;
+            }
+
+            std::vector<T> distance_to_corners
+                = { std::sqrt( NCPA::math::square( x1 - _x1[ minind1 ] )
+                               + NCPA::math::square( x2 - _x2[ minind2 ] ) ),
+                    std::sqrt( NCPA::math::square( x1 - _x1[ maxind1 ] )
+                               + NCPA::math::square( x2 - _x2[ minind2 ] ) ),
+                    std::sqrt( NCPA::math::square( x1 - _x1[ minind1 ] )
+                               + NCPA::math::square( x2 - _x2[ maxind2 ] ) ),
+                    std::sqrt( NCPA::math::square( x1 - _x1[ maxind1 ] )
+                               + NCPA::math::square( x2 - _x2[ maxind2 ] ) ) };
+            switch ( NCPA::math::index_of_min( distance_to_corners ) ) {
+                case 0:
+                    return { minind1, minind2 };
+                    break;
+                case 1:
+                    return { maxind1, minind2 };
+                    break;
+                case 2:
+                    return { minind1, maxind2 };
+                    break;
+                case 3:
+                    return { maxind1, maxind2 };
+                    break;
+                default:
+                    throw std::logic_error(
+                        "eval_f: something went wrong, this should "
+                        "never happen" );
+            }
         }
 
         /**
@@ -818,307 +854,254 @@ namespace NCPA {
             return sum;
         }
 
-        /**
-        @brief Performs element-wise array addition.
-        @param v1 The first array to add.
-        @param v2 The second array to add.
-        @returns The array holding the sum.
-        */
-        template<typename T>
-        T add_vectors( const T& v1, const T& v2,
-                       ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
-            size_t N = std::min<size_t>( v1.size(), v2.size() );
-            T v3     = v1.size() >= v2.size() ? v1 : v2;
-            std::transform( v1.cbegin(), v1.cbegin() + N, v2.cbegin(),
-                            v3.begin(), std::plus<typename T::value_type> {} );
-            return v3;
-        }
-
-        /**
-        @brief Performs element-wise array addition.
-        @param N The number of points in the array.
-        @param v1 The first array to add.
-        @param v2 The second array to add.
-        @param v12 The array to hold the sum.  Can be the same as either input
-        array, in which case the values are replaced.
-        */
-        template<typename T>
-        void add_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                tempvec[ i ] = v1[ i ] + v2[ i ];
-            }
-            std::memcpy( v12, tempvec, N * sizeof( T ) );
-            delete[] tempvec;
-        }
-
-        /**
-        Performs element-wise array division.  If arrays are different lengths,
-        all values beyond the length of the shorter vector will be zero.
-        @brief Performs element-wise array division.
-        @param v1 The array to divide.
-        @param v2 The array to divide by.
-        @returns The array holding the quotient.
-        */
-        template<typename T>
-        T divide_vectors( const T& v1, const T& v2,
-                          ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
-            T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
-            std::transform( v1.cbegin(),
-                            v1.cbegin()
-                                + std::min<size_t>( v1.size(), v2.size() ),
-                            v2.cbegin(), v3.begin(),
-                            std::divides<typename T::value_type> {} );
-            return v3;
-        }
-
-        /**
-        Divides one array by another element-wise, returning the
-        quotient in a supplied array.
-        @brief Performs element-wise array division.
-        @param N The number of points in the array.
-        @param v1 The array to divide.
-        @param v2 The array to divide by.
-        @param v12 The array to hold the quotient.  Can be the same as either
-        input array, in which case the values are replaced.
-        */
-        template<typename T>
-        void divide_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                tempvec[ i ] = v1[ i ] / v2[ i ];
-            }
-            std::memcpy( v12, tempvec, N * sizeof( T ) );
-            delete[] tempvec;
-        }
-
-        /**
-        Performs element-wise array multiplication.  If arrays are different
-        lengths, all values beyond the length of the shorter vector will be
-        zero.
-        @brief Performs element-wise array multiplication.
-        @param v1 The first array to multiply.
-        @param v2 The second array to multiply.
-        @returns The array holding the product.
-        */
-        template<typename T>
-        T multiply_vectors( const T& v1, const T& v2,
-                            ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
-            T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
-            std::transform( v1.cbegin(),
-                            v1.cbegin()
-                                + std::min<size_t>( v1.size(), v2.size() ),
-                            v2.cbegin(), v3.begin(),
-                            std::multiplies<typename T::value_type> {} );
-            return v3;
-        }
-
-        /**
-        Multiplies two arrays together element-wise, returning the
-        product in a supplied array.
-        @brief Performs element-wise array multiplication.
-        @param N The number of points in the array.
-        @param v1 The first array to multiply.
-        @param v2 The second array to multiply.
-        @param v12 The array to hold the product.  Can be the same as either
-        input array, in which case the values are replaced.
-        */
-        template<typename T>
-        void multiply_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                tempvec[ i ] = v1[ i ] * v2[ i ];
-            }
-            std::memcpy( v12, tempvec, N * sizeof( T ) );
-            delete[] tempvec;
-        }
-
-        /**
-        Scales an array of values by a constant value, returning the
-        result in a dynamically-allocated array.
-        @brief Scales an array by a constant value.
-        @param N The number of points in the array.
-        @param in The array to scale.
-        @param factor The factor to scale by.
-        @param out The new, dynamically-allocated scaled array.
-        */
-        template<typename T, typename U>
-        void scale_array( size_t N, const U *in, T factor, U *& out ) {
-            U *tempvec = NCPA::arrays::zeros<U>( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                tempvec[ i ] = in[ i ] * (U)factor;
-            }
-            std::memcpy( out, tempvec, N * sizeof( U ) );
-            delete[] tempvec;
-        }
-
-        /**
-        Scales an array.
-        @brief Performs array scaling.
-        @param v1 The array to multiply.
-        @param scalar The scalar to multiply by.
-        @returns The scaled array.
-        */
-        template<typename T, typename U>
-        T scale_vector(
-            const T& v1, U scalar,
-            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
-                                    int>::type ENABLER
-            = 0 ) {
-            if (scalar == NCPA::math::one<U>()) {
-                return v1;
-            }
-            T v3 = v1;
-            std::transform( v3.begin(), v3.end(), v3.begin(),
-                            [ scalar ]( U num ) { return num * scalar; } );
-            return v3;
-        }
-
-        /**
-        Scales an array of values in-place by a constant value
-        @brief Scales an array by a constant value in place.
-        @param N The number of points in the array.
-        @param in The array to scale.
-        @param factor The factor to scale by.
-        */
-        template<typename T, typename U>
-        void scale_array( size_t N, U *in, T factor ) {
-            if (factor != NCPA::math::one<T>()) {
-            for ( size_t i = 0; i < N; i++ ) {
-                in[ i ] *= factor;
-            }
-            }
-        }
-
-        /**
-        Scales an array.
-        @brief Performs array scaling.
-        @param v1 The array to multiply.
-        @param scalar The scalar to multiply by.
-        @returns The scaled array.
-        */
-        template<typename T, typename U>
-        T offset_vector(
-            const T& v1, U scalar,
-            typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
-                                    int>::type ENABLER
-            = 0 ) {
-            if ( NCPA::math::is_zero<U>( scalar ) ) {
-                return v1;
-            }
-            T v3 = v1;
-            for ( auto i = 0; i < v1.size(); i++ ) {
-                v3[ i ] += scalar;
-            }
-            return v3;
-        }
-
-        /**
-        Scales an array of values in-place by a constant value
-        @brief Scales an array by a constant value in place.
-        @param N The number of points in the array.
-        @param in The array to scale.
-        @param factor The factor to scale by.
-        */
-        template<typename T, typename U>
-        void offset_array( size_t N, U *in, T factor ) {
-            if ( !NCPA::math::is_zero<T>( factor ) ) {
-                for ( size_t i = 0; i < N; i++ ) {
-                    in[ i ] += factor;
-                }
-            }
-        }
-
-        /**
-        @brief Performs element-wise array subtraction.
-        @param v1 The first array to add.
-        @param v2 The second array to add.
-        @returns The array holding the sum.
-        */
-        template<typename T>
-        T subtract_vectors(
-            const T& v1, const T& v2,
-            typename std::enable_if<NCPA::types::is_iterable<T>::value,
-                                    int>::type ENABLER
-            = 0 ) {
-            T v3 = scale_vector( v2, -1.0 );
-            return add_vectors( v1, v3 );
-        }
-
-        /**
-        Subtracts one array from another element-wise, returning the
-        difference in a supplied array.
-        @brief Performs element-wise array subtraction.
-        @param N The number of points in the array.
-        @param v1 The array to subtract from.
-        @param v2 The array to subtract.
-        @param v12 The array to hold the difference.  Can be the same as either
-        input array, in which case the values are replaced.
-        */
-        template<typename T>
-        void subtract_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                tempvec[ i ] = v1[ i ] - v2[ i ];
-            }
-            std::memcpy( v12, tempvec, N * sizeof( T ) );
-            delete[] tempvec;
-        }
-
-        
 
         // /**
-        // @brief Compares two doubles to a given number of decimal places
-        // @param val1 First value
-        // @param val2 Second value
-        // @param precision Decimal places to compare
-        // @returns true if the numbers are equal to that many decimal places,
-        // false otherwise
-        //  */
-        // bool within( double val1, double val2, size_t precision );
-
-        // /**
-        // Shifts a point in Cartesian coordinates to a new position
-        // relative to a different origin.
-        // @brief Returns coordinates relative to a new origin.
-        // @param old_x The x coordinate relative to (0,0).
-        // @param old_y The y coordinate relative to (0,0).
-        // @param x_new_origin The x coordinate of the new origin.
-        // @param y_new_origin The y coordinate of the new origin.
-        // @param new_x The new x coordinate.
-        // @param new_y The new y coordiante.
+        // @brief Performs element-wise array addition.
+        // @param v1 The first array to add.
+        // @param v2 The second array to add.
+        // @returns The array holding the sum.
         // */
         // template<typename T>
-        // void move_origin( T old_x, T old_y, T x_new_origin, T y_new_origin,
-        //                   T &new_x, T &new_y ) {
-        //     new_x = old_x - x_new_origin;
-        //     new_y = old_y - y_new_origin;
+        // T add_vectors( const T& v1, const T& v2,
+        //                ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+        //     size_t N = std::min<size_t>( v1.size(), v2.size() );
+        //     T v3     = v1.size() >= v2.size() ? v1 : v2;
+        //     std::transform( v1.cbegin(), v1.cbegin() + N, v2.cbegin(),
+        //                     v3.begin(), std::plus<typename T::value_type> {} );
+        //     return v3;
         // }
 
         // /**
-        // Shifts an array of Cartesian points from an origin at (0,0) to
-        // a new origin, and returns the coordinates relative to the new
-        // origin.
-        // @brief Returns coordinates relative to a new origin.
-        // @param npts The number of points to move.
-        // @param old_x The x coordinates relative to (0,0)
-        // @param old_y The y coordinates relative to (0,0)
-        // @param x_new_origin The x coordinate of the new origin
-        // @param y_new_origin The y coordinate of the new origin
-        // @param new_x The array to hold the new x coordinates.
-        // @param new_y The array to hold the new y coordinates.
+        // @brief Performs element-wise array addition.
+        // @param N The number of points in the array.
+        // @param v1 The first array to add.
+        // @param v2 The second array to add.
+        // @param v12 The array to hold the sum.  Can be the same as either input
+        // array, in which case the values are replaced.
         // */
         // template<typename T>
-        // void move_origin( size_t npts, const T *old_x, const T *old_y,
-        //                   T x_new_origin, T y_new_origin, T *new_x, T *new_y
-        //                   ) {
-        //     for ( size_t i = 0; i < npts; i++ ) {
-        //         move_origin<T>( old_x[ i ], old_y[ i ], x_new_origin,
-        //         y_new_origin,
-        //                         new_x[ i ], new_y[ i ] );
+        // void add_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+        //     T *tempvec = NCPA::arrays::zeros<T>( N );
+        //     for ( size_t i = 0; i < N; i++ ) {
+        //         tempvec[ i ] = v1[ i ] + v2[ i ];
+        //     }
+        //     std::memcpy( v12, tempvec, N * sizeof( T ) );
+        //     delete[] tempvec;
+        // }
+
+        // /**
+        // Performs element-wise array division.  If arrays are different lengths,
+        // all values beyond the length of the shorter vector will be zero.
+        // @brief Performs element-wise array division.
+        // @param v1 The array to divide.
+        // @param v2 The array to divide by.
+        // @returns The array holding the quotient.
+        // */
+        // template<typename T>
+        // T divide_vectors( const T& v1, const T& v2,
+        //                   ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+        //     T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
+        //     std::transform( v1.cbegin(),
+        //                     v1.cbegin()
+        //                         + std::min<size_t>( v1.size(), v2.size() ),
+        //                     v2.cbegin(), v3.begin(),
+        //                     std::divides<typename T::value_type> {} );
+        //     return v3;
+        // }
+
+        // /**
+        // Divides one array by another element-wise, returning the
+        // quotient in a supplied array.
+        // @brief Performs element-wise array division.
+        // @param N The number of points in the array.
+        // @param v1 The array to divide.
+        // @param v2 The array to divide by.
+        // @param v12 The array to hold the quotient.  Can be the same as either
+        // input array, in which case the values are replaced.
+        // */
+        // template<typename T>
+        // void divide_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+        //     T *tempvec = NCPA::arrays::zeros<T>( N );
+        //     for ( size_t i = 0; i < N; i++ ) {
+        //         tempvec[ i ] = v1[ i ] / v2[ i ];
+        //     }
+        //     std::memcpy( v12, tempvec, N * sizeof( T ) );
+        //     delete[] tempvec;
+        // }
+
+        // /**
+        // Performs element-wise array multiplication.  If arrays are different
+        // lengths, all values beyond the length of the shorter vector will be
+        // zero.
+        // @brief Performs element-wise array multiplication.
+        // @param v1 The first array to multiply.
+        // @param v2 The second array to multiply.
+        // @returns The array holding the product.
+        // */
+        // template<typename T>
+        // T multiply_vectors( const T& v1, const T& v2,
+        //                     ENABLE_FUNCTION_IF_ITERABLE( T ) ) {
+        //     T v3 = T( std::max<size_t>( v1.size(), v2.size() ), 0.0 );
+        //     std::transform( v1.cbegin(),
+        //                     v1.cbegin()
+        //                         + std::min<size_t>( v1.size(), v2.size() ),
+        //                     v2.cbegin(), v3.begin(),
+        //                     std::multiplies<typename T::value_type> {} );
+        //     return v3;
+        // }
+
+        // /**
+        // Multiplies two arrays together element-wise, returning the
+        // product in a supplied array.
+        // @brief Performs element-wise array multiplication.
+        // @param N The number of points in the array.
+        // @param v1 The first array to multiply.
+        // @param v2 The second array to multiply.
+        // @param v12 The array to hold the product.  Can be the same as either
+        // input array, in which case the values are replaced.
+        // */
+        // template<typename T>
+        // void multiply_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+        //     T *tempvec = NCPA::arrays::zeros<T>( N );
+        //     for ( size_t i = 0; i < N; i++ ) {
+        //         tempvec[ i ] = v1[ i ] * v2[ i ];
+        //     }
+        //     std::memcpy( v12, tempvec, N * sizeof( T ) );
+        //     delete[] tempvec;
+        // }
+
+        // /**
+        // Scales an array of values by a constant value, returning the
+        // result in a dynamically-allocated array.
+        // @brief Scales an array by a constant value.
+        // @param N The number of points in the array.
+        // @param in The array to scale.
+        // @param factor The factor to scale by.
+        // @param out The new, dynamically-allocated scaled array.
+        // */
+        // template<typename T, typename U>
+        // void scale_array( size_t N, const U *in, T factor, U *& out ) {
+        //     U *tempvec = NCPA::arrays::zeros<U>( N );
+        //     for ( size_t i = 0; i < N; i++ ) {
+        //         tempvec[ i ] = in[ i ] * (U)factor;
+        //     }
+        //     std::memcpy( out, tempvec, N * sizeof( U ) );
+        //     delete[] tempvec;
+        // }
+
+        // /**
+        // Scales an array.
+        // @brief Performs array scaling.
+        // @param v1 The array to multiply.
+        // @param scalar The scalar to multiply by.
+        // @returns The scaled array.
+        // */
+        // template<typename T, typename U>
+        // T scale_vector(
+        //     const T& v1, U scalar,
+        //     typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+        //                             int>::type ENABLER
+        //     = 0 ) {
+        //     if ( scalar == NCPA::math::one<U>() ) {
+        //         return v1;
+        //     }
+        //     T v3 = v1;
+        //     std::transform( v3.begin(), v3.end(), v3.begin(),
+        //                     [ scalar ]( U num ) { return num * scalar; } );
+        //     return v3;
+        // }
+
+        // /**
+        // Scales an array of values in-place by a constant value
+        // @brief Scales an array by a constant value in place.
+        // @param N The number of points in the array.
+        // @param in The array to scale.
+        // @param factor The factor to scale by.
+        // */
+        // template<typename T, typename U>
+        // void scale_array( size_t N, U *in, T factor ) {
+        //     if ( factor != NCPA::math::one<T>() ) {
+        //         for ( size_t i = 0; i < N; i++ ) {
+        //             in[ i ] *= factor;
+        //         }
         //     }
         // }
 
+        // /**
+        // Scales an array.
+        // @brief Performs array scaling.
+        // @param v1 The array to multiply.
+        // @param scalar The scalar to multiply by.
+        // @returns The scaled array.
+        // */
+        // template<typename T, typename U>
+        // T offset_vector(
+        //     const T& v1, U scalar,
+        //     typename std::enable_if<NCPA::types::is_iterable_of<T, U>::value,
+        //                             int>::type ENABLER
+        //     = 0 ) {
+        //     if ( NCPA::math::is_zero<U>( scalar ) ) {
+        //         return v1;
+        //     }
+        //     T v3 = v1;
+        //     for ( auto i = 0; i < v1.size(); i++ ) {
+        //         v3[ i ] += scalar;
+        //     }
+        //     return v3;
+        // }
+
+        // /**
+        // Scales an array of values in-place by a constant value
+        // @brief Scales an array by a constant value in place.
+        // @param N The number of points in the array.
+        // @param in The array to scale.
+        // @param factor The factor to scale by.
+        // */
+        // template<typename T, typename U>
+        // void offset_array( size_t N, U *in, T factor ) {
+        //     if ( !NCPA::math::is_zero<T>( factor ) ) {
+        //         for ( size_t i = 0; i < N; i++ ) {
+        //             in[ i ] += factor;
+        //         }
+        //     }
+        // }
+
+        // /**
+        // @brief Performs element-wise array subtraction.
+        // @param v1 The first array to add.
+        // @param v2 The second array to add.
+        // @returns The array holding the sum.
+        // */
+        // template<typename T>
+        // T subtract_vectors(
+        //     const T& v1, const T& v2,
+        //     typename std::enable_if<NCPA::types::is_iterable<T>::value,
+        //                             int>::type ENABLER
+        //     = 0 ) {
+        //     T v3 = scale_vector( v2, -1.0 );
+        //     return add_vectors( v1, v3 );
+        // }
+
+        // /**
+        // Subtracts one array from another element-wise, returning the
+        // difference in a supplied array.
+        // @brief Performs element-wise array subtraction.
+        // @param N The number of points in the array.
+        // @param v1 The array to subtract from.
+        // @param v2 The array to subtract.
+        // @param v12 The array to hold the difference.  Can be the same as either
+        // input array, in which case the values are replaced.
+        // */
+        // template<typename T>
+        // void subtract_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
+        //     T *tempvec = NCPA::arrays::zeros<T>( N );
+        //     for ( size_t i = 0; i < N; i++ ) {
+        //         tempvec[ i ] = v1[ i ] - v2[ i ];
+        //     }
+        //     std::memcpy( v12, tempvec, N * sizeof( T ) );
+        //     delete[] tempvec;
+        // }
 
     }  // namespace math
 }  // namespace NCPA
+
