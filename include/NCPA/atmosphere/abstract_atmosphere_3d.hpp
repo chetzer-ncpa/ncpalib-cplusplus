@@ -88,10 +88,16 @@ namespace NCPA {
 
                 virtual vector_u_t get_axis_vector( size_t n )       = 0;
                 virtual vector_u_t get_axis_vector( size_t n ) const = 0;
+                virtual vector3d_u_t get_values(const std::string& key)       = 0;
+                virtual vector3d_u_t get_values(const std::string& key) const = 0;
 
                 // scalar properties
                 virtual double get( const std::string& key, double x1,
                                     double x2 )
+                    = 0;
+                virtual vector2d_u_t get( const std::string& key,
+                                    const std::vector<double>& x1,
+                                    const std::vector<double>& x2 )
                     = 0;
                 virtual double get_first_derivative( const std::string& key,
                                                      double x1, double x2,
@@ -165,9 +171,9 @@ namespace NCPA {
                 virtual void print( std::ostream& os ) = 0;
 
                 virtual void validate_axis( size_t n ) const {
-                    if (n >= 2) {
-                        throw std::range_error( "Only axis 0 and 1 are valid "
-                                                "for 2-D atmosphere!" );
+                    if (n >= 3) {
+                        throw std::range_error( "Only axes 0, 1 and 2 are valid "
+                                                "for 3-D atmosphere!" );
                     }
                 }
         };

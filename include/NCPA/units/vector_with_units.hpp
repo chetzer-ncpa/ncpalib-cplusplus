@@ -153,18 +153,17 @@ namespace NCPA {
 
                 // methods
                 virtual void as_array( ScalarWithUnits<T> *& buffer ) {
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = new ScalarWithUnits<T>[ this->size() ];
                     }
                     size_t i = 0;
-                    for ( auto it = this->cbegin(); it != this->cend();
-                          ++it ) {
+                    for (auto it = this->cbegin(); it != this->cend(); ++it) {
                         buffer[ i++ ] = ScalarWithUnits<T>( *it, *_units );
                     }
                 }
 
                 virtual void as_array( T *& buffer ) {
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = new T[ this->size() ];
                     }
                     this->get_values( buffer );
@@ -185,7 +184,7 @@ namespace NCPA {
                     // unchanged if there's an error.  If there's no change in
                     // units, don't bother with the calculation
                     const Unit *oldunits = this->get_units();
-                    if ( !new_units.equals( *oldunits ) ) {
+                    if (!new_units.equals( *oldunits )) {
                         VectorWithUnits<T> buffer
                             = oldunits->convert_to( *this, new_units );
                         buffer.set_units( new_units );
@@ -224,20 +223,20 @@ namespace NCPA {
                 virtual const Unit *get_units() const { return _units; }
 
                 virtual void get_values( size_t& n, T *buffer ) {
-                    if ( n == 0 ) {
-                        if ( buffer != nullptr ) {
+                    if (n == 0) {
+                        if (buffer != nullptr) {
                             delete[] buffer;
                             buffer = nullptr;
                         }
                         n = this->size();
-                    } else if ( n != this->size() ) {
+                    } else if (n != this->size()) {
                         std::ostringstream oss;
                         oss << "get_values: Size mismatch: vector has "
                             << this->size() << " elements, but " << n
                             << " elements were requested.";
                         throw std::invalid_argument( oss.str() );
                     }
-                    if ( buffer == nullptr ) {
+                    if (buffer == nullptr) {
                         buffer = NCPA::arrays::zeros<T>( n );
                     }
                     std::copy( this->cbegin(), this->cend(), buffer );
@@ -252,7 +251,7 @@ namespace NCPA {
                     return std::vector<T>( *this );
                 }
 
-                virtual VectorWithUnits<T> as( const Unit &units ) const {
+                virtual VectorWithUnits<T> as( const Unit& units ) const {
                     VectorWithUnits<T> converted( *this );
                     converted.convert_units( units );
                     return converted;
@@ -266,7 +265,8 @@ namespace NCPA {
                     return this->as( Units::from_string( units ) );
                 }
 
-                virtual VectorWithUnits<T> as( const std::string &units ) const {
+                virtual VectorWithUnits<T> as(
+                    const std::string& units ) const {
                     return this->as( Units::from_string( units ) );
                 }
 
@@ -326,7 +326,7 @@ namespace NCPA {
                 virtual void set( size_t n_points,
                                   const ScalarWithUnits<T> *values ) {
                     std::vector<T> v( n_points );
-                    for ( size_t i = 0; i < n_points; i++ ) {
+                    for (size_t i = 0; i < n_points; i++) {
                         v[ i ] = values[ i ].get();
                     }
                     this->set( v, values[ 0 ].get_units() );
@@ -365,9 +365,9 @@ namespace NCPA {
 
                 VectorWithUnits operator+=(
                     const VectorWithUnits<T>& second ) {
-                    if ( this->_units->is_convertible_to(
-                             *( second._units ) ) ) {
-                        for ( size_t i = 0; i < this->size(); i++ ) {
+                    if (this->_units->is_convertible_to(
+                            *( second._units ) )) {
+                        for (size_t i = 0; i < this->size(); i++) {
                             this->at( i )
                                 += second.get_as( i, this->get_units() );
                         }
@@ -376,6 +376,20 @@ namespace NCPA {
                         throw invalid_conversion<>( this->_units,
                                                     second._units );
                     }
+                }
+
+                VectorWithUnits operator+=( double second ) {
+                    for (size_t i = 0; i < this->size(); i++) {
+                        this->at( i ) += second;
+                    }
+                    return *this;
+                }
+
+                VectorWithUnits operator+(
+                    double second ) const {
+                    VectorWithUnits<T> temp1( *this );
+                    temp1 += second;
+                    return temp1;
                 }
 
             protected:

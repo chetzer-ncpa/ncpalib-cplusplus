@@ -6,7 +6,8 @@ INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
 
 # SOURCES=test_linearalgebra_basic_band_diagonal_solver.cpp
-# SOURCES=test_interpolation.cpp
+SOURCES=test_atmosphere.cpp
+# SOURCES=test_ndvector.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 

@@ -29,7 +29,13 @@ namespace NCPA {
                 virtual abstract_atmospheric_property& copy(
                     const abstract_atmospheric_property& source )
                     = 0;
+                virtual bool strict() const { return _strict; }
+                virtual abstract_atmospheric_property& set_strict( bool tf ) {
+                    _strict = tf;
+                    return *this;
+                }
             protected:
+                bool _strict = false;
                 virtual void _validate_axis( size_t n ) const {
                     if (n >= this->dimensions()) {
                         std::ostringstream oss;

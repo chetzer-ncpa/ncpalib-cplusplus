@@ -101,6 +101,10 @@ namespace NCPA {
                     }
                 }
 
+                vector3d_t( const vector3d_t<T>& other ) : ndvector<3,T>( other ) {}
+
+                vector3d_t( const ndvector<3,T>& other ) : ndvector<3,T>( other ) {}
+
                 virtual void resize3d( size_t nx1, size_t nx2, size_t nx3,
                                        const T& val = (T)0.0 ) {
                     this->reshape( { nx1, nx2, nx3 }, val );

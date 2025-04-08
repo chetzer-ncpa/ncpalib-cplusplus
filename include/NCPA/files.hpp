@@ -17,7 +17,7 @@ namespace NCPA {
 #endif
         }
 
-		std::string fullfile( const std::vector<std::string>& pathparts ) {
+		static std::string fullfile( const std::vector<std::string>& pathparts ) {
 			std::ostringstream oss;
 			if (pathparts.empty()) {
 				oss << ".";
@@ -32,14 +32,14 @@ namespace NCPA {
 			return oss.str();
 		}
 
-        std::string fullfile( const std::vector<std::string>& path,
+        static std::string fullfile( const std::vector<std::string>& path,
                               const std::string& filename ) {
 			std::vector<std::string> pathparts = path;
 			pathparts.push_back( filename );
 			return fullfile( pathparts );
         }
 
-        std::string fullfile( const std::string& path,
+        static std::string fullfile( const std::string& path,
                               const std::string& filename ) {
             if (path.length() == 0) {
                 return fullfile( std::vector<std::string> {}, filename );
@@ -48,7 +48,7 @@ namespace NCPA {
             }
         }
 
-        void splitpath( const std::string& fullpath, std::string& basedir,
+        static void splitpath( const std::string& fullpath, std::string& basedir,
                         std::string& filename ) {
             auto const pos = fullpath.find_last_of( NCPA::files::filesep() );
             if (pos == fullpath.npos) {
@@ -60,13 +60,13 @@ namespace NCPA {
             }
         }
 
-		std::string pathname( const std::string& fullpath ) {
+		static std::string pathname( const std::string& fullpath ) {
 			std::string path, file;
 			splitpath( fullpath, path, file );
 			return path;
 		}
 
-		std::string filename( const std::string& fullpath ) {
+		static std::string filename( const std::string& fullpath ) {
 			std::string path, file;
 			splitpath( fullpath, path, file );
 			return file;
@@ -77,7 +77,7 @@ namespace NCPA {
         @input filename The filename to count the rows from.
         @returns The number of rows in the file.
         */
-        int count_rows_arbcol( const std::string& filename ) {
+       static int count_rows_arbcol( const std::string& filename ) {
             int answer, c;
             FILE *f = fopen( filename.c_str(), "r" );
 
@@ -102,7 +102,7 @@ namespace NCPA {
         @param filename The name of the file to attempt to open.
         @returns true if the file can be read on open, false otherwise.
         */
-        bool fexists( const char *filename ) {
+       static bool fexists( const char *filename ) {
             std::ifstream ifile( filename );
             bool tf = ifile.good();
             ifile.close();

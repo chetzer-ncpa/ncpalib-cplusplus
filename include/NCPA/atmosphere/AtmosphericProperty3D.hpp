@@ -189,8 +189,8 @@ namespace NCPA {
         class grid_atmospheric_property_3d
             : public abstract_atmospheric_property_3d {
             public:
-                using abstract_atmospheric_property_3d::resample;
                 using abstract_atmospheric_property_3d::get;
+                using abstract_atmospheric_property_3d::resample;
 
                 grid_atmospheric_property_3d() {
                     set_interpolator(
@@ -551,32 +551,34 @@ namespace NCPA {
             protected:
                 void _snap_to_limits( double& val1, double& val2,
                                       double& val3 ) {
-                    if (val1 < _axis_limits[ 0 ].first
-                        || val1 > _axis_limits[ 0 ].second) {
-                        std::ostringstream oss;
-                        oss << "Requested first dimension value " << val1
-                            << " outside dimension 1 limits ["
-                            << _axis_limits[ 0 ].first << ","
-                            << _axis_limits[ 0 ].second << "]";
-                        throw std::range_error( oss.str() );
-                    }
-                    if (val2 < _axis_limits[ 1 ].first
-                        || val2 > _axis_limits[ 1 ].second) {
-                        std::ostringstream oss;
-                        oss << "Requested second dimension value " << val2
-                            << " outside dimension 2 limits ["
-                            << _axis_limits[ 1 ].first << ","
-                            << _axis_limits[ 1 ].second << "]";
-                        throw std::range_error( oss.str() );
-                    }
-                    if (val3 < _axis_limits[ 2 ].first
-                        || val3 > _axis_limits[ 2 ].second) {
-                        std::ostringstream oss;
-                        oss << "Requested third dimension value " << val3
-                            << " outside dimension 3 limits ["
-                            << _axis_limits[ 2 ].first << ","
-                            << _axis_limits[ 2 ].second << "]";
-                        throw std::range_error( oss.str() );
+                    if (this->strict()) {
+                        if (val1 < _axis_limits[ 0 ].first
+                            || val1 > _axis_limits[ 0 ].second) {
+                            std::ostringstream oss;
+                            oss << "Requested first dimension value " << val1
+                                << " outside dimension 1 limits ["
+                                << _axis_limits[ 0 ].first << ","
+                                << _axis_limits[ 0 ].second << "]";
+                            throw std::range_error( oss.str() );
+                        }
+                        if (val2 < _axis_limits[ 1 ].first
+                            || val2 > _axis_limits[ 1 ].second) {
+                            std::ostringstream oss;
+                            oss << "Requested second dimension value " << val2
+                                << " outside dimension 2 limits ["
+                                << _axis_limits[ 1 ].first << ","
+                                << _axis_limits[ 1 ].second << "]";
+                            throw std::range_error( oss.str() );
+                        }
+                        if (val3 < _axis_limits[ 2 ].first
+                            || val3 > _axis_limits[ 2 ].second) {
+                            std::ostringstream oss;
+                            oss << "Requested third dimension value " << val3
+                                << " outside dimension 3 limits ["
+                                << _axis_limits[ 2 ].first << ","
+                                << _axis_limits[ 2 ].second << "]";
+                            throw std::range_error( oss.str() );
+                        }
                     }
                     val1 = std::min( std::max( val1, _axes[ 0 ].front() ),
                                      _axes[ 0 ].back() );
@@ -696,8 +698,8 @@ namespace NCPA {
         class stratified_atmospheric_property_3d
             : public abstract_atmospheric_property_3d {
             public:
-                using abstract_atmospheric_property_3d::resample;
                 using abstract_atmospheric_property_3d::get;
+                using abstract_atmospheric_property_3d::resample;
 
                 stratified_atmospheric_property_3d() {
                     _dummy = vector_u_t( { 0 }, NCPA::units::KILOMETERS );
@@ -1073,13 +1075,16 @@ namespace NCPA {
                 }
 
                 void _snap_to_limits( double& val3 ) const {
-                    if (val3 < _z_limits.first || val3 > _z_limits.second) {
-                        std::ostringstream oss;
-                        oss << "Requested third dimension value " << val3
-                            << " outside dimension 3 limits ["
-                            << _z_limits.first << "," << _z_limits.second
-                            << "]";
-                        throw std::range_error( oss.str() );
+                    if (this->strict()) {
+                        if (val3 < _z_limits.first
+                            || val3 > _z_limits.second) {
+                            std::ostringstream oss;
+                            oss << "Requested third dimension value " << val3
+                                << " outside dimension 3 limits ["
+                                << _z_limits.first << "," << _z_limits.second
+                                << "]";
+                            throw std::range_error( oss.str() );
+                        }
                     }
                     val3 = std::min( std::max( val3, _z.front() ), _z.back() );
                 }

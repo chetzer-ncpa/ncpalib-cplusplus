@@ -80,7 +80,8 @@ namespace NCPA {
         typedef NCPA::units::VectorWithUnits<double> vector_u_t;
         typedef NCPA::units::Vector2DWithUnits<double> vector2d_u_t;
         typedef NCPA::units::Vector3DWithUnits<double> vector3d_u_t;
-        typedef const NCPA::units::Unit *units_ptr_t;
+        // typedef const NCPA::units::Unit *units_ptr_t;
+        typedef NCPA::units::units_ptr_t units_ptr_t;
 
         class abstract_atmospheric_property;
 

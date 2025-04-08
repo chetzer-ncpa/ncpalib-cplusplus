@@ -7,14 +7,74 @@
 
 #include <cmath>
 
+// Units for t2c() calculations
+#define NCPA_ATMOS_T2C_T_UNITS_STR "K"
+#define NCPA_ATMOS_T2C_C_UNITS_STR "m/s"
+#define NCPA_ATMOS_T2C_T_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_T2C_T_UNITS_STR )
+#define NCPA_ATMOS_T2C_C_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_T2C_C_UNITS_STR )
+
+// Units for c2t() calculations
+#define NCPA_ATMOS_C2T_T_UNITS_STR "K"
+#define NCPA_ATMOS_C2T_C_UNITS_STR "m/s"
+#define NCPA_ATMOS_C2T_T_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_C2T_T_UNITS_STR )
+#define NCPA_ATMOS_C2T_C_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_C2T_C_UNITS_STR )
+
+// units for pd2c() calculations
+#define NCPA_ATMOS_PD2C_P_UNITS_STR "Pa"
+#define NCPA_ATMOS_PD2C_D_UNITS_STR "kg/m3"
+#define NCPA_ATMOS_PD2C_C_UNITS_STR "m/s"
+#define NCPA_ATMOS_PD2C_P_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_PD2C_P_UNITS_STR )
+#define NCPA_ATMOS_PD2C_D_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_PD2C_D_UNITS_STR )
+#define NCPA_ATMOS_PD2C_C_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_PD2C_C_UNITS_STR )
+
+// units for uv2wd() calculations
+#define NCPA_ATMOS_UV2WD_WD_UNITS_STR "deg"
+#define NCPA_ATMOS_UV2WD_WD_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_UV2WD_WD_UNITS_STR )
+
+// units for sutherland_bass_attenuation() calculations
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_P_UNITS_STR     "Pa"
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_D_UNITS_STR     "kg/m3"
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_T_UNITS_STR     "K"
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_Z_UNITS_STR     "km"
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR "np/m"
+// #define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_F_UNITS_STR     "Hz"
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_P_UNITS \
+    NCPA::units::Units::from_string(                   \
+        NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_P_UNITS_STR )
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_D_UNITS \
+    NCPA::units::Units::from_string(                   \
+        NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_D_UNITS_STR )
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_T_UNITS \
+    NCPA::units::Units::from_string(                   \
+        NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_T_UNITS_STR )
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_Z_UNITS \
+    NCPA::units::Units::from_string(                   \
+        NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_Z_UNITS_STR )
+#define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS \
+    NCPA::units::Units::from_string(                       \
+        NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR )
+
+// #define NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_F_UNITS \
+//     NCPA::units::Units::from_string(                   \
+//         NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_F_UNITS_STR )
+
 namespace NCPA {
     namespace atmos {
 
         // temperature to sound speed
         static scalar_u_t t2c( const scalar_u_t& t ) {
-            return scalar_u_t( std::sqrt( t.get_as( "K" ) * constants::GAMMA()
+            return scalar_u_t( std::sqrt( t.get_as( NCPA_ATMOS_T2C_T_UNITS )
+                                          * constants::GAMMA()
                                           * constants::R() ),
-                               "m/s" );
+                               NCPA_ATMOS_T2C_C_UNITS );
         }
 
         static scalar_u_t t2c( double t, const std::string& units ) {
@@ -22,7 +82,7 @@ namespace NCPA {
         }
 
         static vector_u_t t2c( const vector_u_t& t ) {
-            vector_u_t c( t.size(), NCPA::units::Units::from_string( "m/s" ) );
+            vector_u_t c( t.size(), NCPA_ATMOS_T2C_C_UNITS );
             for (size_t i = 0; i < t.size(); i++) {
                 c.set( i, t2c( t.get_scalar( i ) ) );
             }
@@ -34,8 +94,9 @@ namespace NCPA {
             return t2c( vector_u_t( t, units ) );
         }
 
-        std::vector<double> t2c( const NCPA::arrays::ndvector<1, double>& t,
-                                 const units_ptr_t units ) {
+        static std::vector<double> t2c(
+            const NCPA::arrays::ndvector<1, double>& t,
+            const units_ptr_t units ) {
             std::vector<double> c( t.size() );
             for (size_t i = 0; i < t.size(); ++i) {
                 c[ i ]
@@ -46,8 +107,8 @@ namespace NCPA {
             return c;
         }
 
-        double t2c( const NCPA::arrays::ndvector<0, double>& t,
-                    const units_ptr_t units ) {
+        static double t2c( const NCPA::arrays::ndvector<0, double>& t,
+                           const units_ptr_t units ) {
             return t2c( scalar_u_t( t, units ) ).get();
         }
 
@@ -66,9 +127,10 @@ namespace NCPA {
 
         // sound speed to temperature
         static scalar_u_t c2t( const scalar_u_t& c ) {
-            double Cmps = c.get_as( "m/s" );
-            return scalar_u_t(
-                Cmps * Cmps / constants::GAMMA() / constants::R(), "K" );
+            double Cmps = c.get_as( NCPA_ATMOS_C2T_C_UNITS );
+            return scalar_u_t( Cmps * Cmps / constants::GAMMA()
+                                   / constants::R(),
+                               NCPA_ATMOS_C2T_T_UNITS );
         }
 
         static scalar_u_t c2t( double t, const std::string& units ) {
@@ -76,13 +138,9 @@ namespace NCPA {
         }
 
         static vector_u_t c2t( const vector_u_t& c ) {
-            vector_u_t t( c.size(), "K" );
+            vector_u_t t( c.size(), NCPA_ATMOS_C2T_T_UNITS );
             for (size_t i = 0; i < c.size(); i++) {
                 t.set( i, c2t( c.get_scalar( i ) ) );
-                // t[ i ] = c2t( c.get_scalar( i ) ).get();
-                // double Cmps = c.get_as( i, "m/s" );
-                // t[ i ]      = std::sqrt( Cmps * Cmps / constants::GAMMA() /
-                // constants::R() );
             }
             return t;
         }
@@ -92,8 +150,9 @@ namespace NCPA {
             return c2t( vector_u_t( c, units ) );
         }
 
-        std::vector<double> c2t( const NCPA::arrays::ndvector<1, double>& c,
-                                 const units_ptr_t units ) {
+        static std::vector<double> c2t(
+            const NCPA::arrays::ndvector<1, double>& c,
+            const units_ptr_t units ) {
             std::vector<double> t( c.size() );
             for (size_t i = 0; i < c.size(); ++i) {
                 t[ i ]
@@ -104,8 +163,8 @@ namespace NCPA {
             return t;
         }
 
-        double c2t( const NCPA::arrays::ndvector<0, double>& c,
-                    const units_ptr_t units ) {
+        static double c2t( const NCPA::arrays::ndvector<0, double>& c,
+                           const units_ptr_t units ) {
             return c2t( scalar_u_t( c, units ) ).get();
         }
 
@@ -123,19 +182,29 @@ namespace NCPA {
         }
 
         // pressure and density to sound speed
-        static scalar_u_t pd2c( const scalar_u_t& p, const scalar_u_t& d ) {
-            return scalar_u_t( std::sqrt( constants::GAMMA() * p.get_as( "Pa" )
-                                          / d.get_as( "kg/m3" ) ),
-                               "m/s" );
+        static scalar_u_t pd2c( const scalar_u_t& p, const scalar_u_t& d,
+                                const units_ptr_t units_out
+                                = NCPA_ATMOS_PD2C_C_UNITS ) {
+            return scalar_u_t(
+                       std::sqrt( constants::GAMMA()
+                                  * p.get_as( NCPA_ATMOS_PD2C_P_UNITS )
+                                  / d.get_as( NCPA_ATMOS_PD2C_D_UNITS ) ),
+                       NCPA_ATMOS_PD2C_C_UNITS )
+                .as( *units_out );
         }
 
         static scalar_u_t pd2c( double p, const std::string& p_units, double d,
-                                const std::string& d_units ) {
-            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ) );
+                                const std::string& d_units,
+                                const std::string& units_out
+                                = NCPA_ATMOS_PD2C_C_UNITS_STR ) {
+            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ),
+                         NCPA::units::Units::from_string( units_out ) );
         }
 
-        static vector_u_t pd2c( const vector_u_t& p, const vector_u_t& d ) {
-            vector_u_t c( p.size(), "m/s" );
+        static vector_u_t pd2c( const vector_u_t& p, const vector_u_t& d,
+                                const units_ptr_t units_out
+                                = NCPA_ATMOS_PD2C_C_UNITS ) {
+            vector_u_t c( p.size(), units_out );
             for (size_t i = 0; i < p.size(); i++) {
                 c.set( i, pd2c( p.get_scalar( i ), d.get_scalar( i ) ) );
             }
@@ -145,14 +214,37 @@ namespace NCPA {
         static vector_u_t pd2c( const std::vector<double>& p,
                                 const std::string& p_units,
                                 const std::vector<double>& d,
-                                const std::string& d_units ) {
-            return pd2c( vector_u_t( p, p_units ), vector_u_t( d, d_units ) );
+                                const std::string& d_units,
+                                const std::string& units_out
+                                = NCPA_ATMOS_PD2C_C_UNITS_STR ) {
+            return pd2c( vector_u_t( p, p_units ), vector_u_t( d, d_units ),
+                         NCPA::units::Units::from_string( units_out ) );
         }
 
-        std::vector<double> pd2c( const NCPA::arrays::ndvector<1, double>& p,
-                                  const units_ptr_t p_units,
-                                  const NCPA::arrays::ndvector<1, double>& d,
-                                  const units_ptr_t d_units ) {
+        static double pd2c( const double& p, const units_ptr_t p_units,
+                            const double& d, const units_ptr_t d_units,
+                            const units_ptr_t units_out
+                            = NCPA_ATMOS_PD2C_C_UNITS ) {
+            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ) )
+                .get_as( units_out );
+        }
+
+        static double pd2c( const NCPA::arrays::ndvector<0, double>& p,
+                            const units_ptr_t p_units,
+                            const NCPA::arrays::ndvector<0, double>& d,
+                            const units_ptr_t d_units,
+                            const units_ptr_t units_out
+                            = NCPA_ATMOS_PD2C_C_UNITS ) {
+            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ) )
+                .get_as( units_out );
+        }
+
+        static std::vector<double> pd2c(
+            const NCPA::arrays::ndvector<1, double>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<1, double>& d,
+            const units_ptr_t d_units,
+            const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
             std::vector<double> c( p.size() );
             for (size_t i = 0; i < p.size(); ++i) {
                 c[ i ]
@@ -161,17 +253,9 @@ namespace NCPA {
                                       p_units ),
                           scalar_u_t( *static_cast<const double *>( &d[ i ] ),
                                       d_units ) )
-                          .get();
+                          .get_as( units_out );
             }
             return c;
-        }
-
-        double pd2c( const NCPA::arrays::ndvector<0, double>& p,
-                     const units_ptr_t p_units,
-                     const NCPA::arrays::ndvector<0, double>& d,
-                     const units_ptr_t d_units ) {
-            return pd2c( scalar_u_t( p, p_units ), scalar_u_t( d, d_units ) )
-                .get();
         }
 
         template<size_t N>
@@ -179,36 +263,68 @@ namespace NCPA {
             const NCPA::arrays::ndvector<N, double>& p,
             const units_ptr_t p_units,
             const NCPA::arrays::ndvector<N, double>& d,
-            const units_ptr_t d_units ) {
+            const units_ptr_t d_units,
+            const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
             NCPA::arrays::ndvector<N, double> c = p;
 
             for (size_t i = 0; i < p.size(); ++i) {
-                c[ i ] = pd2c(
-                    NCPA::arrays::ndvector<N - 1, double>( p[ i ] ), p_units,
-                    NCPA::arrays::ndvector<N - 1, double>( d[ i ] ), d_units );
+                c[ i ] = pd2c( NCPA::arrays::ndvector<N - 1, double>( p[ i ] ),
+                               p_units,
+                               NCPA::arrays::ndvector<N - 1, double>( d[ i ] ),
+                               d_units, units_out );
             }
             return c;
         }
 
+        static vector3d_u_t pd2c( const vector3d_u_t& p, const vector3d_u_t& d,
+                                  const units_ptr_t units_out
+                                  = NCPA_ATMOS_PD2C_C_UNITS ) {
+            return vector3d_u_t(
+                pd2c(
+                    static_cast<const NCPA::arrays::ndvector<3, double>&>( p ),
+                    p.get_units(),
+                    static_cast<const NCPA::arrays::ndvector<3, double>&>( d ),
+                    d.get_units(), units_out ),
+                units_out );
+            // NCPA::arrays::ndvector<3, double> c = pd2c(
+            //     static_cast<const NCPA::arrays::ndvector<3, double>&>( p ),
+            //     p.get_units(),
+            //     static_cast<const NCPA::arrays::ndvector<3, double>&>( d ),
+            //     d.get_units(), units_out );
+            // return vector3d_u_t( c, units_out );
+        }
+
         // U & V winds to wind speed
-        static scalar_u_t uv2ws( const scalar_u_t& u, const scalar_u_t& v ) {
-            scalar_u_t ws = u;
-            ws            = std::sqrt( ( u.get() * u.get() )
-                                       + ( v.get_as( *u.get_units() )
-                                * v.get_as( *u.get_units() ) ) );
-            return ws;
+        static scalar_u_t uv2ws( const scalar_u_t& u, const scalar_u_t& v,
+                                 const units_ptr_t units_out = nullptr ) {
+            units_ptr_t uout
+                = ( units_out == nullptr ? u.get_units() : units_out );
+            double uu = u.get_as( uout );
+            double vv = v.get_as( uout );
+            return scalar_u_t( std::sqrt( uu * uu + vv * vv ), uout );
+            // return ( units_out == nullptr
+            //              ? scalar_u_t( std::sqrt( uu * uu + vv * vv ), uout )
+            //              : scalar_u_t( std::sqrt( uu * uu + vv * vv ), u.get_units())
+            //                    .as( units_out ) );
         }
 
         static scalar_u_t uv2ws( double u, const std::string& u_units,
-                                 double v, const std::string& v_units ) {
-            return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) );
+                                 double v, const std::string& v_units,
+                                 const std::string& units_out = "" ) {
+            units_ptr_t uout
+                = ( units_out.length() == 0
+                        ? nullptr
+                        : NCPA::units::Units::from_string( units_out ) );
+            return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
+                          uout );
         }
 
-        static vector_u_t uv2ws( const vector_u_t& u, const vector_u_t& v ) {
+        static vector_u_t uv2ws( const vector_u_t& u, const vector_u_t& v,
+                                 const units_ptr_t units_out = nullptr ) {
             vector_u_t ws( u.size(), u.get_units() );
             for (size_t i = 0; i < u.size(); i++) {
-                ws.set( i, uv2ws( u.get_scalar( i ), v.get_scalar( i ) ) );
-                // ws[ i ] = uv2ws( u.get_scalar(i), v.get_scalar(i) ).get();
+                ws.set( i, uv2ws( u.get_scalar( i ), v.get_scalar( i ),
+                                  units_out ) );
             }
             return ws;
         }
@@ -216,14 +332,32 @@ namespace NCPA {
         static vector_u_t uv2ws( const std::vector<double>& u,
                                  const std::string& u_units,
                                  const std::vector<double>& v,
-                                 const std::string& v_units ) {
-            return uv2ws( vector_u_t( u, u_units ), vector_u_t( v, v_units ) );
+                                 const std::string& v_units,
+                                 const std::string& units_out = "" ) {
+            units_ptr_t uout
+                = ( units_out.length() == 0
+                        ? nullptr
+                        : NCPA::units::Units::from_string( units_out ) );
+            return uv2ws( vector_u_t( u, u_units ), vector_u_t( v, v_units ),
+                          uout );
         }
 
-        std::vector<double> uv2ws( const NCPA::arrays::ndvector<1, double>& u,
-                                   const units_ptr_t u_units,
-                                   const NCPA::arrays::ndvector<1, double>& v,
-                                   const units_ptr_t v_units ) {
+        static double uv2ws( const NCPA::arrays::ndvector<0, double>& u,
+                             const units_ptr_t u_units,
+                             const NCPA::arrays::ndvector<0, double>& v,
+                             const units_ptr_t v_units,
+                             const units_ptr_t units_out = nullptr ) {
+            return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
+                          units_out )
+                .get();
+        }
+
+        static std::vector<double> uv2ws(
+            const NCPA::arrays::ndvector<1, double>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, double>& v,
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = nullptr ) {
             std::vector<double> ws( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
                 ws[ i ]
@@ -231,18 +365,11 @@ namespace NCPA {
                           scalar_u_t( *static_cast<const double *>( &u[ i ] ),
                                       u_units ),
                           scalar_u_t( *static_cast<const double *>( &v[ i ] ),
-                                      v_units ) )
+                                      v_units ),
+                          units_out )
                           .get();
             }
             return ws;
-        }
-
-        double uv2ws( const NCPA::arrays::ndvector<0, double>& u,
-                      const units_ptr_t u_units,
-                      const NCPA::arrays::ndvector<0, double>& v,
-                      const units_ptr_t v_units ) {
-            return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) )
-                .get();
         }
 
         template<size_t N>
@@ -250,35 +377,45 @@ namespace NCPA {
             const NCPA::arrays::ndvector<N, double>& u,
             const units_ptr_t u_units,
             const NCPA::arrays::ndvector<N, double>& v,
-            const units_ptr_t v_units ) {
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = nullptr ) {
             NCPA::arrays::ndvector<N, double> ws = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
                 ws[ i ] = uv2ws(
                     NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
-                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units );
+                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
+                    units_out );
             }
             return ws;
         }
 
         // U & V winds to wind direction
-        static scalar_u_t uv2wd( const scalar_u_t& u, const scalar_u_t& v ) {
+        static scalar_u_t uv2wd( const scalar_u_t& u, const scalar_u_t& v,
+                                 const units_ptr_t units_out
+                                 = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             return scalar_u_t(
-                NCPA::math::math2az( NCPA::math::rad2deg(
-                    // NCPA::math::PI / 2.0 -
-                    std::atan2( v.get_as( *u.get_units() ), u.get() ) ) ),
-                "deg" );
+                       NCPA::math::math2az( NCPA::math::rad2deg( std::atan2(
+                           v.get_as( *u.get_units() ), u.get() ) ) ),
+                       NCPA_ATMOS_UV2WD_WD_UNITS )
+                .as( units_out );
         }
 
         static scalar_u_t uv2wd( double u, const std::string& u_units,
-                                 double v, const std::string& v_units ) {
-            return uv2wd( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) );
+                                 double v, const std::string& v_units,
+                                 const std::string& units_out
+                                 = NCPA_ATMOS_UV2WD_WD_UNITS_STR ) {
+            return uv2wd( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
+                          NCPA::units::Units::from_string( units_out ) );
         }
 
-        static vector_u_t uv2wd( const vector_u_t& u, const vector_u_t& v ) {
-            vector_u_t wd( u.size(), "deg" );
+        static vector_u_t uv2wd( const vector_u_t& u, const vector_u_t& v,
+                                 const units_ptr_t units_out
+                                 = NCPA_ATMOS_UV2WD_WD_UNITS ) {
+            vector_u_t wd( u.size(), units_out );
             for (size_t i = 0; i < u.size(); i++) {
-                wd.set( i, uv2wd( u.get_scalar( i ), v.get_scalar( i ) ) );
+                wd.set( i, uv2wd( u.get_scalar( i ), v.get_scalar( i ),
+                                  units_out ) );
             }
             return wd;
         }
@@ -286,14 +423,19 @@ namespace NCPA {
         static vector_u_t uv2wd( const std::vector<double>& u,
                                  const std::string& u_units,
                                  const std::vector<double>& v,
-                                 const std::string& v_units ) {
-            return uv2wd( vector_u_t( u, u_units ), vector_u_t( v, v_units ) );
+                                 const std::string& v_units,
+                                 const std::string& units_out
+                                 = NCPA_ATMOS_UV2WD_WD_UNITS_STR ) {
+            return uv2wd( vector_u_t( u, u_units ), vector_u_t( v, v_units ),
+                          NCPA::units::Units::from_string( units_out ) );
         }
 
-        std::vector<double> uv2wd( const NCPA::arrays::ndvector<1, double>& u,
-                                   const units_ptr_t u_units,
-                                   const NCPA::arrays::ndvector<1, double>& v,
-                                   const units_ptr_t v_units ) {
+        static std::vector<double> uv2wd(
+            const NCPA::arrays::ndvector<1, double>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, double>& v,
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             std::vector<double> wd( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
                 wd[ i ]
@@ -301,17 +443,21 @@ namespace NCPA {
                           scalar_u_t( *static_cast<const double *>( &u[ i ] ),
                                       u_units ),
                           scalar_u_t( *static_cast<const double *>( &v[ i ] ),
-                                      v_units ) )
+                                      v_units ),
+                          units_out )
                           .get();
             }
             return wd;
         }
 
-        double uv2wd( const NCPA::arrays::ndvector<0, double>& u,
-                      const units_ptr_t u_units,
-                      const NCPA::arrays::ndvector<0, double>& v,
-                      const units_ptr_t v_units ) {
-            return uv2wd( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ) )
+        static double uv2wd( const NCPA::arrays::ndvector<0, double>& u,
+                             const units_ptr_t u_units,
+                             const NCPA::arrays::ndvector<0, double>& v,
+                             const units_ptr_t v_units,
+                             const units_ptr_t units_out
+                             = NCPA_ATMOS_UV2WD_WD_UNITS ) {
+            return uv2wd( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
+                          units_out )
                 .get();
         }
 
@@ -320,39 +466,48 @@ namespace NCPA {
             const NCPA::arrays::ndvector<N, double>& u,
             const units_ptr_t u_units,
             const NCPA::arrays::ndvector<N, double>& v,
-            const units_ptr_t v_units ) {
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             NCPA::arrays::ndvector<N, double> wd = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
                 wd[ i ] = uv2wd(
                     NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
-                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units );
+                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
+                    units_out );
             }
             return wd;
         }
 
         // wind speed and direction to wind component along an azimuth
         static scalar_u_t w2wc( const scalar_u_t& ws, const scalar_u_t& wd,
-                                double az ) {
-            return scalar_u_t( ws.get()
-                                   * std::cos( wd.get_as( "rad" )
-                                               - NCPA::math::deg2rad( az ) ),
-                               ws.get_units() );
+                                double az,
+                                const units_ptr_t units_out = nullptr ) {
+            scalar_u_t wc( ws.get()
+                               * std::cos( wd.get_as( "rad" )
+                                           - NCPA::math::deg2rad( az ) ),
+                           ws.get_units() );
+            return ( units_out == nullptr ? wc : wc.as( units_out ) );
         }
 
         static scalar_u_t w2wc( double ws, const std::string& ws_units,
                                 double wd, const std::string& wd_units,
-                                double az ) {
-            return w2wc( scalar_u_t( ws, ws_units ),
-                         scalar_u_t( wd, wd_units ), az );
+                                double az,
+                                const std::string& units_out = "" ) {
+            return w2wc(
+                scalar_u_t( ws, ws_units ), scalar_u_t( wd, wd_units ), az,
+                ( units_out.length() == 0
+                      ? nullptr
+                      : NCPA::units::Units::from_string( units_out ) ) );
         }
 
         static vector_u_t w2wc( const vector_u_t& ws, const vector_u_t& wd,
-                                double az ) {
+                                double az,
+                                const units_ptr_t units_out = nullptr ) {
             vector_u_t wc = ws;
             for (size_t i = 0; i < ws.size(); i++) {
-                wc.set( i,
-                        w2wc( ws.get_scalar( i ), wd.get_scalar( i ), az ) );
+                wc.set( i, w2wc( ws.get_scalar( i ), wd.get_scalar( i ), az,
+                                 units_out ) );
             }
             return wc;
         }
@@ -360,15 +515,21 @@ namespace NCPA {
         static vector_u_t w2wc( const std::vector<double>& ws,
                                 const std::string& ws_units,
                                 const std::vector<double>& wd,
-                                const std::string& wd_units, double az ) {
-            return w2wc( vector_u_t( ws, ws_units ),
-                         vector_u_t( wd, wd_units ), az );
+                                const std::string& wd_units, double az,
+                                const std::string& units_out = "" ) {
+            return w2wc(
+                vector_u_t( ws, ws_units ), vector_u_t( wd, wd_units ), az,
+                ( units_out.length() == 0
+                      ? nullptr
+                      : NCPA::units::Units::from_string( units_out ) ) );
         }
 
-        std::vector<double> w2wc( const NCPA::arrays::ndvector<1, double>& u,
-                                  const units_ptr_t u_units,
-                                  const NCPA::arrays::ndvector<1, double>& v,
-                                  const units_ptr_t v_units, double az ) {
+        static std::vector<double> w2wc(
+            const NCPA::arrays::ndvector<1, double>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, double>& v,
+            const units_ptr_t v_units, double az,
+            const units_ptr_t units_out = nullptr ) {
             std::vector<double> wc( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
                 wc[ i ]
@@ -377,18 +538,19 @@ namespace NCPA {
                                       u_units ),
                           scalar_u_t( *static_cast<const double *>( &v[ i ] ),
                                       v_units ),
-                          az )
+                          az, units_out )
                           .get();
             }
             return wc;
         }
 
-        double w2wc( const NCPA::arrays::ndvector<0, double>& u,
-                     const units_ptr_t u_units,
-                     const NCPA::arrays::ndvector<0, double>& v,
-                     const units_ptr_t v_units, double az ) {
+        static double w2wc( const NCPA::arrays::ndvector<0, double>& u,
+                            const units_ptr_t u_units,
+                            const NCPA::arrays::ndvector<0, double>& v,
+                            const units_ptr_t v_units, double az,
+                            const units_ptr_t units_out = nullptr ) {
             return w2wc( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
-                         az )
+                         az, units_out )
                 .get();
         }
 
@@ -397,27 +559,35 @@ namespace NCPA {
             const NCPA::arrays::ndvector<N, double>& u,
             const units_ptr_t u_units,
             const NCPA::arrays::ndvector<N, double>& v,
-            const units_ptr_t v_units, double az ) {
+            const units_ptr_t v_units, double az,
+            const units_ptr_t units_out = nullptr ) {
             NCPA::arrays::ndvector<N, double> wc = u;
-
             for (size_t i = 0; i < u.size(); ++i) {
                 wc[ i ] = w2wc(
                     NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
                     NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
-                    az );
+                    az, units_out );
             }
             return wc;
         }
 
         // attenuation from altitude, temperature, pressure,  density and
         // frequency
-        static scalar_u_t attenuation_sutherland_bass( const scalar_u_t& zs,
-                                                       const scalar_u_t& ts,
-                                                       const scalar_u_t& ps,
-                                                       const scalar_u_t& ds,
-                                                       double freq ) {
-            double P_z = ps.get_as( "Pa" ), D_z = ds.get_as( "kg/m3" ),
-                   T_z = ts.get_as( "K" ), z = zs.get_as( "km" );
+        static scalar_u_t attenuation_sutherland_bass(
+            const scalar_u_t& zs, const scalar_u_t& ts, const scalar_u_t& ps,
+            const scalar_u_t& ds, double freq,
+            const units_ptr_t units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+            double P_z
+                = ps.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_P_UNITS ),
+                D_z
+                = ds.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_D_UNITS ),
+                T_z
+                = ts.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_T_UNITS ),
+                z
+                = zs.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_Z_UNITS );
+            // freq = f.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_F_UNITS
+            // );
 
             constexpr double mu_o
                 = 18.192E-6;                // Reference viscosity [kg/(m*s)]
@@ -595,23 +765,29 @@ namespace NCPA {
                 a_vib = a_vib + a_vib_c[ m ];
             }
 
-            return scalar_u_t( a_cl + a_rot + a_diff + a_vib, "np/m" );
+            scalar_u_t alpha(
+                a_cl + a_rot + a_diff + a_vib,
+                NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS );
+            return alpha.as( units_out );
         }
 
         static scalar_u_t attenuation_sutherland_bass(
             double z, const std::string& z_units, double t,
             const std::string& t_units, double p, const std::string& p_units,
-            double d, const std::string& d_units, double freq ) {
+            double d, const std::string& d_units, double freq,
+            const std::string& units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
             return attenuation_sutherland_bass(
                 scalar_u_t( z, z_units ), scalar_u_t( t, t_units ),
-                scalar_u_t( p, p_units ), scalar_u_t( d, d_units ), freq );
+                scalar_u_t( p, p_units ), scalar_u_t( d, d_units ), freq,
+                NCPA::units::Units::from_string( units_out ) );
         }
 
-        static vector_u_t attenuation_sutherland_bass( const vector_u_t& zs,
-                                                       const vector_u_t& ts,
-                                                       const vector_u_t& ps,
-                                                       const vector_u_t& ds,
-                                                       double freq ) {
+        static vector_u_t attenuation_sutherland_bass(
+            const vector_u_t& zs, const vector_u_t& ts, const vector_u_t& ps,
+            const vector_u_t& ds, double freq,
+            const units_ptr_t units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             vector_u_t alpha( zs.size(), "np/m" );
             for (size_t i = 0; i < zs.size(); i++) {
                 alpha.set( i, attenuation_sutherland_bass(
@@ -619,55 +795,85 @@ namespace NCPA {
                                   ps.get_scalar( i ), ds.get_scalar( i ),
                                   freq ) );
             }
-            return alpha;
+            return alpha.as( units_out );
         }
 
         static vector_u_t attenuation_sutherland_bass(
             std::vector<double>& z, const std::string& z_units,
             std::vector<double>& t, const std::string& t_units,
             std::vector<double>& p, const std::string& p_units,
-            std::vector<double>& d, const std::string& d_units, double freq ) {
+            std::vector<double>& d, const std::string& d_units, double freq,
+            const std::string& units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
             return attenuation_sutherland_bass(
                 vector_u_t( z, z_units ), vector_u_t( t, t_units ),
-                vector_u_t( p, p_units ), vector_u_t( d, d_units ), freq );
+                vector_u_t( p, p_units ), vector_u_t( d, d_units ), freq,
+                NCPA::units::Units::from_string( units_out ) );
         }
 
-        std::vector<scalar_u_t> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<1, scalar_u_t>& z,
-            const NCPA::arrays::ndvector<1, scalar_u_t>& t,
-            const NCPA::arrays::ndvector<1, scalar_u_t>& p,
-            const NCPA::arrays::ndvector<1, scalar_u_t>& d, double freq ) {
-            std::vector<scalar_u_t> alpha( z.size() );
+        static std::vector<double> attenuation_sutherland_bass(
+            const NCPA::arrays::ndvector<1, double>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<1, double>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<1, double>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<1, double>& d,
+            const units_ptr_t d_units, double freq,
+            const units_ptr_t units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+            std::vector<double> alpha( z.size() );
             for (size_t i = 0; i < z.size(); ++i) {
-                alpha[ i ] = attenuation_sutherland_bass(
-                    z[ i ], t[ i ], p[ i ], d[ i ], freq );
+                alpha[ i ]
+                    = attenuation_sutherland_bass(
+                          scalar_u_t( z[ i ], z_units ),
+                          scalar_u_t( t[ i ], t_units ),
+                          scalar_u_t( p[ i ], p_units ),
+                          scalar_u_t( d[ i ], d_units ), freq, units_out )
+                          .get();
             }
             return alpha;
         }
 
-        // scalar_u_t attenuation_sutherland_bass(
-        //     const NCPA::arrays::ndvector<0, scalar_u_t>& z,
-        //     const NCPA::arrays::ndvector<0, scalar_u_t>& t,
-        //     const NCPA::arrays::ndvector<0, scalar_u_t>& p,
-        //     const NCPA::arrays::ndvector<0, scalar_u_t>& d, double freq  ) {
-        //     return attenuation_sutherland_bass( z, t, u, p, freq )
-        //         .get();
-        // }
+        static double attenuation_sutherland_bass(
+            const NCPA::arrays::ndvector<0, double>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<0, double>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<0, double>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<0, double>& d,
+            const units_ptr_t d_units, double freq,
+            const units_ptr_t units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+            return attenuation_sutherland_bass(
+                       scalar_u_t( z, z_units ), scalar_u_t( t, t_units ),
+                       scalar_u_t( p, p_units ), scalar_u_t( d, d_units ),
+                       freq, units_out )
+                .get();
+        }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, scalar_u_t> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<N, scalar_u_t>& z,
-            const NCPA::arrays::ndvector<N, scalar_u_t>& t,
-            const NCPA::arrays::ndvector<N, scalar_u_t>& p,
-            const NCPA::arrays::ndvector<N, scalar_u_t>& d, double freq ) {
-            NCPA::arrays::ndvector<N, scalar_u_t> alpha = z;
+        NCPA::arrays::ndvector<N, double> attenuation_sutherland_bass(
+            const NCPA::arrays::ndvector<N, double>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<N, double>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<N, double>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<N, double>& d,
+            const units_ptr_t d_units, double freq,
+            const units_ptr_t units_out
+            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+            NCPA::arrays::ndvector<N, double> alpha = z;
 
             for (size_t i = 0; i < z.size(); ++i) {
                 alpha[ i ] = attenuation_sutherland_bass(
-                    NCPA::arrays::ndvector<N - 1, scalar_u_t>( z[ i ] ),
-                    NCPA::arrays::ndvector<N - 1, scalar_u_t>( t[ i ] ),
-                    NCPA::arrays::ndvector<N - 1, scalar_u_t>( p[ i ] ),
-                    NCPA::arrays::ndvector<N - 1, scalar_u_t>( d[ i ] ), freq );
+                    NCPA::arrays::ndvector<N - 1, double>( z[ i ] ), z_units,
+                    NCPA::arrays::ndvector<N - 1, double>( t[ i ] ), t_units,
+                    NCPA::arrays::ndvector<N - 1, double>( p[ i ] ), p_units,
+                    NCPA::arrays::ndvector<N - 1, double>( d[ i ] ), d_units,
+                    freq, units_out );
             }
             return alpha;
         }

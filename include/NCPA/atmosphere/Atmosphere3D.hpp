@@ -303,6 +303,13 @@ namespace NCPA {
                     return _axes[ n ];
                 }
 
+                virtual vector3d_u_t get_values(const std::string& key) override {
+                    return _properties.at(key).values();
+                }
+                virtual vector3d_u_t get_values(const std::string& key) const override {
+                    return _properties.at(key).values();
+                }
+
                 virtual double get( const std::string& key, double x1,
                                     double x2 ) override {
                     return _scalar_splines.at( key ).eval_f( x1, x2 );
@@ -318,6 +325,20 @@ namespace NCPA {
                     const std::vector<double>& v2,
                     const std::vector<double>& v3 ) override {
                     return _properties.at( key ).get( v1, v2, v3 );
+                }
+
+                virtual vector2d_u_t get(
+                    const std::string& key, const std::vector<double>& x1,
+                    const std::vector<double>& x2 ) override {
+                    vector2d_u_t vout( x1.size(), x2.size(),
+                                       this->get_units( key ) );
+                    for (size_t i = 0; i < x1.size(); ++i) {
+                        for (size_t j = 0; j < x2.size(); ++j) {
+                            vout[ i ][ j ] = _scalar_splines.at( key ).eval_f(
+                                x1[ i ], x2[ j ] );
+                        }
+                    }
+                    return vout;
                 }
 
                 virtual double get_first_derivative( const std::string& key,
@@ -870,6 +891,27 @@ namespace NCPA {
                     return _axes[ n ];
                 }
 
+                virtual vector3d_u_t get_values(const std::string& key) override {
+                    _assert_contains_vector(key);
+                    vector3d_u_t vals( _axes[0].size(), _axes[1].size(), _axes[2].size(), this->get_units(key) );
+                    for (size_t i = 0; i < _axes[0].size(); ++i) {
+                        for (size_t j = 0; j < _axes[1].size(); ++j) {
+                            vals[i][j] = _1d_atmos.get_property(key).values();
+                        }
+                    }
+                    return vals;
+                }
+                virtual vector3d_u_t get_values(const std::string& key) const override {
+                    _assert_contains_vector(key);
+                    vector3d_u_t vals( _axes[0].size(), _axes[1].size(), _axes[2].size(), this->get_units(key) );
+                    for (size_t i = 0; i < _axes[0].size(); ++i) {
+                        for (size_t j = 0; j < _axes[1].size(); ++j) {
+                            vals[i][j] = _1d_atmos.get_property(key).values();
+                        }
+                    }
+                    return vals;
+                }
+
                 virtual double get( const std::string& key, double x1,
                                     double x2 ) override {
                     return _scalar_splines.at( key ).eval_f( x1, x2 );
@@ -895,6 +937,20 @@ namespace NCPA {
                         }
                     }
                     return out3d;
+                }
+
+                virtual vector2d_u_t get(
+                    const std::string& key, const std::vector<double>& x1,
+                    const std::vector<double>& x2 ) override {
+                    vector2d_u_t vout( x1.size(), x2.size(),
+                                       this->get_units( key ) );
+                    for (size_t i = 0; i < x1.size(); ++i) {
+                        for (size_t j = 0; j < x2.size(); ++j) {
+                            vout[ i ][ j ] = _scalar_splines.at( key ).eval_f(
+                                x1[ i ], x2[ j ] );
+                        }
+                    }
+                    return vout;
                 }
 
                 virtual double get_first_derivative( const std::string& key,
@@ -1352,6 +1408,11 @@ namespace NCPA {
                     return _ptr->get_axis_vector( dim );
                 }
 
+                virtual vector3d_u_t get_values( const std::string& key ) {
+                    check_pointer();
+                    return _ptr->get_values(key);
+                }
+
                 virtual double get( const std::string& key ) {
                     check_pointer();
                     return _ptr->get( key, 0.0, 0.0 );
@@ -1375,6 +1436,13 @@ namespace NCPA {
                                           const std::vector<double>& v3 ) {
                     check_pointer();
                     return _ptr->get( key, v1, v2, v3 );
+                }
+
+                virtual vector2d_u_t get( const std::string& key,
+                                          const std::vector<double>& v1,
+                                          const std::vector<double>& v2 ) {
+                    check_pointer();
+                    return _ptr->get( key, v1, v2 );
                 }
 
                 virtual double get(
