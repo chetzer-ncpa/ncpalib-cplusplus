@@ -74,12 +74,12 @@ namespace NCPA {
                 friend void ::swap<ELEMENTTYPE>(
                     Vector<ELEMENTTYPE>& a, Vector<ELEMENTTYPE>& b ) noexcept;
 
-                friend Vector<ELEMENTTYPE> operator*(
-                    const Vector<ELEMENTTYPE>& a,
-                    const Matrix<ELEMENTTYPE>& b );
-                friend Vector<ELEMENTTYPE> operator*(
-                    const Matrix<ELEMENTTYPE>& a,
-                    const Vector<ELEMENTTYPE>& b );
+                // friend Vector<ELEMENTTYPE> operator*(
+                //     const Vector<ELEMENTTYPE>& a,
+                //     const Matrix<ELEMENTTYPE>& b );
+                // friend Vector<ELEMENTTYPE> operator*(
+                //     const Matrix<ELEMENTTYPE>& a,
+                //     const Vector<ELEMENTTYPE>& b );
 
                 /**
                  * Assignment operator.

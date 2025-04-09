@@ -156,9 +156,17 @@ namespace NCPA {
                         {  4.0, -4.0, -4.0,  4.0,  2.0,  2.0, -2.0, -2.0,  2.0,
                          -2.0,                    2.0, -2.0,  1.0,  1.0,  1.0,  1.0 }
                     };
+
+                    // static const bicubic_conversion_matrix_t<T>& bicubic_conversion_matrix() {
+                    //     return constants<T>::_bicubic_conversion_matrix;
+                    // }
             };
 
 
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T>
+constexpr NCPA::interpolation::LANL::bicubic_conversion_matrix_t<T> 
+NCPA::interpolation::LANL::constants<T>::bicubic_conversion_matrix;

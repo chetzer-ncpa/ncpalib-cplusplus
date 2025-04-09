@@ -114,6 +114,7 @@
             _CLASSNAME_<INDEPTYPE, typename DEPTYPE::value_type, PARAMTYPE> \
                 _real_spline, _imag_spline;                                 \
     };
+    
 #define DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( _CLASSNAME_,              \
                                                 _SUPERCLASSNAME_ )        \
     _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION                        \
