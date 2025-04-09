@@ -525,9 +525,9 @@ namespace NCPA {
                         both = _n_offdiag;
                     }
                     for ( size_t ind1 = 0; ind1 < both; ind1++ ) {
-                        contents()[ ind1 + 1 ] = NCPA::math::add_vectors(
+                        contents()[ ind1 + 1 ] = NCPA::arrays::add_vectors(
                             contents()[ ind1 + 1 ],
-                            NCPA::math::scale_vector(
+                            NCPA::arrays::scale_vector(
                                 b->contents()[ ind1 + 1 ], modifier ) );
                     }
                     contents().insert( contents().end(),
@@ -536,11 +536,11 @@ namespace NCPA {
                     _n_offdiag += add_on;
                     for ( size_t ind1 = _n_offdiag - add_on;
                           ind1 < contents().size(); ind1++ ) {
-                        contents()[ ind1 ] = NCPA::math::scale_vector(
+                        contents()[ ind1 ] = NCPA::arrays::scale_vector(
                             contents()[ ind1 ], modifier );
                     }
-                    contents()[ 0 ] = NCPA::math::add_vectors(
-                        contents()[ 0 ], NCPA::math::scale_vector(
+                    contents()[ 0 ] = NCPA::arrays::add_vectors(
+                        contents()[ 0 ], NCPA::arrays::scale_vector(
                                              b->contents()[ 0 ], modifier ) );
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                     ;
@@ -744,21 +744,21 @@ namespace NCPA {
                         new_n_offdiag + 1 );
 
                     // diagonals first
-                    newcontents[ 0 ] = NCPA::math::add_vectors(
-                        contents()[ 0 ], NCPA::math::scale_vector(
+                    newcontents[ 0 ] = NCPA::arrays::add_vectors(
+                        contents()[ 0 ], NCPA::arrays::scale_vector(
                                              b.contents()[ 0 ], modifier ) );
 
                     // superdiagonals
                     for ( size_t n = 1; n < new_n_offdiag; n++ ) {
                         if ( n <= _n_offdiag && n <= b._n_offdiag ) {
-                            newcontents[ n ] = NCPA::math::add_vectors(
+                            newcontents[ n ] = NCPA::arrays::add_vectors(
                                 contents()[ n ],
-                                NCPA::math::scale_vector( b.contents()[ n ],
+                                NCPA::arrays::scale_vector( b.contents()[ n ],
                                                           modifier ) );
                         } else if ( n <= _n_offdiag ) {
                             newcontents[ n ] = contents()[ n ];
                         } else if ( n <= b._n_offdiag ) {
-                            newcontents[ n ] = NCPA::math::scale_vector(
+                            newcontents[ n ] = NCPA::arrays::scale_vector(
                                 b.contents()[ n ], modifier );
                         }
                     }

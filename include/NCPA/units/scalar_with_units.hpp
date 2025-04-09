@@ -114,6 +114,7 @@ namespace NCPA {
                 virtual const Unit *get_units() const { return _units; }
 
                 virtual T get_as( const Unit& u ) const {
+                    _check_units_pointer();
                     return _units->convert_to( _value, u );
                     // return NCPA::units::Units::convert( _value, _units, u );
                 }
@@ -124,6 +125,7 @@ namespace NCPA {
                 }
 
                 virtual T get_as( const std::string& units ) const {
+                    _check_units_pointer();
                     return _units->convert_to(
                         _value, NCPA::units::Units::from_string( units ) );
                     // return NCPA::units::Units::convert( _value, _units, u );
@@ -214,6 +216,7 @@ namespace NCPA {
                 virtual void convert_units( const Unit& new_units ) {
                     // will throw invalid_conversion and leave original units
                     // unchanged if there's an error
+                    _check_units_pointer();
                     if ( !new_units.equals( *_units ) ) {
                         _do_units_conversion( *_units, new_units );
                     }
@@ -223,7 +226,7 @@ namespace NCPA {
                 virtual void convert_units( const Unit *new_units ) {
                     // will throw invalid_conversion and leave original units
                     // unchanged if there's an error
-                    convert_units( *new_units );
+                    this->convert_units( *new_units );
                 }
 
                 virtual void convert_units( const std::string& units ) {
@@ -260,6 +263,7 @@ namespace NCPA {
 
                 ScalarWithUnits operator+=(
                     const ScalarWithUnits<T>& second ) {
+                        _check_units_pointer();
                     if ( this->_units->is_convertible_to(
                              *( second._units ) ) ) {
                         this->_value += second.get_as( *( this->_units ) );
@@ -350,6 +354,12 @@ namespace NCPA {
                 T _value;
                 // std::stack< NCPA::Units& > _units;
                 const Unit *_units = nullptr;
+
+                void _check_units_pointer() const {
+                    if (_units == nullptr) {
+                        throw std::logic_error( "No units have been set!");
+                    }
+                }
 
                 void _do_units_conversion( const NCPA::units::Unit& fromUnits,
                                            const NCPA::units::Unit& toUnits ) {

@@ -626,9 +626,9 @@ namespace NCPA {
                     }
                     for ( size_t ind1 = 0; ind1 < both; ind1++ ) {
                         this->contents()[ ind1 + skip ]
-                            = NCPA::math::add_vectors(
+                            = NCPA::arrays::add_vectors(
                                 this->contents()[ ind1 + skip ],
-                                NCPA::math::scale_vector(
+                                NCPA::arrays::scale_vector(
                                     b->contents()[ ind1 + add_on ],
                                     modifier ) );
                     }
@@ -636,7 +636,7 @@ namespace NCPA {
                                              b->contents().begin(),
                                              b->contents().begin() + add_on );
                     for ( size_t ind1 = 0; ind1 < add_on; ind1++ ) {
-                        this->contents()[ ind1 ] = NCPA::math::scale_vector(
+                        this->contents()[ ind1 ] = NCPA::arrays::scale_vector(
                             this->contents()[ ind1 ], modifier );
                     }
                     _n_lower += add_on;
@@ -655,9 +655,9 @@ namespace NCPA {
                     }
                     for ( size_t ind1 = 0; ind1 < both; ind1++ ) {
                         this->contents()[ _n_lower + ind1 + 1 ]
-                            = NCPA::math::add_vectors(
+                            = NCPA::arrays::add_vectors(
                                 this->contents()[ _n_lower + ind1 + 1 ],
-                                NCPA::math::scale_vector(
+                                NCPA::arrays::scale_vector(
                                     b->contents()[ b->_n_lower + ind1 + 1 ],
                                     modifier ) );
                     }
@@ -667,12 +667,12 @@ namespace NCPA {
                     _n_upper += add_on;
                     for ( size_t ind1 = _n_lower + _n_upper - add_on;
                           ind1 < this->contents().size(); ind1++ ) {
-                        this->contents()[ ind1 ] = NCPA::math::scale_vector(
+                        this->contents()[ ind1 ] = NCPA::arrays::scale_vector(
                             this->contents()[ ind1 ], modifier );
                     }
-                    this->contents()[ _n_lower ] = NCPA::math::add_vectors(
+                    this->contents()[ _n_lower ] = NCPA::arrays::add_vectors(
                         this->contents()[ _n_lower ],
-                        NCPA::math::scale_vector( b->contents()[ b->_n_lower ],
+                        NCPA::arrays::scale_vector( b->contents()[ b->_n_lower ],
                                                   modifier ) );
                     RETURN_THIS_AS_ABSTRACT_MATRIX;
                     ;
@@ -1052,18 +1052,18 @@ namespace NCPA {
                         new_n_lower + new_n_upper + 1 );
 
                     // diagonals first
-                    newcontents[ new_n_lower ] = NCPA::math::add_vectors(
+                    newcontents[ new_n_lower ] = NCPA::arrays::add_vectors(
                         this->contents()[ _n_lower ],
-                        NCPA::math::scale_vector( b.contents()[ b._n_lower ],
+                        NCPA::arrays::scale_vector( b.contents()[ b._n_lower ],
                                                   modifier ) );
 
                     // subdiagonals
                     for ( size_t n = 1; n < new_n_lower; n++ ) {
                         if ( n <= _n_lower && n <= b._n_lower ) {
                             newcontents[ new_n_lower - n ]
-                                = NCPA::math::add_vectors(
+                                = NCPA::arrays::add_vectors(
                                     this->contents()[ _n_lower - n ],
-                                    NCPA::math::scale_vector(
+                                    NCPA::arrays::scale_vector(
                                         b.contents()[ b._n_lower - n ],
                                         modifier ) );
                         } else if ( n <= _n_lower ) {
@@ -1071,7 +1071,7 @@ namespace NCPA {
                                 = this->contents()[ _n_lower - n ];
                         } else if ( n <= b._n_lower ) {
                             newcontents[ new_n_lower - n ]
-                                = NCPA::math::scale_vector(
+                                = NCPA::arrays::scale_vector(
                                     b.contents()[ b._n_lower - n ], modifier );
                         }
                     }
@@ -1080,9 +1080,9 @@ namespace NCPA {
                     for ( size_t n = 1; n < new_n_upper; n++ ) {
                         if ( n <= _n_upper && n <= b._n_upper ) {
                             newcontents[ new_n_lower + n ]
-                                = NCPA::math::add_vectors(
+                                = NCPA::arrays::add_vectors(
                                     this->contents()[ _n_lower + n ],
-                                    NCPA::math::scale_vector(
+                                    NCPA::arrays::scale_vector(
                                         b.contents()[ b._n_lower + n ],
                                         modifier ) );
                         } else if ( n <= _n_upper ) {
@@ -1090,7 +1090,7 @@ namespace NCPA {
                                 = this->contents()[ _n_lower + n ];
                         } else if ( n <= b._n_upper ) {
                             newcontents[ new_n_lower + n ]
-                                = NCPA::math::scale_vector(
+                                = NCPA::arrays::scale_vector(
                                     b.contents()[ b._n_lower + n ], modifier );
                         }
                     }

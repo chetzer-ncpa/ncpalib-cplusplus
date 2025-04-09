@@ -51,7 +51,7 @@
  *
  * template<typename T>
  *      struct is_dereferenceable<T,
- *          details::void_t<decltype(*std::declval<T>() )>> : std::true_type
+ *          void_t<decltype(*std::declval<T>() )>> : std::true_type
  * {};
  *
  * Now, consider the is_iterable<T>() trait.  This should return positive if
@@ -136,7 +136,7 @@
 
 namespace NCPA {
     namespace types {
-        namespace details {
+       
             // In C++11 we have to define void_t ourselves.
 
             // Helper class template to turn any type or types into void.
@@ -148,7 +148,7 @@ namespace NCPA {
             // declares the templated type alias
             template<typename... Ts>
             using void_t = typename make_void<Ts...>::type;
-        }  // namespace details
+       
 
         // decltype( *std::declval<T>() ):
         // declval<T>.method() lets you get a dummy instance of t.method()
@@ -165,7 +165,7 @@ namespace NCPA {
 
         template<typename T>
         struct is_dereferenceable<
-            T, details::void_t<decltype( *std::declval<T>() )>>
+            T, void_t<decltype( *std::declval<T>() )>>
             : std::true_type {};
 
         template<typename T>
@@ -180,8 +180,8 @@ namespace NCPA {
 
         template<typename T>
         struct is_complex<
-            T, details::void_t<decltype( std::declval<T>().real() )>,
-            details::void_t<decltype( std::declval<T>().imag() )>>
+            T, void_t<decltype( std::declval<T>().real() )>,
+            void_t<decltype( std::declval<T>().imag() )>>
             : std::true_type {};
 
         // Tester for deleteable: destructible and not a fundamental type.
@@ -194,7 +194,7 @@ namespace NCPA {
                    && ( !is_complex<T>::value );
         };
 
-        namespace details {
+        
             // // Testers for complex: is a class, and has real() and imag()
             // // methods
             // template<typename T>
@@ -226,13 +226,13 @@ namespace NCPA {
             constexpr bool _hasIteratorFunctions( std::false_type ) {
                 return false;
             }
-        }  // namespace details
+        
 
         // // Complex type
         // template<typename T>
         // struct is_complex {
         //         static constexpr bool value
-        //             = details::_hasComplexFunctions<T>( std::is_class<T> {}
+        //             = _hasComplexFunctions<T>( std::is_class<T> {}
         //             );
         // };
 
@@ -246,7 +246,7 @@ namespace NCPA {
         template<class T>
         struct is_iterable {
                 static constexpr bool value
-                    = details::_hasIteratorFunctions<T>( std::is_class<T> {} );
+                    = _hasIteratorFunctions<T>( std::is_class<T> {} );
         };
 
         template<typename T, typename U>

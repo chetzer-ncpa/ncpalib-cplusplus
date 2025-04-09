@@ -10,6 +10,11 @@
 
 #include <memory>
 #include <stdexcept>
+#include <array>
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator2D<T, U>& a,
+                  NCPA::interpolation::Interpolator2D<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -19,37 +24,45 @@ namespace NCPA {
             public:
                 Interpolator2D() {}
 
-                Interpolator2D( spline_engine_2d_t engine ) {
+                Interpolator2D(
+                    spline_engine_2d_t<INDEPTYPE, DEPTYPE> engine ) {
                     set_engine( engine );
                 }
 
-                void set_engine( spline_engine_2d_t engine ) {
+                virtual Interpolator2D& set_engine(
+                    spline_engine_2d_t<INDEPTYPE, DEPTYPE> engine ) {
                     _engine = std::move( engine );
+                    return *this;
                 }
 
-                virtual void fill( size_t N1, size_t N2, const INDEPTYPE *x1,
+                virtual Interpolator2D& fill( size_t N1, size_t N2, const INDEPTYPE *x1,
                                    const INDEPTYPE *x2, const DEPTYPE **f ) {
                     check_engine();
                     _engine->fill( N1, N2, x1, x2, f );
+                    return *this;
                 }
 
-                virtual void fill( const std::vector<INDEPTYPE>& x1,
-                                   const std::vector<INDEPTYPE>& x2,
-                                   const NCPA::arrays::vector2d_t<DEPTYPE>& f ) {
+                virtual Interpolator2D& fill(
+                    const std::vector<INDEPTYPE>& x1,
+                    const std::vector<INDEPTYPE>& x2,
+                    const NCPA::arrays::vector2d_t<DEPTYPE>& f ) {
                     check_engine();
                     _engine->fill( x1, x2, f );
+                    return *this;
                 }
 
-                virtual void init( size_t N1, size_t N2 ) {
+                virtual Interpolator2D& init( size_t N1, size_t N2 ) {
                     check_engine();
                     _engine->init( N1, N2 );
+                    return *this;
                 }
 
-                virtual void clear() { _engine.reset(); }
+                virtual Interpolator2D& clear() { _engine->clear(); return *this;}
 
-                virtual void ready() {
+                virtual Interpolator2D& ready() {
                     check_engine();
                     _engine->ready();
+                    return *this;
                 }
 
                 virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2 ) {
@@ -76,7 +89,7 @@ namespace NCPA {
                     return _engine->eval_dddf( x1, x2, dim1, dim2, dim3 );
                 }
 
-                virtual void check_engine() {
+                virtual void check_engine() const {
                     if ( !_engine ) {
                         throw std::logic_error(
                             "Interpolator2D: no engine has been set" );
@@ -87,9 +100,26 @@ namespace NCPA {
                     return ( _engine ? true : false );
                 }
 
-            private:
-                spline_engine_2d_t _engine;
+                virtual std::array<INDEPTYPE,4> limits() const {
+                    check_engine();
+                    return _engine->limits();
+                }
+
+                virtual interpolator_2d_type_t interptype() const {
+                    check_engine();
+                    return _engine->interptype();
+                }
+
+            protected:
+                spline_engine_2d_t<INDEPTYPE, DEPTYPE> _engine;
         };
 
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::Interpolator2D<T, U>& a,
+                  NCPA::interpolation::Interpolator2D<T, U>& b ) noexcept {
+    using std::swap;
+    swap( a._engine, b._engine );
+}

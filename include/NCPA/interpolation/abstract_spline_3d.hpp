@@ -123,6 +123,10 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 */
 
+template<typename T, typename U>
+static void swap( NCPA::interpolation::_spline_3d<T, U>& a,
+                  NCPA::interpolation::_spline_3d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
         template<typename INDEPTYPE, typename DEPTYPE>
@@ -156,6 +160,7 @@ namespace NCPA {
                                            INDEPTYPE x3, size_t dim1,
                                            size_t dim2, size_t dim3 )
                     = 0;
+                virtual interpolator_3d_type_t interptype() const = 0;
         };
 
         // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_3d,
@@ -175,6 +180,10 @@ namespace NCPA {
             : public _abstract_spline_3d<INDEPTYPE, DEPTYPE> {
             public:
                 virtual ~_spline_3d() {}
+
+                friend void ::swap<INDEPTYPE, DEPTYPE>(
+                    _spline_3d<INDEPTYPE, DEPTYPE>& a,
+                    _spline_3d<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
                 virtual void fill( size_t N1, size_t N2, size_t N3,
                                    const INDEPTYPE *x1, const INDEPTYPE *x2,
@@ -198,16 +207,18 @@ namespace NCPA {
                     NCPA::arrays::free_array( im, N1, N2, N3 );
                 }
 
-                virtual void fill( const std::vector<INDEPTYPE>& x1,
-                                   const std::vector<INDEPTYPE>& x2,
-                                   const std::vector<INDEPTYPE>& x3,
-                                   const NCPA::arrays::vector3d_t<DEPTYPE>& f ) override {
+                virtual void fill(
+                    const std::vector<INDEPTYPE>& x1,
+                    const std::vector<INDEPTYPE>& x2,
+                    const std::vector<INDEPTYPE>& x3,
+                    const NCPA::arrays::vector3d_t<DEPTYPE>& f ) override {
                     size_t N1 = x1.size(), N2 = x2.size(), N3 = x3.size();
                     if ( N1 != f.size() ) {
                         throw std::invalid_argument(
                             "Vectors must be same size" );
                     }
-                    NCPA::arrays::vector3d_t<typename DEPTYPE::value_type> rl, im;
+                    NCPA::arrays::vector3d_t<typename DEPTYPE::value_type> rl,
+                        im;
                     for ( size_t i = 0; i < N1; ++i ) {
                         for ( size_t j = 0; j < N2; ++j ) {
                             NCPA::math::complex2real(
@@ -267,3 +278,7 @@ namespace NCPA {
         };
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap( NCPA::interpolation::_spline_3d<T, U>& a,
+                  NCPA::interpolation::_spline_3d<T, U>& b ) noexcept {}

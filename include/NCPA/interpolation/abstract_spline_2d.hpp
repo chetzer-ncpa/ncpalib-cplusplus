@@ -7,6 +7,7 @@
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
+#include <array>
 #include <cmath>
 #include <complex>
 #include <cstring>
@@ -123,6 +124,11 @@ DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR macro:
 
 */
 
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::_spline_2d<T, U>& a,
+    NCPA::interpolation::_spline_2d<T, U>& b ) noexcept;
+
 namespace NCPA {
     namespace interpolation {
         template<typename INDEPTYPE, typename DEPTYPE>
@@ -142,15 +148,17 @@ namespace NCPA {
                 virtual void ready()                                 = 0;
                 virtual DEPTYPE eval_f( INDEPTYPE x1, INDEPTYPE x2 ) = 0;
                 virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2,
-                                         size_t dim )
+                                         size_t wrt )
                     = 0;
                 virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2,
-                                          size_t dim1, size_t dim2 )
+                                          size_t wrt1, size_t wrt2 )
                     = 0;
                 virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2,
-                                           size_t dim1, size_t dim2,
-                                           size_t dim3 )
+                                           size_t wrt1, size_t wrt2,
+                                           size_t wrt3 )
                     = 0;
+                virtual std::array<INDEPTYPE,4> limits() const = 0;
+                virtual interpolator_2d_type_t interptype() const  = 0;
         };
 
         // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_2d,
@@ -170,6 +178,10 @@ namespace NCPA {
             : public _abstract_spline_2d<INDEPTYPE, DEPTYPE> {
             public:
                 virtual ~_spline_2d() {}
+
+                friend void ::swap<INDEPTYPE, DEPTYPE>(
+                    _spline_2d<INDEPTYPE, DEPTYPE>& a,
+                    _spline_2d<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
                 virtual void fill( size_t N1, size_t N2, const INDEPTYPE *x1,
                                    const INDEPTYPE *x2,
@@ -226,21 +238,25 @@ namespace NCPA {
                                     imag()->eval_f( x1, x2 ) );
                 }
 
-                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2, size_t dim ) override {
-                    return DEPTYPE( real()->eval_df( x1, x2, dim ),
-                                    imag()->eval_df( x1, x2, dim ) );
+                virtual DEPTYPE eval_df( INDEPTYPE x1, INDEPTYPE x2, size_t wrt ) override {
+                    return DEPTYPE( real()->eval_df( x1, x2, wrt ),
+                                    imag()->eval_df( x1, x2, wrt ) );
                 }
 
                 virtual DEPTYPE eval_ddf( INDEPTYPE x1, INDEPTYPE x2,
-                                          size_t dim1, size_t dim2) override {
-                    return DEPTYPE( real()->eval_ddf( x1, x2, dim1, dim2 ),
-                                    imag()->eval_ddf( x1, x2, dim1, dim2 ) );
+                                          size_t wrt1, size_t wrt2) override {
+                    return DEPTYPE( real()->eval_ddf( x1, x2, wrt1, wrt2 ),
+                                    imag()->eval_ddf( x1, x2, wrt1, wrt2 ) );
                 }
 
                 virtual DEPTYPE eval_dddf( INDEPTYPE x1, INDEPTYPE x2,
-                                          size_t dim1, size_t dim2, size_t dim3 ) override {
-                    return DEPTYPE( real()->eval_dddf( x1, x2, dim1, dim2, dim3 ),
-                                    imag()->eval_dddf( x1, x2, dim1, dim2, dim3 ) );
+                                          size_t wrt1, size_t wrt2, size_t wrt3 ) override {
+                    return DEPTYPE( real()->eval_dddf( x1, x2, wrt1, wrt2, wrt3 ),
+                                    imag()->eval_dddf( x1, x2, wrt1, wrt2, wrt3 ) );
+                }
+
+                virtual std::array<INDEPTYPE,4> limits() const override {
+                    return this->real()->limits();
                 }
 
                 virtual _SUBSPLINE_2D_PTR_T real() = 0;
@@ -248,3 +264,8 @@ namespace NCPA {
         };
     }  // namespace interpolation
 }  // namespace NCPA
+
+template<typename T, typename U>
+static void swap(
+    NCPA::interpolation::_spline_2d<T, U>& a,
+    NCPA::interpolation::_spline_2d<T, U>& b ) noexcept {}
