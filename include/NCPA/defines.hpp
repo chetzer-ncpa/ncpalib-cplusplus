@@ -238,11 +238,11 @@
     friend void ::swap( _THISCLASS_& a, _THISCLASS_& b ) noexcept;
 
 #define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE( _THISCLASS_, _TYPE1_ ) \
-    friend void ::swap( _THISCLASS_<_TYPE1_>& a,                    \
+    friend void ::swap<>( _THISCLASS_<_TYPE1_>& a,                    \
                         _THISCLASS_<_TYPE1_>& b ) noexcept;
 
 #define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ ) \
-    friend void ::swap( _THISCLASS_<_TYPE1_, _TYPE2_>& a,                     \
+    friend void ::swap<>( _THISCLASS_<_TYPE1_, _TYPE2_>& a,                     \
                         _THISCLASS_<_TYPE1_, _TYPE2_>& b ) noexcept;
 
 #define DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ ) \

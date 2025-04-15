@@ -1132,7 +1132,7 @@ namespace NCPA {
                             product.set( (size_t)r, (size_t)c, val );
                         }
                     }               
-                    std::cout << counter << " multiplications" << std::endl;             
+                    // std::cout << counter << " multiplications" << std::endl;             
                 }
         };
 

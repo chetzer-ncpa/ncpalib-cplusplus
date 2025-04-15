@@ -60,7 +60,7 @@ namespace NCPA {
                     = 0;
                 virtual Atmosphere1D read( const std::string& filename ) = 0;
                 virtual Atmosphere1D read(
-                    const std::vector<const std::string>& filenames )
+                    const std::vector<std::string>& filenames )
                     = 0;
         };
 
@@ -86,8 +86,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere1D read(
-                    const std::vector<const std::string>& filenames )
-                    override {
+                    const std::vector<std::string>& filenames ) override {
                     // std::cout << "Reading from vector of filenames" <<
                     // std::endl;
                     std::ifstream fs1, fs2;
@@ -429,7 +428,7 @@ namespace NCPA {
 
                 virtual Atmosphere2D read( const std::string& filename ) = 0;
                 virtual Atmosphere2D read(
-                    const std::vector<const std::string>& filenames )
+                    const std::vector<std::string>& filenames )
                     = 0;
                 virtual _abstract_atmosphere_reader_2d& set_axis_units(
                     units_ptr_t u )
@@ -512,8 +511,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere2D read(
-                    const std::vector<const std::string>& filenames )
-                    override {
+                    const std::vector<std::string>& filenames ) override {
                     if (filenames.size() != 2) {
                         throw std::range_error(
                             "Filename vector must have 2 elements: summary "
@@ -548,10 +546,12 @@ namespace NCPA {
 
                     std::vector<Atmosphere1D> atms;
                     ncpaprop_atmosphere_reader_1d reader;
-                    for (auto it = fns.begin(); it != fns.end(); ++it) {
-                        std::vector<const std::string> fns { *it,
-                                                             filenames[ 1 ] };
-                        atms.push_back( reader.read( fns ) );
+                    for (auto it = fns.cbegin(); it != fns.cend(); ++it) {
+                        // std::vector<const std::string&> filepair { *it,
+                        //                                      filenames[ 1 ]
+                        //                                      };
+                        atms.push_back( reader.read( std::vector<std::string> {
+                            *it, filenames[ 1 ] } ) );
                     }
                     Atmosphere2D atm2d;
                     if (atms.size() == 1) {
@@ -609,7 +609,7 @@ namespace NCPA {
 
                 virtual Atmosphere3D read( const std::string& filename ) = 0;
                 virtual Atmosphere3D read(
-                    const std::vector<const std::string>& filenames )
+                    const std::vector<std::string>& filenames )
                     = 0;
                 virtual _abstract_atmosphere_reader_3d& set_axis_units(
                     size_t n, units_ptr_t u )
@@ -676,8 +676,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere3D read(
-                    const std::vector<const std::string>& filenames )
-                    override {
+                    const std::vector<std::string>& filenames ) override {
                     if (filenames.size() != 2) {
                         throw std::range_error(
                             "Filename vector must have 2 elements: summary "
@@ -831,7 +830,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere1D read(
-                    const std::vector<const std::string>& filenames ) {
+                    const std::vector<std::string>& filenames ) {
                     _check_pointer();
                     return _ptr->read( filenames );
                 }
@@ -872,7 +871,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere2D read(
-                    const std::vector<const std::string>& filenames,
+                    const std::vector<std::string>& filenames,
                     bool stratified = false ) {
                     _check_pointer();
                     return _ptr->read( filenames );
@@ -914,7 +913,7 @@ namespace NCPA {
                 }
 
                 virtual Atmosphere3D read(
-                    const std::vector<const std::string>& filenames,
+                    const std::vector<std::string>& filenames,
                     bool stratified = false ) {
                     _check_pointer();
                     return _ptr->read( filenames );

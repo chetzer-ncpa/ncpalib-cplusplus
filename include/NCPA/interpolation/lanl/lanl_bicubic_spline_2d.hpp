@@ -210,7 +210,9 @@ namespace NCPA {
                         _accel[ 1 ] = 0;
                     }
 
-                    void ready() override {}
+                    void ready() override {
+                        _update_spline_coeffs( _accel[0], _accel[1] );
+                    }
 
                     DEPTYPE eval_f( INDEPTYPE x, INDEPTYPE y ) override {
                         size_t nx, ny;

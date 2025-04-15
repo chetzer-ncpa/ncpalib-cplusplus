@@ -92,7 +92,7 @@ namespace NCPA {
             public:
                 virtual ~_abstract_extrapolator_1d() {}
 
-                DECLARE_FRIEND_SWAP_METHOD( _abstract_extrapolator_1d );
+                DECLARE_FRIEND_SWAP_METHOD_TEMPLATE2( _abstract_extrapolator_1d, INDEPTYPE, DEPTYPE );
 
                 virtual DEPTYPE extrapolate(
                     INDEPTYPE x, Interpolator1D<INDEPTYPE, DEPTYPE>& interp )

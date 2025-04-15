@@ -129,7 +129,9 @@ namespace NCPA {
 
                 // copy constructor
                 VectorWithUnits( const VectorWithUnits<T>& source ) :
-                    std::vector<T>( source ) {
+                    // std::vector<T>( source ) {
+                    VectorWithUnits() {
+                    this->assign( source.cbegin(), source.cend() );
                     _units = source._units;
                 }
 

@@ -56,7 +56,7 @@ namespace NCPA {
 
                 operator T() const { return _val; }
 
-                friend void ::swap( NCPA::arrays::_as<T>& a,
+                friend void ::swap<>( NCPA::arrays::_as<T>& a,
                                     NCPA::arrays::_as<T>& b ) noexcept;
 
 
