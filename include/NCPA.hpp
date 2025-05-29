@@ -15,3 +15,4 @@
 #include "NCPA/approx.hpp"
 #include "NCPA/atmosphere.hpp"
 #include "NCPA/logging.hpp"
+#include "NCPA/debug.hpp"
