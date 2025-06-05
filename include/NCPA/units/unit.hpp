@@ -292,11 +292,80 @@ namespace NCPA {
         const static Unit HOURS( "hour", { "hr" }, &SECONDS, 3600.0 );
         const static Unit DEGREES( "deg", { "degrees" }, &RADIANS,
                                    NCPA::math::PI / 180.0 );
-        // const static Unit ANGULAR_FREQUENCY( "omega", {}, &HERTZ, 2.0 * NCPA::math::PI );
+
+        // const static Unit ANGULAR_FREQUENCY( "omega", {}, &HERTZ, 2.0 *
+        // NCPA::math::PI );
 
         namespace details {
-            static std::unordered_map<std::string, const Unit *> _units_map;
-        }
+            class units_map_t
+                : public std::unordered_map<std::string, const Unit *> {
+                public:
+                    units_map_t()  {
+                        this->init_units();
+                    }
+
+                    void init_units() {
+                        if (this->size() == 0) {
+                            // register_unit( UNITLESS );
+                            register_unit( METERS );
+                            register_unit( KELVIN );
+                            register_unit( METERS_PER_SECOND );
+                            register_unit( PASCALS );
+                            register_unit( KILOGRAMS_PER_CUBIC_METER );
+                            register_unit( DECIBELS_PER_METER );
+                            register_unit( KILOGRAMS );
+                            register_unit( SECONDS );
+                            register_unit( RADIANS );
+                            // register_unit( HERTZ);
+
+                            register_unit( KILOMETERS );
+                            register_unit( MILLIMETERS );
+                            register_unit( CELSIUS );
+                            register_unit( FAHRENHEIT );
+                            register_unit( KILOMETERS_PER_SECOND );
+                            register_unit( HECTOPASCALS );
+                            register_unit( MILLIBARS );
+                            register_unit( ATMOSPHERES );
+                            register_unit( GRAMS_PER_CUBIC_CENTIMETER );
+                            register_unit( NEPERS_PER_METER );
+                            register_unit( DECIBELS_PER_KILOMETER );
+                            register_unit( GRAMS );
+                            register_unit( DAYS );
+                            register_unit( MINUTES );
+                            register_unit( HOURS );
+                            register_unit( DEGREES );
+                            // register_unit( AZIMUTH );
+                            // register_unit( AZIMUTH_RADIANS );
+                            // register_unit( ANGULAR_FREQUENCY );
+                        }
+                    }
+
+                    void register_unit(const Unit& u) {
+                        this->_add_unit_to_map( u.name(), &u );
+                        for (auto it = u.aliases().cbegin();
+                             it != u.aliases().cend(); ++it) {
+                            this->_add_unit_to_map( *it, &u );
+                        }
+                    }
+
+                    void _add_unit_to_map( const std::string& key,
+                                           const Unit *u ) {
+                        std::string capskey = NCPA::strings::to_upper( key );
+                        if (this->find( capskey ) == this->end()) {
+                            this->insert( { capskey, u } );
+                            // NCPA::units::details::_units_map[ capskey ] = u;
+                        } else {
+                            std::ostringstream oss;
+                            oss << "Unit with name or alias " << key
+                                << " is already registered";
+                            throw std::invalid_argument( oss.str() );
+                        }
+                    }
+            };
+
+            // static std::unordered_map<std::string, const Unit *> _units_map;
+            static units_map_t _units_map;
+        }  // namespace details
 
         class Units {
             public:
@@ -327,16 +396,16 @@ namespace NCPA {
                         N, values, *( Units::from_string( to ) ), converted );
                 }
 
-                static void register_unit( const Unit& u ) {
-                    _add_unit_to_map( u.name(), &u );
-                    for (auto it = u.aliases().cbegin();
-                         it != u.aliases().cend(); ++it) {
-                        _add_unit_to_map( *it, &u );
-                    }
-                }
+                // static void register_unit( const Unit& u ) {
+                //     _add_unit_to_map( u.name(), &u );
+                //     for (auto it = u.aliases().cbegin();
+                //          it != u.aliases().cend(); ++it) {
+                //         _add_unit_to_map( *it, &u );
+                //     }
+                // }
 
                 static const Unit *from_string( const std::string& key ) {
-                    _init_map();
+                    // init_map();
                     return NCPA::units::details::_units_map.at(
                         NCPA::strings::to_upper( key ) );
                 }
@@ -347,6 +416,41 @@ namespace NCPA {
                         *from_string( u2 ) );
                 }
 
+                // static void init_map() {
+                //     if (NCPA::units::details::_units_map.size() == 0) {
+                //         // register_unit( UNITLESS );
+                //         register_unit( METERS );
+                //         register_unit( KELVIN );
+                //         register_unit( METERS_PER_SECOND );
+                //         register_unit( PASCALS );
+                //         register_unit( KILOGRAMS_PER_CUBIC_METER );
+                //         register_unit( DECIBELS_PER_METER );
+                //         register_unit( KILOGRAMS );
+                //         register_unit( SECONDS );
+                //         register_unit( RADIANS );
+                //         // register_unit( HERTZ);
+
+                //         register_unit( KILOMETERS );
+                //         register_unit( MILLIMETERS );
+                //         register_unit( CELSIUS );
+                //         register_unit( FAHRENHEIT );
+                //         register_unit( KILOMETERS_PER_SECOND );
+                //         register_unit( HECTOPASCALS );
+                //         register_unit( MILLIBARS );
+                //         register_unit( ATMOSPHERES );
+                //         register_unit( GRAMS_PER_CUBIC_CENTIMETER );
+                //         register_unit( NEPERS_PER_METER );
+                //         register_unit( DECIBELS_PER_KILOMETER );
+                //         register_unit( GRAMS );
+                //         register_unit( DAYS );
+                //         register_unit( MINUTES );
+                //         register_unit( HOURS );
+                //         register_unit( DEGREES );
+                //         // register_unit( AZIMUTH );
+                //         // register_unit( AZIMUTH_RADIANS );
+                //         // register_unit( ANGULAR_FREQUENCY );
+                //     }
+                // }
 
             private:
                 static void _add_unit_to_map( const std::string& key,
@@ -360,42 +464,6 @@ namespace NCPA {
                         oss << "Unit with name or alias " << key
                             << " is already registered";
                         throw std::invalid_argument( oss.str() );
-                    }
-                }
-
-                static void _init_map() {
-                    if (NCPA::units::details::_units_map.size() == 0) {
-                        // register_unit( UNITLESS );
-                        register_unit( METERS );
-                        register_unit( KELVIN );
-                        register_unit( METERS_PER_SECOND );
-                        register_unit( PASCALS );
-                        register_unit( KILOGRAMS_PER_CUBIC_METER );
-                        register_unit( DECIBELS_PER_METER );
-                        register_unit( KILOGRAMS );
-                        register_unit( SECONDS );
-                        register_unit( RADIANS );
-                        // register_unit( HERTZ);
-
-                        register_unit( KILOMETERS );
-                        register_unit( MILLIMETERS );
-                        register_unit( CELSIUS );
-                        register_unit( FAHRENHEIT );
-                        register_unit( KILOMETERS_PER_SECOND );
-                        register_unit( HECTOPASCALS );
-                        register_unit( MILLIBARS );
-                        register_unit( ATMOSPHERES );
-                        register_unit( GRAMS_PER_CUBIC_CENTIMETER );
-                        register_unit( NEPERS_PER_METER );
-                        register_unit( DECIBELS_PER_KILOMETER );
-                        register_unit( GRAMS );
-                        register_unit( DAYS );
-                        register_unit( MINUTES );
-                        register_unit( HOURS );
-                        register_unit( DEGREES );
-                        // register_unit( AZIMUTH );
-                        // register_unit( AZIMUTH_RADIANS );
-                        // register_unit( ANGULAR_FREQUENCY );
                     }
                 }
         };
