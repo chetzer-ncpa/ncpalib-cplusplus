@@ -92,8 +92,8 @@ namespace NCPA {
                     }
 
                 private:
-                    std::ostream *_stream;
                     NCPA::logging::log_level_t _level, _current_level;
+                    std::ostream *_stream;
             };
 
             class _file_logger : public _logger {
