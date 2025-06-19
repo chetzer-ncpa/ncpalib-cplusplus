@@ -92,8 +92,8 @@ namespace NCPA {
                     }
 
                 private:
-                    std::ostream *_stream;
                     NCPA::logging::log_level_t _level, _current_level;
+                    std::ostream *_stream;
             };
 
             class _file_logger : public _logger {
@@ -248,9 +248,20 @@ namespace NCPA {
                 std::string _default;
         };
 
+        static constexpr log_level_t default_level() {
+            return details::_default_log_level;
+        }
+        static constexpr bool default_level_is_debug() {
+            return (default_level() == log_level_t::DEBUG);
+        }
+
         static Logger logger = Logger::logger();
 
     }  // namespace logging
 }  // namespace NCPA
 
 #define NCPA_DEBUG NCPA::logging::logger << NCPA::logging::log_level_t::DEBUG
+#define NCPA_INFO  NCPA::logging::logger << NCPA::logging::log_level_t::INFO
+#define NCPA_ERROR NCPA::logging::logger << NCPA::logging::log_level_t::ERROR
+#define NCPA_WARNING NCPA::logging::logger << NCPA::logging::log_level_t::WARNING
+#define NCPA_CRITICAL NCPA::logging::logger << NCPA::logging::log_level_t::CRITICAL

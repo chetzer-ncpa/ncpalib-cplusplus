@@ -2,6 +2,7 @@
 
 // general definitions
 #include "NCPA/linearalgebra/defines.hpp"
+#include "NCPA/linearalgebra/debug.hpp"
 
 // vector classes
 #include "NCPA/linearalgebra/abstract_vector.hpp"

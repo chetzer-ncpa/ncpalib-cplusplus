@@ -19,15 +19,15 @@
 namespace NCPA {
     namespace math {
 
-        using NCPA::constants::PI;
         using NCPA::constants::I;
-        using NCPA::constants::zero;
-        using NCPA::constants::one;
         using NCPA::constants::is_zero;
+        using NCPA::constants::one;
+        using NCPA::constants::PI;
+        using NCPA::constants::zero;
 
         // template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
         // bool is_zero( T val ) {
-            // return ( std::fpclassify( val ) == FP_ZERO );
+        // return ( std::fpclassify( val ) == FP_ZERO );
         // }
 
         // template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
@@ -35,12 +35,11 @@ namespace NCPA {
         //     return is_zero( val.real() ) && is_zero( val.imag() );
         // }
 
-        
 
         template<typename T>
         bool equals( T x, T y, size_t n = 1,
                      ENABLE_FUNCTION_IF_ARITHMETIC( T ) ) {
-            if ( std::numeric_limits<T>::is_exact ) {
+            if (std::numeric_limits<T>::is_exact) {
                 return x == y;
             } else {
                 // Since `epsilon()` is the gap size (ULP, unit in the last
@@ -69,6 +68,16 @@ namespace NCPA {
         }
 
         template<typename T>
+        bool is_even( T x, ENABLE_FUNCTION_IF_INTEGRAL( T ) ) {
+            return ( ( x & 1 ) == 0 );
+        }
+
+        template<typename T>
+        bool is_odd( T x, ENABLE_FUNCTION_IF_INTEGRAL( T ) ) {
+            return !is_even( x );
+        }
+
+        template<typename T>
         bool equals( T x, T y, size_t n = 1,
                      ENABLE_FUNCTION_IF_COMPLEX( T ) ) {
             return equals( x.real(), y.real() )
@@ -83,9 +92,9 @@ namespace NCPA {
          */
         template<typename T>
         int sign( T n ) {
-            if ( n > 0 ) {
+            if (n > 0) {
                 return 1;
-            } else if ( n < 0 ) {
+            } else if (n < 0) {
                 return -1;
             } else {
                 return 0;
@@ -108,20 +117,20 @@ namespace NCPA {
         template<typename T>
         bool find_interval_inclusive( const T *z, size_t NZ, T val,
                                       size_t& bottom, size_t& top ) {
-            const double *it  = std::lower_bound( z, z + NZ, val );
-            size_t diff = it - z;
-            if ( diff == 0 ) {
+            const double *it = std::lower_bound( z, z + NZ, val );
+            size_t diff      = it - z;
+            if (diff == 0) {
                 bottom = 0;
-                if ( val < z[ 0 ] ) {
+                if (val < z[ 0 ]) {
                     top = 0;
                     return false;
                 } else {
                     top = 1;
                     return true;
                 }
-            } else if ( diff == NZ ) {
+            } else if (diff == NZ) {
                 top = NZ;
-                if ( val > z[ NZ - 1 ] ) {
+                if (val > z[ NZ - 1 ]) {
                     bottom = NZ;
                     return false;
                 } else {
@@ -153,15 +162,15 @@ namespace NCPA {
         */
         template<typename T>
         size_t find_closest_index( T *z, size_t NZ, T zs ) {
-            if ( NZ == 1 ) {
+            if (NZ == 1) {
                 return 0;
             }
             double diff = 0.0, mindiff = std::numeric_limits<T>::max();
             size_t tmpind = 0;
 
-            for ( size_t i = 0; i < NZ; i++ ) {
+            for (size_t i = 0; i < NZ; i++) {
                 diff = std::fabs( ( (double)z[ i ] ) - ( (double)zs ) );
-                if ( diff < mindiff ) {
+                if (diff < mindiff) {
                     tmpind  = i;
                     mindiff = diff;
                 }
@@ -181,22 +190,20 @@ namespace NCPA {
         */
         template<typename T>
         size_t find_closest_index( std::vector<T> z, T zs ) {
-            if ( z.size() == 1 ) {
+            if (z.size() == 1) {
                 return 0;
             }
             T diff = 0.0, mindiff = std::numeric_limits<T>::max();
             size_t tmpind = 0, i;
-            for ( i = 0; i < z.size(); i++ ) {
+            for (i = 0; i < z.size(); i++) {
                 diff = std::abs( z[ i ] - zs );
-                if ( diff < mindiff ) {
+                if (diff < mindiff) {
                     tmpind  = i;
                     mindiff = diff;
                 }
             }
             return tmpind;
         }
-
-        
 
         /**
         @brief Converts from Cartesian to polar coordinates.
@@ -211,7 +218,7 @@ namespace NCPA {
             r = std::sqrt( x * x + y * y );
             try {
                 theta_rad = std::atan2( y, x );
-            } catch ( std::domain_error e ) {
+            } catch (std::domain_error e) {
                 theta_rad = 0.0;
             }
         }
@@ -257,7 +264,7 @@ namespace NCPA {
         template<typename T>
         T math2az( T deg_in ) {
             T deg_out = ( (T)90.0 ) - deg_in;
-            while ( deg_out < 0.0 ) {
+            while (deg_out < 0.0) {
                 deg_out += 360.0;
             }
             return deg_out;
@@ -271,7 +278,7 @@ namespace NCPA {
         template<typename T>
         T az2math( T deg_in ) {
             T deg_out = ( (T)90.0 ) - deg_in;
-            while ( deg_out < 0.0 ) {
+            while (deg_out < 0.0) {
                 deg_out += 360.0;
             }
             return deg_out;
@@ -285,7 +292,7 @@ namespace NCPA {
         template<typename T>
         T max( const std::vector<T>& vals ) {
             T maxval = vals.front();
-            for ( auto cit = vals.cbegin(); cit != vals.cend(); ++cit ) {
+            for (auto cit = vals.cbegin(); cit != vals.cend(); ++cit) {
                 maxval = std::max( *cit, maxval );
             }
             return maxval;
@@ -301,8 +308,8 @@ namespace NCPA {
         size_t index_of_max( const T *vals, size_t size ) {
             T maxval   = vals[ 0 ];
             size_t ind = 0;
-            for ( size_t i = 1; i < size; i++ ) {
-                if ( vals[ i ] > maxval ) {
+            for (size_t i = 1; i < size; i++) {
+                if (vals[ i ] > maxval) {
                     maxval = vals[ i ];
                     ind    = i;
                 }
@@ -319,7 +326,7 @@ namespace NCPA {
         template<typename T>
         T max( const T *vals, size_t size ) {
             T maxval = vals[ 0 ];
-            for ( size_t i = 1; i < size; i++ ) {
+            for (size_t i = 1; i < size; i++) {
                 maxval = std::max( vals[ i ], maxval );
             }
             return maxval;
@@ -334,8 +341,8 @@ namespace NCPA {
         size_t index_of_max( const std::vector<T>& vals ) {
             T maxval   = vals[ 0 ];
             size_t ind = 0;
-            for ( size_t i = 1; i < vals.size(); i++ ) {
-                if ( vals[ i ] > maxval ) {
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (vals[ i ] > maxval) {
                     maxval = vals[ i ];
                     ind    = i;
                 }
@@ -352,7 +359,7 @@ namespace NCPA {
         template<typename T>
         T min( const T *vals, size_t size ) {
             T minval = vals[ 0 ];
-            for ( size_t i = 1; i < size; i++ ) {
+            for (size_t i = 1; i < size; i++) {
                 minval = std::min( vals[ i ], minval );
             }
             return minval;
@@ -368,8 +375,8 @@ namespace NCPA {
         size_t index_of_min( const T *vals, size_t size ) {
             T minval   = vals[ 0 ];
             size_t ind = 0;
-            for ( size_t i = 1; i < size; i++ ) {
-                if ( vals[ i ] < minval ) {
+            for (size_t i = 1; i < size; i++) {
+                if (vals[ i ] < minval) {
                     minval = vals[ i ];
                     ind    = i;
                 }
@@ -385,7 +392,7 @@ namespace NCPA {
         template<typename T>
         T min( const std::vector<T>& vals ) {
             T minval = vals.front();
-            for ( auto cit = vals.cbegin(); cit != vals.cend(); ++cit ) {
+            for (auto cit = vals.cbegin(); cit != vals.cend(); ++cit) {
                 minval = std::min( *cit, minval );
             }
             return minval;
@@ -400,8 +407,8 @@ namespace NCPA {
         size_t index_of_min( const std::vector<T>& vals ) {
             T minval   = vals.front();
             size_t ind = 0;
-            for ( size_t i = 1; i < vals.size(); i++ ) {
-                if ( vals[ i ] < minval ) {
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (vals[ i ] < minval) {
                     minval = vals[ i ];
                     ind    = i;
                 }
@@ -410,7 +417,8 @@ namespace NCPA {
         }
 
         /**
-        Finds and returns the indices of a grid point nearest to a supplied point.
+        Finds and returns the indices of a grid point nearest to a supplied
+        point.
         @brief Finds the index of the closest grid point to a coordinate pair.
         @param _x1 The first dimension grid points
         @param _x2 The second dimension grid points
@@ -423,12 +431,16 @@ namespace NCPA {
                                                       std::vector<T> _x2, T x1,
                                                       T x2 ) {
             size_t minind1, maxind1, minind2, maxind2, ind1, ind2;
-            if (!NCPA::math::find_interval_inclusive( _x1, x1, minind1, maxind1 ) && minind1 > 0) {
+            if (!NCPA::math::find_interval_inclusive( _x1, x1, minind1,
+                                                      maxind1 )
+                && minind1 > 0) {
                 --minind1;
                 --maxind1;
             }
-            
-            if (!NCPA::math::find_interval_inclusive( _x2, x2, minind2, maxind2 ) && minind2 > 0) {
+
+            if (!NCPA::math::find_interval_inclusive( _x2, x2, minind2,
+                                                      maxind2 )
+                && minind2 > 0) {
                 --minind2;
                 --maxind2;
             }
@@ -442,7 +454,7 @@ namespace NCPA {
                                + NCPA::math::square( x2 - _x2[ maxind2 ] ) ),
                     std::sqrt( NCPA::math::square( x1 - _x1[ maxind1 ] )
                                + NCPA::math::square( x2 - _x2[ maxind2 ] ) ) };
-            switch ( NCPA::math::index_of_min( distance_to_corners ) ) {
+            switch (NCPA::math::index_of_min( distance_to_corners )) {
                 case 0:
                     return { minind1, minind2 };
                     break;
@@ -473,7 +485,7 @@ namespace NCPA {
         std::vector<std::complex<T>> real2complex( const std::vector<T>& in ) {
             std::vector<std::complex<T>> out;
             out.reserve( in.size() );
-            for ( auto it = in.cbegin(); it != in.cend(); ++it ) {
+            for (auto it = in.cbegin(); it != in.cend(); ++it) {
                 out.push_back( std::complex<T>( *it, 0.0 ) );
             }
             return out;
@@ -489,7 +501,7 @@ namespace NCPA {
          */
         template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void real2complex( size_t n, const T *in, std::complex<T> *out ) {
-            for ( size_t i = 0; i < n; i++ ) {
+            for (size_t i = 0; i < n; i++) {
                 out[ i ] = std::complex<T>( in[ i ], 0.0 );
             }
         }
@@ -509,11 +521,11 @@ namespace NCPA {
             size_t Ni = imag.size();
             size_t N  = std::max( Nr, Ni );
             std::vector<std::complex<T>> out( N );
-            for ( size_t i = 0; i < N; i++ ) {
-                if ( i < Nr ) {
+            for (size_t i = 0; i < N; i++) {
+                if (i < Nr) {
                     out[ i ].real( real[ i ] );
                 }
-                if ( i < Ni ) {
+                if (i < Ni) {
                     out[ i ].imag( imag[ i ] );
                 }
             }
@@ -533,7 +545,7 @@ namespace NCPA {
         template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void real2complex( size_t n, const T *real, const T *imag,
                            std::complex<T> *out ) {
-            for ( size_t i = 0; i < n; i++ ) {
+            for (size_t i = 0; i < n; i++) {
                 out[ i ] = std::complex<T>( real[ i ], imag[ i ] );
             }
         }
@@ -552,7 +564,7 @@ namespace NCPA {
                            std::vector<T>& real, std::vector<T>& imag ) {
             real.resize( in.size() );
             imag.resize( in.size() );
-            for ( size_t i = 0; i < in.size(); i++ ) {
+            for (size_t i = 0; i < in.size(); i++) {
                 real[ i ] = in[ i ].real();
                 imag[ i ] = in[ i ].imag();
             }
@@ -571,7 +583,7 @@ namespace NCPA {
         template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
         void complex2real( size_t n, const std::complex<T> *in, T *real,
                            T *imag ) {
-            for ( size_t i = 0; i < n; i++ ) {
+            for (size_t i = 0; i < n; i++) {
                 real[ i ] = in[ i ].real();
                 imag[ i ] = in[ i ].imag();
             }
@@ -594,7 +606,7 @@ namespace NCPA {
             std::mt19937 generator( rd() );
             std::uniform_int_distribution<T> distribution( minrange,
                                                            maxrange );
-            for ( size_t i = 0; i < N; i++ ) {
+            for (size_t i = 0; i < N; i++) {
                 randn.push_back( distribution( generator ) );
             }
             return randn;
@@ -609,7 +621,7 @@ namespace NCPA {
             std::mt19937 generator( rd() );
             std::uniform_real_distribution<T> distribution( minrange,
                                                             maxrange );
-            for ( size_t i = 0; i < N; i++ ) {
+            for (size_t i = 0; i < N; i++) {
                 randn.push_back( distribution( generator ) );
             }
             return randn;
@@ -684,7 +696,7 @@ namespace NCPA {
         template<typename T>
         T evalpoly( const std::vector<T>& coeffs, T x ) {
             T val = 0.0;
-            for ( size_t i = 0; i < coeffs.size(); i++ ) {
+            for (size_t i = 0; i < coeffs.size(); i++) {
                 val += coeffs[ i ] * std::pow( x, (double)i );
             }
             return val;
@@ -733,7 +745,7 @@ namespace NCPA {
         std::vector<T> linspace( T firstval, T lastval, size_t N ) {
             T stepsize = ( lastval - firstval ) / ( (T)( N - 1 ) );
             std::vector<T> vec( N );
-            for ( size_t i = 0; i < N; i++ ) {
+            for (size_t i = 0; i < N; i++) {
                 vec[ i ] = firstval + (T)i * stepsize;
             }
             return vec;
@@ -751,7 +763,7 @@ namespace NCPA {
         */
         template<typename T>
         void linspace( T firstval, T lastval, size_t N, T *& vec ) {
-            if ( vec == nullptr ) {
+            if (vec == nullptr) {
                 vec = NCPA::arrays::zeros<T>( N );
             }
             std::vector<T> tmpvec = linspace<T>( firstval, lastval, N );
@@ -776,7 +788,7 @@ namespace NCPA {
             T la                = std::log10( firstval );
             T lb                = std::log10( lastval );
             std::vector<T> logs = NCPA::math::linspace( la, lb, N );
-            for ( size_t i = 0; i < N; i++ ) {
+            for (size_t i = 0; i < N; i++) {
                 logs[ i ] = std::pow( (T)( 10.0 ), logs[ i ] );
             }
             return logs;
@@ -801,7 +813,7 @@ namespace NCPA {
                        ENABLE_FUNCTION_IF_REAL( T ) ) {
             // static_assert( std::floating_point<T>, "logspace() only supports
             // floating-point types" );
-            if ( ls == nullptr ) {
+            if (ls == nullptr) {
                 ls = NCPA::arrays::zeros<T>( N );
             }
             std::vector<T> tmpvec = logspace<T>( a, b, N );
@@ -818,7 +830,7 @@ namespace NCPA {
         T mean( const std::vector<T>& d ) {
             T m  = 0;
             T Tn = (T)( d.size() );
-            for ( T val : d ) {
+            for (T val : d) {
                 m += val / Tn;
             }
             return m;
@@ -847,7 +859,7 @@ namespace NCPA {
         T trapz( size_t N, T *xvec, T *yvec ) {
             assert( N > 1 );
             T sum = 0.0;
-            for ( size_t i = 1; i < N; i++ ) {
+            for (size_t i = 1; i < N; i++) {
                 sum += ( yvec[ i ] + yvec[ i - 1 ] ) * 0.5
                      * ( xvec[ i ] - xvec[ i - 1 ] );
             }
@@ -855,4 +867,3 @@ namespace NCPA {
         }
     }  // namespace math
 }  // namespace NCPA
-
