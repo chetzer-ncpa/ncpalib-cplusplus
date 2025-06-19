@@ -1014,6 +1014,17 @@ namespace NCPA {
                     return inds;
                 }
 
+                // virtual abstract_matrix<ELEMENTTYPE>& operator-() const override {
+                //     band_diagonal_matrix<ELEMENTTYPE> neg(*this);
+                //     ELEMENTTYPE negone = -NCPA::math::one<ELEMENTTYPE>();
+                //     for (auto it = neg._contents.begin(); it != neg._contents.end(); ++it) {
+                //         for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
+                //             NCPA::arrays::scale_vector( *it2, negone );
+                //         }
+                //     }
+                //     return neg;
+                // }
+
                 virtual std::vector<std::vector<ELEMENTTYPE>>& contents() {
                     return _contents;
                 }

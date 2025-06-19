@@ -553,8 +553,6 @@ namespace NCPA {
                 }
 
                 // Getting values out
-
-
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                     get_diagonal( int offset = 0 ) const {
                     size_t absoffset = (size_t)( std::abs( offset ) );
@@ -578,6 +576,8 @@ namespace NCPA {
                 }
 
                 // operators
+                // virtual abstract_matrix<ELEMENTTYPE>& operator-() const  = 0;
+
                 virtual abstract_matrix<ELEMENTTYPE>& operator+=(
                     const abstract_matrix<ELEMENTTYPE>& other ) {
                     add( other );

@@ -777,6 +777,12 @@ namespace NCPA {
                     return this->scale( other );
                 }
 
+                virtual Matrix<ELEMENTTYPE> operator-() const {
+                    Matrix<ELEMENTTYPE> m = *this;
+                    m.scale( -NCPA::math::one<ELEMENTTYPE>() );
+                    return m;
+                }
+
                 // friend operators
                 friend std::ostream& operator<<(
                     std::ostream& os, const Matrix<ELEMENTTYPE>& mat ) {

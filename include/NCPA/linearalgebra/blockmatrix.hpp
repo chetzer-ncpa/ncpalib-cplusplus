@@ -137,9 +137,17 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual matrix_t block_type() const { return _blocktype; }
+
                 virtual BlockMatrix& resize( size_t rows, size_t cols,
                                              size_t blockrows,
                                              size_t blockcols ) {
+                    _checkthis();
+                    if (rows == _rows_of_blocks && cols == _cols_of_blocks
+                        && blockrows == _rows_per_block
+                        && blockcols == _cols_per_block) {
+                        return *this;
+                    }
                     std::vector<Matrix<ELEMENTTYPE>> _newelements( rows
                                                                    * cols );
                     for (size_t rowind = 0; rowind < rows; ++rowind) {
@@ -166,6 +174,11 @@ namespace NCPA {
                     _cols_per_block = blockcols;
                     std::swap( _elements, _newelements );
                     return *this;
+                }
+
+                virtual BlockMatrix& resize( size_t rows, size_t cols ) {
+                    return this->resize( rows, cols, _rows_per_block,
+                                         _cols_per_block );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& identity() {
@@ -212,16 +225,21 @@ namespace NCPA {
                              && this->block_rows() == this->block_columns() );
                 }
 
-                virtual bool is_row_matrix() const {
-                    return ( this->rows() == 1 );
-                }
-
-                virtual bool is_column_matrix() const {
-                    return ( this->columns() == 1 );
-                }
-
                 virtual bool is_empty() const {
                     return ( this->rows() == 0 && this->columns() == 0 );
+                }
+
+                virtual bool is_zero() const {
+                    if (this->is_empty()) {
+                        return true;
+                    }
+                    for (auto it = _elements.cbegin(); it != _elements.cend();
+                         ++it) {
+                        if (!it->is_zero()) {
+                            return false;
+                        }
+                    }
+                    return true;
                 }
 
                 virtual bool is_identity() const {
@@ -247,7 +265,8 @@ namespace NCPA {
                         // is [i,i+di].  Matching lower diagonal coordinate is
                         // [i+di,i]
                         for (size_t i = 0; i < this->block_rows() - di; ++i) {
-                            Matrix<ELEMENTTYPE> testmat = this->get_block( i + di, i );
+                            Matrix<ELEMENTTYPE> testmat
+                                = this->get_block( i + di, i );
                             testmat.transpose();
                             if (this->get_block( i, i + di ) != testmat) {
                                 return false;
@@ -275,6 +294,9 @@ namespace NCPA {
                         // coordinate is [i+di,i]
                         for (size_t i = 0; i < ndiag - di; ++i) {
                             if (!this->get_block( i, i + di ).is_zero()) {
+                                return false;
+                            }
+                            if (!this->get_block( i + di, i ).is_zero()) {
                                 return false;
                             }
                         }
@@ -328,7 +350,7 @@ namespace NCPA {
                     size_t row ) const {
                     _checkthis();
                     if (*this && this->rows() > row) {
-                        size_t rowstartblockind = _blockindex( row, 0 );
+                        size_t rowstartblockind = _rc2blockindex( row, 0 );
                         std::unique_ptr<Vector<ELEMENTTYPE>> r
                             = _elements.at( rowstartblockind )
                                   .get_row( _r2blockrow( row ) );
@@ -358,14 +380,16 @@ namespace NCPA {
                     size_t col ) const {
                     _checkthis();
                     if (*this && this->columns() > col) {
-                        size_t colstartblockind = _blockindex( 0, col );
+                        size_t colstartblockind = _rc2blockindex( 0, col );
                         std::unique_ptr<Vector<ELEMENTTYPE>> c
                             = _elements.at( colstartblockind )
                                   .get_column( _c2blockcol( col ) );
                         c->resize( this->rows() );
                         for (size_t r = 1; r < this->block_rows(); ++r) {
                             std::unique_ptr<Vector<ELEMENTTYPE>> rc
-                                = _elements.at( colstartblockind + r )
+                                = _elements
+                                      .at( colstartblockind
+                                           + r * _cols_of_blocks )
                                       .get_column( _c2blockcol( col ) );
                             std::vector<size_t> nz = rc->nonzero_indices();
                             for (auto nzit = nz.cbegin(); nzit != nz.cend();
@@ -405,7 +429,7 @@ namespace NCPA {
                         // case 1: square
                         if (sizediff == 0) {
                             ndiag    = (int)this->rows() - std::abs( offset );
-                            startrow = 0;
+                            startrow = offset < 0 ? -offset : 0;
                         } else if (sizediff > 0) {
                             if (offset >= 0) {
                                 // case 2: row-dominant, main or upper diagonal
@@ -460,7 +484,7 @@ namespace NCPA {
                     }
                 }
 
-                virtual Matrix<ELEMENTTYPE> as_matrix() {
+                virtual Matrix<ELEMENTTYPE> as_matrix() const {
                     _checkthis();
                     Matrix<ELEMENTTYPE> m
                         = MatrixFactory<ELEMENTTYPE>::build( _blocktype );
@@ -486,8 +510,8 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& zero( size_t r, size_t c ) {
                     _checkthis();
-                    _elements[ _blockindex( r, c ) ].zero( _r2blockrow( r ),
-                                                           _c2blockcol( c ) );
+                    _elements[ _rc2blockindex( r, c ) ].zero(
+                        _r2blockrow( r ), _c2blockcol( c ) );
                     return *this;
                 }
 
@@ -517,7 +541,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual BlockMatrix<ELEMENTTYPE> transpose() const {
+                virtual BlockMatrix<ELEMENTTYPE> transpose() {
                     _checkthis();
                     BlockMatrix<ELEMENTTYPE> T( _blocktype );
                     T.resize( this->block_columns(), this->block_rows(),
@@ -525,10 +549,28 @@ namespace NCPA {
                               this->rows_per_block() );
                     for (size_t r = 0; r < this->block_rows(); ++r) {
                         for (size_t c = 0; c < this->block_columns(); ++c) {
-                            T.set_block( c, r, this->get_block( r, c ) );
+                            auto Tt = this->get_block( r, c );
+                            Tt.transpose();
+                            T.set_block( c, r, Tt );
                         }
                     }
-                    return T;
+                    swap( *this, T );
+                    return *this;
+                }
+
+                virtual BlockMatrix<ELEMENTTYPE>& like(
+                    const BlockMatrix<ELEMENTTYPE>& other ) {
+                    this->resize( other.block_rows(), other.block_columns(),
+                                  other.rows_per_block(),
+                                  other.columns_per_block() );
+                    return *this;
+                }
+
+                virtual bool same( const BlockMatrix<ELEMENTTYPE>& other ) const {
+                    return (this->block_rows() == other.block_rows()
+                            && this->block_columns() == other.block_columns()
+                        && this->rows_per_block() == other.rows_per_block()
+                        && this->columns_per_block() == other.columns_per_block() );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& add(
@@ -629,7 +671,13 @@ namespace NCPA {
                 virtual bool equals(
                     const BlockMatrix<ELEMENTTYPE>& other ) const {
                     // compare structure
-                    if (!( *this && other && this->rows() == other.rows()
+                    if (( (bool)*this ) != ( (bool)other )) {
+                        return false;
+                    }
+                    if (!*this && !other) {
+                        return true;
+                    }
+                    if (!( this->rows() == other.rows()
                            && this->columns() == other.columns()
                            && this->block_rows() == other.block_rows()
                            && this->block_columns()
@@ -644,6 +692,28 @@ namespace NCPA {
                            && it2 != other._elements.cend();
                          ++it1, ++it2) {
                         if (*it1 != *it2) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
+                    // compare structure
+                    if (( (bool)*this ) != ( (bool)other )) {
+                        return false;
+                    }
+                    if (!*this && !other) {
+                        return true;
+                    }
+                    if (!( this->rows() == other.rows()
+                           && this->columns() == other.columns() )) {
+                        return false;
+                    }
+
+                    // compare contents
+                    for (size_t r = 0; r < this->rows(); ++r) {
+                        if (*this->get_row( r ) != *other.get_row( r )) {
                             return false;
                         }
                     }
@@ -687,6 +757,16 @@ namespace NCPA {
                     return a.equals( b );
                 }
 
+                friend bool operator==( const BlockMatrix<ELEMENTTYPE>& a,
+                                        const Matrix<ELEMENTTYPE>& b ) {
+                    return a.equals( b );
+                }
+
+                friend bool operator==( const Matrix<ELEMENTTYPE>& a,
+                                        const BlockMatrix<ELEMENTTYPE>& b ) {
+                    return b.equals( a );
+                }
+
                 friend bool operator!=( const BlockMatrix<ELEMENTTYPE>& a,
                                         const BlockMatrix<ELEMENTTYPE>& b ) {
                     return !( a.equals( b ) );
@@ -722,6 +802,12 @@ namespace NCPA {
                     return out;
                 }
 
+                virtual BlockMatrix<ELEMENTTYPE> operator-() const {
+                    BlockMatrix<ELEMENTTYPE> m = *this;
+                    m.scale( -NCPA::math::one<ELEMENTTYPE>() );
+                    return m;
+                }
+
                 // friend BlockMatrix<ELEMENTTYPE> operator-(
                 //     const BlockMatrix<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
                 //     BlockMatrix<ELEMENTTYPE> out( c1 );
@@ -734,6 +820,22 @@ namespace NCPA {
                     const BlockMatrix<ELEMENTTYPE>& c2 ) {
                     BlockMatrix<ELEMENTTYPE> out( c1 );
                     out *= c2;
+                    return out;
+                }
+
+                friend NCPA::linear::Matrix<ELEMENTTYPE> operator*(
+                    const BlockMatrix<ELEMENTTYPE>& c1,
+                    const Matrix<ELEMENTTYPE>& c2 ) {
+                    Matrix<ELEMENTTYPE> out = c1.as_matrix();
+                    out *= c2;
+                    return out;
+                }
+
+                friend NCPA::linear::Matrix<ELEMENTTYPE> operator*(
+                    const Matrix<ELEMENTTYPE>& c1,
+                    const BlockMatrix<ELEMENTTYPE>& c2 ) {
+                    Matrix<ELEMENTTYPE> out( c1 );
+                    out *= c2.as_matrix();
                     return out;
                 }
 

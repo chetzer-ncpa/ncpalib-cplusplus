@@ -357,6 +357,17 @@ std:
                     return true;
                 }
 
+                // virtual abstract_matrix<ELEMENTTYPE>& operator-() const override {
+                //     dense_matrix<ELEMENTTYPE> neg( this->rows(), this->columns() );
+                //     ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
+                //     for (size_t r = 0; r < this->rows(); ++r) {
+                //         for (size_t c = 0; c < this->columns(); ++c) {
+                //             neg.set( r, c, this->get( r, c ) * -one );
+                //         }
+                //     } 
+                //     return neg;
+                // }
+
             protected:
                 ELEMENTTYPE *_contents = nullptr;
                 size_t _rows = 0, _cols = 0;
