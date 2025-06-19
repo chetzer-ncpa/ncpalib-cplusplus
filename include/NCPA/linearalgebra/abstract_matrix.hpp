@@ -95,6 +95,7 @@ namespace NCPA {
                 virtual bool is_this_subclass(
                     const abstract_matrix<ELEMENTTYPE>& b ) const
                     = 0;
+                virtual bool is_zero( double tol = 1.0e-12 ) const = 0;
 
                 virtual abstract_matrix<ELEMENTTYPE>& finalize() { return *this; }
                 virtual bool is_finalized() const { return true; }

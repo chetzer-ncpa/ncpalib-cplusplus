@@ -139,6 +139,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual std::vector<size_t> nonzero_indices() const {
+                    return this->_ptr->nonzero_indices();
+                }
+
                 virtual Vector<ELEMENTTYPE>& as_array( size_t n,
                                                        ELEMENTTYPE *& vals ) {
                     check_pointer();

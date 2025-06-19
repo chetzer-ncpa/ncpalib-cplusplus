@@ -344,25 +344,18 @@ std:
                     }
                 }
 
-                // typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
-                //     begin() noexcept {
-                //     return _elements.begin();
-                // }
-
-                // typename std::vector<dense_vector<ELEMENTTYPE>>::iterator
-                //     end() noexcept {
-                //     return _elements.end();
-                // }
-
-                // typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
-                //     cbegin() const noexcept {
-                //     return _elements.cbegin();
-                // }
-
-                // typename std::vector<dense_vector<ELEMENTTYPE>>::const_iterator
-                //     cend() const noexcept {
-                //     return _elements.cend();
-                // }
+                virtual bool is_zero( double tol = 1.0e-12 ) const override {
+                    if ( this->is_empty() ) {
+                        return true;
+                    }
+                    for (size_t i = 0; i < _rows*_cols; ++i) {
+                            if (std::abs( _contents[i] - _zero) > tol) {
+                                return false;
+                            }
+                        
+                    }
+                    return true;
+                }
 
             protected:
                 ELEMENTTYPE *_contents = nullptr;
@@ -370,6 +363,7 @@ std:
                 bool _finalized = false;
 
                 // std::vector<dense_vector<ELEMENTTYPE>> _elements;
+                const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
 
                 size_t _rc2ind( size_t row, size_t col ) const {
                     return row * _cols + col;

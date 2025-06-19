@@ -26,6 +26,7 @@ namespace NCPA {
             public:
                 friend class Vector<ELEMENTTYPE>;
                 friend class LUDecomposition<ELEMENTTYPE>;
+                friend class BlockMatrix<ELEMENTTYPE>;
 
                 Matrix() {}
 
@@ -119,6 +120,10 @@ namespace NCPA {
                     return ( _ptr ? _ptr->is_empty() : true );
                 }
 
+                virtual bool is_zero() const {
+                    return ( _ptr ? _ptr->is_zero() : true );
+                }
+
                 virtual bool is_identity() const {
                     return ( _ptr ? _ptr->is_identity() : true );
                 }
@@ -191,20 +196,6 @@ namespace NCPA {
                         return _zero;
                     }
                 }
-
-                // virtual std::unique_ptr<Matrix<ELEMENTTYPE>> get_row(
-                //     size_t row ) const {
-                //     if ( _ptr ) {
-                //         std::unique_ptr<Matrix<ELEMENTTYPE>> rowmat(
-                //             new Matrix<ELEMENTTYPE>( *this ) );
-                //         rowmat->resize( 1, columns() )
-                //             .zero()
-                //             .set_row( 0, _ptr->get_row( row ) );
-                //         return rowmat;
-                //     } else {
-                //         return std::unique_ptr<Matrix<ELEMENTTYPE>>();
-                //     }
-                // }
 
                 virtual std::unique_ptr<Vector<ELEMENTTYPE>> get_row(
                     size_t row ) const {
@@ -305,14 +296,6 @@ namespace NCPA {
                     return *this;
                 }
 
-                // virtual Matrix<ELEMENTTYPE>& copy(
-                //     const Matrix<ELEMENTTYPE>& M ) {
-                //     resize( M.rows(), M.columns() );
-                //     for ( size_t r = 0; r < rows(); r++ ) {
-                //         set_row( r, *( M.get_row( r ) ) );
-                //     }
-                //     return *this;
-                // }
 
                 virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
                     check_pointer();
@@ -660,7 +643,8 @@ namespace NCPA {
                     check_pointer();
                     other.check_pointer();
                     check_same_size( other );
-                    *_ptr *= *( other._ptr );
+                    _ptr->scale( *other._ptr );
+                    // *_ptr *= *( other._ptr );
                     this->_clear_cache();
                     return *this;
                 }
@@ -756,85 +740,41 @@ namespace NCPA {
                         _ptr->left_multiply( *( other._ptr ) ) );
                 }
 
-                // virtual Vector<ELEMENTTYPE>& multiply(
-                //     const Vector<ELEMENTTYPE>& other ) {
-                //     check_pointer();
-                //     other.check_pointer();
-                //     if ( columns() != size.rows() ) {
-                //         throw std::invalid_argument(
-                //             "Matrix-vector size mismatch: cannot
-                //             multiply"
-                //             );
-                //     }
-                //     auto newvec = Vector<ELEMENTTYPE>(
-                //         _ptr->multiply( *( other.internal() ) ) );
-                //     return newvec;
-                // }
-
                 virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
                     return ( is_empty() || other.is_empty()
                                  ? false
                                  : _ptr->equals( *( other._ptr ) ) );
                 }
 
-                // virtual Vector<ELEMENTTYPE>& operator[]( size_t ind ) {
-                //     if ( ind >= _ptr->rows() ) {
-                //         _ptr->resize( ind + 1, _ptr->columns() );
-                //     }
-                //     _wrappers[ ind ]
-                //         = WrapperVector<ELEMENTTYPE>( ( *_ptr )[ ind ]
-                //         );
-                //     return _wrappers[ ind ];
-                // }
-
-                // virtual const abstract_vector<ELEMENTTYPE>&
-                //     operator[]( size_t ind ) const {
-                //     if ( ind >= _ptr->rows() ) {
-                //         std::ostringstream oss;
-                //         oss << "Index " << ind << " too large for matrix
-                //         of
-                //         "
-                //             << rows() << " rows.";
-                //         throw std::out_of_range( oss.str() );
-                //     }
-                //     return ( *_ptr )[ ind ];
-                // }
-
                 // assignment operators
                 virtual Matrix<ELEMENTTYPE>& operator+=(
                     const Matrix<ELEMENTTYPE>& other ) {
                     return this->add( other );
-                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator+=(
                     const ELEMENTTYPE& other ) {
                     return this->add( other );
-                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator-=(
                     const Matrix<ELEMENTTYPE>& other ) {
                     return this->subtract( other );
-                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator-=(
                     const ELEMENTTYPE& other ) {
                     return this->add( -other );
-                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator*=(
                     const Matrix<ELEMENTTYPE>& other ) {
                     return this->multiply( other );
-                    // return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& operator*=(
                     const ELEMENTTYPE& other ) {
                     return this->scale( other );
-                    // return *this;
                 }
 
                 // friend operators

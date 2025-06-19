@@ -78,7 +78,8 @@ namespace NCPA {
         enum class interpolator_2d_type_t {
             NEAREST_NEIGHBOR,
             LANL_NATURAL,
-            LANL_BICUBIC
+            LANL_BICUBIC,
+            STRATIFIED
             // , LANL_LINEAR_X,
             // LANL_LINEAR_Y,
             // LANL_CUBIC_X,

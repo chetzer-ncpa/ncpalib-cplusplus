@@ -259,6 +259,10 @@ namespace NCPA {
                     return this->real()->limits();
                 }
 
+                virtual interpolator_2d_type_t interptype() const override {
+                    return real()->interptype();
+                }
+
                 virtual _SUBSPLINE_2D_PTR_T real() = 0;
                 virtual _SUBSPLINE_2D_PTR_T imag() = 0;
         };

@@ -151,8 +151,8 @@ namespace NCPA {
 
                 virtual std::pair<INDEPTYPE, INDEPTYPE> limits() const = 0;
                 virtual interpolator_1d_type_t interptype() const      = 0;
-                virtual std::vector<INDEPTYPE> source_x() const        = 0;
-                virtual std::vector<DEPTYPE> source_f() const          = 0;
+                virtual const std::vector<INDEPTYPE> source_x() const  = 0;
+                virtual const std::vector<DEPTYPE> source_f() const    = 0;
         };
 
         // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( _spline_1d,
@@ -196,7 +196,7 @@ namespace NCPA {
                 virtual void fill( const std::vector<INDEPTYPE>& x,
                                    const std::vector<DEPTYPE>& f ) override {
                     size_t N = x.size();
-                    if ( N != f.size() ) {
+                    if (N != f.size()) {
                         throw std::invalid_argument(
                             "Vectors must be same size" );
                     }
@@ -259,7 +259,7 @@ namespace NCPA {
                         = this->real()->source_f(),
                         im = this->imag()->source_f();
                     std::vector<DEPTYPE> out( rl.size() );
-                    for ( size_t i = 0; i < rl.size(); ++i ) {
+                    for (size_t i = 0; i < rl.size(); ++i) {
                         out[ i ] = DEPTYPE { rl[ i ], im[ i ] };
                     }
                     return out;

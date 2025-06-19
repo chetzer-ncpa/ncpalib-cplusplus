@@ -16,6 +16,7 @@
 // #include "NCPA/linearalgebra/tridiagonal_matrix.hpp"
 #include "NCPA/linearalgebra/symmetric_matrix.hpp"
 #include "NCPA/linearalgebra/matrix.hpp"
+#include "NCPA/linearalgebra/blockmatrix.hpp"
 
 // matrix-adjacent classes
 #include "NCPA/linearalgebra/matrix_polynomial.hpp"

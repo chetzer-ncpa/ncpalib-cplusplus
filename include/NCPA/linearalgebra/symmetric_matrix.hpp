@@ -36,6 +36,7 @@ namespace NCPA {
                 using band_diagonal_matrix<ELEMENTTYPE>::set_column;
                 using band_diagonal_matrix<ELEMENTTYPE>::set_diagonal;
                 using band_diagonal_matrix<ELEMENTTYPE>::contents;
+                using band_diagonal_matrix<ELEMENTTYPE>::is_zero;
                 friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
                 friend class basic_band_diagonal_linear_system_solver<
                     ELEMENTTYPE>;

@@ -24,7 +24,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             // cout << "Setting dims" << endl;
             dims = { 5, 4, 3 };
             // cout << "Setting d1" << endl;
-            d1   = { 4.2, 3.1, 2.0 };
+            d1   = vector<double>{ 4.2, 3.1, 2.0 };
             // cout << "Setting d2" << endl;
             d2   = { d1, d1 };
             // cout << "Setting d3" << endl;

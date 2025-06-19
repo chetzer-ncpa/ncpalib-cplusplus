@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "NCPA/linearalgebra/defines.hpp"
 
 namespace NCPA {
@@ -11,6 +12,7 @@ namespace NCPA {
             INVALID,
             DENSE,
             BAND_DIAGONAL,
+            BLOCK,
             SYMMETRIC,
             SYMMETRIC_FINITE_DIFFERENCE
         };
@@ -28,6 +30,7 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( BlockMatrix );
         template<typename T>
         class MatrixPolynomial;
 
@@ -55,8 +58,6 @@ namespace NCPA {
                                                      abstract_matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( band_diagonal_matrix,
                                                      abstract_matrix );
-        // NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( tridiagonal_matrix,
-        //                                              band_diagonal_matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( symmetric_matrix,
                                                      band_diagonal_matrix );
 
@@ -77,6 +78,14 @@ namespace NCPA {
         template<typename ELEMENTTYPE>
         class BandDiagonalLUDecomposition;
 
+        static size_t rc2index( size_t r, size_t c, size_t rows, size_t cols ) {
+            return r * cols + c;
+        }
+
+        template<typename ELEMENTTYPE>
+        using matrix_ptr_t = std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>>;
+        template<typename ELEMENTTYPE>
+        using vector_ptr_t = std::unique_ptr<NCPA::linear::Vector<ELEMENTTYPE>>;
 
     }  // namespace linear
 }  // namespace NCPA

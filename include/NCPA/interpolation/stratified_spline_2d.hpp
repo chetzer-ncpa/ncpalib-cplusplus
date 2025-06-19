@@ -186,6 +186,10 @@ namespace NCPA {
                                                       _x.front(), _x.back() };
                 }
 
+                virtual interpolator_2d_type_t interptype() const override {
+                    return interpolator_2d_type_t::STRATIFIED;
+                }
+
             private:
                 size_t _stratified_axis = 0;
                 size_t _size_x          = 0;

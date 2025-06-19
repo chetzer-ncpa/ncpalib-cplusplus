@@ -549,6 +549,20 @@ namespace NCPA {
                     return true;
                 }
 
+                virtual bool is_zero( double tol = 1.0e-12 ) const override {
+                    if ( this->is_empty() ) {
+                        return true;
+                    }
+                    for (auto it1 = _contents.cbegin(); it1 != _contents.cend(); ++it1) {
+                        for (auto it2 = it1->cbegin(); it2 != it1->cend(); ++it2) {
+                            if (std::abs( *it2 - _zero) > tol) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                }
+
                 virtual bool is_diagonal() const override {
                     if ( this->is_empty() ) {
                         return true;

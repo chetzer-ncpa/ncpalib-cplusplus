@@ -114,12 +114,12 @@ namespace NCPA {
                     return interpolator_1d_type_t::NEAREST_NEIGHBOR;
                 } 
 
-                virtual  std::vector<INDEPTYPE> source_x()
+                virtual const std::vector<INDEPTYPE> source_x()
                     const override {
                     return _x;
                 }
 
-                virtual  std::vector<DEPTYPE> source_f() const override {
+                virtual const std::vector<DEPTYPE> source_f() const override {
                     return _f;
                 }
 

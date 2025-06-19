@@ -184,52 +184,40 @@ namespace NCPA {
                                     new LANL::bicubic_spline_2d<INDEPTYPE,
                                                                 DEPTYPE>() ) );
                             break;
-                        // case interpolator_2d_type_t::LANL_LINEAR_X:
-                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                        //                                           DEPTYPE>(
-                        //         new stratified_spline_2d<INDEPTYPE,
-                        //         DEPTYPE>(
-                        //             std::pair<size_t,
-                        //             interpolator_1d_type_t> {
-                        //                 1, interpolator_1d_type_t::
-                        //                        LANL_LINEAR } ) ) );
-                        //     break;
-                        // case interpolator_2d_type_t::LANL_LINEAR_Y:
-                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                        //                                           DEPTYPE>(
-                        //         new stratified_spline_2d<INDEPTYPE,
-                        //         DEPTYPE>(
-                        //             std::pair<size_t,
-                        //             interpolator_1d_type_t> {
-                        //                 0, interpolator_1d_type_t::
-                        //                        LANL_LINEAR } ) ) );
-                        //     break;
-                        // case interpolator_2d_type_t::LANL_CUBIC_X:
-                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                        //                                           DEPTYPE>(
-                        //         new stratified_spline_2d<INDEPTYPE,
-                        //         DEPTYPE>(
-                        //             std::pair<size_t,
-                        //             interpolator_1d_type_t> {
-                        //                 1, interpolator_1d_type_t::
-                        //                        LANL_CUBIC } ) ) );
-                        //     break;
-                        // case interpolator_2d_type_t::LANL_CUBIC_Y:
-                        //     interp.set_engine( spline_engine_2d_t<INDEPTYPE,
-                        //                                           DEPTYPE>(
-                        //         new stratified_spline_2d<INDEPTYPE,
-                        //         DEPTYPE>(
-                        //             std::pair<size_t,
-                        //             interpolator_1d_type_t> {
-                        //                 0, interpolator_1d_type_t::
-                        //                        LANL_CUBIC } ) ) );
-                        //     break;
                         default:
                             throw std::range_error(
                                 "Requested 2-D interpolator type "
                                 "unrecognized; either it is undefined, not "
-                                "applicable, or you don't have the libraries "
-                                "available." );
+                                "applicable, you don't have the libraries "
+                                "available, or you need to use a different "
+                                "build() method." );
+                    }
+                    return interp;
+                }
+
+                static Interpolator2D<INDEPTYPE, DEPTYPE> build(
+                    interpolator_2d_type_t interp2type,
+                    interpolator_1d_type_t interp1type,
+                    size_t stratified_axis = 0 ) {
+                    Interpolator2D<INDEPTYPE, DEPTYPE> interp;
+                    stratified_axis_type_t params( stratified_axis,
+                                                   interp1type );
+
+                    switch (interp2type) {
+                        case interpolator_2d_type_t::STRATIFIED:
+                            interp.set_engine(
+                                spline_engine_2d_t<INDEPTYPE, DEPTYPE>(
+                                    new stratified_spline_2d<
+                                        INDEPTYPE, DEPTYPE,
+                                        stratified_axis_type_t>( params ) ) );
+                            break;
+                        default:
+                            throw std::range_error(
+                                "Requested 2-D interpolator type "
+                                "unrecognized; either it is undefined, not "
+                                "applicable, you don't have the libraries "
+                                "available, or you need to use a different "
+                                "build() method."  );
                     }
                     return interp;
                 }
