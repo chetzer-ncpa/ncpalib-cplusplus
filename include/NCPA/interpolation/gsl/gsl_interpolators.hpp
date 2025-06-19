@@ -172,12 +172,12 @@ namespace NCPA {
                         throw std::range_error( "Unknown or unimplemented interpolator" );
                     } 
 
-                    virtual  std::vector<INDEPTYPE> source_x()
+                    virtual const std::vector<INDEPTYPE> source_x()
                         const override {
                         return _x;
                     }
 
-                    virtual  std::vector<DEPTYPE> source_f()
+                    virtual const std::vector<DEPTYPE> source_f()
                         const override {
                         return _f;
                     }

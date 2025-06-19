@@ -174,13 +174,13 @@ namespace NCPA {
                               this->_get_x_vals()[ _get_length() - 1 ] } );
                     }
 
-                    virtual  std::vector<INDEPTYPE> source_x()
+                    virtual const std::vector<INDEPTYPE> source_x()
                         const override {
                         return std::vector<INDEPTYPE>( _x_vals,
                                                        _x_vals + _length );
                     }
 
-                    virtual  std::vector<DEPTYPE> source_f()
+                    virtual const std::vector<DEPTYPE> source_f()
                         const override {
                         return std::vector<DEPTYPE>( _f_vals,
                                                      _f_vals + _length );
