@@ -104,6 +104,14 @@ namespace NCPA {
                     }
                 }
 
+                std::vector<T> numerator() const {
+                    return _numerator_coefficients;
+                }
+
+                std::vector<T> denominator() const {
+                    return _denominator_coefficients;
+                }
+
 
             protected:
                 std::vector<T> _numerator_coefficients,

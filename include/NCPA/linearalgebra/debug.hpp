@@ -1,8 +1,8 @@
 #pragma once
 
 #include "NCPA/defines.hpp"
-#include "NCPA/linearalgebra/matrix.hpp"
-#include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/Matrix.hpp"
+#include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/ndvector.hpp"
 

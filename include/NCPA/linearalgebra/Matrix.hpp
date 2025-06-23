@@ -4,7 +4,7 @@
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
-#include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"

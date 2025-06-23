@@ -3,7 +3,7 @@
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
-#include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 

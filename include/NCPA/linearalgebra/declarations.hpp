@@ -33,6 +33,8 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( BlockMatrix );
         template<typename T>
         class MatrixPolynomial;
+        template<typename T>
+        class BlockMatrixPolynomial;
 
         // factories
         template<typename ELEMENTTYPE>
