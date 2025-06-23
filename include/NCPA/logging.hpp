@@ -37,7 +37,7 @@ namespace NCPA {
 #ifdef NCPA_DEBUG_ON
             constexpr log_level_t _default_log_level = log_level_t::DEBUG;
 #else
-            constexpr log_level_t _default_log_level = log_level_t::INFO;
+            constexpr log_level_t _default_log_level = log_level_t::WARNING;
 #endif
 
             class _logger {
