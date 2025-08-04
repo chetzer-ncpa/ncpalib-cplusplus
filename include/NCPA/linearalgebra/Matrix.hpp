@@ -810,7 +810,7 @@ namespace NCPA {
                 template<typename U = ELEMENTTYPE,
                          ENABLE_FUNCTION_IF_COMPLEX( U )>
                 void print_nonzero( std::ostream& os,
-                                    const std::string& sep = " " ) {
+                                    const std::string& sep = " " ) const {
                     ELEMENTTYPE element;
                     os << this->rows() << std::endl;
                     for ( size_t r = 0; r < this->rows(); r++ ) {
@@ -829,7 +829,7 @@ namespace NCPA {
                 template<typename U = ELEMENTTYPE,
                          ENABLE_FUNCTION_IF_REAL( U )>
                 void print_nonzero( std::ostream& os,
-                                    const std::string& sep = " " ) {
+                                    const std::string& sep = " " ) const {
                     os << this->rows() << std::endl;
                     for ( size_t r = 0; r < this->rows(); r++ ) {
                         auto nzinds = this->get_row( r )
