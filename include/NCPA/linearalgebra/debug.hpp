@@ -1,8 +1,8 @@
 #pragma once
 
 #include "NCPA/defines.hpp"
-#include "NCPA/linearalgebra/matrix.hpp"
-#include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/Matrix.hpp"
+#include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/ndvector.hpp"
 
@@ -74,7 +74,7 @@ namespace NCPA {
 
         template<typename U>
         void print_debug_matrix( const std::string& base, size_t step,
-                                 NCPA::linear::Matrix<U>& var,
+                                 const NCPA::linear::Matrix<U>& var,
                                  bool force = false,
                                  ENABLE_FUNCTION_IF_COMPLEX( U ) ) {
             if (force || NCPA::logging::default_level_is_debug()) {

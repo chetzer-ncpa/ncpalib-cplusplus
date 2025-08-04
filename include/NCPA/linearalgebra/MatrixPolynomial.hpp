@@ -1,18 +1,19 @@
 #pragma once
 
 #include "NCPA/linearalgebra/declarations.hpp"
-#include "NCPA/linearalgebra/matrix.hpp"
+#include "NCPA/linearalgebra/Matrix.hpp"
 
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
 
 template<typename T>
- static void swap( NCPA::linear::MatrixPolynomial<T>& a,
+static void swap( NCPA::linear::MatrixPolynomial<T>& a,
                   NCPA::linear::MatrixPolynomial<T>& b ) noexcept;
 
 namespace NCPA {
     namespace linear {
+
         template<typename T>
         class MatrixPolynomial : public std::vector<Matrix<T>> {
             public:
@@ -66,7 +67,7 @@ namespace NCPA {
 
                 virtual Matrix<T>& get( size_t power ) {
                     this->compute( power );
-                    return this->at( power );
+                    return this->at( power - 1 );
                 }
 
             protected:
@@ -78,9 +79,9 @@ namespace NCPA {
 }  // namespace NCPA
 
 template<typename T>
- static void swap( NCPA::linear::MatrixPolynomial<T>& a,
+static void swap( NCPA::linear::MatrixPolynomial<T>& a,
                   NCPA::linear::MatrixPolynomial<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<std::vector<T>&>( a ),
-            static_cast<std::vector<T>&>( b ) );
+    ::swap( static_cast<std::vector<NCPA::linear::Matrix<T>>&>( a ),
+            static_cast<std::vector<NCPA::linear::Matrix<T>>&>( b ) );
 }

@@ -3,8 +3,8 @@
 #include "NCPA/linearalgebra/builders.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
-#include "NCPA/linearalgebra/matrix.hpp"
-#include "NCPA/linearalgebra/vector.hpp"
+#include "NCPA/linearalgebra/Matrix.hpp"
+#include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -566,11 +566,14 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual bool same( const BlockMatrix<ELEMENTTYPE>& other ) const {
-                    return (this->block_rows() == other.block_rows()
-                            && this->block_columns() == other.block_columns()
-                        && this->rows_per_block() == other.rows_per_block()
-                        && this->columns_per_block() == other.columns_per_block() );
+                virtual bool same(
+                    const BlockMatrix<ELEMENTTYPE>& other ) const {
+                    return ( this->block_rows() == other.block_rows()
+                             && this->block_columns() == other.block_columns()
+                             && this->rows_per_block()
+                                    == other.rows_per_block()
+                             && this->columns_per_block()
+                                    == other.columns_per_block() );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& add(
@@ -658,9 +661,13 @@ namespace NCPA {
                         for (size_t c = 0; c < product.block_columns(); ++c) {
                             for (size_t k = 0; k < this->block_columns();
                                  ++k) {
-                                product.get_block( r, c )
-                                    += this->get_block( r, k )
-                                     * other.get_block( k, c );
+                                if (!( this->get_block( r, k ).is_zero()
+                                       || other.get_block( k, c )
+                                              .is_zero() )) {
+                                    product.get_block( r, c )
+                                        += this->get_block( r, k )
+                                         * other.get_block( k, c );
+                                }
                             }
                         }
                     }
@@ -826,8 +833,8 @@ namespace NCPA {
                 friend NCPA::linear::Matrix<ELEMENTTYPE> operator*(
                     const BlockMatrix<ELEMENTTYPE>& c1,
                     const Matrix<ELEMENTTYPE>& c2 ) {
-                    Matrix<ELEMENTTYPE> out = c1.as_matrix();
-                    out *= c2;
+                    Matrix<ELEMENTTYPE> out  = c1.as_matrix();
+                    out                     *= c2;
                     return out;
                 }
 
