@@ -29,7 +29,7 @@ namespace NCPA {
             public:
                 LUDecomposition() :
                     _tolerance { NCPA::math::one<ELEMENTTYPE>()
-                                 * (ELEMENTTYPE)LU_DECOMPOSITION_TOLERANCE } {}
+                                 * LU_DECOMPOSITION_TOLERANCE } {}
 
                 LUDecomposition( const LUDecomposition<ELEMENTTYPE>& other ) :
                     LUDecomposition<ELEMENTTYPE>() {

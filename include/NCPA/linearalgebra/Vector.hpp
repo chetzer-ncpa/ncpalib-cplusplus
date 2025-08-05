@@ -273,7 +273,7 @@ namespace NCPA {
                 virtual Vector<ELEMENTTYPE>& operator/=(
                     const ELEMENTTYPE& other ) {
                     check_pointer();
-                    this->scale( (ELEMENTTYPE)1.0 / other );
+                    this->scale( 1.0 / other );
                     return *this;
                 }
 

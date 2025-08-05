@@ -89,7 +89,7 @@ namespace NCPA {
         static NCPA::units::VectorWithUnits<T> t2c(
             const NCPA::units::VectorWithUnits<T>& t ) {
             NCPA::units::VectorWithUnits<T> c( t.size(),
-                                               NCPA_ATMOS_T2C_C_UNITS );
+                                                    NCPA_ATMOS_T2C_C_UNITS );
             for (size_t i = 0; i < t.size(); i++) {
                 c.set( i, t2c( t.get_scalar( i ) ) );
             }
@@ -103,12 +103,14 @@ namespace NCPA {
         }
 
         template<typename T = double>
-        static std::vector<T> t2c( const NCPA::arrays::ndvector<1, T>& t,
-                                   const units_ptr_t units ) {
+        static std::vector<T> t2c(
+            const NCPA::arrays::ndvector<1, T>& t,
+            const units_ptr_t units ) {
             std::vector<T> c( t.size() );
             for (size_t i = 0; i < t.size(); ++i) {
                 c[ i ] = t2c( NCPA::units::ScalarWithUnits<T>(
-                                  *static_cast<const T *>( &t[ i ] ), units ) )
+                                  *static_cast<const T *>( &t[ i ] ),
+                                  units ) )
                              .get();
             }
             return c;
@@ -116,18 +118,20 @@ namespace NCPA {
 
         template<typename T = double>
         static T t2c( const NCPA::arrays::ndvector<0, T>& t,
-                      const units_ptr_t units ) {
-            return t2c( NCPA::units::ScalarWithUnits<T>( t, units ) ).get();
+                           const units_ptr_t units ) {
+            return t2c( NCPA::units::ScalarWithUnits<T>( t, units ) )
+                .get();
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> t2c(
-            const NCPA::arrays::ndvector<N, T>& t, const units_ptr_t units ) {
+            const NCPA::arrays::ndvector<N, T>& t,
+            const units_ptr_t units ) {
             NCPA::arrays::ndvector<N, T> c = t;
 
             for (size_t i = 0; i < t.size(); ++i) {
-                c[ i ]
-                    = t2c( NCPA::arrays::ndvector<N - 1, T>( t[ i ] ), units );
+                c[ i ] = t2c( NCPA::arrays::ndvector<N - 1, T>( t[ i ] ),
+                              units );
             }
             return c;
         }
@@ -152,7 +156,7 @@ namespace NCPA {
         static NCPA::units::VectorWithUnits<T> c2t(
             const NCPA::units::VectorWithUnits<T>& c ) {
             NCPA::units::VectorWithUnits<T> t( c.size(),
-                                               NCPA_ATMOS_C2T_T_UNITS );
+                                                    NCPA_ATMOS_C2T_T_UNITS );
             for (size_t i = 0; i < c.size(); i++) {
                 t.set( i, c2t( c.get_scalar( i ) ) );
             }
@@ -166,12 +170,14 @@ namespace NCPA {
         }
 
         template<typename T = double>
-        static std::vector<T> c2t( const NCPA::arrays::ndvector<1, T>& c,
-                                   const units_ptr_t units ) {
+        static std::vector<T> c2t(
+            const NCPA::arrays::ndvector<1, T>& c,
+            const units_ptr_t units ) {
             std::vector<T> t( c.size() );
             for (size_t i = 0; i < c.size(); ++i) {
                 t[ i ] = c2t( NCPA::units::ScalarWithUnits<T>(
-                                  *static_cast<const T *>( &c[ i ] ), units ) )
+                                  *static_cast<const T *>( &c[ i ] ),
+                                  units ) )
                              .get();
             }
             return t;
@@ -179,42 +185,25 @@ namespace NCPA {
 
         template<typename T = double>
         static T c2t( const NCPA::arrays::ndvector<0, T>& c,
-                      const units_ptr_t units ) {
-            return c2t( NCPA::units::ScalarWithUnits<T>( c, units ) ).get();
+                           const units_ptr_t units ) {
+            return c2t( NCPA::units::ScalarWithUnits<T>( c, units ) )
+                .get();
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> c2t(
-            const NCPA::arrays::ndvector<N, T>& c, const units_ptr_t units ) {
+            const NCPA::arrays::ndvector<N, T>& c,
+            const units_ptr_t units ) {
             NCPA::arrays::ndvector<N, T> t = c;
 
             for (size_t i = 0; i < c.size(); ++i) {
-                t[ i ]
-                    = c2t( NCPA::arrays::ndvector<N - 1, T>( c[ i ] ), units );
+                t[ i ] = c2t( NCPA::arrays::ndvector<N - 1, T>( c[ i ] ),
+                              units );
             }
             return t;
         }
 
         // pressure and density to sound speed
-template<typename T = double>
-        static NCPA::units::Vector3DWithUnits<T> pd2c(
-            const NCPA::units::Vector3DWithUnits<T>& p,
-            const NCPA::units::Vector3DWithUnits<T>& d,
-            const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
-            return NCPA::units::Vector3DWithUnits<T>(
-                pd2c( static_cast<const NCPA::arrays::ndvector<3, T>&>( p ),
-                      p.get_units(),
-                      static_cast<const NCPA::arrays::ndvector<3, T>&>( d ),
-                      d.get_units(), units_out ),
-                units_out );
-            // NCPA::arrays::ndvector<3, T> c = pd2c(
-            //     static_cast<const NCPA::arrays::ndvector<3, T>&>( p ),
-            //     p.get_units(),
-            //     static_cast<const NCPA::arrays::ndvector<3, T>&>( d ),
-            //     d.get_units(), units_out );
-            // return NCPA::units::Vector3DWithUnits<T>( c, units_out );
-        }
-
         template<typename T = double>
         static NCPA::units::ScalarWithUnits<T> pd2c(
             const NCPA::units::ScalarWithUnits<T>& p,
@@ -230,7 +219,8 @@ template<typename T = double>
 
         template<typename T = double>
         static NCPA::units::ScalarWithUnits<T> pd2c(
-            T p, const std::string& p_units, T d, const std::string& d_units,
+            T p, const std::string& p_units, T d,
+            const std::string& d_units,
             const std::string& units_out = NCPA_ATMOS_PD2C_C_UNITS_STR ) {
             return pd2c( NCPA::units::ScalarWithUnits<T>( p, p_units ),
                          NCPA::units::ScalarWithUnits<T>( d, d_units ),
@@ -260,10 +250,10 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static T pd2c( const T& p, const units_ptr_t p_units, const T& d,
-                       const units_ptr_t d_units,
-                       const units_ptr_t units_out
-                       = NCPA_ATMOS_PD2C_C_UNITS ) {
+        static T pd2c( const T& p, const units_ptr_t p_units,
+                            const T& d, const units_ptr_t d_units,
+                            const units_ptr_t units_out
+                            = NCPA_ATMOS_PD2C_C_UNITS ) {
             return pd2c( NCPA::units::ScalarWithUnits<T>( p, p_units ),
                          NCPA::units::ScalarWithUnits<T>( d, d_units ) )
                 .get_as( units_out );
@@ -271,39 +261,42 @@ template<typename T = double>
 
         template<typename T = double>
         static T pd2c( const NCPA::arrays::ndvector<0, T>& p,
-                       const units_ptr_t p_units,
-                       const NCPA::arrays::ndvector<0, T>& d,
-                       const units_ptr_t d_units,
-                       const units_ptr_t units_out
-                       = NCPA_ATMOS_PD2C_C_UNITS ) {
+                            const units_ptr_t p_units,
+                            const NCPA::arrays::ndvector<0, T>& d,
+                            const units_ptr_t d_units,
+                            const units_ptr_t units_out
+                            = NCPA_ATMOS_PD2C_C_UNITS ) {
             return pd2c( NCPA::units::ScalarWithUnits<T>( p, p_units ),
                          NCPA::units::ScalarWithUnits<T>( d, d_units ) )
                 .get_as( units_out );
         }
 
         template<typename T = double>
-        static std::vector<T> pd2c( const NCPA::arrays::ndvector<1, T>& p,
-                                    const units_ptr_t p_units,
-                                    const NCPA::arrays::ndvector<1, T>& d,
-                                    const units_ptr_t d_units,
-                                    const units_ptr_t units_out
-                                    = NCPA_ATMOS_PD2C_C_UNITS ) {
+        static std::vector<T> pd2c(
+            const NCPA::arrays::ndvector<1, T>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<1, T>& d,
+            const units_ptr_t d_units,
+            const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
             std::vector<T> c( p.size() );
             for (size_t i = 0; i < p.size(); ++i) {
-                c[ i ]
-                    = pd2c( NCPA::units::ScalarWithUnits<T>(
-                                *static_cast<const T *>( &p[ i ] ), p_units ),
-                            NCPA::units::ScalarWithUnits<T>(
-                                *static_cast<const T *>( &d[ i ] ), d_units ) )
-                          .get_as( units_out );
+                c[ i ] = pd2c( NCPA::units::ScalarWithUnits<T>(
+                                   *static_cast<const T *>( &p[ i ] ),
+                                   p_units ),
+                               NCPA::units::ScalarWithUnits<T>(
+                                   *static_cast<const T *>( &d[ i ] ),
+                                   d_units ) )
+                             .get_as( units_out );
             }
             return c;
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> pd2c(
-            const NCPA::arrays::ndvector<N, T>& p, const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<N, T>& d, const units_ptr_t d_units,
+            const NCPA::arrays::ndvector<N, T>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<N, T>& d,
+            const units_ptr_t d_units,
             const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
             NCPA::arrays::ndvector<N, T> c = p;
 
@@ -316,7 +309,24 @@ template<typename T = double>
             return c;
         }
 
-        
+        template<typename T = double>
+        static vector3d_u_t pd2c( const vector3d_u_t& p, const vector3d_u_t& d,
+                                  const units_ptr_t units_out
+                                  = NCPA_ATMOS_PD2C_C_UNITS ) {
+            return vector3d_u_t(
+                pd2c(
+                    static_cast<const NCPA::arrays::ndvector<3, T>&>( p ),
+                    p.get_units(),
+                    static_cast<const NCPA::arrays::ndvector<3, T>&>( d ),
+                    d.get_units(), units_out ),
+                units_out );
+            // NCPA::arrays::ndvector<3, T> c = pd2c(
+            //     static_cast<const NCPA::arrays::ndvector<3, T>&>( p ),
+            //     p.get_units(),
+            //     static_cast<const NCPA::arrays::ndvector<3, T>&>( d ),
+            //     d.get_units(), units_out );
+            // return vector3d_u_t( c, units_out );
+        }
 
         // U & V winds to wind speed
         template<typename T = double>
@@ -340,8 +350,8 @@ template<typename T = double>
 
         template<typename T = double>
         static NCPA::units::ScalarWithUnits<T> uv2ws(
-            T u, const std::string& u_units, T v, const std::string& v_units,
-            const std::string& units_out = "" ) {
+            T u, const std::string& u_units, T v,
+            const std::string& v_units, const std::string& units_out = "" ) {
             units_ptr_t uout
                 = ( units_out.length() == 0
                         ? nullptr
@@ -380,10 +390,10 @@ template<typename T = double>
 
         template<typename T = double>
         static T uv2ws( const NCPA::arrays::ndvector<0, T>& u,
-                        const units_ptr_t u_units,
-                        const NCPA::arrays::ndvector<0, T>& v,
-                        const units_ptr_t v_units,
-                        const units_ptr_t units_out = nullptr ) {
+                             const units_ptr_t u_units,
+                             const NCPA::arrays::ndvector<0, T>& v,
+                             const units_ptr_t v_units,
+                             const units_ptr_t units_out = nullptr ) {
             return uv2ws( NCPA::units::ScalarWithUnits<T>( u, u_units ),
                           NCPA::units::ScalarWithUnits<T>( v, v_units ),
                           units_out )
@@ -391,36 +401,40 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static std::vector<T> uv2ws( const NCPA::arrays::ndvector<1, T>& u,
-                                     const units_ptr_t u_units,
-                                     const NCPA::arrays::ndvector<1, T>& v,
-                                     const units_ptr_t v_units,
-                                     const units_ptr_t units_out = nullptr ) {
+        static std::vector<T> uv2ws(
+            const NCPA::arrays::ndvector<1, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, T>& v,
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = nullptr ) {
             std::vector<T> ws( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
-                ws[ i ]
-                    = uv2ws( NCPA::units::ScalarWithUnits<T>(
-                                 *static_cast<const T *>( &u[ i ] ), u_units ),
-                             NCPA::units::ScalarWithUnits<T>(
-                                 *static_cast<const T *>( &v[ i ] ), v_units ),
-                             units_out )
-                          .get();
+                ws[ i ] = uv2ws( NCPA::units::ScalarWithUnits<T>(
+                                     *static_cast<const T *>( &u[ i ] ),
+                                     u_units ),
+                                 NCPA::units::ScalarWithUnits<T>(
+                                     *static_cast<const T *>( &v[ i ] ),
+                                     v_units ),
+                                 units_out )
+                              .get();
             }
             return ws;
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> uv2ws(
-            const NCPA::arrays::ndvector<N, T>& u, const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, T>& v, const units_ptr_t v_units,
+            const NCPA::arrays::ndvector<N, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<N, T>& v,
+            const units_ptr_t v_units,
             const units_ptr_t units_out = nullptr ) {
             NCPA::arrays::ndvector<N, T> ws = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
-                ws[ i ] = uv2ws( NCPA::arrays::ndvector<N - 1, T>( u[ i ] ),
-                                 u_units,
-                                 NCPA::arrays::ndvector<N - 1, T>( v[ i ] ),
-                                 v_units, units_out );
+                ws[ i ] = uv2ws(
+                    NCPA::arrays::ndvector<N - 1, T>( u[ i ] ), u_units,
+                    NCPA::arrays::ndvector<N - 1, T>( v[ i ] ), v_units,
+                    units_out );
             }
             return ws;
         }
@@ -440,7 +454,8 @@ template<typename T = double>
 
         template<typename T = double>
         static NCPA::units::ScalarWithUnits<T> uv2wd(
-            T u, const std::string& u_units, T v, const std::string& v_units,
+            T u, const std::string& u_units, T v,
+            const std::string& v_units,
             const std::string& units_out = NCPA_ATMOS_UV2WD_WD_UNITS_STR ) {
             return uv2wd( NCPA::units::ScalarWithUnits<T>( u, u_units ),
                           NCPA::units::ScalarWithUnits<T>( v, v_units ),
@@ -471,32 +486,33 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static std::vector<T> uv2wd( const NCPA::arrays::ndvector<1, T>& u,
-                                     const units_ptr_t u_units,
-                                     const NCPA::arrays::ndvector<1, T>& v,
-                                     const units_ptr_t v_units,
-                                     const units_ptr_t units_out
-                                     = NCPA_ATMOS_UV2WD_WD_UNITS ) {
+        static std::vector<T> uv2wd(
+            const NCPA::arrays::ndvector<1, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, T>& v,
+            const units_ptr_t v_units,
+            const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             std::vector<T> wd( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
-                wd[ i ]
-                    = uv2wd( NCPA::units::ScalarWithUnits<T>(
-                                 *static_cast<const T *>( &u[ i ] ), u_units ),
-                             NCPA::units::ScalarWithUnits<T>(
-                                 *static_cast<const T *>( &v[ i ] ), v_units ),
-                             units_out )
-                          .get();
+                wd[ i ] = uv2wd( NCPA::units::ScalarWithUnits<T>(
+                                     *static_cast<const T *>( &u[ i ] ),
+                                     u_units ),
+                                 NCPA::units::ScalarWithUnits<T>(
+                                     *static_cast<const T *>( &v[ i ] ),
+                                     v_units ),
+                                 units_out )
+                              .get();
             }
             return wd;
         }
 
         template<typename T = double>
         static T uv2wd( const NCPA::arrays::ndvector<0, T>& u,
-                        const units_ptr_t u_units,
-                        const NCPA::arrays::ndvector<0, T>& v,
-                        const units_ptr_t v_units,
-                        const units_ptr_t units_out
-                        = NCPA_ATMOS_UV2WD_WD_UNITS ) {
+                             const units_ptr_t u_units,
+                             const NCPA::arrays::ndvector<0, T>& v,
+                             const units_ptr_t v_units,
+                             const units_ptr_t units_out
+                             = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             return uv2wd( NCPA::units::ScalarWithUnits<T>( u, u_units ),
                           NCPA::units::ScalarWithUnits<T>( v, v_units ),
                           units_out )
@@ -505,16 +521,18 @@ template<typename T = double>
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> uv2wd(
-            const NCPA::arrays::ndvector<N, T>& u, const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, T>& v, const units_ptr_t v_units,
+            const NCPA::arrays::ndvector<N, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<N, T>& v,
+            const units_ptr_t v_units,
             const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             NCPA::arrays::ndvector<N, T> wd = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
-                wd[ i ] = uv2wd( NCPA::arrays::ndvector<N - 1, T>( u[ i ] ),
-                                 u_units,
-                                 NCPA::arrays::ndvector<N - 1, T>( v[ i ] ),
-                                 v_units, units_out );
+                wd[ i ] = uv2wd(
+                    NCPA::arrays::ndvector<N - 1, T>( u[ i ] ), u_units,
+                    NCPA::arrays::ndvector<N - 1, T>( v[ i ] ), v_units,
+                    units_out );
             }
             return wd;
         }
@@ -562,8 +580,8 @@ template<typename T = double>
         template<typename T = double>
         static NCPA::units::VectorWithUnits<T> w2wc(
             const std::vector<T>& ws, const std::string& ws_units,
-            const std::vector<T>& wd, const std::string& wd_units, T az,
-            const std::string& units_out = "" ) {
+            const std::vector<T>& wd, const std::string& wd_units,
+            T az, const std::string& units_out = "" ) {
             return w2wc(
                 NCPA::units::VectorWithUnits<T>( ws, ws_units ),
                 NCPA::units::VectorWithUnits<T>( wd, wd_units ), az,
@@ -573,47 +591,51 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static std::vector<T> w2wc( const NCPA::arrays::ndvector<1, T>& u,
-                                    const units_ptr_t u_units,
-                                    const NCPA::arrays::ndvector<1, T>& v,
-                                    const units_ptr_t v_units, T az,
-                                    const units_ptr_t units_out = nullptr ) {
+        static std::vector<T> w2wc(
+            const NCPA::arrays::ndvector<1, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<1, T>& v,
+            const units_ptr_t v_units, T az,
+            const units_ptr_t units_out = nullptr ) {
             std::vector<T> wc( u.size() );
             for (size_t i = 0; i < u.size(); ++i) {
-                wc[ i ]
-                    = w2wc( NCPA::units::ScalarWithUnits<T>(
-                                *static_cast<const T *>( &u[ i ] ), u_units ),
-                            NCPA::units::ScalarWithUnits<T>(
-                                *static_cast<const T *>( &v[ i ] ), v_units ),
-                            az, units_out )
-                          .get();
+                wc[ i ] = w2wc( NCPA::units::ScalarWithUnits<T>(
+                                    *static_cast<const T *>( &u[ i ] ),
+                                    u_units ),
+                                NCPA::units::ScalarWithUnits<T>(
+                                    *static_cast<const T *>( &v[ i ] ),
+                                    v_units ),
+                                az, units_out )
+                              .get();
             }
             return wc;
         }
 
         template<typename T = double>
         static T w2wc( const NCPA::arrays::ndvector<0, T>& u,
-                       const units_ptr_t u_units,
-                       const NCPA::arrays::ndvector<0, T>& v,
-                       const units_ptr_t v_units, T az,
-                       const units_ptr_t units_out = nullptr ) {
+                            const units_ptr_t u_units,
+                            const NCPA::arrays::ndvector<0, T>& v,
+                            const units_ptr_t v_units, T az,
+                            const units_ptr_t units_out = nullptr ) {
             return w2wc( NCPA::units::ScalarWithUnits<T>( u, u_units ),
-                         NCPA::units::ScalarWithUnits<T>( v, v_units ), az,
-                         units_out )
+                         NCPA::units::ScalarWithUnits<T>( v, v_units ),
+                         az, units_out )
                 .get();
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> w2wc(
-            const NCPA::arrays::ndvector<N, T>& u, const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, T>& v, const units_ptr_t v_units,
-            T az, const units_ptr_t units_out = nullptr ) {
+            const NCPA::arrays::ndvector<N, T>& u,
+            const units_ptr_t u_units,
+            const NCPA::arrays::ndvector<N, T>& v,
+            const units_ptr_t v_units, T az,
+            const units_ptr_t units_out = nullptr ) {
             NCPA::arrays::ndvector<N, T> wc = u;
             for (size_t i = 0; i < u.size(); ++i) {
-                wc[ i ] = w2wc( NCPA::arrays::ndvector<N - 1, T>( u[ i ] ),
-                                u_units,
-                                NCPA::arrays::ndvector<N - 1, T>( v[ i ] ),
-                                v_units, az, units_out );
+                wc[ i ] = w2wc(
+                    NCPA::arrays::ndvector<N - 1, T>( u[ i ] ), u_units,
+                    NCPA::arrays::ndvector<N - 1, T>( v[ i ] ), v_units,
+                    az, units_out );
             }
             return wc;
         }
@@ -621,13 +643,14 @@ template<typename T = double>
         // attenuation from altitude, temperature, pressure,  density and
         // frequency
         template<typename T = double>
-        static NCPA::units::ScalarWithUnits<T> attenuation_sutherland_bass(
-            const NCPA::units::ScalarWithUnits<T>& zs,
-            const NCPA::units::ScalarWithUnits<T>& ts,
-            const NCPA::units::ScalarWithUnits<T>& ps,
-            const NCPA::units::ScalarWithUnits<T>& ds, T freq,
-            const units_ptr_t units_out
-            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+        static NCPA::units::ScalarWithUnits<T>
+            attenuation_sutherland_bass(
+                const NCPA::units::ScalarWithUnits<T>& zs,
+                const NCPA::units::ScalarWithUnits<T>& ts,
+                const NCPA::units::ScalarWithUnits<T>& ps,
+                const NCPA::units::ScalarWithUnits<T>& ds, T freq,
+                const units_ptr_t units_out
+                = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             T P_z
                 = ps.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_P_UNITS ),
                 D_z
@@ -639,10 +662,11 @@ template<typename T = double>
             // freq = f.get_as( NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_F_UNITS
             // );
 
-            constexpr T mu_o = 18.192E-6;  // Reference viscosity [kg/(m*s)]
-            constexpr T T_o  = 293.15;     // Reference temperature [K]
-            constexpr T P_o  = 101325;     // Reference pressure [Pa]
-            constexpr T S    = 117.0;      // Sutherland constant [K]
+            constexpr T mu_o
+                = 18.192E-6;                // Reference viscosity [kg/(m*s)]
+            constexpr T T_o = 293.15;  // Reference temperature [K]
+            constexpr T P_o = 101325;  // Reference pressure [Pa]
+            constexpr T S   = 117.0;   // Sutherland constant [K]
 
             // heat capacity|volume for O2, N2, CO2, and O3
             constexpr T Cv_R[]  = { 5.0 / 2.0, 5.0 / 2.0, 3.0, 3.0 };
@@ -652,14 +676,15 @@ template<typename T = double>
             constexpr T theta[] = { 2239.1, 3352.0, 915.0, 1037.0 };
 
             // calculated parameters
-            T c_snd_z = std::sqrt( constants::GAMMA() * P_z / D_z );  // m/s
-            T mu      = mu_o * std::sqrt( T_z / T_o )
-                 * ( ( 1.0 + S / T_o )
-                     / ( 1.0 + S / T_z ) );  // Viscosity [kg/(m*s)]
+            T c_snd_z
+                = std::sqrt( constants::GAMMA() * P_z / D_z );  // m/s
+            T mu = mu_o * std::sqrt( T_z / T_o )
+                      * ( ( 1.0 + S / T_o )
+                          / ( 1.0 + S / T_z ) );  // Viscosity [kg/(m*s)]
             T nu = ( 8.0 * NCPA::math::PI * freq * mu )
-                 / ( 3.0 * P_z );            // Nondimensional frequency
+                      / ( 3.0 * P_z );            // Nondimensional frequency
 
-                                             // Gas fractions
+                                                  // Gas fractions
             T X[ 7 ];
 
             //-------- Gas fraction polynomial fits
@@ -745,7 +770,8 @@ template<typename T = double>
             T Z_rot_1
                 = 63.3
                 * std::exp( -16.7 * ( std::pow( T_z, -1.0 / 3.0 ) ) );  // N2
-            T Z_rot_ = 1.0 / ( ( X[ 1 ] / Z_rot_1 ) + ( X[ 0 ] / Z_rot_0 ) );
+            T Z_rot_
+                = 1.0 / ( ( X[ 1 ] / Z_rot_1 ) + ( X[ 0 ] / Z_rot_0 ) );
 
             //-------- Nondimensional atmospheric
             // quantities---------------------------
@@ -786,7 +812,8 @@ template<typename T = double>
             T K  = ( 8.48E08 ) * std::exp( 9.17 * Tr );
             T L  = std::exp( -7.72 * Tr );
             T ZZ = H * X[ 2 ] + I * ( X[ 0 ] + 0.5 * X[ 4 ] )
-                 + J * ( X[ 1 ] + 0.5 * X[ 5 ] ) + K * ( X[ 6 ] + X[ 3 ] );
+                      + J * ( X[ 1 ] + 0.5 * X[ 5 ] )
+                      + K * ( X[ 6 ] + X[ 3 ] );
             T hu = 100.0 * ( X[ 3 ] + X[ 6 ] );
             T f_vib[ 4 ], a_vib_c[ 4 ];
             f_vib[ 0 ] = ( P_z / P_o ) * ( mu_o / mu )
@@ -798,11 +825,12 @@ template<typename T = double>
 
             T a_vib = 0.0;
             for (size_t m = 0; m < 4; m++) {
-                T C_R = ( ( std::pow( theta[ m ] / T_z, 2 ) )
-                          * std::exp( -theta[ m ] / T_z ) )
-                      / ( std::pow( 1 - std::exp( -theta[ m ] / T_z ), 2 ) );
+                T C_R
+                    = ( ( std::pow( theta[ m ] / T_z, 2 ) )
+                        * std::exp( -theta[ m ] / T_z ) )
+                    / ( std::pow( 1 - std::exp( -theta[ m ] / T_z ), 2 ) );
                 T A_max = ( X[ m ] * ( NCPA::math::PI / 2 ) * C_R )
-                        / ( Cp_R[ m ] * ( Cv_R[ m ] + C_R ) );
+                             / ( Cp_R[ m ] * ( Cv_R[ m ] + C_R ) );
                 // A_max      = (X[m]*(PI/2)*C_R)/(Cp_R[m]*(Cv_R[m]+C_R));
                 a_vib_c[ m ] = ( A_max / c_snd_z )
                              * ( ( 2 * ( pow( freq, 2 ) ) / f_vib[ m ] )
@@ -817,12 +845,14 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static NCPA::units::ScalarWithUnits<T> attenuation_sutherland_bass(
-            T z, const std::string& z_units, T t, const std::string& t_units,
-            T p, const std::string& p_units, T d, const std::string& d_units,
-            T freq,
-            const std::string& units_out
-            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
+        static NCPA::units::ScalarWithUnits<T>
+            attenuation_sutherland_bass(
+                T z, const std::string& z_units, T t,
+                const std::string& t_units, T p,
+                const std::string& p_units, T d,
+                const std::string& d_units, T freq,
+                const std::string& units_out
+                = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
             return attenuation_sutherland_bass(
                 NCPA::units::ScalarWithUnits<T>( z, z_units ),
                 NCPA::units::ScalarWithUnits<T>( t, t_units ),
@@ -832,13 +862,14 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static NCPA::units::VectorWithUnits<T> attenuation_sutherland_bass(
-            const NCPA::units::VectorWithUnits<T>& zs,
-            const NCPA::units::VectorWithUnits<T>& ts,
-            const NCPA::units::VectorWithUnits<T>& ps,
-            const NCPA::units::VectorWithUnits<T>& ds, T freq,
-            const units_ptr_t units_out
-            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
+        static NCPA::units::VectorWithUnits<T>
+            attenuation_sutherland_bass(
+                const NCPA::units::VectorWithUnits<T>& zs,
+                const NCPA::units::VectorWithUnits<T>& ts,
+                const NCPA::units::VectorWithUnits<T>& ps,
+                const NCPA::units::VectorWithUnits<T>& ds, T freq,
+                const units_ptr_t units_out
+                = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             NCPA::units::VectorWithUnits<T> alpha( zs.size(), "np/m" );
             for (size_t i = 0; i < zs.size(); i++) {
                 alpha.set( i, attenuation_sutherland_bass(
@@ -850,13 +881,15 @@ template<typename T = double>
         }
 
         template<typename T = double>
-        static NCPA::units::VectorWithUnits<T> attenuation_sutherland_bass(
-            std::vector<T>& z, const std::string& z_units, std::vector<T>& t,
-            const std::string& t_units, std::vector<T>& p,
-            const std::string& p_units, std::vector<T>& d,
-            const std::string& d_units, T freq,
-            const std::string& units_out
-            = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
+        static NCPA::units::VectorWithUnits<T>
+            attenuation_sutherland_bass(
+                std::vector<T>& z, const std::string& z_units,
+                std::vector<T>& t, const std::string& t_units,
+                std::vector<T>& p, const std::string& p_units,
+                std::vector<T>& d, const std::string& d_units,
+                T freq,
+                const std::string& units_out
+                = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS_STR ) {
             return attenuation_sutherland_bass(
                 NCPA::units::VectorWithUnits<T>( z, z_units ),
                 NCPA::units::VectorWithUnits<T>( t, t_units ),
@@ -867,21 +900,28 @@ template<typename T = double>
 
         template<typename T = double>
         static std::vector<T> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<1, T>& z, const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<1, T>& t, const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<1, T>& p, const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<1, T>& d, const units_ptr_t d_units,
-            T freq,
+            const NCPA::arrays::ndvector<1, T>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<1, T>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<1, T>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<1, T>& d,
+            const units_ptr_t d_units, T freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             std::vector<T> alpha( z.size() );
             for (size_t i = 0; i < z.size(); ++i) {
                 alpha[ i ]
                     = attenuation_sutherland_bass(
-                          NCPA::units::ScalarWithUnits<T>( z[ i ], z_units ),
-                          NCPA::units::ScalarWithUnits<T>( t[ i ], t_units ),
-                          NCPA::units::ScalarWithUnits<T>( p[ i ], p_units ),
-                          NCPA::units::ScalarWithUnits<T>( d[ i ], d_units ),
+                          NCPA::units::ScalarWithUnits<T>( z[ i ],
+                                                                z_units ),
+                          NCPA::units::ScalarWithUnits<T>( t[ i ],
+                                                                t_units ),
+                          NCPA::units::ScalarWithUnits<T>( p[ i ],
+                                                                p_units ),
+                          NCPA::units::ScalarWithUnits<T>( d[ i ],
+                                                                d_units ),
                           freq, units_out )
                           .get();
             }
@@ -890,29 +930,35 @@ template<typename T = double>
 
         template<typename T = double>
         static T attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<0, T>& z, const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<0, T>& t, const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<0, T>& p, const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<0, T>& d, const units_ptr_t d_units,
-            T freq,
+            const NCPA::arrays::ndvector<0, T>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<0, T>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<0, T>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<0, T>& d,
+            const units_ptr_t d_units, T freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             return attenuation_sutherland_bass(
                        NCPA::units::ScalarWithUnits<T>( z, z_units ),
                        NCPA::units::ScalarWithUnits<T>( t, t_units ),
                        NCPA::units::ScalarWithUnits<T>( p, p_units ),
-                       NCPA::units::ScalarWithUnits<T>( d, d_units ), freq,
-                       units_out )
+                       NCPA::units::ScalarWithUnits<T>( d, d_units ),
+                       freq, units_out )
                 .get();
         }
 
         template<size_t N, typename T = double>
         NCPA::arrays::ndvector<N, T> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<N, T>& z, const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<N, T>& t, const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<N, T>& p, const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<N, T>& d, const units_ptr_t d_units,
-            T freq,
+            const NCPA::arrays::ndvector<N, T>& z,
+            const units_ptr_t z_units,
+            const NCPA::arrays::ndvector<N, T>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<N, T>& p,
+            const units_ptr_t p_units,
+            const NCPA::arrays::ndvector<N, T>& d,
+            const units_ptr_t d_units, T freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
             NCPA::arrays::ndvector<N, T> alpha = z;
@@ -922,8 +968,8 @@ template<typename T = double>
                     NCPA::arrays::ndvector<N - 1, T>( z[ i ] ), z_units,
                     NCPA::arrays::ndvector<N - 1, T>( t[ i ] ), t_units,
                     NCPA::arrays::ndvector<N - 1, T>( p[ i ] ), p_units,
-                    NCPA::arrays::ndvector<N - 1, T>( d[ i ] ), d_units, freq,
-                    units_out );
+                    NCPA::arrays::ndvector<N - 1, T>( d[ i ] ), d_units,
+                    freq, units_out );
             }
             return alpha;
         }

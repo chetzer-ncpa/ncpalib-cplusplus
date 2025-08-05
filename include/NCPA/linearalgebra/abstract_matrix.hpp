@@ -616,7 +616,7 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& operator/=(
                     const ELEMENTTYPE& other ) {
-                    scale( (ELEMENTTYPE)1.0 / other );
+                    scale( 1.0 / other );
                     return *this;
                 }
 

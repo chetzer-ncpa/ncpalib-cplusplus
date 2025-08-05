@@ -141,7 +141,7 @@ namespace NCPA {
 
                 virtual abstract_vector<ELEMENTTYPE>& operator/=(
                     const ELEMENTTYPE& other ) {
-                    this->scale( (ELEMENTTYPE)1.0 / other );
+                    this->scale( 1.0 / other );
                     return *this;
                 }
 
