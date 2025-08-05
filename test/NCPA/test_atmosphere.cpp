@@ -19,19 +19,11 @@ using namespace NCPA::atmos;
 using namespace NCPA::units;
 using namespace NCPA::arrays;
 
-#define SINGLE_PRECISION
-
-#ifdef SINGLE_PRECISION
-typedef float test_t;
-#define _TEST_EQ_       EXPECT_FLOAT_EQ
-#define _TEST_ARRAY_EQ_ EXPECT_ARRAY_FLOAT_EQ
-#define _TEST_TITLE_    NCPAAtmosphereLibraryTest
-#else
 typedef double test_t;
+
 #define _TEST_EQ_       EXPECT_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_DOUBLE_EQ
 #define _TEST_TITLE_    NCPAAtmosphereLibraryTest
-#endif
 
 class _TEST_TITLE_ : public ::testing::Test {
     protected:
