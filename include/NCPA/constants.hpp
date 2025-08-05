@@ -10,7 +10,22 @@ namespace NCPA {
         constexpr double PI
             = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
 
+        template<typename T>
+        const T pi() {
+            return (T)PI;
+        }
+
         constexpr std::complex<double> I = std::complex<double>( 0.0, 1.0 );
+
+        template<typename T>
+        const std::complex<T> ii() {
+            return std::complex<T>( 0.0, 1.0 );
+        }
+
+        // template<typename T>
+        // constexpr T pi() {
+        //     return (T)PI;
+        // }
 
         /**
          * Returns zero as the specified type.

@@ -20,9 +20,11 @@ namespace NCPA {
     namespace math {
 
         using NCPA::constants::I;
+        using NCPA::constants::ii;
         using NCPA::constants::is_zero;
         using NCPA::constants::one;
         using NCPA::constants::PI;
+        using NCPA::constants::pi;
         using NCPA::constants::zero;
 
         // template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
