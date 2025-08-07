@@ -157,6 +157,11 @@ namespace NCPA {
                     return this->as( Units::from_string( units ) );
                 }
 
+                template<typename U>
+                ScalarWithUnits<U> as() const {
+                    return ScalarWithUnits<U>( (U)this->get(), this->get_units () );
+                }
+
                 virtual void set_value( T newval ) { _value = newval; }
 
                 virtual void set_units( const Unit& new_units ) {

@@ -35,6 +35,16 @@ namespace NCPA {
         //     return is_zero( val.real() ) && is_zero( val.imag() );
         // }
 
+        template<typename T>
+        constexpr T pi() {
+            return (T)(NCPA::constants::PI);
+        }
+
+        template<typename T>
+        constexpr std::complex<T> ii() {
+            return std::complex<T>( NCPA::constants::zero<T>(), NCPA::constants::one<T>() );
+        }
+
 
         template<typename T>
         bool equals( T x, T y, size_t n = 1,

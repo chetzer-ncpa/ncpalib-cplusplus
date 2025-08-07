@@ -272,6 +272,15 @@ namespace NCPA {
                     return this->as( Units::from_string( units ) );
                 }
 
+                template<typename U>
+                VectorWithUnits<U> as() const {
+                    VectorWithUnits<U> newv( this->size(), this->get_units() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        newv[i] = (U)this->get(i);
+                    }
+                    return newv;
+                }
+
                 virtual T get( size_t ind ) const { return this->at( ind ); }
 
                 virtual ScalarWithUnits<T> get_scalar( size_t ind ) const {

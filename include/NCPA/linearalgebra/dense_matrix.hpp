@@ -344,12 +344,12 @@ std:
                     }
                 }
 
-                virtual bool is_zero( double tol = 1.0e-12 ) const override {
+                virtual bool is_zero( ELEMENTTYPE tol = 1.0e-12 ) const override {
                     if ( this->is_empty() ) {
                         return true;
                     }
                     for (size_t i = 0; i < _rows*_cols; ++i) {
-                            if (std::abs( _contents[i] - _zero) > tol) {
+                            if (std::abs( _contents[i] - _zero) > std::abs(tol)) {
                                 return false;
                             }
                         

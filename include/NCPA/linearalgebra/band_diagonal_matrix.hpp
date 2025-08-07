@@ -548,13 +548,13 @@ namespace NCPA {
                     return true;
                 }
 
-                virtual bool is_zero( double tol = 1.0e-12 ) const override {
+                virtual bool is_zero( ELEMENTTYPE tol = 1.0e-12 ) const override {
                     if ( this->is_empty() ) {
                         return true;
                     }
                     for (auto it1 = _contents.cbegin(); it1 != _contents.cend(); ++it1) {
                         for (auto it2 = it1->cbegin(); it2 != it1->cend(); ++it2) {
-                            if (std::abs( *it2 - _zero) > tol) {
+                            if (std::abs( *it2 - _zero) > std::abs(tol)) {
                                 return false;
                             }
                         }
