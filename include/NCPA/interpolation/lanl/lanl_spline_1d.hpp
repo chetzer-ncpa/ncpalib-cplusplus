@@ -147,9 +147,9 @@ namespace NCPA {
                         clear();
                         _length = N;
                         _accel  = 0;
-                        _x_vals = NCPA::arrays::zeros<DEPTYPE>( N );
-                        _f_vals = NCPA::arrays::zeros<INDEPTYPE>( N );
-                        _slopes = NCPA::arrays::zeros<INDEPTYPE>( N );
+                        _x_vals = NCPA::arrays::zeros<INDEPTYPE>( N );
+                        _f_vals = NCPA::arrays::zeros<DEPTYPE>( N );
+                        _slopes = NCPA::arrays::zeros<DEPTYPE>( N );
                     }
 
                     virtual void clear() override {

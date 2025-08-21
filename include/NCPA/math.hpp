@@ -5,6 +5,7 @@
 #include "NCPA/defines.hpp"
 
 #include <cassert>
+#include <cfloat>
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -875,5 +876,297 @@ namespace NCPA {
             }
             return sum;
         }
+
+        /**
+         * ComplexRootFinder adapted from functions found in:
+         *
+         * Vestermark, H., 2020, "Practical Implementation of Polynomial Root
+         * Finders",
+         * https://www.hvks.com/Numerical/Downloads/HVE%20Practical%20Implementation%20of%20Polynomial%20root%20finders%20vs%207.pdf.
+         *
+         * Used under the following license:
+         * ermission to use, copy, and distribute this software, and It’s
+         * documentation for any non-commercial purpose is hereby granted
+         * without fee, provided: THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT
+         * WARRANTY OF ANY KIND, EXPRESS, IMPLIED OR OTHERWISE, INCLUDING
+         * WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY OR FITNESS FOR A
+         * PARTICULAR PURPOSE. IN NO EVENT SHALL Henrik Vestermark, BE LIABLE
+         * FOR ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF
+         * ANY KIND, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA
+         * OR PROFITS, WHETHER ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY
+         * THEORY OF LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+         * PERFORMANCE OF THIS SOFTWARE.
+         */
+        class ComplexRootFinder {
+            public:
+                ComplexRootFinder() {}
+
+                virtual ~ComplexRootFinder() {}
+
+                std::vector<std::complex<double>> find(
+                    const std::vector<std::complex<double>> coeffs,
+                    bool leading_term_first = true ) {
+                        std::vector<std::complex<double>> roots( coeffs.size() );
+                        std::vector<std::complex<double>> c = coeffs;
+                        if (!leading_term_first) {
+                            std::reverse( c.begin(), c.end() );
+                        }
+                        this->Newton( (int)coeffs.size() - 1, &c[0], &roots[0] );
+                        roots.erase( roots.begin() );
+                        return roots;
+                    }
+
+                std::vector<std::complex<double>> find(
+                    const std::vector<double> coeffs,
+                    bool leading_term_first = true ) {
+                        std::vector<std::complex<double>> ccoeffs(coeffs.size());
+                        for (size_t i = 0; i < coeffs.size(); ++i) {
+                            ccoeffs[i].real( coeffs[ i ] );
+                        }
+                        return this->find( ccoeffs, leading_term_first );
+                    }
+
+            protected:
+                const int _DBL_RADIX = std::numeric_limits<double>::radix;
+
+                // Calculate a upper bound for the rounding errors performed in
+                // a
+                // polynomial with complex coefficient a[] at a complex point
+                // z. ( Grant & Hitchins test )
+                //
+                double upperbound( const int n, const std::complex<double> a[],
+                                   std::complex<double> z ) {
+                    int i;
+                    double nc, oc, nd, od, ng, og, nh, oh, t, u, v, w, e;
+                    double tol
+                        = 0.5
+                        * std::pow( (double)_DBL_RADIX, -DBL_MANT_DIG + 1 );
+                    oc = a[ 0 ].real();
+                    od = a[ 0 ].imag();
+                    og = oh = 1.0;
+                    t       = std::fabs( z.real() );
+                    u       = std::fabs( z.imag() );
+                    for (i = 1; i <= n; i++) {
+                        nc = z.real() * oc - z.imag() * od + a[ i ].real();
+                        nd = z.imag() * oc + z.real() * od + a[ i ].imag();
+                        v  = og + std::fabs( oc );
+                        w  = oh + std::fabs( od );
+                        ng = t * v + u * w + std::fabs( a[ i ].real() )
+                           + 2.0 * std::fabs( nc );
+                        nh = u * v + t * w + std::fabs( a[ i ].imag() )
+                           + 2.0 * std::fabs( nd );
+                        og = ng;
+                        oh = nh;
+                        oc = nc;
+                        od = nd;
+                    }
+                    e = std::abs( std::complex<double>( ng, nh ) )
+                      * std::pow( 1 + tol, 5 * n ) * tol;
+                    return e;
+                }
+
+                // Calculate a start point for the iteration that is suitable
+                // for finding zeros with increasing magnitude Start point
+                // calculation for a polynomial with complex coefficients a[]
+                // n is the degree of the Polynomial
+                // Notice that a[0] is an, a[1] is an-1 and a[n]=a0
+                double startpoint( const int n,
+                                   const std::complex<double> a[] ) {
+                    double r, min, u;
+                    r   = std::log( std::abs( a[ n ] ) );
+                    min = std::exp( ( r - std::log( std::abs( a[ 0 ] ) ) )
+                                    / n );
+                    for (int i = 1; i < n; i++)
+                        if (a[ i ] != std::complex<double>( 0, 0 )) {
+                            u = std::exp(
+                                ( r - std::log( std::abs( a[ i ] ) ) )
+                                / ( n - i ) );
+                            if (u < min) min = u;
+                        }
+                    return 0.5 * min;
+                }
+
+                // Evaluate a polynomial with complex coefficients a[] at a
+                // complex point z and return the result fz Notice that a[0] is
+                // an, a[1] is an-1 and a[n]=a0
+                std::complex<double> horner( const int n,
+                                             const std::complex<double> a[],
+                                             const std::complex<double> z ) {
+                    std::complex<double> fval;
+                    fval = a[ 0 ];
+                    for (int i = 1; i <= n; i++) fval = fval * z + a[ i ];
+                    return fval;
+                }
+
+                // For Polynomial with complex cooefficiets a[],
+                // The real or complex solutions is stored in res[1] and res[2]
+                // Notice that a[0] is a2, a[1] is a1 and a[2]=a0
+                //
+                void quadratic( const int n, const std::complex<double> a[],
+                                std::complex<double> res[] ) {
+                    std::complex<double> v;
+                    if (n == 1) {
+                        res[ 1 ] = -a[ 1 ] / a[ 0 ];
+                    } else {
+                        if (a[ 1 ] == std::complex<double>( 0 )) {
+                            res[ 1 ] = std::sqrt( -a[ 2 ] / a[ 0 ] );
+                            res[ 2 ] = -res[ 1 ];
+                        } else {
+                            v = std::sqrt( std::complex<double>( 1 )
+                                           - std::complex<double>( 4 ) * a[ 0 ]
+                                                 * a[ 2 ]
+                                                 / ( a[ 1 ] * a[ 1 ] ) );
+                            if (v.real() < 0)
+                                res[ 1 ]
+                                    = ( std::complex<double>( -1 ) - v )
+                                    * a[ 1 ]
+                                    / ( std::complex<double>( 2 ) * a[ 0 ] );
+                            else
+                                res[ 1 ]
+                                    = ( std::complex<double>( -1 ) + v )
+                                    * a[ 1 ]
+                                    / ( std::complex<double>( 2 ) * a[ 0 ] );
+                            res[ 2 ] = a[ 2 ] / ( a[ 0 ] * res[ 1 ] );
+                        }
+                    }
+                }
+
+                int zeroroots( const int n, const std::complex<double> a[],
+                               std::complex<double> res[] ) {
+                    int i;
+                    for (i = n; a[ i ] == std::complex<double>( 0 ); --i) {
+                        res[ i ] = std::complex<double>( 0.0 );
+                    }
+                    return i;
+                }
+
+                // Notice that a[0] is an, a[1] is an-1 and a[n]=a0
+                //
+                int forwarddeflation( const int n, std::complex<double> a[],
+                                      const std::complex<double> z ) {
+                    std::complex<double> z0 = 0;
+                    for (int j = 0; j < n; j++) a[ j ] = z0 = z0 * z + a[ j ];
+                    return n - 1;
+                }
+
+                // Find all root of a polynomial of n degree with complex
+                // coeeficients using the modified Newton
+                // Notice that a[0] is an, a[1] is an-1 and a[n]=a0
+                // The roots is stored in res[1..n] where res[n] is the first
+                // root found and res[ 1 ] the last root.
+                //
+                void Newton( int n, const std::complex<double> coeff[],
+                             std::complex<double> res[] ) {
+                    int stage1, i;
+                    double r, r0, u, f, f0, eps, f1, ff;
+                    std::complex<double> z0, f0z, z, dz, f1z, fz;
+                    std::complex<double> *a1, *a;
+                    a = new std::complex<
+                        double>[ n + 1 ];  // Copy the original coefficients
+                    for (i = 0; i <= n; i++) a[ i ] = coeff[ i ];
+                    // Eliminate zero roots
+                    n  = zeroroots( n, a, res );
+                    // Create a1 to hold the derivative of the Polynomial a for
+                    // each iterations
+                    a1 = new std::complex<double>[ n ];
+                    while (n > 2)  // Iterate for each root
+                    {
+                        // Calculate coefficients of f'(x)
+                        for (i = 0; i < n; i++)
+                            a1[ i ]
+                                = a[ i ] * std::complex<double>( n - i, 0 );
+                        u = startpoint(
+                            n, a );  // Calculate a suitable start point
+                        z0 = 0;
+                        ff = f0 = std::abs( a[ n ] );
+                        f0z     = a[ n - 1 ];
+                        if (a[ n - 1 ] == std::complex<double>( 0 ))
+                            z = 1;
+                        else
+                            z = -a[ n ] / a[ n - 1 ];
+                        dz = z = z / std::abs( z ) * std::complex<double>( u );
+                        fz     = horner( n, a, z );
+                        f      = std::abs( fz );
+                        r0     = 5 * u;
+                        // Initial use a simple upperbound for EPS until we get
+                        // closer to the root
+                        eps    = 6 * n * f0
+                            * std::pow( (double)_DBL_RADIX, -DBL_MANT_DIG );
+                        // Start the iteration
+                        while (z + dz != z && f > eps) {
+                            f1z = horner( n - 1, a1, z );
+                            f1  = std::abs( f1z );
+                            if (f1 == 0.0)
+                                dz *= std::complex<double>( 0.6, 0.8 ) * 5.0;
+                            else {
+                                double wsq;
+                                std::complex<double> wz;
+                                dz  = fz / f1z;
+                                wz  = ( f0z - f1z ) / ( z0 - z );
+                                wsq = std::abs( wz );
+                                stage1
+                                    = ( wsq / f1 > f1 / f / 2 ) || ( f != ff );
+                                r = std::abs( dz );
+                                if (r > r0) {
+                                    dz *= std::complex<double>( 0.6, 0.8 )
+                                        * ( r0 / r );
+                                    r = std::abs( dz );
+                                }
+                                r0 = 5 * r;
+                            }
+                            z0  = z;
+                            f0  = f;
+                            f0z = f1z;
+                            z   = z0 - dz;
+                            fz  = horner( n, a, z );
+                            ff = f = std::abs( fz );
+                            if (stage1) {  // Try multiple steps or shorten
+                                           // steps depending of f is an
+                                           // improvement or not
+                                int div2;
+                                double fn;
+                                std::complex<double> zn, fzn;
+                                zn = z;
+                                for (i = 1, div2 = f > f0; i <= n; i++) {
+                                    if (div2 != 0) {  // Shorten steps
+                                        dz *= 0.5;
+                                        zn  = z0 - dz;
+                                    } else
+                                        zn -= dz;  // try another step in the
+                                                   // same direction
+                                    fzn = horner( n, a, zn );
+                                    fn  = std::abs( fzn );
+                                    if (fn >= f)
+                                        break;  // Break if no improvement
+                                    f  = fn;
+                                    fz = fzn;
+                                    z  = zn;
+                                    if (div2 != 0
+                                        && i == 2) {  // To many shortensteps
+                                                      // try another direction
+                                        dz *= std::complex<double>( 0.6, 0.8 );
+                                        z   = z0 - dz;
+                                        fz  = horner( n, a, z );
+                                        f   = std::abs( fz );
+                                        break;
+                                    }
+                                }
+                            } else {
+                                // calculate the upper bound of errors using
+                                // Grant & Hitchins's test
+                                eps = upperbound( n, a, z );
+                            }
+                        }
+                        z0 = std::complex<double>( z.real(), 0.0 );
+                        fz = horner( n, a, z0 );
+                        if (std::abs( fz ) <= f) z = z0;
+                        res[ n ] = z;
+                        n        = forwarddeflation( n, a, z );
+                    }
+                    quadratic( n, a, res );
+                    delete[] a1;
+                    delete[] a;
+                }
+        };
     }  // namespace math
 }  // namespace NCPA
