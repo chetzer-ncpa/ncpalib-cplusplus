@@ -35,5 +35,4 @@
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/Solver.hpp"
 
-// external package interfaces
-#include "NCPA/linearalgebra/gsl.h"
+#include "NCPA/linearalgebra/tridiagonal_eigensolver.hpp"
