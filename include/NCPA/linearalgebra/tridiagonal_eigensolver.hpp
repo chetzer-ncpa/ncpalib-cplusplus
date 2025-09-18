@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef NCPA_LINEAR_TRIDIAGONAL_EIGENSOLVER_TOLERANCE
-#  define NCPA_LINEAR_TRIDIAGONAL_EIGENSOLVER_TOLERANCE 1.0e-12
+#  define NCPA_LINEAR_TRIDIAGONAL_EIGENSOLVER_TOLERANCE 1.0e-8
 #endif
 
 #include "NCPA/linearalgebra/Matrix.hpp"
@@ -15,26 +15,83 @@
 #include <stdexcept>
 #include <vector>
 
+static void swap( NCPA::linear::TridiagonalEigensolver& a,
+                  NCPA::linear::TridiagonalEigensolver& b ) noexcept;
+
 namespace NCPA {
     namespace linear {
-
-        template<typename ELEMENTTYPE>
         class TridiagonalEigensolver {
             public:
-                TridiagonalEigensolver() {}
+                TridiagonalEigensolver() {
+                    _Q = MatrixFactory<std::complex<double>>::build(
+                        matrix_t::BAND_DIAGONAL );
+                }
 
                 TridiagonalEigensolver(
-                    const NCPA::linear::Matrix<ELEMENTTYPE>& m ) {}
+                    const NCPA::linear::Matrix<std::complex<double>>& m ) :
+                    TridiagonalEigensolver() {
+                    _Q.copy( m );
+                }
+
+                // copy constructor
+                TridiagonalEigensolver( const TridiagonalEigensolver& other ) :
+                    TridiagonalEigensolver() {
+                    _lmax  = other._lmax;
+                    _lmin  = other._lmin;
+                    _eigs  = other._eigs;
+                    _eigvs = other._eigvs;
+                    _Q     = other._Q;
+                }
+
+                // move constructor
+                TridiagonalEigensolver(
+                    TridiagonalEigensolver&& source ) noexcept :
+                    TridiagonalEigensolver() {
+                    ::swap( *this, source );
+                }
 
                 virtual ~TridiagonalEigensolver() {}
 
-                virtual const std::vector<std::complex<ELEMENTTYPE>>&
-                    eigenvalues() const {
-                    return eigs;
+                friend void ::swap( TridiagonalEigensolver& a,
+                                    TridiagonalEigensolver& b ) noexcept;
+
+                TridiagonalEigensolver& operator=(
+                    TridiagonalEigensolver other ) {
+                    ::swap( *this, other );
+                    return *this;
                 }
 
-                virtual void set( const NCPA::linear::Matrix<ELEMENTTYPE>& m,
-                                  bool check = true ) {
+                size_t count() {
+                    size_t cmax = _sturm_count( _lmax );
+                    size_t cmin = _sturm_count( _lmin );
+                    return ( cmax >= cmin ) ? cmax - cmin : 0;
+                }
+
+                size_t count( double lambda ) {
+                    return _sturm_count( lambda );
+                }
+
+                size_t count( double lmin, double lmax ) {
+                    size_t maxcount = _sturm_count( lmax );
+                    size_t mincount = _sturm_count( lmin );
+                    if (maxcount < mincount) {
+                        throw std::logic_error(
+                            "Eigenvalue counter returns negative count!" );
+                    }
+                    return maxcount - mincount;
+                }
+
+                virtual const std::vector<double>& eigenvalues() const {
+                    return _eigs;
+                }
+
+                virtual const std::vector<std::vector<std::complex<double>>>&
+                    eigenvectors() const {
+                    return _eigvs;
+                }
+
+                virtual TridiagonalEigensolver& set(
+                    const NCPA::linear::Matrix<std::complex<double>>& m ) {
                     if (!m.is_square() || !m.is_tridiagonal()
                         || !m.is_symmetric()) {
                         throw std::invalid_argument(
@@ -42,161 +99,191 @@ namespace NCPA {
                             "symmetric" );
                     }
 
-                    if (check) {
-                        check_offdiags( m );
+                    _Q = m;
+                    return *this;
+                }
+
+                virtual TridiagonalEigensolver& set_range( double kkmin,
+                                                           double kkmax ) {
+                    _lmin = kkmin;
+                    _lmax = kkmax;
+                    return *this;
+                }
+
+                virtual TridiagonalEigensolver& solve( bool find_eigenvecs
+                                                       = true ) {
+                    _calculate_eigenvalues( _lmin, _lmax );
+                    if (find_eigenvecs) {
+                        _calculate_eigenvectors();
                     }
-
-                    set_diagonal( m.get_diagonal( 0 )->as_std() );
-                    set_offdiagonal( m.get( 0, 1 ) );
+                    return *this;
                 }
 
-                virtual void set_diagonal(
-                    const std::vector<ELEMENTTYPE>& d ) {
-                    diag = d;
+                virtual TridiagonalEigensolver& solve( double kmin,
+                                                       double kmax,
+                                                       bool find_eigenvecs
+                                                       = true ) {
+                    set_range( kmin, kmax );
+                    return solve( find_eigenvecs );
                 }
 
-                virtual void set_wavenumber_limits( ELEMENTTYPE kmin,
-                                                    ELEMENTTYPE kmax ) {
-                    kk_min = kmin * kmin;
-                    kk_max = kmax * kmax;
-                }
-
-                virtual void set_offdiagonal( ELEMENTTYPE od ) { o_d_2 = od; }
-
-                virtual void set_dz( ELEMENTTYPE dz ) { del_z = dz; }
-
-                virtual void solve() { find_eigs(); }
-
-                virtual void solve( ELEMENTTYPE kmin, ELEMENTTYPE kmax ) {
-                    set_wavenumber_limits( kmin, kmax );
-                    solve();
+                virtual TridiagonalEigensolver& solve(
+                    const Matrix<std::complex<double>>& M, double kmin,
+                    double kmax, bool find_eigenvecs = true ) {
+                    this->set( M );
+                    return this->solve( kmin, kmax, find_eigenvecs );
                 }
 
             protected:
-                size_t eig_count = 0;
-                ELEMENTTYPE o_d_2 = 0.0, kk_max=-1.0, kk_min = -1.0, del_z = -1.0;
+                // size_t eig_count  = 0;
+                double _lmax = -1.0, _lmin = -1.0;
+                std::vector<double> _eigs;
+                std::vector<std::vector<std::complex<double>>> _eigvs;
 
-                std::complex<ELEMENTTYPE> admittence = 0.0;
-                std::vector<std::complex<ELEMENTTYPE>> eigs;
-                std::vector<ELEMENTTYPE> diag, Pn;
+                Matrix<std::complex<double>> _Q;
 
-                const ELEMENTTYPE ERR = 1.0e-8;
+                static constexpr double ERR = 1.0e-8;
 
-                void charpoly( ELEMENTTYPE lambda ) {
-                    size_t N = diag.size() + 1;
-                    Pn.resize( N) ;
-                    Pn[0] = 1.0;
-                    Pn[1] = diag[0] - lambda;
-                    for (size_t i = 2; i <= N; ++i) {
-                        Pn[i] = (diag[i-1] - lambda) * Pn[i-1] - o_d_2 * o_d_2 * Pn[i-2];
-                    }
-                }
-
-                
-
-                void check_offdiags(
-                    const NCPA::linear::Matrix<ELEMENTTYPE>& m,
-                    ELEMENTTYPE tol
-                    = NCPA_LINEAR_TRIDIAGONAL_EIGENSOLVER_TOLERANCE ) {
-                    size_t noffdiag = m.rows() - 1;
-                    auto udiagptr   = m.get_diagonal( 1 );
-                    auto ldiagptr   = m.get_diagonal( -1 );
-                    ELEMENTTYPE val = udiagptr->get( 0 );
-                    for (size_t i = 0; i < noffdiag; ++i) {
-                        if (std::abs( udiagptr->get( i ) - val ) > tol) {
-                            throw std::invalid_argument(
-                                "Matrix off-diagonals not constant within "
-                                "tolerance" );
+                void _calculate_eigenvalues( double lambda1, double lambda2 ) {
+                    double k1 = std::min( lambda1, lambda2 );
+                    double k2 = std::max( lambda1, lambda2 );
+                    int nphi
+                        = (int)_sturm_count( k2 ) - (int)_sturm_count( k1 );
+                    std::vector<double> phi( nphi, 0.0 );
+                    double kstep = 1.0e-8 * (double)( k2 - k1 );
+                    for (size_t i = 0; i < nphi; ++i) {
+                        if (!_get_first_eigenvalue( k1, k2, phi[ i ] )) {
+                            throw std::logic_error(
+                                "Unexpected lack of eigenvalues in range!" );
                         }
-                        if (std::abs( ldiagptr->get( i ) - val ) > tol) {
-                            throw std::invalid_argument(
-                                "Matrix off-diagonals not constant within "
-                                "tolerance" );
+                        k1 = phi[ i ] + kstep;
+                    }
+                    _eigs = phi;
+                }
+
+                std::vector<std::complex<double>> _calculate_eigenvector(
+                    double lambda ) {
+                    double tol      = 1e-10;
+                    size_t max_iter = 10;
+                    size_t rows     = _Q.rows();
+                    int NN          = rows - 1;
+                    double dNNp1    = (double)( NN + 1 );
+                    Vector<std::complex<double>> yy
+                        = VectorFactory<std::complex<double>>::build(
+                            vector_t::DENSE );
+                    yy.resize( NN + 1 ).set( 1.0 );
+                    Matrix<std::complex<double>> Qpert = _Q;
+                    Qpert.set_diagonal( *( _Q.get_diagonal( 0 ) ) - lambda );
+                    Solver<std::complex<double>> solver
+                        = SolverFactory<std::complex<double>>::build(
+                            solver_t::TRIDIAGONAL );
+                    solver.set_system_matrix( Qpert );
+                    double dy = 0.0;
+                    Vector<std::complex<double>> xx;
+                    Vector<std::complex<double>> lasty = yy;
+
+                    size_t counter = 0;
+                    do {
+                        xx = solver.solve( yy );
+                        std::complex<double> norm( 0.0, 0.0 );
+                        dy = 0.0;
+                        for (size_t i = 0; i <= NN; ++i) {
+                            norm += xx.get( i ) * xx.get( i );
                         }
+                        norm = std::pow( norm, -0.5 );
+                        yy   = xx * norm;
+                        for (size_t i = 0; i <= NN; ++i) {
+                            dy += ( std::abs( yy.get( i ) )
+                                    - std::abs( lasty.get( i ) ) )
+                                / dNNp1;
+                        }
+                        lasty = yy;
+                    } while (++counter <= max_iter && std::abs( dy ) > tol);
+                    return yy.as_std();
+                }
+
+                void _calculate_eigenvectors() {
+                    double cup, pot;
+                    _eigvs.clear();
+                    _eigvs.resize( _eigs.size() );
+                    for (size_t i = 0; i < _eigs.size(); ++i) {
+                        std::vector<std::complex<double>> evec
+                            = _calculate_eigenvector( _eigs[ i ] );
+                        _eigvs[ i ] = evec;
                     }
                 }
 
-                int eig_counter() {
-                    return sturm_count( kk_max ) - sturm_count( kk_min );
-                }
-
-                void find_eigs() {
-                    ELEMENTTYPE diff, eig_cup;
-                    int i;
-                    ELEMENTTYPE R_bc = admittence.real();
-
-                    // size_t eig_count = eig_counter();
-                    size_t eig_count = diag.size();
-                    eigs.resize( eig_count );
-                    diff = 1.0;
-                    kk_min = 1e6;
-                    kk_max = -1e6;
-                    // diff    = kk_max - kk_min;
-                    // eig_cup = kk_min + 5.0 * R_bc;
-                    eig_cup = kk_min;
-                    for (i = 0; i < eig_count; i++) {
-                        eigs[ i ] = find_first_eig( eig_cup, kk_max - R_bc );
-                        eig_cup   = eigs[ i ].real() + ERR * diff;
+                bool _get_first_eigenvalue( double k1, double k2,
+                                            double& phi_n,
+                                            double tol = 1e-8 ) {
+                    phi_n = 0.0;
+                    if (k2 < k1) {
+                        std::swap( k1, k2 );
                     }
-                }
-
-                ELEMENTTYPE find_first_eig( ELEMENTTYPE lower,
-                                            ELEMENTTYPE upper ) {
-                    ELEMENTTYPE lambda, d_lambda;
-                    int lower_count, upper_count, int_cup;
-
-                    lower_count = sturm_count( lower );
-                    upper_count = sturm_count( upper );
+                    size_t lower_count = _sturm_count( k1 );
+                    size_t upper_count = _sturm_count( k2 );
                     if (upper_count <= lower_count) {
-                        std::ostringstream oss;
-                        oss << "No eigenvalues in specified interval " << upper
-                            << " to " << lower << "   " << eig_count;
-                        throw std::range_error( oss.str() );
+                        return false;
                     }
-                    lambda = upper;
-
-                    d_lambda = 0.2 * ( lower - upper );
-                    while (d_lambda >= ERR * ( lower - upper )) {
-                        d_lambda = 0.5 * d_lambda;
-                        lambda   = lambda + d_lambda;
-                        while (( int_cup = sturm_count( lambda ) )
-                               > lower_count) {
-                            lambda = lambda + d_lambda;
+                    double dk = 0.2 * ( k2 - k1 );
+                    phi_n     = k2;
+                    while (dk >= tol) {
+                        dk          *= 0.5;
+                        phi_n       -= dk;
+                        upper_count  = _sturm_count( phi_n );
+                        while (upper_count > lower_count) {
+                            phi_n       -= dk;
+                            upper_count  = _sturm_count( phi_n );
                         }
-                        lambda = lambda - d_lambda;
+                        phi_n += dk;
                     }
-
-                    return ( lambda );
+                    return true;
                 }
 
-                int sturm_count( ELEMENTTYPE lambda ) {
-                    ELEMENTTYPE pot, cup0, cup1, cup2;
-                    int i, pm;
-                    size_t NN = diag.size() - 1;
-                    
-                    pm   = 0;
-                    cup0 = diag[ NN ] + 0.5 * del_z * del_z * lambda
-                         - 0.5 * del_z * std::sqrt( lambda );
-                    pot  = diag[ NN - 1 ] + 0.5 * del_z * del_z * lambda;
-                    cup1 = cup0 * pot;
-                    if (cup0 * cup1 < 0.0) {
-                        pm++;
+                size_t _sturm_count( double lambda ) {
+                    if (!_Q.is_square() || !_Q.is_tridiagonal()) {
+                        throw std::invalid_argument(
+                            "Matrix must be square and tridiagonal" );
                     }
-                    cup0 = cup0 / std::fabs( cup1 );
-                    cup1 = cup1 / std::fabs( cup1 );
-
-                    for (i = NN - 2; i >= 0; i--) {
-                        pot  = diag[ i ] + 0.5 * del_z * del_z * lambda;
-                        cup2 = pot * cup1 - o_d_2 * cup0;
-                        if (cup1 * cup2 < 0.0) {
-                            pm++;
+                    size_t n            = 0;
+                    size_t rows         = _Q.rows();
+                    double last_nonzero = 1.0;
+                    std::vector<double> P( rows + 1 );
+                    P[ 0 ] = 1.0;
+                    P[ 1 ] = _Q.get( 0, 0 ).real() - lambda;
+                    if (P[ 1 ] != 0.0) {
+                        last_nonzero = P[ 1 ];
+                        if (P[ 1 ] < 0.0) {
+                            n++;
                         }
-                        cup0 = cup1 / std::fabs( cup2 );
-                        cup1 = cup2 / std::fabs( cup2 );
                     }
-
-                    return pm;
+                    for (int i = 2; i <= rows; ++i) {
+                        P[ i ] = ( _Q.get( i - 1, i - 1 ).real() - lambda )
+                                   * P[ i - 1 ]
+                               - _Q.get( i - 1, i - 2 ).real()
+                                     * _Q.get( i - 1, i - 2 ).real()
+                                     * P[ i - 2 ];
+                        if (P[ i ] != 0.0) {
+                            if (P[ i ] * last_nonzero < 0.0) {
+                                n++;
+                            }
+                            last_nonzero  = P[ i ];
+                            P[ i - 1 ]   /= std::abs( P[ i ] );
+                            P[ i ]       /= std::abs( P[ i ] );
+                        }
+                    }
+                    return n;
                 }
         };
     }  // namespace linear
 }  // namespace NCPA
+
+static void swap( NCPA::linear::TridiagonalEigensolver& a,
+                  NCPA::linear::TridiagonalEigensolver& b ) noexcept {
+    using std::swap;
+    swap( a._lmin, b._lmin );
+    swap( a._lmax, b._lmax );
+    swap( a._eigs, b._eigs );
+    swap( a._eigvs, b._eigvs );
+    swap( a._Q, b._Q );
+}
