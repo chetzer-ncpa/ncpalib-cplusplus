@@ -389,17 +389,19 @@ namespace NCPA {
                     }
                 }
 
-                VectorWithUnits operator+=( double second ) {
+                template<typename U>
+                VectorWithUnits operator+=( U second ) {
                     for (size_t i = 0; i < this->size(); i++) {
-                        this->at( i ) += second;
+                        this->at( i ) += (T)second;
                     }
                     return *this;
                 }
 
+                template<typename U>
                 VectorWithUnits operator+(
-                    double second ) const {
+                    U second ) const {
                     VectorWithUnits<T> temp1( *this );
-                    temp1 += second;
+                    temp1 += (T)second;
                     return temp1;
                 }
 

@@ -145,6 +145,13 @@ namespace NCPA {
 
                 ndvector( const ndvector<N,T>& other ) :
                     std::vector<_subvector>( other ) {}
+                
+                template<typename U>
+                ndvector( const ndvector<N,U>& other ) : std::vector<_subvector>( other.size() ) {
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at( i ) = _subvector( other.at(i) );
+                    }
+                }
 
                 ndvector<N, T>& operator=(
                     const std::initializer_list<_subvector>& other ) {
@@ -237,6 +244,18 @@ namespace NCPA {
                     return dims;
                 }
 
+                void copy( const ndvector<N,T>& other ) {
+                    *this = ndvector<N,T>( other );
+                }
+
+                template<typename U>
+                void copy( const ndvector<N,U>& other ) {
+                    this->resize( other.size() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at(i).copy( other.at( i ) );
+                    }
+                }
+
                 // size_t size() const { return _v.size(); }
 
                 // protected:
@@ -255,6 +274,13 @@ namespace NCPA {
 
                 ndvector( const ndvector<1, T>& other ) :
                     std::vector<T>( other ) {}
+
+                template<typename U>
+                ndvector( const ndvector<1, U>& other ) : std::vector<T>( other.size() ) {
+                    for (size_t i = 0; i < other.size(); ++i) {
+                        this->at( i ) = static_cast<T>( other.at( i ) );
+                    }
+                }
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<1, T>() {
@@ -333,6 +359,18 @@ namespace NCPA {
                     // return ( static_cast<const std::vector<T>&>( *this )[
                     // inds[0] ] );
                 }
+
+                void copy( const ndvector<1,T>& other ) {
+                    *this = ndvector<1,T>( other );
+                }
+
+                template<typename U>
+                void copy( const ndvector<1,U>& other ) {
+                    this->resize( other.size() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at(i) = static_cast<T>( other.at(i) );
+                    }
+                }
         };
 
         template<typename T>
@@ -344,6 +382,10 @@ namespace NCPA {
 
                 ndvector( const ndvector<0, T>& other ) :
                     _as<T>( other._val ) {}
+
+                template<typename U>
+                ndvector( const ndvector<0, U>& other ) :
+                    _as<T>( static_cast<T>( other._val ) ) {}
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<0, T>() {
@@ -365,6 +407,15 @@ namespace NCPA {
                 friend void ::swap<T>(
                     NCPA::arrays::ndvector<0, T>& a,
                     NCPA::arrays::ndvector<0, T>& b ) noexcept;
+
+                void copy( const ndvector<0,T>& other ) {
+                    this->_val = other._val;
+                }
+
+                template<typename U>
+                void copy( const ndvector<0,U>& other ) {
+                    this->_val = static_cast<T>( other._val );
+                }
         };
 
     }  // namespace arrays

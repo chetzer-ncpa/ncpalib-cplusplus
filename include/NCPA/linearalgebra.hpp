@@ -34,3 +34,6 @@
 #include "NCPA/linearalgebra/basic_band_diagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/Solver.hpp"
+
+// external package interfaces
+#include "NCPA/linearalgebra/gsl.h"
