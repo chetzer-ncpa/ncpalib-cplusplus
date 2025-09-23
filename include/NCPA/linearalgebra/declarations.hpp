@@ -75,6 +75,8 @@ namespace NCPA {
             basic_tridiagonal_linear_system_solver,
             abstract_linear_system_solver );
 
+        class TridiagonalEigensolver;
+
         template<typename ELEMENTTYPE>
         class LUDecomposition;
         template<typename ELEMENTTYPE>
