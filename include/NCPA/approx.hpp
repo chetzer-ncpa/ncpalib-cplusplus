@@ -15,17 +15,18 @@ namespace NCPA {
             public:
                 PadeApproximator() {}
 
-                PadeApproximator& calculate( const std::vector<T>& taylor_coefficients,
-                                size_t n_numerator, size_t n_denominator ) {
+                PadeApproximator& calculate(
+                    const std::vector<T>& taylor_coefficients,
+                    size_t n_numerator, size_t n_denominator ) {
                     PadeApproximator<T>::calculate(
                         taylor_coefficients, n_numerator, n_denominator,
                         _numerator_coefficients, _denominator_coefficients );
                     return *this;
                 }
 
-                PadeApproximator& apply( const NCPA::linear::MatrixPolynomial<T>& Q,
-                            NCPA::linear::Matrix<T>& B,
-                            NCPA::linear::Matrix<T>& C ) {
+                PadeApproximator& apply(
+                    const NCPA::linear::MatrixPolynomial<T>& Q,
+                    NCPA::linear::Matrix<T>& B, NCPA::linear::Matrix<T>& C ) {
                     size_t NQ = Q.at( 0 ).rows();
 
                     B.clear().identity( NQ, NQ );
@@ -104,8 +105,8 @@ namespace NCPA {
                     }
                 }
 
-                PadeApproximator& calculate_exponential( size_t n_numerator,
-                                               size_t n_denominator ) {
+                PadeApproximator& calculate_exponential(
+                    size_t n_numerator, size_t n_denominator ) {
                     PadeApproximator<T>::calculate_exponential(
                         n_numerator, n_denominator, _numerator_coefficients,
                         _denominator_coefficients );
@@ -123,7 +124,6 @@ namespace NCPA {
                         numerator_coefficients, denominator_coefficients );
                 }
 
-
                 std::vector<T> numerator() const {
                     return _numerator_coefficients;
                 }
@@ -132,12 +132,75 @@ namespace NCPA {
                     return _denominator_coefficients;
                 }
 
+                std::vector<std::complex<double>>
+                    exponential_denominator_roots( size_t num_order,
+                                                   size_t den_order ) const {
+                    if (num_order > 3 || den_order > 3) {
+                        throw std::range_error(
+                            "exponential_denominator_roots() is not "
+                            "implemented for order > 3" );
+                    }
+                    std::vector<std::complex<double>> roots;
+                    double order_sum = (double)( num_order + den_order );
+                    switch (den_order) {
+                        case 0:
+                            break;
+                        case 1:
+                            roots.push_back( { order_sum, 0.0 } );
+                            break;
+                        case 2:
+                            roots.push_back(
+                                { order_sum - 1.0,
+                                  std::sqrt( order_sum - 1.0 ) } );
+                            roots.push_back(
+                                { order_sum - 1.0,
+                                  std::sqrt( order_sum - 1.0 ) } );
+                            break;
+                        case 3:
+                            switch (num_order) {
+                                case 0:
+                                    roots.push_back(
+                                        { 1.596071637983322, 0.0 } );
+                                    roots.push_back( { 0.701964181008340,
+                                                       1.807339494452021 } );
+                                    roots.push_back( { 0.701964181008340,
+                                                       -1.807339494452021 } );
+                                    break;
+                                case 1:
+                                    roots.push_back(
+                                        { 2.625816818958465, 0.0 } );
+                                    roots.push_back( { 1.687091590520767,
+                                                       2.50873175492488 } );
+                                    roots.push_back( { 1.687091590520767,
+                                                       -2.50873175492488 } );
+                                    break;
+                                case 2:
+                                    roots.push_back(
+                                        { 3.637834252744490, 0.0 } );
+                                    roots.push_back( { 2.681082873627758,
+                                                       3.050430199247414 } );
+                                    roots.push_back( { 2.681082873627758,
+                                                       -3.050430199247414 } );
+                                    break;
+                                case 3:
+                                    roots.push_back(
+                                        { 4.644370709252171, 0.0 } );
+                                    roots.push_back( { 3.677814645373910,
+                                                       3.508761919567443 } );
+                                    roots.push_back( { 3.677814645373910,
+                                                       -3.508761919567443 } );
+                                    break;
+                            }
+                    }
+                    return roots;
+                }
+
 
             protected:
                 std::vector<T> _numerator_coefficients,
                     _denominator_coefficients;
 
-                    static void _exponential_coefficients( size_t n_order,
+                static void _exponential_coefficients( size_t n_order,
                                                        size_t d_order,
                                                        std::vector<T>& num,
                                                        std::vector<T>& den ) {

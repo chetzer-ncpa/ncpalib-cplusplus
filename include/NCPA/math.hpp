@@ -344,6 +344,24 @@ namespace NCPA {
         }
 
         /**
+        @brief Returns the index of the maximum absolute value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the maximum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_max_abs( const std::vector<T>& vals ) {
+            T maxval   = std::abs( vals[ 0 ] );
+            size_t ind = 0;
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (std::abs(vals[ i ]) > maxval) {
+                    maxval = std::abs(vals[ i ]);
+                    ind    = i;
+                }
+            }
+            return ind;
+        }
+
+        /**
         @brief Returns the index of the maximum value from a vector.
         @param vals The vector holding the values to check.
         @returns The index of the maximum value found in the vector.
@@ -376,6 +394,8 @@ namespace NCPA {
             return minval;
         }
 
+        
+
         /**
         @brief Returns the index of the minimum value from an array.
         @param vals The array holding the values to check.
@@ -407,6 +427,24 @@ namespace NCPA {
                 minval = std::min( *cit, minval );
             }
             return minval;
+        }
+
+        /**
+        @brief Returns the index of the minimum absolute value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the minimum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_min_abs( const std::vector<T>& vals ) {
+            T minval   = std::abs( vals.front() );
+            size_t ind = 0;
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (std::abs(vals[ i ]) < minval) {
+                    minval = std::abs(vals[ i ]);
+                    ind    = i;
+                }
+            }
+            return ind;
         }
 
         /**
