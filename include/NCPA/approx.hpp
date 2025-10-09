@@ -124,7 +124,6 @@ namespace NCPA {
                         numerator_coefficients, denominator_coefficients );
                 }
 
-                
                 std::vector<T> numerator() const {
                     return _numerator_coefficients;
                 }
@@ -133,142 +132,73 @@ namespace NCPA {
                     return _denominator_coefficients;
                 }
 
-                static void exponential_denominator_roots(
-                    size_t n_order, size_t d_order, std::vector<std::complex<double>>& roots ) {
-                    constexpr double rad2 = std::sqrt( 2.0 );
-                    constexpr double rad3 = std::sqrt( 3.0 );
-                    roots.clear();
-                    roots.resize( d_order );
-                    switch (n_order) {
+                std::vector<std::complex<double>>
+                    exponential_denominator_roots( size_t num_order,
+                                                   size_t den_order ) const {
+                    if (num_order > 3 || den_order > 3) {
+                        throw std::range_error(
+                            "exponential_denominator_roots() is not "
+                            "implemented for order > 3" );
+                    }
+                    std::vector<std::complex<double>> roots;
+                    double order_sum = (double)( num_order + den_order );
+                    switch (den_order) {
                         case 0:
-                            switch (d_order) {
-                                case 0:
-                                    break;
-                                case 1:
-                                    roots[ 0 ] = { 1.0, 0.0 };
-                                    break;
-                                case 2:
-                                    roots[ 0 ] = { 1.0, 1.0 };
-                                    roots[ 1 ] = { 1.0, -1.0 };
-                                    break;
-                                case 3:
-                                    roots[ 0 ] = { 1.596071637983322, 0.0 };
-                                    roots[ 1 ] = { 0.701964181008340,
-                                                   1.807339494452021 };
-                                    roots[ 2 ] = { 0.701964181008340,
-                                                   -1.807339494452021 };
-                                    break;
-                                default:
-                                    throw std::range_error(
-                                        "Tabulations for "
-                                        "exponential "
-                                        "coefficients only "
-                                        "calculated for n <= 3; "
-                                        "calculate "
-                                        "manually or "
-                                        "reduce order" );
-                                    break;
-                            }
                             break;
                         case 1:
-                            switch (d_order) {
-                                case 0:
-                                    break;
-                                case 1:
-                                    roots[ 0 ] = { 2.0, 0.0 };
-                                    break;
-                                case 2:
-                                    roots[ 0 ] = { 2.0, rad2 };
-                                    roots[ 1 ] = { 2.0, -rad2 };
-                                    break;
-                                case 3:
-                                    roots[ 0 ] = { 2.625816818958465, 0.0 };
-                                    roots[ 1 ] = { 1.687091590520767,
-                                                   2.50873175492488 };
-                                    roots[ 2 ] = { 1.687091590520767,
-                                                   -2.50873175492488 };
-                                    break;
-                                default:
-                                    throw std::range_error(
-                                        "Tabulations for "
-                                        "exponential "
-                                        "coefficients only "
-                                        "calculated for n <= 3; "
-                                        "calculate "
-                                        "manually or "
-                                        "reduce order" );
-                                    break;
-                            }
+                            roots.push_back( { order_sum, 0.0 } );
                             break;
                         case 2:
-                            switch (d_order) {
-                                case 0:
-                                    break;
-                                case 1:
-                                    roots[ 0 ] = { 3.0, 0.0 };
-                                    break;
-                                case 2:
-                                    roots[ 0 ] = { 3.0, rad3 };
-                                    roots[ 1 ] = { 3.0, -rad3 };
-                                    break;
-                                case 3:
-                                    roots[ 0 ] = { 3.637834252744490, 0.0 };
-                                    roots[ 1 ] = { 2.681082873627758,
-                                                   3.050430199247414 };
-                                    roots[ 2 ] = { 2.681082873627758,
-                                                   -3.050430199247414 };
-                                    break;
-                                default:
-                                    throw std::range_error(
-                                        "Tabulations for "
-                                        "exponential "
-                                        "coefficients only "
-                                        "calculated for n <= 3; "
-                                        "calculate "
-                                        "manually or "
-                                        "reduce order" );
-                                    break;
-                            }
+                            roots.push_back(
+                                { order_sum - 1.0,
+                                  std::sqrt( order_sum - 1.0 ) } );
+                            roots.push_back(
+                                { order_sum - 1.0,
+                                  std::sqrt( order_sum - 1.0 ) } );
                             break;
                         case 3:
-                            switch (d_order) {
+                            switch (num_order) {
                                 case 0:
+                                    roots.push_back(
+                                        { 1.596071637983322, 0.0 } );
+                                    roots.push_back( { 0.701964181008340,
+                                                       1.807339494452021 } );
+                                    roots.push_back( { 0.701964181008340,
+                                                       -1.807339494452021 } );
                                     break;
                                 case 1:
-                                    roots[ 0 ] = { 4.0, 0.0 };
+                                    roots.push_back(
+                                        { 2.625816818958465, 0.0 } );
+                                    roots.push_back( { 1.687091590520767,
+                                                       2.50873175492488 } );
+                                    roots.push_back( { 1.687091590520767,
+                                                       -2.50873175492488 } );
                                     break;
                                 case 2:
-                                    roots[ 0 ] = { 4.0, 2.0 };
-                                    roots[ 1 ] = { 4.0, -2.0 };
+                                    roots.push_back(
+                                        { 3.637834252744490, 0.0 } );
+                                    roots.push_back( { 2.681082873627758,
+                                                       3.050430199247414 } );
+                                    roots.push_back( { 2.681082873627758,
+                                                       -3.050430199247414 } );
                                     break;
                                 case 3:
-                                    roots[ 0 ] = { 4.644370709252171, 0.0 };
-                                    roots[ 1 ] = { 3.677814645373910,
-                                                   3.508761919567443 };
-                                    roots[ 2 ] = { 3.677814645373910,
-                                                   -3.508761919567443 };
-                                    break;
-                                default:
-                                    throw std::range_error(
-                                        "Tabulations for "
-                                        "exponential "
-                                        "coefficients only "
-                                        "calculated for n <= 3; "
-                                        "calculate "
-                                        "manually or "
-                                        "reduce order" );
+                                    roots.push_back(
+                                        { 4.644370709252171, 0.0 } );
+                                    roots.push_back( { 3.677814645373910,
+                                                       3.508761919567443 } );
+                                    roots.push_back( { 3.677814645373910,
+                                                       -3.508761919567443 } );
                                     break;
                             }
-                            break;
                     }
+                    return roots;
                 }
 
 
             protected:
                 std::vector<T> _numerator_coefficients,
                     _denominator_coefficients;
-
-                
 
                 static void _exponential_coefficients( size_t n_order,
                                                        size_t d_order,

@@ -144,19 +144,29 @@ namespace NCPA {
 
                 static constexpr double ERR = 1.0e-8;
 
-                void _calculate_eigenvalues( double lambda1, double lambda2 ) {
+                void _calculate_eigenvalues( double lambda1, double lambda2,
+                                             bool strict = false ) {
                     double k1 = std::min( lambda1, lambda2 );
                     double k2 = std::max( lambda1, lambda2 );
                     int nphi
                         = (int)_sturm_count( k2 ) - (int)_sturm_count( k1 );
                     std::vector<double> phi( nphi, 0.0 );
                     double kstep = 1.0e-8 * (double)( k2 - k1 );
+                    std::vector<size_t> remove;
                     for (size_t i = 0; i < nphi; ++i) {
                         if (!_get_first_eigenvalue( k1, k2, phi[ i ] )) {
-                            throw std::logic_error(
-                                "Unexpected lack of eigenvalues in range!" );
+                            if (strict) {
+                                throw std::logic_error(
+                                    "Unexpected lack of eigenvalues in "
+                                    "range!" );
+                            }
+                            remove.push_back( i );
                         }
                         k1 = phi[ i ] + kstep;
+                    }
+                    for (auto rit = remove.rbegin(); rit != remove.rend();
+                         ++rit) {
+                        phi.erase( phi.begin() + *rit );
                     }
                     _eigs = phi;
                 }
