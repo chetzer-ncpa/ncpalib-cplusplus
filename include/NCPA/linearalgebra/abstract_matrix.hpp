@@ -3,6 +3,7 @@
 #include "NCPA/arrays.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
+#include "NCPA/linearalgebra/functions.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -95,7 +96,8 @@ namespace NCPA {
                 virtual bool is_this_subclass(
                     const abstract_matrix<ELEMENTTYPE>& b ) const
                     = 0;
-                virtual bool is_zero( ELEMENTTYPE tol = 1.0e-12 ) const = 0;
+                virtual bool is_zero( double tol = 1.0e-12 ) const = 0;
+                virtual bool is_zero( size_t r, size_t c, double tol = 1.0e-12 ) const = 0;
 
                 virtual abstract_matrix<ELEMENTTYPE>& finalize() { return *this; }
                 virtual bool is_finalized() const { return true; }
@@ -270,8 +272,9 @@ namespace NCPA {
                 }
 
                 virtual size_t diagonal_size( int offset = 0 ) const {
-                    return std::min( rows(), columns() )
-                         - (size_t)std::abs( offset );
+                    return matrix_diagonal_size( rows(), columns(), offset );
+                    // return std::min( rows(), columns() )
+                    //      - (size_t)std::abs( offset );
                 }
 
                 // @todo separate into lower and upper
@@ -408,11 +411,22 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& identity(
                     size_t nrows, size_t ncols ) {
-                    clear();
-                    resize( nrows, ncols );
+                    return this->clear().resize( nrows, ncols ).identity();
+                    // ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
+                    // for ( auto i = 0; i < diagonal_size( 0 ); i++ ) {
+                    //     this->set( i, i, one );
+                    // }
+                    // return *this;
+                }
+
+                virtual abstract_matrix<ELEMENTTYPE>& identity() {
+                    if (!this->is_square()) {
+                        throw std::logic_error( "identity(): Matrix must be square" );
+                    }
                     ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
-                    for ( auto i = 0; i < diagonal_size( 0 ); i++ ) {
-                        set( i, i, one );
+                    this->zero();
+                    for ( auto i = 0; i < this->diagonal_size( 0 ); i++ ) {
+                        this->set( i, i, one );
                     }
                     return *this;
                 }

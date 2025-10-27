@@ -109,7 +109,7 @@ namespace NCPA {
                         new symmetric_matrix<ELEMENTTYPE>() );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& copy(
+                virtual symmetric_matrix<ELEMENTTYPE>& copy(
                     const abstract_matrix<ELEMENTTYPE>& other ) override {
                     resize( other.rows(), other.columns() );
                     this->set_diagonal( *( other.get_diagonal() ) );
@@ -123,8 +123,7 @@ namespace NCPA {
                         ndiag++;
                         diag = other.get_diagonal( ndiag );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 const symmetric_matrix<ELEMENTTYPE> *downcast(
@@ -133,7 +132,7 @@ namespace NCPA {
                         in );
                 }
 
-                // virtual abstract_matrix<ELEMENTTYPE>& upcast()
+                // virtual symmetric_matrix<ELEMENTTYPE>& upcast()
                 //     override {
                 //     return *static_cast<abstract_matrix<ELEMENTTYPE> *>(
                 //         this );
@@ -147,13 +146,12 @@ namespace NCPA {
 
                 virtual size_t columns() const override { return _ncols; }
 
-                virtual abstract_matrix<ELEMENTTYPE>& clear() override {
+                virtual symmetric_matrix<ELEMENTTYPE>& clear() override {
                     _nrows     = 0;
                     _ncols     = 0;
                     _n_offdiag = 0;
                     contents().clear();
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -188,7 +186,7 @@ namespace NCPA {
                              && row < this->rows() );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_row(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_row(
                     size_t row, size_t nvals, const size_t *column_inds,
                     const ELEMENTTYPE *vals ) override {
                     for ( size_t i = 0; i < nvals; i++ ) {
@@ -200,11 +198,10 @@ namespace NCPA {
                                 "set subdiagonals of symmetric_matrix" );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_row(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_row(
                     size_t row,
                     const std::vector<ELEMENTTYPE>& vals ) override {
                     throw std::logic_error(
@@ -213,7 +210,7 @@ namespace NCPA {
                         "cannot be set." );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_row(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_row(
                     size_t row, ELEMENTTYPE val ) override {
                     for ( size_t col = row;
                           col
@@ -221,11 +218,10 @@ namespace NCPA {
                           col++ ) {
                         this->set( row, col, val );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_column(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_column(
                     size_t col,
                     const std::vector<ELEMENTTYPE>& vals ) override {
                     throw std::logic_error(
@@ -234,7 +230,7 @@ namespace NCPA {
                         "matrix cannot be set." );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_column(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_column(
                     size_t column, size_t nvals, const size_t *row_inds,
                     const ELEMENTTYPE *vals ) override {
                     for ( size_t i = 0; i < nvals; i++ ) {
@@ -247,11 +243,10 @@ namespace NCPA {
                                 "symmetric_matrix" );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_column(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_column(
                     size_t col, ELEMENTTYPE val ) override {
                     int icol = (int)col;
                     for ( int row = icol;
@@ -259,11 +254,10 @@ namespace NCPA {
                           row-- ) {
                         this->set( row, col, val );
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& as_array(
+                virtual symmetric_matrix<ELEMENTTYPE>& as_array(
                     size_t& nrows, size_t& ncols,
                     ELEMENTTYPE **& vals ) override {
                     if ( vals == nullptr ) {
@@ -300,8 +294,7 @@ namespace NCPA {
                             }
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 // @todo make read-write vector view for columns
@@ -339,7 +332,7 @@ namespace NCPA {
                     return v;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& resize(
+                virtual symmetric_matrix<ELEMENTTYPE>& resize(
                     size_t r, size_t c ) override {
                     if ( r != c ) {
                         throw std::invalid_argument(
@@ -372,11 +365,10 @@ namespace NCPA {
                         _ncols = c;
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set(
+                virtual symmetric_matrix<ELEMENTTYPE>& set(
                     size_t row, size_t col, ELEMENTTYPE val ) override {
                     this->check_size( row, col );
                     int ind1, ind2;
@@ -384,11 +376,10 @@ namespace NCPA {
                         this->_add_offdiagonal();
                     }
                     contents().at( ind1 ).at( ind2 ) = val;
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_safe(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_safe(
                     size_t row, size_t col, ELEMENTTYPE val ) override {
                     this->check_size( row, col );
                     int ind1, ind2;
@@ -401,50 +392,46 @@ namespace NCPA {
                         throw std::out_of_range( oss.str() );
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set(
+                virtual symmetric_matrix<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
                     std::vector<ELEMENTTYPE> diag( this->rows(), val );
                     for ( auto i = 0; i <= _n_offdiag; i++ ) {
                         contents()[ i ].assign( diag.begin(), diag.end() );
                         diag[ this->rows() - i - 1 ] = _zero;
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& transpose() override {
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                virtual symmetric_matrix<ELEMENTTYPE>& transpose() override {
+                    return *this;
                 }
 
-                // virtual abstract_matrix<ELEMENTTYPE>& swap_rows(
+                // virtual symmetric_matrix<ELEMENTTYPE>& swap_rows(
                 //     size_t ind1, size_t ind2 ) override {
                 //     throw std::logic_error(
                 //         "Cannot swap rows of a band-diagonal matrix!" );
                 // }
 
-                // virtual abstract_matrix<ELEMENTTYPE>& swap_columns(
+                // virtual symmetric_matrix<ELEMENTTYPE>& swap_columns(
                 //     size_t ind1, size_t ind2 ) override {
                 //     throw std::logic_error(
                 //         "Cannot swap columns of a band-diagonal matrix!" );
                 // }
 
-                virtual abstract_matrix<ELEMENTTYPE>& zero(
+                virtual symmetric_matrix<ELEMENTTYPE>& zero(
                     size_t row, size_t col ) override {
                     return set( row, col, _zero );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& zero() override {
+                virtual symmetric_matrix<ELEMENTTYPE>& zero() override {
                     _n_offdiag = 0;
                     contents().clear();
                     contents().push_back(
                         std::vector<ELEMENTTYPE>( this->diagonal_size() ) );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -506,12 +493,12 @@ namespace NCPA {
 
                 virtual bool is_symmetric() const override { return true; }
 
-                virtual abstract_matrix<ELEMENTTYPE>& add(
+                virtual symmetric_matrix<ELEMENTTYPE>& add(
                     const abstract_matrix<ELEMENTTYPE>& babs,
                     ELEMENTTYPE modifier = 1.0 ) override {
                     if ( !is_this_subclass( babs ) ) {
-                        return abstract_matrix<ELEMENTTYPE>::add( babs,
-                                                                  modifier );
+                        return dynamic_cast<symmetric_matrix<ELEMENTTYPE>&>( abstract_matrix<ELEMENTTYPE>::add( babs,
+                                                                  modifier) );
                     }
                     const symmetric_matrix<ELEMENTTYPE> *b = downcast( &babs );
 
@@ -544,11 +531,10 @@ namespace NCPA {
                     contents()[ 0 ] = NCPA::arrays::add_vectors(
                         contents()[ 0 ], NCPA::arrays::scale_vector(
                                              b->contents()[ 0 ], modifier ) );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& add(
+                virtual symmetric_matrix<ELEMENTTYPE>& add(
                     ELEMENTTYPE b ) override {
                     for ( size_t ind1 = 0; ind1 < contents().size(); ind1++ ) {
                         for ( size_t ind2 = 0; ind2 < _max_ind2( ind1 );
@@ -556,8 +542,7 @@ namespace NCPA {
                             contents()[ ind1 ][ ind2 ] += b;
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 virtual bool is_this_subclass(
@@ -624,7 +609,7 @@ namespace NCPA {
                     return product;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& identity(
+                virtual symmetric_matrix<ELEMENTTYPE>& identity(
                     size_t nrows, size_t ncols ) override {
                     this->clear();
                     _nrows     = nrows;
@@ -634,11 +619,10 @@ namespace NCPA {
                         this->diagonal_size( 0 ),
                         NCPA::math::one<ELEMENTTYPE>() );
                     contents().push_back( diag );
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
+                virtual symmetric_matrix<ELEMENTTYPE>& set_diagonal(
                     size_t nvals, const ELEMENTTYPE *vals,
                     int offset = 0 ) override {
                     if ( nvals > this->diagonal_size( offset ) ) {
@@ -655,8 +639,7 @@ namespace NCPA {
                         contents()[ offset ][ i ] = vals[ i ];
                     }
 
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
 
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
@@ -736,7 +719,7 @@ namespace NCPA {
                         this->rows(), this->rows() + _n_offdiag - ind1 );
                 }
 
-                virtual abstract_matrix<ELEMENTTYPE>& _add(
+                virtual symmetric_matrix<ELEMENTTYPE>& _add(
                     const symmetric_matrix<ELEMENTTYPE>& b,
                     ELEMENTTYPE modifier = 1.0 ) {
                     this->check_size( b );
@@ -766,8 +749,7 @@ namespace NCPA {
                     }
                     contents() = newcontents;
                     _n_offdiag = new_n_offdiag;
-                    RETURN_THIS_AS_ABSTRACT_MATRIX;
-                    ;
+                    return *this;
                 }
         };
 

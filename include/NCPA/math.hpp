@@ -95,6 +95,11 @@ namespace NCPA {
                 && equals( x.imag(), y.imag() );
         }
 
+        template<typename T>
+        bool is_divisible( T x, T y, ENABLE_FUNCTION_IF_INTEGRAL( T ) ) {
+            return ( x % y == 0 );
+        }
+
         /**
          * Returns -1, 0, or 1 depending on the sign of the argument.
          * @brief Returns -1, 0, or 1 depending on the sign of the argument.

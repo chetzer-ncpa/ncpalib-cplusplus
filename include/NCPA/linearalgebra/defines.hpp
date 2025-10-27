@@ -3,14 +3,8 @@
 #include "NCPA/defines.hpp"
 #include "NCPA/types.hpp"
 
-#if __has_include( "gsl/gsl_matrix.h" )
-#  define NCPA_LINEARALGEBRA_GSL_AVAILABLE true
-#else
-#  define NCPA_LINEARALGEBRA_GSL_AVAILABLE false
-#endif
-
-#define RETURN_THIS_AS_ABSTRACT_MATRIX \
-    return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
+// #define RETURN_THIS_AS_ABSTRACT_MATRIX \
+//     return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
 
 #define _ENABLE_IF_ELEMENTTYPE_IS_REAL \
     typename std::enable_if<std::is_floating_point<ELEMENTTYPE>::value>::type
