@@ -836,10 +836,10 @@ namespace NCPA {
         }
 
         /**
-        Scales an array.
-        @brief Performs array scaling.
-        @param v1 The array to multiply.
-        @param scalar The scalar to multiply by.
+        Offsets an array.
+        @brief Performs array offset.
+        @param v1 The array to add to.
+        @param scalar The scalar to add.
         @returns The scaled array.
         */
         template<typename T, typename U>
@@ -859,11 +859,11 @@ namespace NCPA {
         }
 
         /**
-        Scales an array of values in-place by a constant value
-        @brief Scales an array by a constant value in place.
+        Offsets an array of values in-place by a constant value
+        @brief Offsets an array by a constant value in place.
         @param N The number of points in the array.
-        @param in The array to scale.
-        @param factor The factor to scale by.
+        @param in The array to offset.
+        @param factor The factor to offset by.
         */
         template<typename T, typename U>
         void offset_array( size_t N, U *in, T factor ) {

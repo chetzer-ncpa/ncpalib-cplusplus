@@ -9,6 +9,8 @@ namespace NCPA {
         // double precision to enable DOUBLE_EQUAL unit tests
         constexpr double PI
             = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+            
+        constexpr double EGAMMA = 0.57721566490153286060651209008240243104215933593992;
 
         constexpr std::complex<double> I = std::complex<double>( 0.0, 1.0 );
 

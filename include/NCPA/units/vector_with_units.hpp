@@ -272,6 +272,15 @@ namespace NCPA {
                     return this->as( Units::from_string( units ) );
                 }
 
+                template<typename U>
+                VectorWithUnits<U> as() const {
+                    VectorWithUnits<U> newv( this->size(), this->get_units() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        newv[i] = (U)this->get(i);
+                    }
+                    return newv;
+                }
+
                 virtual T get( size_t ind ) const { return this->at( ind ); }
 
                 virtual ScalarWithUnits<T> get_scalar( size_t ind ) const {
@@ -380,17 +389,19 @@ namespace NCPA {
                     }
                 }
 
-                VectorWithUnits operator+=( double second ) {
+                template<typename U>
+                VectorWithUnits operator+=( U second ) {
                     for (size_t i = 0; i < this->size(); i++) {
-                        this->at( i ) += second;
+                        this->at( i ) += (T)second;
                     }
                     return *this;
                 }
 
+                template<typename U>
                 VectorWithUnits operator+(
-                    double second ) const {
+                    U second ) const {
                     VectorWithUnits<T> temp1( *this );
-                    temp1 += second;
+                    temp1 += (T)second;
                     return temp1;
                 }
 

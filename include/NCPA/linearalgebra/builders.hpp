@@ -3,6 +3,7 @@
 #include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
 #include "NCPA/linearalgebra/dense_vector.hpp"
@@ -15,14 +16,12 @@
 
 namespace NCPA {
     namespace linear {
-
-
         template<typename ELEMENTTYPE>
         class VectorFactory {
             public:
                 static Vector<ELEMENTTYPE> build( vector_t vectype,
                                                   size_t n = 0 ) {
-                    switch ( vectype ) {
+                    switch (vectype) {
                         case vector_t::DENSE:
                             return Vector<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
@@ -46,7 +45,7 @@ namespace NCPA {
                 static Matrix<ELEMENTTYPE> build( matrix_t mattype,
                                                   size_t nrows = 0,
                                                   size_t ncols = 0 ) {
-                    switch ( mattype ) {
+                    switch (mattype) {
                         case matrix_t::DENSE:
                             return Matrix<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
@@ -82,7 +81,7 @@ namespace NCPA {
         class SolverFactory {
             public:
                 static Solver<ELEMENTTYPE> build( solver_t family ) {
-                    switch ( family ) {
+                    switch (family) {
                         case solver_t::BASIC:
                             return Solver<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_linear_system_solver<
