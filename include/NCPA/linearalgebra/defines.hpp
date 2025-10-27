@@ -2,8 +2,8 @@
 
 #include "NCPA/types.hpp"
 
-#define RETURN_THIS_AS_ABSTRACT_MATRIX \
-    return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
+// #define RETURN_THIS_AS_ABSTRACT_MATRIX \
+//     return static_cast<abstract_matrix<ELEMENTTYPE>&>( *this )
 
 #define _ENABLE_IF_ELEMENTTYPE_IS_REAL \
     typename std::enable_if<std::is_floating_point<ELEMENTTYPE>::value>::type

@@ -26,6 +26,36 @@ namespace NCPA {
             FINITE_DIFFERENCE_REFLECTED
         };
 
+        typedef struct {
+            size_t row;
+            size_t column;
+        } matrix_coordinate_t;
+
+        typedef struct {
+            matrix_coordinate_t topleft;
+            matrix_coordinate_t bottomright;
+        } matrix_coordinate_span_t;
+
+        typedef struct {
+            int diagonal;
+            size_t index;
+        } matrix_diagonal_coordinate_t;
+
+        typedef struct {
+                matrix_coordinate_t block_coordinates;
+                matrix_coordinate_t coordinates_in_block;
+        } block_matrix_coordinate_t;
+
+        typedef struct {
+            size_t index;
+            matrix_coordinate_t coordinates_in_block;
+        } block_matrix_indexed_coordinate_t;
+
+        typedef struct {
+            matrix_coordinate_t block_coordinates;
+            matrix_diagonal_coordinate_t diagonal_coordinates_in_block;
+        } block_matrix_diagonal_coordinate_t;
+
         // main public-facing classes
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
@@ -81,10 +111,6 @@ namespace NCPA {
         class LUDecomposition;
         template<typename ELEMENTTYPE>
         class BandDiagonalLUDecomposition;
-
-        static size_t rc2index( size_t r, size_t c, size_t rows, size_t cols ) {
-            return r * cols + c;
-        }
 
         template<typename ELEMENTTYPE>
         using matrix_ptr_t = std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>>;
