@@ -24,7 +24,7 @@ class _TEST_TITLE_ : public ::testing::Test {
             // cout << "Setting dims" << endl;
             dims = { 5, 4, 3 };
             // cout << "Setting d1" << endl;
-            d1   = vector<double>{ 4.2, 3.1, 2.0 };
+            d1   = vector<double> { 4.2, 3.1, 2.0 };
             // cout << "Setting d2" << endl;
             d2   = { d1, d1 };
             // cout << "Setting d3" << endl;
@@ -175,4 +175,73 @@ TEST_F( _TEST_TITLE_, ReshapeWorksOnSize3 ) {
 TEST_F( _TEST_TITLE_, ConstructorWorksWithDimarray ) {
     d3 = ndvector<3, double>( dims );
     EXPECT_TRUE( d3.shape() == dims );
+}
+
+TEST_F( _TEST_TITLE_, ImplicitConversionCopyConstructorWorks ) {
+    ndvector<1, float> fvec1( d1 );
+    for (size_t i = 0; i < d1.size(); ++i) {
+        EXPECT_FLOAT_EQ( fvec1[ i ], d1[ i ] );
+    }
+
+    ndvector<2, float> fvec2( d2 );
+    for (size_t i = 0; i < d2.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d2.shape()[ 1 ]; ++j) {
+            EXPECT_FLOAT_EQ( fvec2[ i ][ j ], d2[ i ][ j ] );
+        }
+    }
+
+    ndvector<3, float> fvec3( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_FLOAT_EQ( fvec3[ i ][ j ][ k ], d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+
+    ndvector<3, int> ivec3( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_EQ( ivec3[ i ][ j ][ k ], (int)d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, CopyMethodWorks ) {
+    ndvector<1, float> fvec1;
+    ndvector<2, float> fvec2;
+    ndvector<3, float> fvec3;
+    ndvector<3, int> ivec3;
+
+    fvec1.copy( d1 );
+    for (size_t i = 0; i < d1.size(); ++i) {
+        EXPECT_FLOAT_EQ( fvec1[ i ], d1[ i ] );
+    }
+
+    fvec2.copy( d2 );
+    for (size_t i = 0; i < d2.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d2.shape()[ 1 ]; ++j) {
+            EXPECT_FLOAT_EQ( fvec2[ i ][ j ], d2[ i ][ j ] );
+        }
+    }
+
+    fvec3.copy( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_FLOAT_EQ( fvec3[ i ][ j ][ k ], d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+
+    ivec3.copy( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_EQ( ivec3[ i ][ j ][ k ], (int)d3[ i ][ j ][ k ] );
+            }
+        }
+    }
 }

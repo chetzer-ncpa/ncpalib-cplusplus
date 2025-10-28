@@ -280,6 +280,21 @@ namespace NCPA {
                     return this->as( Units::from_string( units ) );
                 }
 
+                template<typename U>
+                Vector3DWithUnits<U> as() const {
+                    Vector3DWithUnits<U> newv( this->dim( 0 ), this->dim( 1 ),
+                                               this->dim( 2 ),
+                                               this->get_units() );
+                    for (size_t i = 0; i < this->dim( 0 ); ++i) {
+                        for (size_t j = 0; j < this->dim( 1 ); ++j) {
+                            for (size_t k = 0; k < this->dim( 2 ); ++k) {
+                                newv.set( i, j, k, (U)this->get( i, j, k ) );
+                            }
+                        }
+                    }
+                    return newv;
+                }
+
                 virtual T get( size_t n1, size_t n2, size_t n3 ) const {
                     return this->at( n1 ).at( n2 ).at( n3 );
                 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/defines.hpp"
 #include "NCPA/types.hpp"
 
 // #define RETURN_THIS_AS_ABSTRACT_MATRIX \
@@ -7,6 +8,8 @@
 
 #define _ENABLE_IF_ELEMENTTYPE_IS_REAL \
     typename std::enable_if<std::is_floating_point<ELEMENTTYPE>::value>::type
+
+#define _ENABLE_IF_ELEMENTTYPE_IS_COMPLEX ENABLE_IF_COMPLEX( ELEMENTTYPE )
 
 #define _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC \
     typename std::enable_if<NCPA::types::is_numeric<ELEMENTTYPE>::value>::type
@@ -62,4 +65,3 @@
     template<typename _TYPENAME_>                                           \
     _CLASSNAME_<_TYPENAME_> operator*( _TYPENAME_ c2,                       \
                                        const _CLASSNAME_<_TYPENAME_>& c1 );
-
