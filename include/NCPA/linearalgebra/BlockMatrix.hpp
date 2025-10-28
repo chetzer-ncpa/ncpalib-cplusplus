@@ -644,9 +644,10 @@ namespace NCPA {
                         if (!this->get_block( di, di ).is_symmetric()) {
                             return false;
                         }
-                        for (size_t i = 1; i < this->block_columns() - di; ++i) {
+                        for (size_t i = 1; i < this->block_columns() - di;
+                             ++i) {
                             Matrix<ELEMENTTYPE> testmat
-                                = this->get_block( i, i + di);
+                                = this->get_block( i, i + di );
                             testmat.transpose();
                             if (this->get_block( i + di, i ) != testmat) {
                                 return false;
@@ -1188,12 +1189,19 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& subtract(
                     const BlockMatrix<ELEMENTTYPE>& other ) {
+                    std::cout
+                        << "Using BlockMatrix subtract( BlockMatrix ) method"
+                        << std::endl;
                     this->check();
                     other.check();
                     _checksizes( other );
+
                     for (size_t r = 0; r < this->block_rows(); ++r) {
                         for (size_t c = 0; c < this->block_columns(); ++c) {
-                            this->get_block( r, c ) -= other.get_block( r, c );
+                            if (!other.get_block( r, c ).is_zero()) {
+                                this->get_block( r, c )
+                                    -= other.get_block( r, c );
+                            }
                         }
                     }
                     return *this;
@@ -1201,9 +1209,12 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& subtract(
                     const Matrix<ELEMENTTYPE>& other ) override {
+                    std::cout << "Using BlockMatrix subtract( Matrix ) method"
+                              << std::endl;
                     this->check();
                     other.check();
                     check_same_size( other );
+
                     ELEMENTTYPE zero = NCPA::constants::zero<ELEMENTTYPE>();
                     for (size_t r = 0; r < this->rows(); ++r) {
                         for (size_t c = 0; c < this->columns(); ++c) {
@@ -1639,11 +1650,12 @@ namespace NCPA {
                 //     // can we blockify c2?
                 //     if (c1.columns() != c2.rows()) {
                 //         std::ostringstream oss;
-                //         oss << "Incompatible matrix sizes for multiplication: "
+                //         oss << "Incompatible matrix sizes for
+                //         multiplication: "
                 //             << c1.rows() << " x " << c1.columns() << " vs "
                 //             << c2.rows() << " x " << c2.columns();
                 //         throw std::range_error( oss.str() );
-                //     }                
+                //     }
 
                 //     Matrix<ELEMENTTYPE> out(c1);
                 //     out                     *= c2;

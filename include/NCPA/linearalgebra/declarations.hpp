@@ -27,18 +27,23 @@ namespace NCPA {
         };
 
         typedef struct {
-            size_t row;
-            size_t column;
+            size_t rows = 0;
+            size_t columns = 0;
+        } matrix_size_t;
+
+        typedef struct {
+            size_t row = 0;
+            size_t column = 0;
         } matrix_coordinate_t;
 
         typedef struct {
-            matrix_coordinate_t topleft;
-            matrix_coordinate_t bottomright;
+            matrix_coordinate_t topleft = 0;
+            matrix_coordinate_t bottomright = 0;
         } matrix_coordinate_span_t;
 
         typedef struct {
-            int diagonal;
-            size_t index;
+            int diagonal = 0;
+            size_t index = 0;
         } matrix_diagonal_coordinate_t;
 
         typedef struct {
@@ -47,7 +52,7 @@ namespace NCPA {
         } block_matrix_coordinate_t;
 
         typedef struct {
-            size_t index;
+            size_t index = 0;
             matrix_coordinate_t coordinates_in_block;
         } block_matrix_indexed_coordinate_t;
 
