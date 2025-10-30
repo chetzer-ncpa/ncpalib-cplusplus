@@ -1,7 +1,8 @@
 #pragma once
 
-#include <memory>
 #include "NCPA/linearalgebra/defines.hpp"
+
+#include <memory>
 
 namespace NCPA {
     namespace linear {
@@ -26,24 +27,40 @@ namespace NCPA {
             FINITE_DIFFERENCE_REFLECTED
         };
 
-        typedef struct {
-            size_t rows = 0;
-            size_t columns = 0;
+        typedef struct matrix_size_t {
+                size_t rows    = 0;
+                size_t columns = 0;
+
+                matrix_size_t( size_t r, size_t c ) :
+                    rows { r }, columns { c } {}
+
+                matrix_size_t() : matrix_size_t( 0, 0 ) {}
         } matrix_size_t;
 
-        typedef struct {
-            size_t row = 0;
-            size_t column = 0;
+        typedef struct matrix_coordinate_t {
+                size_t row    = 0;
+                size_t column = 0;
+
+                matrix_coordinate_t( size_t r, size_t c ) :
+                    row { r }, column { c } {}
+
+                matrix_coordinate_t() : matrix_coordinate_t( 0, 0 ) {}
         } matrix_coordinate_t;
 
         typedef struct {
-            matrix_coordinate_t topleft = 0;
-            matrix_coordinate_t bottomright = 0;
+                matrix_coordinate_t topleft;
+                matrix_coordinate_t bottomright;
         } matrix_coordinate_span_t;
 
-        typedef struct {
-            int diagonal = 0;
-            size_t index = 0;
+        typedef struct matrix_diagonal_coordinate_t {
+                int diagonal = 0;
+                size_t index = 0;
+
+                matrix_diagonal_coordinate_t( int d, size_t i ) :
+                    diagonal { d }, index { i } {}
+
+                matrix_diagonal_coordinate_t() :
+                    matrix_diagonal_coordinate_t( 0, 0 ) {}
         } matrix_diagonal_coordinate_t;
 
         typedef struct {
@@ -51,21 +68,27 @@ namespace NCPA {
                 matrix_coordinate_t coordinates_in_block;
         } block_matrix_coordinate_t;
 
-        typedef struct {
-            size_t index = 0;
-            matrix_coordinate_t coordinates_in_block;
+        typedef struct block_matrix_indexed_coordinate_t {
+                size_t index = 0;
+                matrix_coordinate_t coordinates_in_block;
+
+                block_matrix_indexed_coordinate_t( size_t i ) : index { i } {}
+
+                block_matrix_indexed_coordinate_t() :
+                    block_matrix_indexed_coordinate_t( 0 ) {}
         } block_matrix_indexed_coordinate_t;
 
         typedef struct {
-            matrix_coordinate_t block_coordinates;
-            matrix_diagonal_coordinate_t diagonal_coordinates_in_block;
+                matrix_coordinate_t block_coordinates;
+                matrix_diagonal_coordinate_t diagonal_coordinates_in_block;
         } block_matrix_diagonal_coordinate_t;
 
         // main public-facing classes
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Vector );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( Solver );
-        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( BlockMatrix );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS(
+            BlockMatrix );
         template<typename T>
         class MatrixPolynomial;
         template<typename T>
@@ -118,9 +141,11 @@ namespace NCPA {
         class BandDiagonalLUDecomposition;
 
         template<typename ELEMENTTYPE>
-        using matrix_ptr_t = std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>>;
+        using matrix_ptr_t
+            = std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>>;
         template<typename ELEMENTTYPE>
-        using vector_ptr_t = std::unique_ptr<NCPA::linear::Vector<ELEMENTTYPE>>;
+        using vector_ptr_t
+            = std::unique_ptr<NCPA::linear::Vector<ELEMENTTYPE>>;
 
     }  // namespace linear
 }  // namespace NCPA

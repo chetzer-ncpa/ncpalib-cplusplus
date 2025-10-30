@@ -99,7 +99,6 @@ namespace NCPA {
                             "System matrix must be square!" );
                     }
                     this->clear();
-                    // _mat.copy( M.internal() );
                     _lu.decompose( M );
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );

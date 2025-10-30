@@ -18,7 +18,6 @@
 #include <vector>
 
 
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::abstract_matrix,
                                              ELEMENTTYPE );
 
@@ -97,30 +96,46 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& b ) const
                     = 0;
                 virtual bool is_zero( double tol = 1.0e-12 ) const = 0;
-                virtual bool is_zero( size_t r, size_t c, double tol = 1.0e-12 ) const = 0;
+                virtual bool is_zero( size_t r, size_t c,
+                                      double tol = 1.0e-12 ) const
+                    = 0;
 
-                virtual abstract_matrix<ELEMENTTYPE>& finalize() { return *this; }
-                virtual bool is_finalized() const { return true; }
-                
+                virtual std::vector<int> diagonals() const {
+                    std::vector<int> diags;
+                    if (!this->is_empty()) {
+                        for (int d = -(int)( this->rows() - 1 );
+                             d < (int)( this->columns() - 1 ); ++d) {
+                            diags.push_back( d );
+                        }
+                    }
+                    return diags;
+                }
+
                 virtual bool equals(
                     const abstract_matrix<ELEMENTTYPE>& other ) const {
-                    if ( rows() != other.rows() ) {
+                    if (rows() != other.rows()) {
                         return false;
                     }
-                    if ( columns() != other.columns() ) {
+                    if (columns() != other.columns()) {
                         return false;
                     }
 
-                    for ( auto r = 0; r < rows(); r++ ) {
-                        for ( auto c = 0; c < columns(); c++ ) {
-                            if ( !NCPA::math::equals( get( r, c ),
-                                                      other.get( r, c ) ) ) {
+                    for (auto r = 0; r < rows(); r++) {
+                        for (auto c = 0; c < columns(); c++) {
+                            if (!NCPA::math::equals( get( r, c ),
+                                                     other.get( r, c ) )) {
                                 return false;
                             }
                         }
                     }
                     return true;
                 }
+
+                virtual abstract_matrix<ELEMENTTYPE>& finalize() {
+                    return *this;
+                }
+
+                virtual bool is_finalized() const { return true; }
 
                 virtual bool is_empty() const {
                     return ( rows() == 0 || columns() == 0 );
@@ -131,11 +146,11 @@ namespace NCPA {
                 }
 
                 virtual bool is_identity() const {
-                    if ( !is_square() || !is_diagonal() ) {
+                    if (!is_square() || !is_diagonal()) {
                         return false;
                     }
-                    for ( size_t i = 0; i < diagonal_size( 0 ); i++ ) {
-                        if ( get( i, i ) != NCPA::math::one<ELEMENTTYPE>() ) {
+                    for (size_t i = 0; i < diagonal_size( 0 ); i++) {
+                        if (get( i, i ) != NCPA::math::one<ELEMENTTYPE>()) {
                             return false;
                         }
                     }
@@ -143,13 +158,13 @@ namespace NCPA {
                 }
 
                 virtual bool is_diagonal() const {
-                    if ( is_empty() ) {
+                    if (is_empty()) {
                         return true;
                     }
                     ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
-                    for ( auto i = 0; i < rows(); i++ ) {
-                        for ( auto j = 0; j < columns(); j++ ) {
-                            if ( i != j && get( i, j ) != zero ) {
+                    for (auto i = 0; i < rows(); i++) {
+                        for (auto j = 0; j < columns(); j++) {
+                            if (i != j && get( i, j ) != zero) {
                                 return false;
                             }
                         }
@@ -158,16 +173,15 @@ namespace NCPA {
                 }
 
                 virtual bool is_tridiagonal() const {
-                    if ( is_empty() ) {
+                    if (is_empty()) {
                         return true;
                     }
                     ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
                     int nr           = (int)rows();
                     int nc           = (int)columns();
-                    for ( int i = 0; i < rows(); i++ ) {
-                        for ( int j = 0; j < columns(); j++ ) {
-                            if ( std::abs( i - j ) > 1
-                                 && get( i, j ) != zero ) {
+                    for (int i = 0; i < rows(); i++) {
+                        for (int j = 0; j < columns(); j++) {
+                            if (std::abs( i - j ) > 1 && get( i, j ) != zero) {
                                 return false;
                             }
                         }
@@ -176,15 +190,15 @@ namespace NCPA {
                 }
 
                 virtual bool is_symmetric() const {
-                    if ( !is_square() ) {
+                    if (!is_square()) {
                         return false;
                     }
-                    if ( is_empty() || is_diagonal() ) {
+                    if (is_empty() || is_diagonal()) {
                         return true;
                     }
-                    for ( size_t row = 0; row < rows(); row++ ) {
-                        for ( size_t col = row + 1; col < columns(); col++ ) {
-                            if ( get( row, col ) != get( col, row ) ) {
+                    for (size_t row = 0; row < rows(); row++) {
+                        for (size_t col = row + 1; col < columns(); col++) {
+                            if (get( row, col ) != get( col, row )) {
                                 return false;
                             }
                         }
@@ -196,13 +210,13 @@ namespace NCPA {
                 virtual bool is_band_diagonal() const { return true; }
 
                 virtual bool is_upper_triangular() const {
-                    if ( is_empty() ) {
+                    if (is_empty()) {
                         return true;
                     }
                     ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
-                    for ( size_t i = 1; i < rows(); i++ ) {
-                        for ( size_t j = 0; j < i; j++ ) {
-                            if ( get( i, j ) != zero ) {
+                    for (size_t i = 1; i < rows(); i++) {
+                        for (size_t j = 0; j < i; j++) {
+                            if (get( i, j ) != zero) {
                                 return false;
                             }
                         }
@@ -211,13 +225,13 @@ namespace NCPA {
                 }
 
                 virtual bool is_lower_triangular() const {
-                    if ( is_empty() ) {
+                    if (is_empty()) {
                         return true;
                     }
                     ELEMENTTYPE zero = NCPA::math::zero<ELEMENTTYPE>();
-                    for ( size_t i = 0; i < rows() - 1; i++ ) {
-                        for ( size_t j = i + 1; j < columns(); j++ ) {
-                            if ( get( i, j ) != zero ) {
+                    for (size_t i = 0; i < rows() - 1; i++) {
+                        for (size_t j = i + 1; j < columns(); j++) {
+                            if (get( i, j ) != zero) {
                                 return false;
                             }
                         }
@@ -228,7 +242,7 @@ namespace NCPA {
                 //  Matrix size and structure
                 virtual void check_size(
                     const abstract_matrix<ELEMENTTYPE>& b ) const {
-                    if ( rows() != b.rows() || columns() != b.columns() ) {
+                    if (rows() != b.rows() || columns() != b.columns()) {
                         std::ostringstream oss;
                         oss << "Size mismatch between Matrices: [" << rows()
                             << "," << columns() << "] vs [" << b.rows() << ","
@@ -239,7 +253,7 @@ namespace NCPA {
 
                 virtual void check_size_for_mult(
                     const abstract_matrix<ELEMENTTYPE>& b ) const {
-                    if ( columns() != b.rows() ) {
+                    if (columns() != b.rows()) {
                         std::ostringstream oss;
                         oss << "Multiplication size mismatch between "
                                "Matrices: ["
@@ -251,19 +265,19 @@ namespace NCPA {
 
                 virtual void check_size( size_t nrows, size_t ncols ) const {
                     std::ostringstream oss;
-                    if ( rows() == 0 || columns() == 0 ) {
+                    if (rows() == 0 || columns() == 0) {
                         throw std::logic_error(
                             "Matrix has not been initialized!" );
                     }
 
-                    if ( rows() <= nrows ) {
+                    if (rows() <= nrows) {
                         oss << "Index " << nrows
                             << " too large for Matrix with " << rows()
                             << " rows";
                         throw std::range_error( oss.str() );
                     }
 
-                    if ( columns() <= ncols ) {
+                    if (columns() <= ncols) {
                         oss << "Index " << ncols
                             << " too large for Matrix with " << columns()
                             << " columns";
@@ -297,8 +311,8 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& b,
                     ELEMENTTYPE modifier = 1.0 ) {
                     check_size( b );
-                    for ( size_t row = 0; row < rows(); row++ ) {
-                        for ( size_t col = 0; col < columns(); col++ ) {
+                    for (size_t row = 0; row < rows(); row++) {
+                        for (size_t col = 0; col < columns(); col++) {
                             set( row, col,
                                  get( row, col )
                                      + b.get( row, col ) * modifier );
@@ -311,8 +325,8 @@ namespace NCPA {
                 //          ENABLE_IF_TU( std::is_convertible, ANYTYPE,
                 //                        ELEMENTTYPE )>
                 virtual abstract_matrix<ELEMENTTYPE>& add( ELEMENTTYPE b ) {
-                    for ( size_t row = 0; row < rows(); row++ ) {
-                        for ( size_t col = 0; col < columns(); col++ ) {
+                    for (size_t row = 0; row < rows(); row++) {
+                        for (size_t col = 0; col < columns(); col++) {
                             set( row, col, get( row, col ) + b );
                         }
                     }
@@ -322,7 +336,7 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                     right_multiply(
                         const abstract_vector<ELEMENTTYPE>& v ) const {
-                    if ( columns() != v.size() ) {
+                    if (columns() != v.size()) {
                         std::ostringstream oss;
                         oss << "Size mismatch in matrix-vector "
                                "multiplication: "
@@ -332,9 +346,9 @@ namespace NCPA {
                     }
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                         = build_vector( rows() );
-                    for ( size_t i = 0; i < rows(); i++ ) {
+                    for (size_t i = 0; i < rows(); i++) {
                         ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                        for ( size_t j = 0; j < columns(); j++ ) {
+                        for (size_t j = 0; j < columns(); j++) {
                             sum += get( i, j ) * v.get( j );
                         }
                         product->set( i, sum );
@@ -345,7 +359,7 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                     left_multiply(
                         const abstract_vector<ELEMENTTYPE>& v ) const {
-                    if ( rows() != v.size() ) {
+                    if (rows() != v.size()) {
                         std::ostringstream oss;
                         oss << "Size mismatch in vector-matrix "
                                "multiplication: "
@@ -355,9 +369,9 @@ namespace NCPA {
                     }
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                         = build_vector( columns() );
-                    for ( size_t i = 0; i < columns(); i++ ) {
+                    for (size_t i = 0; i < columns(); i++) {
                         ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                        for ( size_t j = 0; j < rows(); j++ ) {
+                        for (size_t j = 0; j < rows(); j++) {
                             sum += get( j, i ) * v.get( j );
                         }
                         product->set( i, sum );
@@ -373,11 +387,10 @@ namespace NCPA {
                     product->resize( rows(), b.columns() );
                     std::vector<std::unique_ptr<abstract_vector<ELEMENTTYPE>>>
                         b_cols( b.columns() );
-                    for ( size_t row = 0; row < product->rows(); row++ ) {
+                    for (size_t row = 0; row < product->rows(); row++) {
                         auto a_row = get_row( row );
-                        for ( size_t col = 0; col < product->columns();
-                              col++ ) {
-                            if ( !b_cols[ col ] ) {
+                        for (size_t col = 0; col < product->columns(); col++) {
+                            if (!b_cols[ col ]) {
                                 b_cols[ col ] = b.get_column( col );
                             }
                             product->set( row, col,
@@ -389,8 +402,8 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& scale(
                     ELEMENTTYPE val ) {
-                    for ( size_t row = 0; row < rows(); row++ ) {
-                        for ( size_t col = 0; col < columns(); col++ ) {
+                    for (size_t row = 0; row < rows(); row++) {
+                        for (size_t col = 0; col < columns(); col++) {
                             set( row, col, get( row, col ) * val );
                         }
                     }
@@ -400,8 +413,8 @@ namespace NCPA {
                 virtual abstract_matrix<ELEMENTTYPE>& scale(
                     const abstract_matrix<ELEMENTTYPE>& b ) {
                     check_size( b );
-                    for ( size_t row = 0; row < rows(); row++ ) {
-                        for ( size_t col = 0; col < columns(); col++ ) {
+                    for (size_t row = 0; row < rows(); row++) {
+                        for (size_t col = 0; col < columns(); col++) {
                             set( row, col,
                                  get( row, col ) * b.get( row, col ) );
                         }
@@ -421,11 +434,12 @@ namespace NCPA {
 
                 virtual abstract_matrix<ELEMENTTYPE>& identity() {
                     if (!this->is_square()) {
-                        throw std::logic_error( "identity(): Matrix must be square" );
+                        throw std::logic_error(
+                            "identity(): Matrix must be square" );
                     }
                     ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
                     this->zero();
-                    for ( auto i = 0; i < this->diagonal_size( 0 ); i++ ) {
+                    for (auto i = 0; i < this->diagonal_size( 0 ); i++) {
                         this->set( i, i, one );
                     }
                     return *this;
@@ -506,7 +520,7 @@ namespace NCPA {
                 virtual abstract_matrix<ELEMENTTYPE>& set_diagonal(
                     size_t nvals, const ELEMENTTYPE *vals, int offset = 0 ) {
                     size_t absoffset = (size_t)std::abs( offset );
-                    if ( absoffset > max_off_diagonal() ) {
+                    if (absoffset > max_off_diagonal()) {
                         std::ostringstream oss;
                         oss << absoffset
                             << "'th off-diagonal requested, but"
@@ -515,7 +529,7 @@ namespace NCPA {
                             << max_off_diagonal() << " off-diagonals";
                         throw std::range_error( oss.str() );
                     }
-                    if ( nvals > diagonal_size( offset ) ) {
+                    if (nvals > diagonal_size( offset )) {
                         std::ostringstream oss;
                         oss << nvals << " samples is too many for the "
                             << absoffset << "'th diagonal of a " << rows()
@@ -523,8 +537,8 @@ namespace NCPA {
                             << diagonal_size( offset ) << ".";
                         throw std::invalid_argument( oss.str() );
                     }
-                    for ( size_t i = 0; i < nvals; i++ ) {
-                        if ( offset >= 0 ) {
+                    for (size_t i = 0; i < nvals; i++) {
+                        if (offset >= 0) {
                             // upper triangle
                             // std::cout << "Setting [" << i << "," <<
                             // i+absoffset << "]" << std::endl;
@@ -573,8 +587,8 @@ namespace NCPA {
                     this->check_size( absoffset, absoffset );
                     size_t ndiag = diagonal_size( offset );
                     std::vector<ELEMENTTYPE> diag( ndiag );
-                    for ( size_t i = 0; i < ndiag; i++ ) {
-                        if ( offset >= 0 ) {
+                    for (size_t i = 0; i < ndiag; i++) {
+                        if (offset >= 0) {
                             // diagonal and upper triangle
                             diag[ i ] = get( i, i + absoffset );
                             // diag[ i ] = _elements[ i ][ i + absoffset ];
@@ -590,7 +604,8 @@ namespace NCPA {
                 }
 
                 // operators
-                // virtual abstract_matrix<ELEMENTTYPE>& operator-() const  = 0;
+                // virtual abstract_matrix<ELEMENTTYPE>& operator-() const  =
+                // 0;
 
                 virtual abstract_matrix<ELEMENTTYPE>& operator+=(
                     const abstract_matrix<ELEMENTTYPE>& other ) {
@@ -660,13 +675,13 @@ std::ostream& operator<<(
     std::ostream& output,
     const NCPA::linear::abstract_matrix<ELEMENTTYPE>& D ) {
     output << "[ ";
-    for ( size_t i = 0; i < D.rows(); i++ ) {
-        if ( i > 0 ) {
+    for (size_t i = 0; i < D.rows(); i++) {
+        if (i > 0) {
             output << "  ";
         }
         output << "[ ";
-        for ( size_t j = 0; j < D.columns(); j++ ) {
-            if ( j > 0 ) {
+        for (size_t j = 0; j < D.columns(); j++) {
+            if (j > 0) {
                 output << ", ";
             }
             output << D.get( i, j );

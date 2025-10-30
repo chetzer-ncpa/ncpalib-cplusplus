@@ -103,6 +103,11 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& add(
                     const Matrix<ELEMENTTYPE>& other ) override {
+                    if (auto derived
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE> *>(
+                            &other )) {
+                        return this->add( *derived );
+                    }
                     this->check();
                     other.check();
                     check_same_size( other );
@@ -252,6 +257,59 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual std::vector<int> diagonals() const override {
+                    if (this->is_empty() || this->is_zero()) {
+                        return std::vector<int>();
+                    }
+                    if (this->is_diagonal()) {
+                        return std::vector<int> { 0 };
+                    }
+                    if (this->is_tridiagonal()) {
+                        return std::vector<int> { -1, 0, 1 };
+                    }
+
+                    std::vector<int> diags;
+                    bool isdiag = this->is_block_diagonal();
+                    bool istri  = this->is_block_tridiagonal();
+                    for (int br = 0; br < (int)this->block_rows(); ++br) {
+                        int mincol, maxcol;
+                        if (isdiag) {
+                            mincol = br;
+                            maxcol = br;
+                        } else if (istri) {
+                            mincol = std::max( 0, br - 1 );
+                            maxcol = std::min( (int)this->block_rows() - 1,
+                                               br + 1 );
+                        } else {
+                            mincol = 0;
+                            maxcol = (int)this->block_rows() - 1;
+                        }
+                        for (int bc = mincol; bc <= maxcol; ++bc) {
+                            const Matrix<ELEMENTTYPE> *element
+                                = &this->get_block( br, bc );
+                            int bdiag = bc - br;
+                            if (!element->is_empty()) {
+                                std::vector<int> blockdiags
+                                    = element->diagonals();
+                                for (auto bit = blockdiags.cbegin();
+                                     bit != blockdiags.cend(); ++bit) {
+                                    if (bdiag < 0) {
+                                        diags.push_back( br * _rows_per_block
+                                                         - *bit );
+                                    } else {
+                                        diags.push_back( bc * _cols_per_block
+                                                         + *bit );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    std::sort( diags.begin(), diags.end() );
+                    auto last = std::unique( diags.begin(), diags.end() );
+                    diags.erase( last, diags.end() );
+                    return diags;
+                }
+
                 virtual bool equals(
                     const BlockMatrix<ELEMENTTYPE>& other ) const {
                     // compare structure
@@ -284,6 +342,11 @@ namespace NCPA {
 
                 virtual bool equals(
                     const Matrix<ELEMENTTYPE>& other ) const override {
+                    if (auto derived
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE> *>(
+                            &other )) {
+                        return this->equals( *derived );
+                    }
                     // compare structure
                     if (( (bool)*this ) != ( (bool)other )) {
                         return false;
@@ -738,7 +801,7 @@ namespace NCPA {
                 }
 
                 virtual size_t lower_bandwidth() const override {
-                    if (this->is_zero()) {
+                    if (this->is_empty() || this->is_zero()) {
                         return 0;
                     }
                     if (this->is_block_diagonal()) {
@@ -761,8 +824,34 @@ namespace NCPA {
                         }
                         return lbw + _rows_per_block;
                     }
-                    throw NCPA::NotImplementedError( "Not yet implemented" );
-                    return 0;
+                    size_t lbw      = 0;
+                    int max_bdiag   = this->block_rows() - 1;
+                    int n_max_bdiag = (int)std::min( this->block_rows(),
+                                                     this->block_columns() );
+                    int bcmin       = 0;
+                    for (int bdiag = max_bdiag; bdiag > 1; --bdiag) {
+                        int brmin  = bdiag;
+                        int nbdiag = std::min(
+                            n_max_bdiag, (int)this->block_rows() - bdiag );
+                        int brmax = bdiag + nbdiag;
+                        int bcmax = nbdiag;
+                        for (int bc = bcmin; bc < bcmax; ++bc) {
+                            int br = bdiag + bc;
+                            if (!this->get_block( br, bc ).is_zero()) {
+                                size_t blbw = this->get_block( br, bc )
+                                                  .lower_bandwidth();
+                                matrix_coordinate_t point = _blockcoord2coord(
+                                    (size_t)br, (size_t)bc, blbw, 0 );
+                                lbw = std::max( lbw, point.row );
+                            }
+                        }
+                        if (lbw > 0) {
+                            return lbw;
+                        }
+                    }
+                    throw std::logic_error(
+                        "Error calculating lower bandwidth, this shouldn't be "
+                        "possible" );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& multiply(
@@ -794,26 +883,63 @@ namespace NCPA {
                     product.resize( this->block_rows(), other.block_columns(),
                                     this->rows_per_block(),
                                     other.columns_per_block() );
-                    for (size_t r = 0; r < product.block_rows(); ++r) {
-                        for (size_t c = 0; c < product.block_columns(); ++c) {
+
+                    for (size_t r = 0; r < this->block_rows(); ++r) {
+                        for (size_t c = 0; c < other.block_columns(); ++c) {
+                            Matrix<ELEMENTTYPE> *P
+                                = &product.get_block( r, c );
                             for (size_t k = 0; k < this->block_columns();
                                  ++k) {
-                                if (!( this->get_block( r, k ).is_zero()
-                                       || other.get_block( k, c )
-                                              .is_zero() )) {
-                                    product.get_block( r, c )
-                                        += this->get_block( r, k )
-                                         * other.get_block( k, c );
+                                const Matrix<ELEMENTTYPE> *A
+                                    = &this->get_block( r, k );
+                                const Matrix<ELEMENTTYPE> *B
+                                    = &other.get_block( k, c );
+                                if (!( A->is_zero() || B->is_zero() )) {
+                                    std::cout << "Computing A[ " << r << ", "
+                                              << k << " ] * B[ " << k << ", "
+                                              << c << " ] to add to C[ " << r
+                                              << ", " << c << " ]"
+                                              << std::endl;
+                                    if (P->is_zero()) {
+                                        *P = ( *A ) * ( *B );
+                                    } else {
+                                        *P += ( *A ) * ( *B );
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // for (size_t r = 0; r < product.block_rows(); ++r) {
+                    //     for (size_t c = 0; c < product.block_columns(); ++c)
+                    //     {
+                    //         for (size_t k = 0; k < this->block_columns();
+                    //              ++k) {
+                    //             if (!( this->get_block( r, k ).is_zero()
+                    //                    || other.get_block( k, c )
+                    //                           .is_zero() )) {
+                    //                 std::cout << "C[ " << r << ", " << c <<
+                    //                 " ] += A[ " << r << ", " << k
+                    //                             << " ] * B[ " << k << ", "
+                    //                             << c << " ]" << std::endl;
+                    //                 product.get_block( r, c )
+                    //                     += this->get_block( r, k )
+                    //                      * other.get_block( k, c );
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     std::swap( *this, product );
                     return *this;
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& multiply(
                     const Matrix<ELEMENTTYPE>& other ) override {
+                    if (auto derived
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE> *>(
+                            &other )) {
+                        return this->multiply( *derived );
+                    }
                     check();
                     other.check();
                     if (!( this->is_square() && other.is_square() )) {
@@ -975,6 +1101,11 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& scale(
                     const Matrix<ELEMENTTYPE>& other ) override {
+                    if (auto derived
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE> *>(
+                            &other )) {
+                        return this->scale( *derived );
+                    }
                     this->check();
                     other.check();
                     this->check_same_size( other );
@@ -1189,9 +1320,6 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& subtract(
                     const BlockMatrix<ELEMENTTYPE>& other ) {
-                    std::cout
-                        << "Using BlockMatrix subtract( BlockMatrix ) method"
-                        << std::endl;
                     this->check();
                     other.check();
                     _checksizes( other );
@@ -1209,8 +1337,11 @@ namespace NCPA {
 
                 virtual BlockMatrix<ELEMENTTYPE>& subtract(
                     const Matrix<ELEMENTTYPE>& other ) override {
-                    std::cout << "Using BlockMatrix subtract( Matrix ) method"
-                              << std::endl;
+                    if (auto derived
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE> *>(
+                            &other )) {
+                        return this->subtract( *derived );
+                    }
                     this->check();
                     other.check();
                     check_same_size( other );
@@ -1290,8 +1421,35 @@ namespace NCPA {
                         }
                         return ubw + _rows_per_block;
                     }
-                    throw NCPA::NotImplementedError( "Not yet implemented" );
-                    return 0;
+                    size_t ubw = 0;
+
+                    int max_bdiag   = this->block_columns() - 1;
+                    int n_max_bdiag = (int)std::min( this->block_rows(),
+                                                     this->block_columns() );
+                    int brmin       = 0;
+                    for (int bdiag = max_bdiag; bdiag > 1; --bdiag) {
+                        int bcmin  = bdiag;
+                        int nbdiag = std::min(
+                            n_max_bdiag, (int)this->block_columns() - bdiag );
+                        int bcmax = bdiag + nbdiag;
+                        int brmax = nbdiag;
+                        for (int br = brmin; br < brmax; ++br) {
+                            int bc = bdiag + br;
+                            if (!this->get_block( br, bc ).is_zero()) {
+                                size_t bubw = this->get_block( br, bc )
+                                                  .upper_bandwidth();
+                                matrix_coordinate_t point = _blockcoord2coord(
+                                    (size_t)br, (size_t)bc, 0, bubw );
+                                ubw = std::max( ubw, point.column );
+                            }
+                        }
+                        if (ubw > 0) {
+                            return ubw;
+                        }
+                    }
+                    throw std::logic_error(
+                        "Error calculating upper bandwidth. It shouldn't be "
+                        "possible to reach this line." );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& zero( size_t r,
@@ -1711,7 +1869,7 @@ namespace NCPA {
                 }
 
                 size_t _maxblockdiag() const {
-                    return std::min( _rows_of_blocks, _cols_of_blocks );
+                    return std::max( _rows_of_blocks, _cols_of_blocks ) - 1;
                 }
 
                 // coordinate conversions
@@ -1755,6 +1913,22 @@ namespace NCPA {
                                                size_t bcol ) const {
                     return rc2index( brow, bcol, _rows_of_blocks,
                                      _cols_of_blocks );
+                }
+
+                matrix_coordinate_t _blockcoord2coord( size_t brow,
+                                                       size_t bcol, size_t row,
+                                                       size_t col ) const {
+                    return matrix_coordinate_t { brow * _rows_per_block + row,
+                                                 bcol * _cols_per_block
+                                                     + col };
+                }
+
+                matrix_coordinate_t _blockcoord2coord(
+                    matrix_coordinate_t bcoord,
+                    matrix_coordinate_t coord_in_block ) const {
+                    return _blockcoord2coord( bcoord.row, bcoord.column,
+                                              coord_in_block.row,
+                                              coord_in_block.column );
                 }
 
                 // from block index

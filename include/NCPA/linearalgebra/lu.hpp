@@ -5,6 +5,7 @@
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
+#include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 
 #include <stdexcept>
@@ -71,13 +72,13 @@ namespace NCPA {
                 virtual ELEMENTTYPE tolerance() const { return _tolerance; }
 
                 virtual LUDecomposition<ELEMENTTYPE>& decompose(
-                    const Matrix<ELEMENTTYPE>& base, bool pivot = true ) {
-                    if ( !base ) {
+                    const Matrix<ELEMENTTYPE>& base, bool pivot = false ) {
+                    if (!base) {
                         throw std::logic_error(
                             "LUDecomposition.compute(): base matrix has not "
                             "been set up!" );
                     }
-                    if ( !base.is_square() ) {
+                    if (!base.is_square()) {
                         throw std::logic_error(
                             "LUDecomposition.set(): Base matrix must be "
                             "square" );
@@ -92,52 +93,55 @@ namespace NCPA {
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     _permutation
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    NCPA_DEBUG << "Setting LU lower matrix to size " << N << " x " << N << std::endl;
                     _lower.clear().resize( N, N );
+                    NCPA_DEBUG << "Setting LU upper matrix to size " << N << " x " << N << " and copying input matrix" << std::endl;
                     _upper.clear().resize( N, N ).copy( base );
+                    NCPA_DEBUG << "Setting permutation matrix to size " << N << " x " << N << " identity matrix" << std::endl;
                     _permutation.identity( N, N );
 
                     size_t i, j, k;
 
                     ELEMENTTYPE maxA, absA;
 
-                    for ( k = 0; k < N; k++ ) {
-                        if ( pivot ) {
+                    for (k = 0; k < N; k++) {
+                        if (pivot) {
                             size_t pivotRow    = k;
                             ELEMENTTYPE maxVal = _upper.get( k, k );
 
                             // find pivot row and swap
-                            for ( i = k + 1; i < N; i++ ) {
+                            for (i = k + 1; i < N; i++) {
                                 ELEMENTTYPE x = _upper.get( i, k );
-                                if ( std::abs( x ) > std::abs( maxVal ) ) {
+                                if (std::abs( x ) > std::abs( maxVal )) {
                                     maxVal   = x;
                                     pivotRow = i;
                                 }
                             }
-                            if ( std::abs( maxVal )
-                                 < std::abs( tolerance() ) ) {
+                            if (std::abs( maxVal ) < std::abs( tolerance() )) {
                                 clear();
                                 throw std::invalid_argument(
                                     "LUDecomposition.compute(): Matrix is "
                                     "degenerate" );
                             }
+                            NCPA_DEBUG << "Pivoting rows " << k << " and " << pivotRow << std::endl;
                             _upper.swap_rows( k, pivotRow );
                             _lower.swap_rows( k, pivotRow );
                             _permutation.swap_rows( k, pivotRow );
                         }
 
                         // perform elimination
-                        for ( i = k + 1; i < N; i++ ) {
+                        for (i = k + 1; i < N; i++) {
                             ELEMENTTYPE ratio
                                 = _upper.get( i, k ) / _upper.get( k, k );
                             _lower.set( i, k, ratio );
-                            for ( j = 0; j < N; j++ ) {
+                            for (j = 0; j < N; j++) {
                                 ELEMENTTYPE diff = _upper.get( i, j )
                                                  - ratio * _upper.get( k, j );
                                 _upper.set( i, j, diff );
                             }
                         }
                     }
-                    for ( k = 0; k < N; k++ ) {
+                    for (k = 0; k < N; k++) {
                         _lower.set( k, k, NCPA::math::one<ELEMENTTYPE>() );
                     }
                     return *this;
@@ -197,20 +201,20 @@ namespace NCPA {
                 virtual LUDecomposition<ELEMENTTYPE>& decompose(
                     const Matrix<ELEMENTTYPE>& Mbase,
                     bool pivot = true ) override {
-                    if ( !Mbase ) {
+                    if (!Mbase) {
                         throw std::logic_error(
                             "BandDiagonalLUDecomposition.compute(): base "
                             "matrix has not "
                             "been set up!" );
                     }
 
-                    if ( !Mbase.is_band_diagonal() ) {
+                    if (!Mbase.is_band_diagonal()) {
                         throw std::logic_error(
                             "BandDiagonalLUDecomposition.decompose(): Base "
                             "matrix must be band-diagonal" );
                     }
 
-                    if ( !Mbase.is_square() ) {
+                    if (!Mbase.is_square()) {
                         throw std::logic_error(
                             "BandDiagonalLUDecomposition.decompose(): Base "
                             "matrix must be "
@@ -218,24 +222,40 @@ namespace NCPA {
                     }
 
                     _A.clear();
-                    _A.copy(
-                        dynamic_cast<const band_diagonal_matrix<ELEMENTTYPE>&>(
-                            Mbase.internal() ) );
+                    if (auto bdm_ptr = dynamic_cast<
+                            const band_diagonal_matrix<ELEMENTTYPE> *>(
+                            Mbase.internal() )) {
+                        NCPA_DEBUG << "Copying internal band-diagonal matrix pointer" << std::endl;
+                        _A.copy( *bdm_ptr );
+                    } else {
+                        NCPA_DEBUG << "Copying band-diagonal matrix by diagonals" << std::endl;
+                        _A.resize( Mbase.rows(), Mbase.columns() );
+                        std::vector<int> diags = Mbase.diagonals();
+                        for (auto it = diags.begin(); it != diags.end(); ++it) {
+                            NCPA_DEBUG << "Setting diagonal " << *it << std::endl;
+                            _A.set_diagonal( Mbase.get_diagonal( *it )->as_std(), (size_t)(*it) );
+                        }
+                    }
 
-                    size_t n = _A.rows(), p = _A.lower_bandwidth(),
-                           q = _A.upper_bandwidth();
+                    size_t nrows = _A.rows();
+                    NCPA_DEBUG << "Original vector has " << nrows << " rows" << std::endl;
+                    size_t lbw   = _A.lower_bandwidth();
+                    NCPA_DEBUG << "Original vector has lower bandwidth " << lbw << std::endl;
+                    size_t ubw   = _A.upper_bandwidth();
+                    NCPA_DEBUG << "Original vector has upper bandwidth " << ubw << std::endl;
 
-                    for ( auto k = 1; k <= n - 1; k++ ) {
-                        size_t ni = std::min( k + p, n );
-                        for ( auto i = k + 1; i <= ni; i++ ) {
+                    for (auto k = 1; k <= nrows - 1; k++) {
+                        NCPA_DEBUG << "Decomposing row " << k << std::endl;
+                        size_t ni = std::min( k + lbw, nrows );
+                        for (auto i = k + 1; i <= ni; i++) {
                             _A.set( i - 1, k - 1,
                                     _A.get( i - 1, k - 1 )
                                         / _A.get( k - 1, k - 1 ) );
                         }
-                        size_t nj = std::min( k + q, n );
-                        for ( auto j = k + 1; j <= nj; j++ ) {
-                            ni = std::min( k + p, n );
-                            for ( auto i = k + 1; i <= ni; i++ ) {
+                        size_t nj = std::min( k + ubw, nrows );
+                        for (auto j = k + 1; j <= nj; j++) {
+                            ni = std::min( k + lbw, nrows );
+                            for (auto i = k + 1; i <= ni; i++) {
                                 _A.set( i - 1, j - 1,
                                         _A.get( i - 1, j - 1 )
                                             - _A.get( i - 1, k - 1 )
@@ -243,6 +263,7 @@ namespace NCPA {
                             }
                         }
                     }
+                    NCPA_DEBUG << "LU decomposition complete" << std::endl;
                     return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
                 }
 

@@ -38,14 +38,14 @@ namespace NCPA {
 
         template<typename T>
         constexpr T pi() {
-            return (T)(NCPA::constants::PI);
+            return (T)( NCPA::constants::PI );
         }
 
         template<typename T>
         constexpr std::complex<T> ii() {
-            return std::complex<T>( NCPA::constants::zero<T>(), NCPA::constants::one<T>() );
+            return std::complex<T>( NCPA::constants::zero<T>(),
+                                    NCPA::constants::one<T>() );
         }
-
 
         template<typename T>
         bool equals( T x, T y, size_t n = 1,
@@ -124,6 +124,14 @@ namespace NCPA {
         template<typename T>
         T square( T n ) {
             return n * n;
+        }
+
+        /**
+         * Returns whether two values are equal within a given tolerance
+         */
+        template<typename T>
+        bool within( const T& val1, const T& val2, const T& tol ) {
+            return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
         }
 
         /**
@@ -358,8 +366,8 @@ namespace NCPA {
             T maxval   = std::abs( vals[ 0 ] );
             size_t ind = 0;
             for (size_t i = 1; i < vals.size(); i++) {
-                if (std::abs(vals[ i ]) > maxval) {
-                    maxval = std::abs(vals[ i ]);
+                if (std::abs( vals[ i ] ) > maxval) {
+                    maxval = std::abs( vals[ i ] );
                     ind    = i;
                 }
             }
@@ -398,8 +406,6 @@ namespace NCPA {
             }
             return minval;
         }
-
-        
 
         /**
         @brief Returns the index of the minimum value from an array.
@@ -444,8 +450,8 @@ namespace NCPA {
             T minval   = std::abs( vals.front() );
             size_t ind = 0;
             for (size_t i = 1; i < vals.size(); i++) {
-                if (std::abs(vals[ i ]) < minval) {
-                    minval = std::abs(vals[ i ]);
+                if (std::abs( vals[ i ] ) < minval) {
+                    minval = std::abs( vals[ i ] );
                     ind    = i;
                 }
             }
@@ -949,25 +955,26 @@ namespace NCPA {
                 std::vector<std::complex<double>> find(
                     const std::vector<std::complex<double>> coeffs,
                     bool leading_term_first = true ) {
-                        std::vector<std::complex<double>> roots( coeffs.size() );
-                        std::vector<std::complex<double>> c = coeffs;
-                        if (!leading_term_first) {
-                            std::reverse( c.begin(), c.end() );
-                        }
-                        this->Newton( (int)coeffs.size() - 1, &c[0], &roots[0] );
-                        roots.erase( roots.begin() );
-                        return roots;
+                    std::vector<std::complex<double>> roots( coeffs.size() );
+                    std::vector<std::complex<double>> c = coeffs;
+                    if (!leading_term_first) {
+                        std::reverse( c.begin(), c.end() );
                     }
+                    this->Newton( (int)coeffs.size() - 1, &c[ 0 ],
+                                  &roots[ 0 ] );
+                    roots.erase( roots.begin() );
+                    return roots;
+                }
 
                 std::vector<std::complex<double>> find(
                     const std::vector<double> coeffs,
                     bool leading_term_first = true ) {
-                        std::vector<std::complex<double>> ccoeffs(coeffs.size());
-                        for (size_t i = 0; i < coeffs.size(); ++i) {
-                            ccoeffs[i].real( coeffs[ i ] );
-                        }
-                        return this->find( ccoeffs, leading_term_first );
+                    std::vector<std::complex<double>> ccoeffs( coeffs.size() );
+                    for (size_t i = 0; i < coeffs.size(); ++i) {
+                        ccoeffs[ i ].real( coeffs[ i ] );
                     }
+                    return this->find( ccoeffs, leading_term_first );
+                }
 
             protected:
                 const int _DBL_RADIX = std::numeric_limits<double>::radix;

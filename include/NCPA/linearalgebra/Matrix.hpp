@@ -67,6 +67,51 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual Matrix<ELEMENTTYPE>& add(
+                    const Matrix<ELEMENTTYPE>& other ) {
+                    check();
+                    other.check();
+                    check_same_size( other );
+                    *_ptr += *( other._ptr );
+                    this->_clear_cache();
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& add( ELEMENTTYPE other ) {
+                    check();
+                    *_ptr += other;
+                    this->_clear_cache();
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& as_array( size_t& nrows,
+                                                       size_t& ncols,
+                                                       ELEMENTTYPE **& vals ) {
+                    check();
+                    _ptr->as_array( nrows, ncols, vals );
+                    return *this;
+                }
+
+                virtual explicit operator bool() const {
+                    return ( _ptr ? true : false );
+                }
+
+                virtual size_t bandwidth() const {
+                    return ( _ptr ? _ptr->bandwidth() : 1 );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& clear() {
+                    if (_ptr) {
+                        _ptr->clear();
+                    }
+                    this->_clear_cache();
+                    return *this;
+                }
+
+                virtual size_t columns() const {
+                    return ( _ptr ? _ptr->columns() : 0 );
+                }
+
                 virtual Matrix<ELEMENTTYPE>& copy(
                     const Matrix<ELEMENTTYPE>& other ) {
                     if (_ptr) {
@@ -82,114 +127,19 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& identity() {
-                    check();
-                    this->_clear_cache();
-                    _ptr->identity();
-                    // if (!is_square()) {
-                    //     throw std::invalid_argument(
-                    //         "Cannot turn a non-square matrix into an "
-                    //         "identity "
-                    //         "matrix" );
-                    // }
-                    // this->_clear_cache();
-                    // size_t ndiag = _ptr->diagonal_size( 0 );
-                    // _ptr->zero();
-                    // for (size_t i = 0; i < ndiag; i++) {
-                    //     _ptr->set( i, i, NCPA::math::one<ELEMENTTYPE>() );
-                    // }
-                    return *this;
-                }
-
                 virtual size_t diagonal_size( int offset = 0 ) const {
                     return matrix_diagonal_size( this->rows(), this->columns(),
                                                  offset );
                 }
 
-                virtual Matrix<ELEMENTTYPE>& identity( size_t rows,
-                                                       size_t cols = 0 ) {
-                    check();
-                    if (cols == 0) {
-                        cols = rows;
-                    }
-                    _ptr->identity( rows, cols );
-                    return *this;
+                virtual std::vector<int> diagonals() const {
+                    return ( _ptr ? _ptr->diagonals() : std::vector<int>() );
                 }
 
-                virtual bool is_square() const {
-                    return ( _ptr ? _ptr->is_square() : true );
-                }
-
-                virtual bool is_row_matrix() const { return ( rows() == 1 ); }
-
-                virtual bool is_column_matrix() const {
-                    return ( columns() == 1 );
-                }
-
-                virtual bool is_empty() const {
-                    return ( _ptr ? _ptr->is_empty() : true );
-                }
-
-                virtual bool is_zero() const {
-                    return ( _ptr ? _ptr->is_zero() : true );
-                }
-
-                virtual bool is_zero( size_t r, size_t c ) const {
-                    return ( _ptr ? _ptr->is_zero( r, c ) : true );
-                }
-
-                virtual bool is_identity() const {
-                    return ( _ptr ? _ptr->is_identity() : true );
-                }
-
-                virtual bool is_symmetric() const {
-                    return ( _ptr ? _ptr->is_symmetric() : true );
-                }
-
-                virtual bool is_diagonal() const {
-                    return ( _ptr ? _ptr->is_diagonal() : true );
-                }
-
-                virtual bool is_band_diagonal() const {
-                    return ( _ptr ? _ptr->is_band_diagonal() : true );
-                }
-
-                virtual bool is_tridiagonal() const {
-                    return ( _ptr ? _ptr->is_tridiagonal() : true );
-                }
-
-                virtual bool is_lower_triangular() const {
-                    return ( _ptr ? _ptr->is_lower_triangular() : true );
-                }
-
-                virtual bool is_upper_triangular() const {
-                    return ( _ptr ? _ptr->is_upper_triangular() : true );
-                }
-
-                virtual bool is_block_matrix() const { return false; }
-
-                virtual explicit operator bool() const {
-                    return ( _ptr ? true : false );
-                }
-
-                virtual size_t rows() const {
-                    return ( _ptr ? _ptr->rows() : 0 );
-                }
-
-                virtual size_t columns() const {
-                    return ( _ptr ? _ptr->columns() : 0 );
-                }
-
-                virtual size_t lower_bandwidth() const {
-                    return ( _ptr ? _ptr->lower_bandwidth() : 0 );
-                }
-
-                virtual size_t upper_bandwidth() const {
-                    return ( _ptr ? _ptr->upper_bandwidth() : 0 );
-                }
-
-                virtual size_t bandwidth() const {
-                    return ( _ptr ? _ptr->bandwidth() : 1 );
+                virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
+                    return ( is_empty() || other.is_empty()
+                                 ? false
+                                 : _ptr->equals( *( other._ptr ) ) );
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -210,16 +160,6 @@ namespace NCPA {
                         }
                     } else {
                         return _zero;
-                    }
-                }
-
-                virtual std::unique_ptr<Vector<ELEMENTTYPE>> get_row(
-                    size_t row ) const {
-                    if (_ptr) {
-                        return std::unique_ptr<Vector<ELEMENTTYPE>>(
-                            new Vector<ELEMENTTYPE>( _ptr->get_row( row ) ) );
-                    } else {
-                        return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
                 }
 
@@ -245,10 +185,155 @@ namespace NCPA {
                     }
                 }
 
-                virtual Matrix<ELEMENTTYPE>& clear() {
+                virtual std::unique_ptr<Vector<ELEMENTTYPE>> get_row(
+                    size_t row ) const {
                     if (_ptr) {
-                        _ptr->clear();
+                        return std::unique_ptr<Vector<ELEMENTTYPE>>(
+                            new Vector<ELEMENTTYPE>( _ptr->get_row( row ) ) );
+                    } else {
+                        return std::unique_ptr<Vector<ELEMENTTYPE>>();
                     }
+                }
+
+                virtual Matrix<ELEMENTTYPE>& identity() {
+                    check();
+                    this->_clear_cache();
+                    _ptr->identity();
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& identity( size_t rows,
+                                                       size_t cols = 0 ) {
+                    check();
+                    if (cols == 0) {
+                        cols = rows;
+                    }
+                    _ptr->identity( rows, cols );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE> inverse() const {
+                    Matrix<ELEMENTTYPE> inv = *this;
+                    return inv.invert();
+                }
+
+                virtual Matrix<ELEMENTTYPE>& invert() {
+                    Solver<ELEMENTTYPE> solver
+                        = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
+                    solver.set_system_matrix( *this );
+                    Matrix<ELEMENTTYPE> inv
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    inv.resize( this->rows(), this->columns() );
+                    Vector<ELEMENTTYPE> vec
+                        = VectorFactory<ELEMENTTYPE>::build(
+                            vector_t::SPARSE );
+                    vec.resize( this->columns() );
+
+                    for (size_t i = 0; i < this->columns(); i++) {
+                        vec.zero().set( i, NCPA::math::one<ELEMENTTYPE>() );
+                        inv.set_column( i, solver.solve( vec ) );
+                    }
+                    swap( *this, inv );
+                    return *this;
+                }
+
+                virtual bool is_band_diagonal() const {
+                    return ( _ptr ? _ptr->is_band_diagonal() : true );
+                }
+
+                virtual bool is_block_matrix() const { return false; }
+
+                virtual bool is_column_matrix() const {
+                    return ( columns() == 1 );
+                }
+
+                virtual bool is_diagonal() const {
+                    return ( _ptr ? _ptr->is_diagonal() : true );
+                }
+
+                virtual bool is_empty() const {
+                    return ( _ptr ? _ptr->is_empty() : true );
+                }
+
+                virtual bool is_identity() const {
+                    return ( _ptr ? _ptr->is_identity() : true );
+                }
+
+                virtual bool is_lower_triangular() const {
+                    return ( _ptr ? _ptr->is_lower_triangular() : true );
+                }
+
+                virtual bool is_row_matrix() const { return ( rows() == 1 ); }
+
+                virtual bool is_square() const {
+                    return ( _ptr ? _ptr->is_square() : true );
+                }
+
+                virtual bool is_symmetric() const {
+                    return ( _ptr ? _ptr->is_symmetric() : true );
+                }
+
+                virtual bool is_tridiagonal() const {
+                    return ( _ptr ? _ptr->is_tridiagonal() : true );
+                }
+
+                virtual bool is_upper_triangular() const {
+                    return ( _ptr ? _ptr->is_upper_triangular() : true );
+                }
+
+                virtual bool is_zero() const {
+                    return ( _ptr ? _ptr->is_zero() : true );
+                }
+
+                virtual bool is_zero( size_t r, size_t c ) const {
+                    return ( _ptr ? _ptr->is_zero( r, c ) : true );
+                }
+
+                virtual Vector<ELEMENTTYPE> left_multiply(
+                    const Vector<ELEMENTTYPE>& other ) const {
+                    check();
+                    // other.check();
+                    if (columns() != other.size()) {
+                        throw std::invalid_argument(
+                            "Matrix-vector size mismatch: cannot "
+                            "multiply" );
+                    }
+                    return Vector<ELEMENTTYPE>(
+                        _ptr->left_multiply( *( other._ptr ) ) );
+                }
+
+                virtual size_t lower_bandwidth() const {
+                    return ( _ptr ? _ptr->lower_bandwidth() : 0 );
+                }
+
+                virtual LUDecomposition<ELEMENTTYPE>& lu() {
+                    check();
+                    if (!_lu) {
+                        this->lu_decompose();
+                    }
+                    return *_lu;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& lu_decompose() {
+                    check();
+                    _lu.reset();
+                    _lu = std::unique_ptr<LUDecomposition<ELEMENTTYPE>>(
+                        new LUDecomposition<ELEMENTTYPE>() );
+                    _lu->decompose( *this );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& multiply(
+                    const Matrix<ELEMENTTYPE>& other ) {
+                    check();
+                    other.check();
+                    if (columns() != other.rows()) {
+                        throw std::invalid_argument(
+                            "Matrix size mismatch: cannot multiply" );
+                    }
+                    auto newmat = Matrix<ELEMENTTYPE>(
+                        _ptr->multiply( *( other._ptr ) ) );
+                    swap( *this, newmat );
                     this->_clear_cache();
                     return *this;
                 }
@@ -263,11 +348,38 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& as_array( size_t& nrows,
-                                                       size_t& ncols,
-                                                       ELEMENTTYPE **& vals ) {
+                virtual Vector<ELEMENTTYPE> right_multiply(
+                    const Vector<ELEMENTTYPE>& other ) const {
                     check();
-                    _ptr->as_array( nrows, ncols, vals );
+                    // other.check();
+                    if (columns() != other.size()) {
+                        throw std::invalid_argument(
+                            "Matrix-vector size mismatch: cannot "
+                            "multiply" );
+                    }
+                    return Vector<ELEMENTTYPE>(
+                        _ptr->right_multiply( *( other._ptr ) ) );
+                }
+
+                virtual size_t rows() const {
+                    return ( _ptr ? _ptr->rows() : 0 );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& scale(
+                    const Matrix<ELEMENTTYPE>& other ) {
+                    check();
+                    other.check();
+                    check_same_size( other );
+                    _ptr->scale( *other._ptr );
+                    // *_ptr *= *( other._ptr );
+                    this->_clear_cache();
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& scale( ELEMENTTYPE other ) {
+                    check();
+                    *_ptr *= other;
+                    this->_clear_cache();
                     return *this;
                 }
 
@@ -284,129 +396,6 @@ namespace NCPA {
                     _ptr->set( val );
                     this->_clear_cache();
                     return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
-                    check();
-                    _ptr->zero( row, col );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& zero() {
-                    check();
-                    _ptr->zero();
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                /*
-                set_row options:
-                    0. constant
-                    1. array
-                    2. std::vector with indices
-                    3. std::vector without indices
-                    4. initializer list with indices
-                    5. initializer list without indices
-                    6. abstract_vector
-                    7. Vector
-                    8. Matrix, specify row
-                    9. Row matrix
-                */
-                virtual Matrix<ELEMENTTYPE>& set_row( size_t row,
-                                                      ELEMENTTYPE val ) {
-                    check();
-                    _ptr->set_row( row, val );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, size_t nvals, const size_t *indices,
-                    const ELEMENTTYPE *vals ) {
-                    check();
-                    _ptr->set_row( row, nvals, indices, vals );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const std::vector<size_t>& rowinds,
-                    const std::vector<ELEMENTTYPE>& vals ) {
-                    check();
-                    _ptr->set_row( row, rowinds, vals );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const std::vector<ELEMENTTYPE>& vals ) {
-                    check();
-                    _ptr->set_row( row, vals );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const std::initializer_list<size_t> rowinds,
-                    const std::initializer_list<ELEMENTTYPE> vals ) {
-                    check();
-                    _ptr->set_row( row, rowinds, vals );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row,
-                    const std::initializer_list<ELEMENTTYPE> vals ) {
-                    return set_row( row, std::vector<ELEMENTTYPE>( vals ) );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const abstract_vector<ELEMENTTYPE>& vec ) {
-                    // return set_row( row, vec.as_std() );
-                    check();
-                    _ptr->set_row( row, vec );
-                    this->_clear_cache();
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const Vector<ELEMENTTYPE>& vec ) {
-                    return set_row( row, vec.as_std() );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row,
-                    const std::unique_ptr<Vector<ELEMENTTYPE>>& vec ) {
-                    return set_row( row, *vec );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const Matrix<ELEMENTTYPE>& mat,
-                    size_t matrow ) {
-                    return set_row( row, mat.get_row( matrow )->as_std() );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row,
-                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat,
-                    size_t matrow ) {
-                    return set_row( row, *mat );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row, const Matrix<ELEMENTTYPE>& mat ) {
-                    if (!mat.is_row_matrix()) {
-                        throw std::logic_error( "Matrix is not a row matrix" );
-                    }
-                    return set_row( row, mat, 0 );
-                }
-
-                virtual Matrix<ELEMENTTYPE>& set_row(
-                    size_t row,
-                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat ) {
-                    return set_row( row, *mat, 0 );
                 }
 
                 /*
@@ -574,49 +563,118 @@ namespace NCPA {
                     return set_diagonal( vec.as_std(), offset );
                 }
 
-                Matrix<ELEMENTTYPE>& transpose() {
+                /*
+                set_row options:
+                    0. constant
+                    1. array
+                    2. std::vector with indices
+                    3. std::vector without indices
+                    4. initializer list with indices
+                    5. initializer list without indices
+                    6. abstract_vector
+                    7. Vector
+                    8. Matrix, specify row
+                    9. Row matrix
+                */
+                virtual Matrix<ELEMENTTYPE>& set_row( size_t row,
+                                                      ELEMENTTYPE val ) {
                     check();
-                    _ptr->transpose();
+                    _ptr->set_row( row, val );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& swap_rows( size_t ind1,
-                                                        size_t ind2 ) {
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, size_t nvals, const size_t *indices,
+                    const ELEMENTTYPE *vals ) {
                     check();
-                    _ptr->swap_rows( ind1, ind2 );
+                    _ptr->set_row( row, nvals, indices, vals );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& swap_columns( size_t ind1,
-                                                           size_t ind2 ) {
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const std::vector<size_t>& rowinds,
+                    const std::vector<ELEMENTTYPE>& vals ) {
                     check();
-                    _ptr->swap_columns( ind1, ind2 );
+                    _ptr->set_row( row, rowinds, vals );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& add(
-                    const Matrix<ELEMENTTYPE>& other ) {
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const std::vector<ELEMENTTYPE>& vals ) {
                     check();
-                    other.check();
-                    check_same_size( other );
-                    *_ptr += *( other._ptr );
+                    _ptr->set_row( row, vals );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& add( ELEMENTTYPE other ) {
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const std::initializer_list<size_t> rowinds,
+                    const std::initializer_list<ELEMENTTYPE> vals ) {
                     check();
-                    *_ptr += other;
+                    _ptr->set_row( row, rowinds, vals );
                     this->_clear_cache();
                     return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::initializer_list<ELEMENTTYPE> vals ) {
+                    return set_row( row, std::vector<ELEMENTTYPE>( vals ) );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const abstract_vector<ELEMENTTYPE>& vec ) {
+                    // return set_row( row, vec.as_std() );
+                    check();
+                    _ptr->set_row( row, vec );
+                    this->_clear_cache();
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const Vector<ELEMENTTYPE>& vec ) {
+                    return set_row( row, vec.as_std() );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Vector<ELEMENTTYPE>>& vec ) {
+                    return set_row( row, *vec );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const Matrix<ELEMENTTYPE>& mat,
+                    size_t matrow ) {
+                    return set_row( row, mat.get_row( matrow )->as_std() );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat,
+                    size_t matrow ) {
+                    return set_row( row, *mat );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row, const Matrix<ELEMENTTYPE>& mat ) {
+                    if (!mat.is_row_matrix()) {
+                        throw std::logic_error( "Matrix is not a row matrix" );
+                    }
+                    return set_row( row, mat, 0 );
+                }
+
+                virtual Matrix<ELEMENTTYPE>& set_row(
+                    size_t row,
+                    const std::unique_ptr<Matrix<ELEMENTTYPE>>& mat ) {
+                    return set_row( row, *mat, 0 );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& subtract(
                     const Matrix<ELEMENTTYPE>& other ) {
-                    check();
+                    this->check();
                     other.check();
                     check_same_size( other );
                     *_ptr -= *( other._ptr );
@@ -631,111 +689,45 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& scale(
-                    const Matrix<ELEMENTTYPE>& other ) {
+                virtual Matrix<ELEMENTTYPE>& swap_columns( size_t ind1,
+                                                           size_t ind2 ) {
                     check();
-                    other.check();
-                    check_same_size( other );
-                    _ptr->scale( *other._ptr );
-                    // *_ptr *= *( other._ptr );
+                    _ptr->swap_columns( ind1, ind2 );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& scale( ELEMENTTYPE other ) {
+                virtual Matrix<ELEMENTTYPE>& swap_rows( size_t ind1,
+                                                        size_t ind2 ) {
                     check();
-                    *_ptr *= other;
+                    _ptr->swap_rows( ind1, ind2 );
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& lu_decompose() {
+                Matrix<ELEMENTTYPE>& transpose() {
                     check();
-                    _lu.reset();
-                    _lu = std::unique_ptr<LUDecomposition<ELEMENTTYPE>>(
-                        new LUDecomposition<ELEMENTTYPE>() );
-                    _lu->decompose( *this );
-                    return *this;
-                }
-
-                virtual LUDecomposition<ELEMENTTYPE>& lu() {
-                    check();
-                    if (!_lu) {
-                        this->lu_decompose();
-                    }
-                    return *_lu;
-                }
-
-                virtual Matrix<ELEMENTTYPE>& invert() {
-                    Solver<ELEMENTTYPE> solver
-                        = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
-                    solver.set_system_matrix( *this );
-                    Matrix<ELEMENTTYPE> inv
-                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
-                    inv.resize( this->rows(), this->columns() );
-                    Vector<ELEMENTTYPE> vec
-                        = VectorFactory<ELEMENTTYPE>::build(
-                            vector_t::SPARSE );
-                    vec.resize( this->columns() );
-
-                    for (size_t i = 0; i < this->columns(); i++) {
-                        vec.zero().set( i, NCPA::math::one<ELEMENTTYPE>() );
-                        inv.set_column( i, solver.solve( vec ) );
-                    }
-                    swap( *this, inv );
-                    return *this;
-                }
-
-                virtual Matrix<ELEMENTTYPE> inverse() const {
-                    Matrix<ELEMENTTYPE> inv = *this;
-                    return inv.invert();
-                }
-
-                virtual Matrix<ELEMENTTYPE>& multiply(
-                    const Matrix<ELEMENTTYPE>& other ) {
-                    check();
-                    other.check();
-                    if (columns() != other.rows()) {
-                        throw std::invalid_argument(
-                            "Matrix size mismatch: cannot multiply" );
-                    }
-                    auto newmat = Matrix<ELEMENTTYPE>(
-                        _ptr->multiply( *( other._ptr ) ) );
-                    swap( *this, newmat );
+                    _ptr->transpose();
                     this->_clear_cache();
                     return *this;
                 }
 
-                virtual Vector<ELEMENTTYPE> right_multiply(
-                    const Vector<ELEMENTTYPE>& other ) const {
-                    check();
-                    // other.check();
-                    if (columns() != other.size()) {
-                        throw std::invalid_argument(
-                            "Matrix-vector size mismatch: cannot "
-                            "multiply" );
-                    }
-                    return Vector<ELEMENTTYPE>(
-                        _ptr->right_multiply( *( other._ptr ) ) );
+                virtual size_t upper_bandwidth() const {
+                    return ( _ptr ? _ptr->upper_bandwidth() : 0 );
                 }
 
-                virtual Vector<ELEMENTTYPE> left_multiply(
-                    const Vector<ELEMENTTYPE>& other ) const {
+                virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
                     check();
-                    // other.check();
-                    if (columns() != other.size()) {
-                        throw std::invalid_argument(
-                            "Matrix-vector size mismatch: cannot "
-                            "multiply" );
-                    }
-                    return Vector<ELEMENTTYPE>(
-                        _ptr->left_multiply( *( other._ptr ) ) );
+                    _ptr->zero( row, col );
+                    this->_clear_cache();
+                    return *this;
                 }
 
-                virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
-                    return ( is_empty() || other.is_empty()
-                                 ? false
-                                 : _ptr->equals( *( other._ptr ) ) );
+                virtual Matrix<ELEMENTTYPE>& zero() {
+                    check();
+                    _ptr->zero();
+                    this->_clear_cache();
+                    return *this;
                 }
 
                 // assignment operators
@@ -929,8 +921,8 @@ namespace NCPA {
                     }
                 }
 
-                const abstract_matrix<ELEMENTTYPE>& internal() const {
-                    return *_ptr;
+                const abstract_matrix<ELEMENTTYPE> *internal() const {
+                    return ( _ptr ? _ptr.get() : nullptr );
                 }
 
             private:
