@@ -132,7 +132,7 @@ TEST_F( _TEST_TITLE_, InternalCoordinateTransformationsWork ) {
                 EXPECT_TRUE( square.rowcol2internal( row, col, ind1, ind2 ) );
             }
             EXPECT_EQ( ind1, 1 + col - row );
-            EXPECT_EQ( ind2, row );
+            EXPECT_EQ( ind2, row + std::min( 0, col - row ) );
         }
     }
 }

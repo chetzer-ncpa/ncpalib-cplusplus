@@ -104,24 +104,23 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& other ) override {
                     this->clear().resize( other.rows(), other.columns() );
                     if (other.is_zero()) {
-                        return;
+                        return *this;
                     }
                     std::vector<int> otherdiags = other.diagonals();
-                    if (otherdiags.front() < 0) {
-                        _n_lower = (size_t)( -otherdiags.front() );
+                    while (
+                        other.get_diagonal( otherdiags.front() )->is_zero()) {
+                        otherdiags.erase( otherdiags.begin() );
                     }
-                    if (otherdiags.back() > 0) {
-                        _n_upper = (size_t)otherdiags.back();
+                    while (
+                        other.get_diagonal( otherdiags.back() )->is_zero()) {
+                        otherdiags.erase( otherdiags.begin()
+                                          + otherdiags.size() - 1 );
                     }
-                    auto otherit = otherdiags.begin();
-                    for (int d = -(int)_n_lower; d <= _n_upper; ++d) {
-                        if (otherit != otherdiags.end() && d == *otherit) {
-                            // this diagonal is present in other
-                            _contents.emplace_back(
-                                other.get_diagonal( d )->as_std() );
-                            ++otherit;
-                        } else {
-                            _contents.emplace_back();
+                    for (auto it = otherdiags.begin(); it != otherdiags.end();
+                         ++it) {
+                        auto otherd = other.get_diagonal( *it );
+                        if (!otherd->is_zero()) {
+                            this->set_diagonal( otherd->as_std(), *it );
                         }
                     }
                     return *this;
@@ -157,7 +156,7 @@ namespace NCPA {
                         return diag;
                     }
                     for (size_t ii = 0; ii < _contents.size(); ++ii) {
-                        if (_contents.at( ii ).size() != 0) {
+                        if (!_contents.at( ii ).empty()) {
                             diag.push_back( (int)ii - _n_lower );
                         }
                     }
@@ -173,8 +172,9 @@ namespace NCPA {
                 virtual bool rowcol2internal( const size_t& row,
                                               const size_t& col, int& ind1,
                                               int& ind2 ) const {
-                    ind1 = (int)col - (int)row + (int)_n_lower;
-                    ind2 = (int)row;
+                    int diag = (int)col - (int)row;
+                    ind1     = diag + (int)_n_lower;
+                    ind2     = (int)row + std::min( 0, diag );
                     return ( ind1 >= 0
                              && ind1 < (int)( this->contents().size() )
                              && row < this->rows() && col < this->columns() );
@@ -183,8 +183,11 @@ namespace NCPA {
                 virtual bool internal2rowcol( const size_t& ind1,
                                               const size_t& ind2, int& row,
                                               int& col ) const {
-                    col = (int)ind1 + (int)ind2 - (int)_n_lower;
-                    row = (int)ind2;
+                    int diag = -(int)_n_lower + (int)ind1;
+                    row      = (int)ind2 - std::min( diag, 0 );
+                    col      = (int)ind2 + std::max( diag, 0 );
+                    // col      = (int)ind1 + (int)ind2 - (int)_n_lower;
+                    // row      = (int)ind2;
                     return ( col >= 0 && col < this->columns()
                              && row < this->rows() );
                 }
@@ -206,9 +209,9 @@ namespace NCPA {
                     }
                     if (this->contents().at( ind1 ).empty()) {
                         this->contents().at( ind1 ).resize(
-                            this->diagonal_size( 0 ) );
+                            this->diagonal_size( (int)col - (int)row ) );
                     }
-                    this->contents().at( ind1 ).at( row ) = val;
+                    this->contents().at( ind1 ).at( ind2 ) = val;
                     return *this;
                 }
 
@@ -339,9 +342,13 @@ namespace NCPA {
                          ind1++) {
                         for (size_t ind2 = _min_ind2( ind1 );
                              ind2 < _max_ind2( ind1 ); ind2++) {
+                            // bool tf = internal2rowcol( ind1, ind2, row, col );
+                            // std::cout << "[ " << ind1 << "," << ind2
+                            //           << " ] => [ " << row << "," << col
+                            //           << " ] (" << tf << ")" << std::endl;
                             if (internal2rowcol( ind1, ind2, row, col )) {
                                 vals[ row ][ col ]
-                                    = this->contents()[ ind1 ][ ind2 ];
+                                    = this->contents().at( ind1 ).at( ind2 );
                             }
                         }
                     }
@@ -353,13 +360,19 @@ namespace NCPA {
                     size_t row ) const override {
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> v(
                         new sparse_vector<ELEMENTTYPE>( this->columns() ) );
-                    int r, c;
-                    for (size_t ind1 = 0; ind1 < this->contents().size();
-                         ind1++) {
-                        if (internal2rowcol( ind1, row, r, c )) {
-                            v->set( c, this->contents()[ ind1 ][ row ] );
-                        }
+                    for (int c = std::max( (int)row - (int)_n_lower, 0 );
+                         c <= std::min( (int)row + (int)_n_upper,
+                                        (int)this->columns() - 1 );
+                         ++c) {
+                        v->set( c, this->get( row, c ) );
                     }
+                    // int r, c;
+                    // for (size_t ind1 = 0; ind1 < this->contents().size();
+                    //      ind1++) {
+                    //     if (internal2rowcol( ind1, row, r, c )) {
+                    //         v->set( c, this->contents()[ ind1 ][ row ] );
+                    //     }
+                    // }
                     return v;
                 }
 
@@ -433,36 +446,36 @@ namespace NCPA {
                     std::reverse( newcontents.begin(), newcontents.end() );
                     std::swap( _n_lower, _n_upper );
                     std::swap( _nrows, _ncols );
-                    if (_n_lower > 0) {
-                        // take the zeros from the end and put them up front
-                        for (size_t ind1 = 0; ind1 < _n_lower; ind1++) {
-                            if (!this->contents().at( ind1 ).empty()) {
-                                size_t invalid = _n_lower - ind1;
+                    // if (_n_lower > 0) {
+                    //     // take the zeros from the end and put them up front
+                    //     for (size_t ind1 = 0; ind1 < _n_lower; ind1++) {
+                    //         if (!this->contents().at( ind1 ).empty()) {
+                    //             size_t invalid = _n_lower - ind1;
 
-                                for (size_t i = 0; i < invalid; i++) {
-                                    newcontents[ ind1 ].pop_back();
-                                    newcontents[ ind1 ].insert(
-                                        newcontents[ ind1 ].begin(), 1,
-                                        _zero );
-                                }
-                            }
-                        }
-                    }
-                    if (_n_upper > 0) {
-                        // take the zeros from the front and put them at the
-                        // end
-                        for (size_t ind1 = _n_lower + 1;
-                             ind1 < newcontents.size(); ind1++) {
-                            if (!this->contents().at( ind1 ).empty()) {
-                                size_t invalid = ind1 - _n_lower;
-                                for (size_t i = 0; i < invalid; i++) {
-                                    newcontents[ ind1 ].erase(
-                                        newcontents[ ind1 ].cbegin() );
-                                    newcontents[ ind1 ].push_back( _zero );
-                                }
-                            }
-                        }
-                    }
+                    //             for (size_t i = 0; i < invalid; i++) {
+                    //                 newcontents[ ind1 ].pop_back();
+                    //                 newcontents[ ind1 ].insert(
+                    //                     newcontents[ ind1 ].begin(), 1,
+                    //                     _zero );
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                    // if (_n_upper > 0) {
+                    //     // take the zeros from the front and put them at the
+                    //     // end
+                    //     for (size_t ind1 = _n_lower + 1;
+                    //          ind1 < newcontents.size(); ind1++) {
+                    //         if (!this->contents().at( ind1 ).empty()) {
+                    //             size_t invalid = ind1 - _n_lower;
+                    //             for (size_t i = 0; i < invalid; i++) {
+                    //                 newcontents[ ind1 ].erase(
+                    //                     newcontents[ ind1 ].cbegin() );
+                    //                 newcontents[ ind1 ].push_back( _zero );
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     _contents = newcontents;
                     return *this;
                 }
@@ -487,7 +500,8 @@ namespace NCPA {
                 virtual band_diagonal_matrix<ELEMENTTYPE>& zero() override {
                     _n_lower = 0;
                     _n_upper = 0;
-                    this->contents().clear().resize( 1 );
+                    this->contents().clear();
+                    this->contents().resize( 1 );
                     return *this;
                 }
 
@@ -506,9 +520,10 @@ namespace NCPA {
                     const band_diagonal_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
+                    bool contents_equal = (this->contents() == b->contents());
                     return ( rows() == b->rows() && columns() == b->columns()
-                             && this->_n_lower == other._n_lower
-                             && this->_n_upper == other._n_upper
+                             && this->lower_bandwidth() == b->lower_bandwidth()
+                             && this->upper_bandwidth() == b->upper_bandwidth()
                              && this->contents() == b->contents() );
                 }
 
@@ -563,16 +578,16 @@ namespace NCPA {
                 }
 
                 virtual bool is_diagonal() const override {
-                    if (this->is_empty()) {
-                        return true;
-                    }
+                    // if (this->is_empty()) {
+                    //     return true;
+                    // }
                     return _n_lower == 0 && _n_upper == 0;
                 }
 
                 virtual bool is_tridiagonal() const override {
-                    if (this->is_empty()) {
-                        return true;
-                    }
+                    // if (this->is_empty()) {
+                    //     return true;
+                    // }
                     return _n_lower <= 1 && _n_upper <= 1;
                 }
 
@@ -856,14 +871,13 @@ namespace NCPA {
                     const band_diagonal_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
-                    size_t new_n_lower
-                        = this->lower_bandwidth() + b->lower_bandwidth(),
-                        new_n_upper
-                        = this->upper_bandwidth() + b->upper_bandwidth();
+                    // size_t new_n_lower
+                    //     = this->lower_bandwidth() + b->lower_bandwidth(),
+                    //     new_n_upper
+                    //     = this->upper_bandwidth() + b->upper_bandwidth();
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> product(
                         new band_diagonal_matrix<ELEMENTTYPE>(
-                            this->rows(), b->columns(), new_n_lower,
-                            new_n_upper ) );
+                            this->rows(), b->columns(), 0, 0 ) );
                     band_diagonal_matrix<ELEMENTTYPE> *bproduct
                         = dynamic_cast<band_diagonal_matrix<ELEMENTTYPE> *>(
                             product.get() );
@@ -904,8 +918,9 @@ namespace NCPA {
                     int r, c;
                     for (size_t ind1 = 0; ind1 < this->contents().size();
                          ind1++) {
-                        for (size_t ind2 = _min_ind2( ind1 );
-                             ind2 < _max_ind2( ind1 ); ind2++) {
+                        for (size_t ind2
+                             = 0;  // size_t ind2 = _min_ind2( ind1 );
+                             ind2 < this->contents().at(ind1).size(); ind2++) {
                             if (internal2rowcol( ind1, ind2, r, c )) {
                                 this->contents()[ ind1 ][ ind2 ]
                                     *= b.get( r, c );
@@ -943,33 +958,50 @@ namespace NCPA {
                         throw std::out_of_range(
                             "Too many values for requested diagonal" );
                     }
-                    int ind1 = _n_lower + offset;
-                    if (offset > 0) {
-                        while (offset > _n_upper) {
-                            this->_add_superdiagonal();
-                        }
-                        this->contents().at( ind1 ).resize(
-                            this->diagonal_size( 0 ) );
-                        for (size_t i = 0; i < nvals; i++) {
-                            this->contents().at( ind1 ).at( i ) = vals[ i ];
-                        }
-                    } else if (offset < 0) {
-                        while (-offset > (int)_n_lower) {
-                            this->_add_subdiagonal();
-                        }
-                        this->contents().at( ind1 ).resize(
-                            this->diagonal_size( 0 ) );
-                        for (size_t i = 0; i < nvals; i++) {
-                            int ind2 = _min_ind2( ind1 ) + i;
-                            this->contents().at(ind1).at(ind2) = vals[ i ];
-                        }
-                    } else {
-                        this->contents().at( ind1 ).resize(
-                            this->diagonal_size( 0 ) );
-                        for (size_t i = 0; i < nvals; i++) {
-                            this->contents().at( ind1 ).at( i ) = vals[ i ];
-                        }
+                    while (offset > (int)_n_upper) {
+                        this->_add_superdiagonal();
                     }
+                    while (-offset > (int)_n_lower) {
+                        this->_add_subdiagonal();
+                    }
+                    int ind1 = (int)_n_lower + offset;
+                    this->contents().at( ind1 ).resize(
+                        this->diagonal_size( offset ) );
+                    for (size_t i = 0; i < nvals; i++) {
+                        this->contents().at( ind1 ).at( i ) = vals[ i ];
+                    }
+
+                    // if (offset > 0) {
+                    //     while (offset > _n_upper) {
+                    //         this->_add_superdiagonal();
+                    //     }
+                    //     int ind1 = _n_lower + offset;
+                    //     this->contents().at( ind1 ).resize(
+                    //         this->diagonal_size( offset ) );
+                    //     for (size_t i = 0; i < nvals; i++) {
+                    //         this->contents().at( ind1 ).at( i ) = vals[ i ];
+                    //     }
+                    // } else if (offset < 0) {
+                    //     while (-offset > (int)_n_lower) {
+                    //         this->_add_subdiagonal();
+                    //     }
+                    //     int ind1 = _n_lower + offset;
+                    //     this->contents().at( ind1 ).resize(
+                    //         this->diagonal_size( offset ) );
+                    //     for (size_t i = 0; i < nvals; i++) {
+                    //         int ind2 = _min_ind2( ind1 ) + i;
+                    //         this->contents().at( ind1 ).at( ind2 ) = vals[ i
+                    //         ];
+                    //     }
+                    // } else {
+                    //     this->contents()
+                    //         .at( _n_lower )
+                    //         .resize( this->diagonal_size( 0 ) );
+                    //     for (size_t i = 0; i < nvals; i++) {
+                    //         this->contents().at( _n_lower ).at( i )
+                    //             = vals[ i ];
+                    //     }
+                    // }
                     return *this;
                 }
 
@@ -979,8 +1011,8 @@ namespace NCPA {
                         this->diagonal_size( offset ), _zero );
                     if (this->has_diagonal( offset )) {
                         int ind1 = (int)_n_lower + offset;
-                        diag.assign( this->contents()[ ind1 ].begin()
-                                         + _min_ind2( ind1 ),
+                        diag.assign( this->contents()[ ind1 ].begin(),
+                                     //  + _min_ind2( ind1 ),
                                      this->contents()[ ind1 ].begin()
                                          + _max_ind2( ind1 ) );
                     }
@@ -997,18 +1029,25 @@ namespace NCPA {
 
                 virtual size_t bandwidth() const override {
                     std::vector<int> diags;
-                    for (auto it = _contents.cbegin(); it != _contents.cend(); ++it) {
+                    for (auto it = _contents.cbegin(); it != _contents.cend();
+                         ++it) {
                         if (!it->empty()) {
-                            diags.push_back( (int)std::distance( _contents.cbegin(), it ) - (int)_n_lower );
+                            diags.push_back(
+                                (int)std::distance( _contents.cbegin(), it )
+                                - (int)_n_lower );
                         }
                     }
-                    return diags.back() - diags.front();
+                    if (diags.empty()) {
+                        return 0;
+                    } else {
+                        return diags.back() - diags.front() + 1;
+                    }
                 }
 
                 virtual size_t lower_bandwidth() const override {
                     int lband = (int)_n_lower;
-                    int i = 0;
-                    while (i < _n_lower && _contents.at(i++).empty()) {
+                    int i     = 0;
+                    while (i < _n_lower && _contents.at( i++ ).empty()) {
                         lband--;
                     }
                     return lband;
@@ -1016,9 +1055,9 @@ namespace NCPA {
 
                 virtual size_t upper_bandwidth() const override {
                     int uband = (int)_n_upper;
-                    int i = 0;
-                    auto rit = _contents.crbegin();
-                    while (i < _n_upper && (rit + (i++))->empty()) {
+                    int i     = 0;
+                    auto rit  = _contents.crbegin();
+                    while (i < _n_upper && ( rit + ( i++ ) )->empty()) {
                         uband--;
                     }
                     return uband;
@@ -1069,7 +1108,8 @@ namespace NCPA {
                 }
 
                 void _add_subdiagonal() {
-                    this->contents().insert( this->contents().cbegin(), std::vector<ELEMENTTYPE>() );
+                    this->contents().insert( this->contents().cbegin(),
+                                             std::vector<ELEMENTTYPE>() );
                     if (this->contents().size() > 1) {
                         // i.e. we didn't just set the main diagonal
                         _n_lower++;
@@ -1085,12 +1125,16 @@ namespace NCPA {
                 }
 
                 size_t _min_ind2( size_t ind1 ) const {
-                    return (size_t)std::max( (int)_n_lower - (int)ind1, 0 );
+                    return 0;
+                    // return (size_t)std::max( (int)_n_lower - (int)ind1, 0 );
                 }
 
                 size_t _max_ind2( size_t ind1 ) const {
-                    return (size_t)std::min( this->rows(),
-                                             this->rows() + _n_lower - ind1 );
+                    return this->diagonal_size( (int)ind1 - (int)_n_lower );
+                    // return _min_ind2( ind1 ) + this->diagonal_size( ind1 ) -
+                    // 1; return (size_t)std::min( this->rows(),
+                    //                          this->rows() + _n_lower - ind1
+                    //                          );
                 }
 
                 // virtual band_diagonal_matrix<ELEMENTTYPE>& _add(
@@ -1105,7 +1149,8 @@ namespace NCPA {
                 //     // diagonals first
                 //     newcontents[ new_n_lower ] = NCPA::arrays::add_vectors(
                 //         this->contents()[ _n_lower ],
-                //         NCPA::arrays::scale_vector( b.contents()[ b._n_lower ],
+                //         NCPA::arrays::scale_vector( b.contents()[ b._n_lower
+                //         ],
                 //                                     modifier ) );
 
                 //     // subdiagonals
@@ -1123,7 +1168,8 @@ namespace NCPA {
                 //         } else if (n <= b._n_lower) {
                 //             newcontents[ new_n_lower - n ]
                 //                 = NCPA::arrays::scale_vector(
-                //                     b.contents()[ b._n_lower - n ], modifier );
+                //                     b.contents()[ b._n_lower - n ], modifier
+                //                     );
                 //         }
                 //     }
 
@@ -1142,7 +1188,8 @@ namespace NCPA {
                 //         } else if (n <= b._n_upper) {
                 //             newcontents[ new_n_lower + n ]
                 //                 = NCPA::arrays::scale_vector(
-                //                     b.contents()[ b._n_lower + n ], modifier );
+                //                     b.contents()[ b._n_lower + n ], modifier
+                //                     );
                 //         }
                 //     }
                 //     _contents = newcontents;
@@ -1158,32 +1205,52 @@ namespace NCPA {
                     band_diagonal_matrix<ELEMENTTYPE>& product ) {
                     int prows       = (int)( product.rows() );
                     int pcols       = (int)( product.columns() );
-                    int new_n_lower = product.lower_bandwidth();
-                    int new_n_upper = product.upper_bandwidth();
+                    // int new_n_lower = product.lower_bandwidth();
+                    // int new_n_upper = product.upper_bandwidth();
                     size_t counter  = 0;
-                    for (int r = 0; r < prows; r++) {
-                        for (int c = std::max( 0, r - (int)new_n_lower );
-                             c < std::min( pcols, r + (int)new_n_upper + 1 );
-                             c++) {
-                            ELEMENTTYPE val = a._zero;
-                            int kmin        = std::max(
-                                std::max( 0,
-                                                 r - (int)( a.lower_bandwidth() ) ),
-                                std::max( 0,
-                                                 c - (int)( b.upper_bandwidth() ) ) );
-                            int kmax = std::min(
-                                std::min( (int)( a.columns() ),
-                                          r + (int)a.upper_bandwidth() + 1 ),
-                                std::min( (int)( b.rows() ),
-                                          c + (int)( b.lower_bandwidth() )
-                                              + 1 ) );
-                            for (int k = kmin; k < kmax; k++) {
-                                val += a.get( r, k ) * b.get( k, c );
-                                counter++;
+                    for (int r = 0; r < (int)product.rows(); ++r) {
+                        for (int c = 0; c < (int)product.columns(); ++c) {
+                            int min_k_a = std::max( r - (int)a.lower_bandwidth(), 0 );
+                            int max_k_a = std::min( r + (int)a.upper_bandwidth(), (int)a.columns() - 1 );
+                            int min_k_b = std::min( c - (int)b.upper_bandwidth(), 0 );
+                            int max_k_b = std::max( c + (int)b.lower_bandwidth(), (int)b.rows() - 1 );
+                            int min_k = std::max( min_k_a, min_k_b );
+                            int max_k = std::min( max_k_a, max_k_b );
+
+                            // for (int k = 0; k < a.columns(); ++k) {
+                            for (int k = min_k; k <= max_k; ++k) {
+                                if (a.has_diagonal( k - r ) && b.has_diagonal( c - k )) {
+                                    product.set( r, c, product.get( r, c ) + a.get( r, k ) * b.get( k, c ) );
+                                }
                             }
-                            product.set( (size_t)r, (size_t)c, val );
                         }
                     }
+                    return;
+
+
+                    // for (int r = 0; r < prows; r++) {
+                    //     for (int c = std::max( 0, r - (int)new_n_lower );
+                    //          c < std::min( pcols, r + (int)new_n_upper + 1 );
+                    //          c++) {
+                    //         ELEMENTTYPE val = a._zero;
+                    //         int kmin        = std::max(
+                    //             std::max( 0,
+                    //                              r - (int)( a.lower_bandwidth() ) ),
+                    //             std::max( 0,
+                    //                              c - (int)( b.upper_bandwidth() ) ) );
+                    //         int kmax = std::min(
+                    //             std::min( (int)( a.columns() ),
+                    //                       r + (int)a.upper_bandwidth() + 1 ),
+                    //             std::min( (int)( b.rows() ),
+                    //                       c + (int)( b.lower_bandwidth() )
+                    //                           + 1 ) );
+                    //         for (int k = kmin; k < kmax; k++) {
+                    //             val += a.get( r, k ) * b.get( k, c );
+                    //             counter++;
+                    //         }
+                    //         product.set( (size_t)r, (size_t)c, val );
+                    //     }
+                    // }
                     // std::cout << counter << " multiplications" << std::endl;
                 }
         };

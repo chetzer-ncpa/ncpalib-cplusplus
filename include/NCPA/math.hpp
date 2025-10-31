@@ -130,6 +130,13 @@ namespace NCPA {
          * Returns whether two values are equal within a given tolerance
          */
         template<typename T>
+        bool within( const std::complex<T>& val1, const std::complex<T>& val2,
+                     const T& tol ) {
+            return ( within<T>( val1.real(), val2.real(), tol )
+                     && within<T>( val1.imag(), val2.imag(), tol ) );
+        }
+
+        template<typename T>
         bool within( const T& val1, const T& val2, const T& tol ) {
             return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
         }
