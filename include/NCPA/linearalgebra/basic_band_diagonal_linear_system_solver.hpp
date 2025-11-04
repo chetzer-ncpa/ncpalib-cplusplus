@@ -99,6 +99,7 @@ namespace NCPA {
                             "System matrix must be square!" );
                     }
                     this->clear();
+                    NCPA_DEBUG << "Decomposing into LU structure..." << std::endl;
                     _lu.decompose( M );
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );

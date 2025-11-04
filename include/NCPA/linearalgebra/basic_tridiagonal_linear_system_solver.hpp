@@ -90,8 +90,8 @@ namespace NCPA {
                         throw std::logic_error(
                             "System matrix must be tridiagonal!" );
                     }
-                    _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
-                        new Matrix<ELEMENTTYPE>( M ) );
+                    NCPA_DEBUG << "Cloning into tridiagonal solver..." << std::endl;
+                    _mat = M.clone();
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
                 }

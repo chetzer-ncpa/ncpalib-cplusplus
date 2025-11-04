@@ -45,7 +45,9 @@ namespace NCPA {
                 // copy constructor
                 Matrix( const Matrix<ELEMENTTYPE>& other ) :
                     Matrix<ELEMENTTYPE>() {
-                    _ptr = std::move( other._ptr->clone() );
+                    if (other._ptr) {
+                        _ptr = std::move( other._ptr->clone() );
+                    }
                 }
 
                 Matrix( Matrix<ELEMENTTYPE>&& source ) noexcept :
@@ -65,6 +67,10 @@ namespace NCPA {
                 Matrix<ELEMENTTYPE>& operator=( Matrix<ELEMENTTYPE> other ) {
                     ::swap( *this, other );
                     return *this;
+                }
+
+                virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
+                    return std::unique_ptr<Matrix<ELEMENTTYPE>>( new Matrix<ELEMENTTYPE>( *this ) );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& add(
@@ -931,6 +937,8 @@ namespace NCPA {
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
 
                 std::unique_ptr<LUDecomposition<ELEMENTTYPE>> _lu;
+
+                matrix_t _type;
 
                 void _clear_cache() { _lu.reset( nullptr ); }
 

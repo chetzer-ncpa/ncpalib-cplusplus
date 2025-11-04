@@ -202,9 +202,9 @@ namespace NCPA {
                     int ind1, ind2;
                     while (!rowcol2internal( row, col, ind1, ind2 )) {
                         if (ind1 < 0) {
-                            this->_add_subdiagonal();
+                            this->_add_subdiagonal( (size_t)(-ind1) );
                         } else {
-                            this->_add_superdiagonal();
+                            this->_add_superdiagonal( (size_t)( ind1 - _contents.size() + 1 ) );
                         }
                     }
                     if (this->contents().at( ind1 ).empty()) {
@@ -342,8 +342,8 @@ namespace NCPA {
                          ind1++) {
                         for (size_t ind2 = _min_ind2( ind1 );
                              ind2 < _max_ind2( ind1 ); ind2++) {
-                            // bool tf = internal2rowcol( ind1, ind2, row, col );
-                            // std::cout << "[ " << ind1 << "," << ind2
+                            // bool tf = internal2rowcol( ind1, ind2, row, col
+                            // ); std::cout << "[ " << ind1 << "," << ind2
                             //           << " ] => [ " << row << "," << col
                             //           << " ] (" << tf << ")" << std::endl;
                             if (internal2rowcol( ind1, ind2, row, col )) {
@@ -520,7 +520,8 @@ namespace NCPA {
                     const band_diagonal_matrix<ELEMENTTYPE> *b
                         = downcast( &other );
 
-                    bool contents_equal = (this->contents() == b->contents());
+                    bool contents_equal
+                        = ( this->contents() == b->contents() );
                     return ( rows() == b->rows() && columns() == b->columns()
                              && this->lower_bandwidth() == b->lower_bandwidth()
                              && this->upper_bandwidth() == b->upper_bandwidth()
@@ -648,11 +649,11 @@ namespace NCPA {
                         = (int)std::max( this->_n_lower, b->_n_lower );
                     int sum_n_upper
                         = (int)std::max( this->_n_upper, b->_n_upper );
-                    while (_n_lower < sum_n_lower) {
-                        this->_add_subdiagonal();
+                    if (_n_lower < sum_n_lower) {
+                        this->_add_subdiagonal( sum_n_lower - _n_lower );
                     }
-                    while (_n_upper < sum_n_upper) {
-                        this->_add_superdiagonal();
+                    if (_n_upper < sum_n_upper) {
+                        this->_add_superdiagonal( sum_n_upper - _n_upper );
                     }
                     for (int i = -sum_n_lower; i <= sum_n_upper; ++i) {
                         if (b->has_diagonal( i )) {
@@ -920,7 +921,8 @@ namespace NCPA {
                          ind1++) {
                         for (size_t ind2
                              = 0;  // size_t ind2 = _min_ind2( ind1 );
-                             ind2 < this->contents().at(ind1).size(); ind2++) {
+                             ind2 < this->contents().at( ind1 ).size();
+                             ind2++) {
                             if (internal2rowcol( ind1, ind2, r, c )) {
                                 this->contents()[ ind1 ][ ind2 ]
                                     *= b.get( r, c );
@@ -959,10 +961,10 @@ namespace NCPA {
                             "Too many values for requested diagonal" );
                     }
                     while (offset > (int)_n_upper) {
-                        this->_add_superdiagonal();
+                        this->_add_superdiagonal( offset - (int)_n_upper );
                     }
                     while (-offset > (int)_n_lower) {
-                        this->_add_subdiagonal();
+                        this->_add_subdiagonal( -offset - (int)_n_lower );
                     }
                     int ind1 = (int)_n_lower + offset;
                     this->contents().at( ind1 ).resize(
@@ -1107,21 +1109,30 @@ namespace NCPA {
                     this->contents().resize( _n_lower + _n_upper + 1 );
                 }
 
-                void _add_subdiagonal() {
-                    this->contents().insert( this->contents().cbegin(),
+                void _add_subdiagonal( size_t n = 1 ) {
+                    if (n == 0) return;
+                    bool was_empty = this->contents().empty();
+                    this->contents().insert( this->contents().cbegin(), n,
                                              std::vector<ELEMENTTYPE>() );
-                    if (this->contents().size() > 1) {
-                        // i.e. we didn't just set the main diagonal
-                        _n_lower++;
+                    if (was_empty) {
+                        // one of the things set was the main diagonal so don't
+                        // count that one
+                        --n;
                     }
+                    _n_lower += n;
                 }
 
-                void _add_superdiagonal() {
-                    this->contents().push_back( std::vector<ELEMENTTYPE>() );
-                    if (this->contents().size() > 1) {
-                        // i.e. we didn't just set the main diagonal
-                        _n_upper++;
+                void _add_superdiagonal( size_t n = 1 ) {
+                    if (n == 0) return;
+                    bool was_empty = this->contents().empty();
+                    this->contents().insert( this->contents().end(), n,
+                                             std::vector<ELEMENTTYPE>() );
+                    if (was_empty) {
+                        // one of the things set was the main diagonal so don't
+                        // count that one
+                        --n;
                     }
+                    _n_upper += n;
                 }
 
                 size_t _min_ind2( size_t ind1 ) const {
@@ -1203,24 +1214,34 @@ namespace NCPA {
                     const band_diagonal_matrix<ELEMENTTYPE>& a,
                     const band_diagonal_matrix<ELEMENTTYPE>& b,
                     band_diagonal_matrix<ELEMENTTYPE>& product ) {
-                    int prows       = (int)( product.rows() );
-                    int pcols       = (int)( product.columns() );
+                    int prows      = (int)( product.rows() );
+                    int pcols      = (int)( product.columns() );
                     // int new_n_lower = product.lower_bandwidth();
                     // int new_n_upper = product.upper_bandwidth();
-                    size_t counter  = 0;
+                    size_t counter = 0;
                     for (int r = 0; r < (int)product.rows(); ++r) {
                         for (int c = 0; c < (int)product.columns(); ++c) {
-                            int min_k_a = std::max( r - (int)a.lower_bandwidth(), 0 );
-                            int max_k_a = std::min( r + (int)a.upper_bandwidth(), (int)a.columns() - 1 );
-                            int min_k_b = std::min( c - (int)b.upper_bandwidth(), 0 );
-                            int max_k_b = std::max( c + (int)b.lower_bandwidth(), (int)b.rows() - 1 );
+                            int min_k_a
+                                = std::max( r - (int)a.lower_bandwidth(), 0 );
+                            int max_k_a
+                                = std::min( r + (int)a.upper_bandwidth(),
+                                            (int)a.columns() - 1 );
+                            int min_k_b
+                                = std::min( c - (int)b.upper_bandwidth(), 0 );
+                            int max_k_b
+                                = std::max( c + (int)b.lower_bandwidth(),
+                                            (int)b.rows() - 1 );
                             int min_k = std::max( min_k_a, min_k_b );
                             int max_k = std::min( max_k_a, max_k_b );
 
                             // for (int k = 0; k < a.columns(); ++k) {
                             for (int k = min_k; k <= max_k; ++k) {
-                                if (a.has_diagonal( k - r ) && b.has_diagonal( c - k )) {
-                                    product.set( r, c, product.get( r, c ) + a.get( r, k ) * b.get( k, c ) );
+                                if (a.has_diagonal( k - r )
+                                    && b.has_diagonal( c - k )) {
+                                    product.set( r, c,
+                                                 product.get( r, c )
+                                                     + a.get( r, k )
+                                                           * b.get( k, c ) );
                                 }
                             }
                         }
@@ -1230,17 +1251,20 @@ namespace NCPA {
 
                     // for (int r = 0; r < prows; r++) {
                     //     for (int c = std::max( 0, r - (int)new_n_lower );
-                    //          c < std::min( pcols, r + (int)new_n_upper + 1 );
-                    //          c++) {
+                    //          c < std::min( pcols, r + (int)new_n_upper + 1
+                    //          ); c++) {
                     //         ELEMENTTYPE val = a._zero;
                     //         int kmin        = std::max(
                     //             std::max( 0,
-                    //                              r - (int)( a.lower_bandwidth() ) ),
+                    //                              r - (int)(
+                    //                              a.lower_bandwidth() ) ),
                     //             std::max( 0,
-                    //                              c - (int)( b.upper_bandwidth() ) ) );
+                    //                              c - (int)(
+                    //                              b.upper_bandwidth() ) ) );
                     //         int kmax = std::min(
                     //             std::min( (int)( a.columns() ),
-                    //                       r + (int)a.upper_bandwidth() + 1 ),
+                    //                       r + (int)a.upper_bandwidth() + 1
+                    //                       ),
                     //             std::min( (int)( b.rows() ),
                     //                       c + (int)( b.lower_bandwidth() )
                     //                           + 1 ) );

@@ -87,6 +87,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const override {
+                    return std::unique_ptr<Matrix<ELEMENTTYPE>>( new BlockMatrix<ELEMENTTYPE>( *this ) );
+                }
+
                 virtual BlockMatrix<ELEMENTTYPE>& add(
                     const BlockMatrix<ELEMENTTYPE>& other ) {
                     this->check();
@@ -282,24 +286,24 @@ namespace NCPA {
                                                br + 1 );
                         } else {
                             mincol = 0;
-                            maxcol = (int)this->block_rows() - 1;
+                            maxcol = (int)this->block_columns() - 1;
                         }
                         for (int bc = mincol; bc <= maxcol; ++bc) {
                             const Matrix<ELEMENTTYPE> *element
                                 = &this->get_block( br, bc );
                             int bdiag = bc - br;
-                            if (!element->is_empty()) {
+                            if (!element->is_zero()) {
                                 std::vector<int> blockdiags
                                     = element->diagonals();
                                 for (auto bit = blockdiags.cbegin();
                                      bit != blockdiags.cend(); ++bit) {
-                                    if (bdiag < 0) {
-                                        diags.push_back( br * _rows_per_block
-                                                         - *bit );
-                                    } else {
-                                        diags.push_back( bc * _cols_per_block
-                                                         + *bit );
-                                    }
+                                    diags.push_back( bdiag * _cols_per_block + *bit );
+                                    // if (bdiag < 0) {
+                                    //     diags.push_back( bdiag * _cols_per_block + *bit );
+                                    // } else if (bdiag > 0) {
+                                    //     diags.push_back( br * _rows_per_block 
+                                    //                      - *bit );
+                                    // }
                                 }
                             }
                         }
@@ -1062,17 +1066,16 @@ namespace NCPA {
                         throw std::invalid_argument( oss.str() );
                     }
                     Vector<ELEMENTTYPE> product
-                        = VectorFactory<ELEMENTTYPE>::build(
-                            ( (double)this->rows() / (double)v.size() < 0.5
-                                  ? vector_t::SPARSE
-                                  : vector_t::DENSE ),
+                        = VectorFactory<ELEMENTTYPE>::build(vector_t::DENSE,
                             this->rows() );
                     for (size_t i = 0; i < rows(); i++) {
-                        ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                        for (size_t j = 0; j < columns(); j++) {
-                            sum += get( i, j ) * v.get( j );
-                        }
-                        product.set( i, sum );
+                        product.set( i, this->get_row( i )->dot( v ) );
+                        // auto row = this->get_row( i );
+                        // ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
+                        // for (size_t j = 0; j < columns(); j++) {
+                        //     sum += get( i, j ) * v.get( j );
+                        // }
+                        // product.set( i, sum );
                     }
                     return product;
                 }
