@@ -16,7 +16,7 @@ using namespace NCPA::linear;
 
 #define _TEST_EQ_       EXPECT_COMPLEX_DOUBLE_EQ
 #define _TEST_ARRAY_EQ_ EXPECT_ARRAY_COMPLEX_DOUBLE_EQ
-#define _TEST_TITLE_    NCPALinearAlgebraLibraryBandDiagonalComplexMatrixTest
+#define _TEST_TITLE_    NCPALinearAlgebraLibraryBlockMatrixTest
 
 typedef complex<double> test_t;
 typedef band_diagonal_matrix<test_t> mat_t;
@@ -158,6 +158,8 @@ TEST_F( _TEST_TITLE_, GetBlockMethodWorks ) {
 
 TEST_F( _TEST_TITLE_, SetBlockMethodWorks ) {
     ASSERT_FALSE( ztile == itile );
+    ASSERT_TRUE( itile.rows() == tilerows );
+    ASSERT_TRUE( itile.columns() == tilecols );
     ASSERT_TRUE( blockrows == blockcols );
     ASSERT_TRUE( tilerows == tilecols );
     empty.resize( blockrows, blockcols, tilerows, tilecols );

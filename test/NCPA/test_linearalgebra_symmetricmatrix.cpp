@@ -116,18 +116,18 @@ TEST_F( _TEST_TITLE_, InternalCoordinateTransformationsWork ) {
     for ( int row = 0; row < dim1; row++ ) {
         for ( int col = 0; col < dim1; col++ ) {
             if ( abs( row - col ) > 1 ) {
-                EXPECT_FALSE( square.rowcol2internal( row, col, ind1, ind2 ) );
+                EXPECT_TRUE( square.rowcol2internal( row, col, ind1, ind2 ) == diagonal_index_status_t::INVALID );
                 // cout << "[" << row << "," << col << "] -> [" << ind1 << ","
                 // << ind2 << "]" << endl;
             } else {
                 if ( col < row ) {
                     EXPECT_TRUE(
-                        square.rowcol2internal( col, row, ind1, ind2 ) );
+                        square.rowcol2internal( col, row, ind1, ind2 )== diagonal_index_status_t::VALID );
                     // cout << "[" << row << "," << col << "] -> [" << ind1 <<
                     // "," << ind2 << "]" << endl;
                 } else {
                     EXPECT_TRUE(
-                        square.rowcol2internal( row, col, ind1, ind2 ) );
+                        square.rowcol2internal( row, col, ind1, ind2 )== diagonal_index_status_t::VALID );
                     // cout << "[" << row << "," << col << "] -> [" << ind1 <<
                     // "," << ind2 << "]" << endl;
                 }

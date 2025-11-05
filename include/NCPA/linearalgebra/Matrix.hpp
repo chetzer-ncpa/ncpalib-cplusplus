@@ -262,7 +262,7 @@ namespace NCPA {
                 }
 
                 virtual bool is_identity() const {
-                    return ( _ptr ? _ptr->is_identity() : true );
+                    return ( _ptr ? _ptr->is_identity() : false );
                 }
 
                 virtual bool is_lower_triangular() const {

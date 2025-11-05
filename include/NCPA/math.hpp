@@ -126,21 +126,22 @@ namespace NCPA {
             return n * n;
         }
 
+        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        bool within( const T& val1, const T& val2, const T& tol ) {
+            return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
+        }
+
         /**
          * Returns whether two values are equal within a given tolerance
          */
         template<typename T>
         bool within( const std::complex<T>& val1, const std::complex<T>& val2,
                      const T& tol ) {
-            return ( within<T>( val1.real(), val2.real(), tol )
-                     && within<T>( val1.imag(), val2.imag(), tol ) );
+            return ( std::abs( val1.real() - val2.real() ) <= std::abs( tol )
+                     && std::abs( val1.imag() - val2.imag() ) <= std::abs( tol ) );
         }
 
-        template<typename T>
-        bool within( const T& val1, const T& val2, const T& tol ) {
-            return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
-        }
-
+        
         /**
          * Finds and returns the indices of the array elements before and after
          * the supplied value.

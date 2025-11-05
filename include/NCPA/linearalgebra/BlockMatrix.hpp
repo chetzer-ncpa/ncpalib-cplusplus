@@ -899,11 +899,11 @@ namespace NCPA {
                                 const Matrix<ELEMENTTYPE> *B
                                     = &other.get_block( k, c );
                                 if (!( A->is_zero() || B->is_zero() )) {
-                                    std::cout << "Computing A[ " << r << ", "
-                                              << k << " ] * B[ " << k << ", "
-                                              << c << " ] to add to C[ " << r
-                                              << ", " << c << " ]"
-                                              << std::endl;
+                                    // std::cout << "Computing A[ " << r << ", "
+                                    //           << k << " ] * B[ " << k << ", "
+                                    //           << c << " ] to add to C[ " << r
+                                    //           << ", " << c << " ]"
+                                    //           << std::endl;
                                     if (P->is_zero()) {
                                         *P = ( *A ) * ( *B );
                                     } else {

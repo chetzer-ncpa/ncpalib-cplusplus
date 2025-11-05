@@ -127,9 +127,9 @@ TEST_F( _TEST_TITLE_, InternalCoordinateTransformationsWork ) {
     for ( int row = 0; row < dim1; row++ ) {
         for ( int col = 0; col < dim1; col++ ) {
             if ( abs( row - col ) > 1 ) {
-                EXPECT_FALSE( square.rowcol2internal( row, col, ind1, ind2 ) );
+                EXPECT_FALSE( square.rowcol2internal( row, col, ind1, ind2 ) == diagonal_index_status_t::VALID );
             } else {
-                EXPECT_TRUE( square.rowcol2internal( row, col, ind1, ind2 ) );
+                EXPECT_TRUE( square.rowcol2internal( row, col, ind1, ind2 ) == diagonal_index_status_t::VALID );
             }
             EXPECT_EQ( ind1, 1 + col - row );
             EXPECT_EQ( ind2, row + std::min( 0, col - row ) );
