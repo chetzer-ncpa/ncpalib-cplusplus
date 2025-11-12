@@ -33,7 +33,7 @@ namespace NCPA {
                 }
 
                 dense_vector( size_t n ) : dense_vector<ELEMENTTYPE>() {
-                    if ( n > 0 ) {
+                    if (n > 0) {
                         resize( n );
                     }
                 }
@@ -79,7 +79,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual dense_vector<ELEMENTTYPE>& set(
                     size_t n, const ELEMENTTYPE *val ) override {
                     resize( n );
                     std::copy( val, val + n, begin() );
@@ -87,16 +87,16 @@ namespace NCPA {
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual dense_vector<ELEMENTTYPE>& set(
                     const std::vector<ELEMENTTYPE>& v ) override {
                     _elements = v;
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual dense_vector<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
-                    for ( size_t i = 0; i < size(); i++ ) {
+                    for (size_t i = 0; i < size(); i++) {
                         set( i, val );
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
@@ -109,44 +109,48 @@ namespace NCPA {
                     return _elements.size();
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero() override {
+                virtual dense_vector<ELEMENTTYPE>& zero() override {
                     return set( _zero );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual dense_vector<ELEMENTTYPE>& zero(
                     size_t n ) override {
                     return set( n, _zero );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual dense_vector<ELEMENTTYPE>& zero(
                     const std::vector<size_t>& n ) override {
-                    for ( auto it = n.cbegin(); it != n.cend(); ++it ) {
+                    for (auto it = n.cbegin(); it != n.cend(); ++it) {
                         _elements.at( *it ) = _zero;
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual dense_vector<ELEMENTTYPE>& zero(
                     std::initializer_list<size_t> n ) override {
                     return zero( std::vector<size_t>( n ) );
                 }
 
                 virtual bool is_zero() const override {
-                    for ( auto it = _elements.cbegin(); it != _elements.cend();
-                          ++it ) {
-                        if ( !NCPA::math::is_zero( *it ) ) {
+                    for (auto it = _elements.cbegin(); it != _elements.cend();
+                         ++it) {
+                        if (!NCPA::math::is_zero( *it )) {
                             return false;
                         }
                     }
                     return true;
                 }
 
+                virtual bool is_zero( size_t ind ) const override {
+                    return ( NCPA::math::is_zero( _elements.at( ind ) ) );
+                }
+
                 virtual std::map<size_t, ELEMENTTYPE> nonzero()
                     const override {
                     std::map<size_t, ELEMENTTYPE> nz;
-                    for ( auto i = 0; i < size(); i++ ) {
-                        if ( !NCPA::math::is_zero( _elements[ i ] ) ) {
+                    for (auto i = 0; i < size(); i++) {
+                        if (!NCPA::math::is_zero( _elements[ i ] )) {
                             nz[ i ] = _elements[ i ];
                         }
                     }
@@ -155,8 +159,8 @@ namespace NCPA {
 
                 virtual std::vector<size_t> nonzero_indices() const override {
                     std::vector<size_t> nz;
-                    for ( auto i = 0; i < size(); i++ ) {
-                        if ( !NCPA::math::is_zero( _elements[ i ] ) ) {
+                    for (auto i = 0; i < size(); i++) {
+                        if (!NCPA::math::is_zero( _elements[ i ] )) {
                             nz.push_back( i );
                         }
                     }
@@ -186,29 +190,29 @@ namespace NCPA {
                         new dense_vector( *this ) );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& clear() override {
+                virtual dense_vector<ELEMENTTYPE>& clear() override {
                     _elements.clear();
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& resize(
+                virtual dense_vector<ELEMENTTYPE>& resize(
                     size_t n ) override {
                     _elements.resize( n );
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& as_array(
+                virtual dense_vector<ELEMENTTYPE>& as_array(
                     size_t& n, ELEMENTTYPE *& vals ) override {
-                    if ( n == 0 ) {
+                    if (n == 0) {
                         n = size();
-                        if ( vals != nullptr ) {
+                        if (vals != nullptr) {
                             delete[] vals;
                             vals = nullptr;
                         }
                         vals = NCPA::arrays::zeros<ELEMENTTYPE>( n );
-                    } else if ( n != size() ) {
+                    } else if (n != size()) {
                         throw std::invalid_argument(
                             "Size mismatch between vector and target "
                             "array" );
@@ -219,9 +223,9 @@ namespace NCPA {
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual dense_vector<ELEMENTTYPE>& set(
                     size_t n, ELEMENTTYPE val ) override {
-                    if ( n >= _elements.size() ) {
+                    if (n >= _elements.size()) {
                         std::ostringstream oss;
                         oss << "Element " << n
                             << " out of range for vector of size "
@@ -233,19 +237,19 @@ namespace NCPA {
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& scale(
+                virtual dense_vector<ELEMENTTYPE>& scale(
                     ELEMENTTYPE val ) override {
-                    for ( auto it = begin(); it != end(); ++it ) {
+                    for (auto it = begin(); it != end(); ++it) {
                         *it *= val;
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& scale(
+                virtual dense_vector<ELEMENTTYPE>& scale(
                     const abstract_vector<ELEMENTTYPE>& b ) override {
                     _check_same_size( b );
-                    for ( auto i = 0; i < size(); i++ ) {
+                    for (auto i = 0; i < size(); i++) {
                         _elements[ i ] *= b.get( i );
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
@@ -256,26 +260,26 @@ namespace NCPA {
                     const abstract_vector<ELEMENTTYPE>& b ) const override {
                     _check_same_size( b );
                     ELEMENTTYPE product = 0.0;
-                    for ( auto i = 0; i < size(); i++ ) {
+                    for (auto i = 0; i < size(); i++) {
                         product += _elements[ i ] * b.get( i );
                     }
                     return product;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& add(
+                virtual dense_vector<ELEMENTTYPE>& add(
                     const abstract_vector<ELEMENTTYPE>& b,
                     ELEMENTTYPE modifier = 1.0 ) override {
                     _check_same_size( b );
-                    for ( auto i = 0; i < size(); i++ ) {
+                    for (auto i = 0; i < size(); i++) {
                         _elements[ i ] += b.get( i ) * modifier;
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                         this );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& add(
+                virtual dense_vector<ELEMENTTYPE>& add(
                     ELEMENTTYPE b ) override {
-                    for ( auto it = begin(); it != end(); ++it ) {
+                    for (auto it = begin(); it != end(); ++it) {
                         *it += b;
                     }
                     return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
@@ -312,10 +316,31 @@ namespace NCPA {
 
                 friend class dense_matrix<ELEMENTTYPE>;
 
+                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> subvector(
+                    size_t start, size_t elements ) const override {
+                    if (start + elements > this->size()) {
+                        throw std::range_error( "Requested segment extends past end of vector" );
+                    }
+                    return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                        new dense_vector<ELEMENTTYPE>(
+                            elements, _elements.data() + start ) );
+                }
+
+                virtual dense_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start, size_t elements ) override {
+                    size_t last = start + elements;
+                    if (last > this->size()) {
+                        this->resize( last );
+                    }
+                    for (size_t i = 0; i < elements; ++i) {
+                        this->set( start + i, v.get( i ) );
+                    }
+                    return *this;
+                }
+
             protected:
                 void _check_same_size(
                     const abstract_vector<ELEMENTTYPE>& b ) const {
-                    if ( b.size() != size() ) {
+                    if (b.size() != size()) {
                         throw std::invalid_argument(
                             "Dot product requires vectors to be the same "
                             "size" );

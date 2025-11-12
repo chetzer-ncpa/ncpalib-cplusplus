@@ -90,7 +90,7 @@ namespace NCPA {
                         throw std::logic_error(
                             "System matrix must be tridiagonal!" );
                     }
-                    NCPA_DEBUG << "Cloning into tridiagonal solver..." << std::endl;
+                    // NCPA_DEBUG << "Cloning into tridiagonal solver..." << std::endl;
                     _mat = M.clone();
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
@@ -108,7 +108,8 @@ namespace NCPA {
                             << "] and input vector size " << b.size();
                         throw std::logic_error( oss.str() );
                     }
-                    ELEMENTTYPE cup, pot;
+                    // ELEMENTTYPE cup, pot;
+                    ELEMENTTYPE tmpval;
                     std::vector<ELEMENTTYPE> diag
                         = _mat->get_diagonal()->as_std(),
                         lower = _mat->get_diagonal( -1 )->as_std(),
@@ -134,18 +135,20 @@ namespace NCPA {
                         throw std::range_error(
                             "First diagonal element is zero." );
                     }
-                    cup      = diag[ 0 ];
-                    vec[ 0 ] = cup;
+                    // cup      = diag[ 0 ];
+                    // vec[ 0 ] = cup;
+                    vec[0] = diag[0];
                     x.set( 0, b[ 0 ] );
                     for ( i = 1; i < L; i++ ) {
-                        pot = lower[ i - 1 ] / cup;
-                        x.set( i, b[ i ] - ( x.get( i - 1 ) * pot ) );
-                        cup = diag[ i ] - ( upper[ i - 1 ] * pot );
-                        if ( NCPA::math::is_zero<ELEMENTTYPE>( cup ) ) {
+                        tmpval = lower[ i - 1 ] / vec[ i-1] ;
+                        x.set( i, b[ i ] - ( x.get( i - 1 ) * tmpval ) );
+                        // cup = diag[ i ] - ( upper[ i - 1 ] * pot );
+                        vec[ i ] = diag[ i ] - ( upper[ i - 1 ] * tmpval );
+                        if ( NCPA::math::is_zero<ELEMENTTYPE>( vec[i] ) ) {
                             throw std::invalid_argument(
                                 "Matrix needs to be pivoted" );
                         }
-                        vec[ i ] = cup;
+                        // vec[ i ] = cup;
                     }
 
                     x.set( L - 1, x.get( L - 1 ) / vec[ L - 1 ] );

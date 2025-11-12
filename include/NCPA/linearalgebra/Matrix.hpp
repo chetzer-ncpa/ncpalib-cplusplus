@@ -70,7 +70,8 @@ namespace NCPA {
                 }
 
                 virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
-                    return std::unique_ptr<Matrix<ELEMENTTYPE>>( new Matrix<ELEMENTTYPE>( *this ) );
+                    return std::unique_ptr<Matrix<ELEMENTTYPE>>(
+                        new Matrix<ELEMENTTYPE>( *this ) );
                 }
 
                 virtual Matrix<ELEMENTTYPE>& add(
@@ -224,6 +225,35 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& invert() {
+                    if (this->is_zero()) {
+                        throw std::runtime_error( "Zero matrices are singular and cannot be inverted" );
+                    }
+                    if (this->is_diagonal()) {
+                        return this->invert_diagonal();
+                    } else if (this->is_tridiagonal()) {
+                        return this->invert_tridiagonal();
+                    } else {
+                        return this->invert_general();
+                    }
+                }
+
+                virtual Matrix<ELEMENTTYPE>& invert_diagonal() {
+                    if (!this->is_square()) {
+                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                    }
+                    size_t ds = this->diagonal_size( 0 );
+                    for (size_t i = 0; i < ds; ++i) {
+                        this->set( i, i,
+                                   NCPA::math::inverse<ELEMENTTYPE>(
+                                       this->get( i, i ) ) );
+                    }
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& invert_general() {
+                    if (!this->is_square()) {
+                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                    }
                     Solver<ELEMENTTYPE> solver
                         = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
                     solver.set_system_matrix( *this );
@@ -240,6 +270,68 @@ namespace NCPA {
                         inv.set_column( i, solver.solve( vec ) );
                     }
                     swap( *this, inv );
+                    return *this;
+                }
+
+                virtual Matrix<ELEMENTTYPE>& invert_tridiagonal() {
+                    if (!this->is_square()) {
+                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                    }
+                    Matrix T = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    T.resize( this->rows(), this->columns() );
+                    size_t n = T.diagonal_size( 0 );
+                    std::vector<ELEMENTTYPE> theta( n + 1 ), phi( n + 2 ), uppercumprod[ n - 1 ];
+                    const ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
+
+                    // ICs
+                    theta[ 0 ]   = one;
+                    theta[ 1 ]   = this->get( 0, 0 );
+                    phi[ n ]     = this->get( n - 1, n - 1 );
+                    phi[ n + 1 ] = one;
+
+                    for (size_t i = 2; i <= n; ++i) {
+                        theta[ i ] = this->get( i - 1, i - 1 ) * theta[ i - 1 ]
+                                   - this->get( i - 2, i - 1 )
+                                         * this->get( i - 1, i - 2 )
+                                         * theta[ i - 2 ];
+                        size_t iprime = n - i;
+                        phi[ iprime ]
+                            = this->get( iprime, iprime ) * phi[ iprime + 1 ]
+                            - this->get( iprime, iprime + 1 )
+                                  * this->get( iprime + 1, iprime )
+                                  * phi[ iprime + 2 ];
+                    }
+                    int rows = (int)this->rows();
+                    int cols = (int)this->columns();
+
+                    // use i=1..nr and j=1..nc to match source notation
+                    for (size_t i = 1; i >= this->rows(); ++i) {
+                        size_t r = i - 1;
+                        T.set( r, r, theta[ i - 1 ] * phi[ i + 1 ] / theta[ n ] );
+
+                        if (i <= rows) {
+                            // i < j case
+                            ELEMENTTYPE bprod = one;
+                            for (int j = i+1; j <= cols; ++j) {
+                                size_t c = j - 1;
+                                ELEMENTTYPE sign = std::pow( -one, i + j );
+                                bprod *= this->get( j-2, j-1 );
+                                T.set( r, c, sign * bprod * theta[ i - 1 ] * phi[ j + 1 ] / theta[ n ] );
+                            }
+                        }
+
+                        if (i > 1) {
+                            // i > j case
+                            ELEMENTTYPE cprod = one;
+                            for (int j = i - 1; j >= 1; --j ) {
+                                size_t c = j - 1;
+                                ELEMENTTYPE sign = std::pow( -one, i + j );
+                                cprod *= this->get( j, j-1);
+                                T.set( r, c, sign * cprod * theta[ j - 1 ] * phi[ i + 1 ] / theta[ n ] );
+                            }
+                        }
+                    }
+                    swap( *this, T );
                     return *this;
                 }
 
@@ -930,6 +1022,7 @@ namespace NCPA {
                 const abstract_matrix<ELEMENTTYPE> *internal() const {
                     return ( _ptr ? _ptr.get() : nullptr );
                 }
+
 
             private:
                 std::unique_ptr<abstract_matrix<ELEMENTTYPE>> _ptr;

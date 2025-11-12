@@ -127,6 +127,17 @@ namespace NCPA {
         }
 
         template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        T inverse( T val ) {
+            return ((T)1.0) / val;
+        }
+
+        template<typename T>
+        std::complex<T> inverse( std::complex<T> val ) {
+            T denominator = val.real() * val.real() + val.imag()*val.imag();
+            return std::complex<T>( val.real() / denominator, -val.imag() / denominator );
+        }
+
+        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
         bool within( const T& val1, const T& val2, const T& tol ) {
             return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
         }

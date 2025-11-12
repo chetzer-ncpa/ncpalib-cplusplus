@@ -132,6 +132,9 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
             basic_tridiagonal_linear_system_solver,
             abstract_linear_system_solver );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+            block_tridiagonal_linear_system_solver,
+            abstract_linear_system_solver );
 
         class TridiagonalEigensolver;
 
