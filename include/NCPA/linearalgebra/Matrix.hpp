@@ -107,6 +107,14 @@ namespace NCPA {
                     return ( _ptr ? _ptr->bandwidth() : 1 );
                 }
 
+                virtual Matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) {
+                    if (_ptr) {
+                        _ptr->clean( tol );
+                    }
+                    this->_clear_cache();
+                    return *this;
+                }
+
                 virtual Matrix<ELEMENTTYPE>& clear() {
                     if (_ptr) {
                         _ptr->clear();
@@ -132,6 +140,32 @@ namespace NCPA {
                             new LUDecomposition<ELEMENTTYPE>( *other._lu ) );
                     }
                     return *this;
+                }
+
+                virtual ELEMENTTYPE determinant() const {
+                    if (this->is_empty()) {
+                        return NCPA::math::one<ELEMENTTYPE>();
+                    }
+                    if (this->is_zero()) {
+                        return 0;
+                    }
+                    if (this->is_identity()) {
+                        return NCPA::math::one<ELEMENTTYPE>();
+                    }
+                    if (this->is_diagonal() || this->is_upper_triangular() || this->is_lower_triangular()) {
+                        ELEMENTTYPE prod = NCPA::math::one<ELEMENTTYPE>();
+                        for (size_t i = 0; i < this->diagonal_size(0); ++i) {
+                            prod *= this->get(i,i);
+                        }
+                        return prod;
+                    }
+                    std::unique_ptr<LUDecomposition<ELEMENTTYPE>> lu( 
+                        (this->is_band_diagonal() 
+                        ? new BandDiagonalLUDecomposition<ELEMENTTYPE>()
+                        : new LUDecomposition<ELEMENTTYPE>())
+                    );
+                    lu->decompose( *this );
+                    return lu->lower().determinant() * lu->upper().determinant();
                 }
 
                 virtual size_t diagonal_size( int offset = 0 ) const {
@@ -225,34 +259,46 @@ namespace NCPA {
                 }
 
                 virtual Matrix<ELEMENTTYPE>& invert() {
+                    if (this->is_empty()) {
+                        return *this;
+                    }
                     if (this->is_zero()) {
-                        throw std::runtime_error( "Zero matrices are singular and cannot be inverted" );
+                        throw std::runtime_error( "Zero matrices are singular "
+                                                  "and cannot be inverted" );
                     }
                     if (this->is_diagonal()) {
                         return this->invert_diagonal();
-                    } else if (this->is_tridiagonal()) {
-                        return this->invert_tridiagonal();
-                    } else {
-                        return this->invert_general();
                     }
+                    if (this->is_tridiagonal()) {
+                        return this->invert_tridiagonal();
+                    }
+                    return this->invert_general();
                 }
 
                 virtual Matrix<ELEMENTTYPE>& invert_diagonal() {
                     if (!this->is_square()) {
-                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                        throw std::range_error(
+                            "Cannot invert a non-square matrix" );
                     }
                     size_t ds = this->diagonal_size( 0 );
                     for (size_t i = 0; i < ds; ++i) {
+                        if (this->is_zero( i, i )) {
+                            std::ostringstream oss;
+                            oss << "Element " << i
+                                << " of input matrix is zero, matrix is "
+                                   "singular";
+                            throw std::range_error( oss.str() );
+                        }
                         this->set( i, i,
-                                   NCPA::math::inverse<ELEMENTTYPE>(
-                                       this->get( i, i ) ) );
+                                   NCPA::math::inverse( this->get( i, i ) ) );
                     }
                     return *this;
                 }
 
                 virtual Matrix<ELEMENTTYPE>& invert_general() {
                     if (!this->is_square()) {
-                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                        throw std::logic_error(
+                            "Cannot invert a non-square matrix" );
                     }
                     Solver<ELEMENTTYPE> solver
                         = SolverFactory<ELEMENTTYPE>::build( solver_t::BASIC );
@@ -275,12 +321,14 @@ namespace NCPA {
 
                 virtual Matrix<ELEMENTTYPE>& invert_tridiagonal() {
                     if (!this->is_square()) {
-                        throw std::logic_error( "Cannot invert a non-square matrix" );
+                        throw std::logic_error(
+                            "Cannot invert a non-square matrix" );
                     }
-                    Matrix T = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
+                    Matrix T
+                        = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     T.resize( this->rows(), this->columns() );
                     size_t n = T.diagonal_size( 0 );
-                    std::vector<ELEMENTTYPE> theta( n + 1 ), phi( n + 2 ), uppercumprod[ n - 1 ];
+                    std::vector<ELEMENTTYPE> theta( n + 1 ), phi( n + 2 );
                     const ELEMENTTYPE one = NCPA::math::one<ELEMENTTYPE>();
 
                     // ICs
@@ -294,40 +342,59 @@ namespace NCPA {
                                    - this->get( i - 2, i - 1 )
                                          * this->get( i - 1, i - 2 )
                                          * theta[ i - 2 ];
-                        size_t iprime = n - i;
-                        phi[ iprime ]
-                            = this->get( iprime, iprime ) * phi[ iprime + 1 ]
-                            - this->get( iprime, iprime + 1 )
-                                  * this->get( iprime + 1, iprime )
-                                  * phi[ iprime + 2 ];
+                        // NCPA_DEBUG << "theta[ " << i << " ] = " << theta[ i
+                        // ] << std::endl;
+                        size_t iprime = n - i + 1;
+                        phi[ iprime ] = this->get( iprime - 1, iprime - 1 )
+                                          * phi[ iprime + 1 ]
+                                      - this->get( iprime - 1, iprime )
+                                            * this->get( iprime, iprime - 1 )
+                                            * phi[ iprime + 2 ];
+                        // NCPA_DEBUG << "phi[ " << iprime << " ] = " << phi[
+                        // iprime ] << std::endl;
                     }
                     int rows = (int)this->rows();
                     int cols = (int)this->columns();
 
                     // use i=1..nr and j=1..nc to match source notation
-                    for (size_t i = 1; i >= this->rows(); ++i) {
+                    for (size_t i = 1; i <= this->rows(); ++i) {
                         size_t r = i - 1;
-                        T.set( r, r, theta[ i - 1 ] * phi[ i + 1 ] / theta[ n ] );
+                        T.set( r, r,
+                               theta[ i - 1 ] * phi[ i + 1 ] / theta[ n ] );
+                        // NCPA_DEBUG << "T[ " << r << ", " << r << " ] = " <<
+                        // T.get(r,r) << std::endl;
 
-                        if (i <= rows) {
+                        if (i < rows) {
                             // i < j case
                             ELEMENTTYPE bprod = one;
-                            for (int j = i+1; j <= cols; ++j) {
-                                size_t c = j - 1;
-                                ELEMENTTYPE sign = std::pow( -one, i + j );
-                                bprod *= this->get( j-2, j-1 );
-                                T.set( r, c, sign * bprod * theta[ i - 1 ] * phi[ j + 1 ] / theta[ n ] );
+                            for (int j = i + 1; j <= cols; ++j) {
+                                size_t c          = j - 1;
+                                ELEMENTTYPE sign  = std::pow( -one, i + j );
+                                bprod            *= this->get( j - 2, j - 1 );
+                                // NCPA_DEBUG << "bprod *= " << this->get( j-2,
+                                // j-1 ) << " = " << bprod << std::endl;
+                                T.set( r, c,
+                                       sign * bprod * theta[ i - 1 ]
+                                           * phi[ j + 1 ] / theta[ n ] );
+                                // NCPA_DEBUG << "T[ " << r << ", " << c << " ]
+                                // = " << T.get(r,c) << std::endl;
                             }
                         }
 
                         if (i > 1) {
                             // i > j case
                             ELEMENTTYPE cprod = one;
-                            for (int j = i - 1; j >= 1; --j ) {
-                                size_t c = j - 1;
-                                ELEMENTTYPE sign = std::pow( -one, i + j );
-                                cprod *= this->get( j, j-1);
-                                T.set( r, c, sign * cprod * theta[ j - 1 ] * phi[ i + 1 ] / theta[ n ] );
+                            for (int j = i - 1; j >= 1; --j) {
+                                size_t c          = j - 1;
+                                ELEMENTTYPE sign  = std::pow( -one, i + j );
+                                cprod            *= this->get( j, j - 1 );
+                                // NCPA_DEBUG << "cprod *= " << this->get( j,
+                                // j-1 ) << " = " << cprod << std::endl;
+                                T.set( r, c,
+                                       sign * cprod * theta[ j - 1 ]
+                                           * phi[ i + 1 ] / theta[ n ] );
+                                // NCPA_DEBUG << "T[ " << r << ", " << c << " ]
+                                // = " << T.get(r,c) << std::endl;
                             }
                         }
                     }
@@ -359,6 +426,10 @@ namespace NCPA {
 
                 virtual bool is_lower_triangular() const {
                     return ( _ptr ? _ptr->is_lower_triangular() : true );
+                }
+
+                virtual bool is_null() const {
+                    return this->is_zero();
                 }
 
                 virtual bool is_row_matrix() const { return ( rows() == 1 ); }

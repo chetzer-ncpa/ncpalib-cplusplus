@@ -83,15 +83,17 @@ namespace NCPA {
                     size_t n, const ELEMENTTYPE *val ) override {
                     resize( n );
                     std::copy( val, val + n, begin() );
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& set(
                     const std::vector<ELEMENTTYPE>& v ) override {
                     _elements = v;
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& set(
@@ -99,8 +101,9 @@ namespace NCPA {
                     for (size_t i = 0; i < size(); i++) {
                         set( i, val );
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual void qc() override {}
@@ -123,8 +126,9 @@ namespace NCPA {
                     for (auto it = n.cbegin(); it != n.cend(); ++it) {
                         _elements.at( *it ) = _zero;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& zero(
@@ -167,6 +171,16 @@ namespace NCPA {
                     return nz;
                 }
 
+                virtual dense_vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                    auto atol = std::abs( tol );
+                    for (auto it = _elements.begin(); it != _elements.end(); ++it) {
+                        if (std::abs( *it ) < atol ) {
+                            *it = _zero;
+                        }
+                    }
+                    return *this;
+                }
+
                 virtual size_t count_nonzero_indices() const override {
                     return nonzero_indices().size();
                 }
@@ -192,15 +206,17 @@ namespace NCPA {
 
                 virtual dense_vector<ELEMENTTYPE>& clear() override {
                     _elements.clear();
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& resize(
                     size_t n ) override {
                     _elements.resize( n );
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& as_array(
@@ -219,8 +235,9 @@ namespace NCPA {
                     }
                     std::fill( vals, vals + n, _zero );
                     std::copy( cbegin(), cend(), vals );
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& set(
@@ -233,8 +250,9 @@ namespace NCPA {
                         throw std::out_of_range( oss.str() );
                     }
                     _elements[ n ] = val;
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& scale(
@@ -242,8 +260,9 @@ namespace NCPA {
                     for (auto it = begin(); it != end(); ++it) {
                         *it *= val;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& scale(
@@ -252,8 +271,9 @@ namespace NCPA {
                     for (auto i = 0; i < size(); i++) {
                         _elements[ i ] *= b.get( i );
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual ELEMENTTYPE dot(
@@ -273,8 +293,9 @@ namespace NCPA {
                     for (auto i = 0; i < size(); i++) {
                         _elements[ i ] += b.get( i ) * modifier;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 virtual dense_vector<ELEMENTTYPE>& add(
@@ -282,8 +303,9 @@ namespace NCPA {
                     for (auto it = begin(); it != end(); ++it) {
                         *it += b;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    return *this;
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
                 }
 
                 typename std::vector<ELEMENTTYPE>::iterator begin() noexcept {

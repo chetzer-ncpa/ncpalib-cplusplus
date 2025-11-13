@@ -1,4 +1,4 @@
-#define NCPA_DEBUG_ON
+// #define NCPA_DEBUG_ON
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/gtest.hpp"
@@ -531,7 +531,7 @@ TEST_F( _TEST_TITLE_, IdentityWorks ) {
 
 TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     wrapper1.resize( 2, 4 );
-    EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument );
+    EXPECT_THROW( { wrapper1.identity(); }, std::logic_error );
 }
 
 TEST_F( _TEST_TITLE_, MultiplyWorks ) {
@@ -585,4 +585,66 @@ TEST_F( _TEST_TITLE_, OtherBinaryOperatorsWork ) {
     wrapper2  = wrapper1;
     wrapper1 *= 3.0;
     EXPECT_TRUE( wrapper1 == wrapper2 * 3.0 );
+}
+
+TEST_F( _TEST_TITLE_, DiagonalInverseWorks ) {
+    Matrix<test_t> diag = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+    diag.resize( 6, 6 );
+    for (size_t i = 0; i < 6; ++i) {
+        diag.set( i, i, test_t((double)i, -(double)i) );
+    }
+
+    Matrix<test_t> idiag;
+    EXPECT_THROW( { idiag = diag.inverse(); }, std::range_error );
+    diag.set( 0, 0, 6.0 );
+    EXPECT_NO_THROW( { idiag = diag.inverse(); } );
+    Matrix<test_t> prod = diag * idiag;
+    for (size_t i = 0; i < 6; ++i) {
+        for (size_t j = 0; j < 6; ++j) {
+            EXPECT_DOUBLE_EQ( prod.get( i, j ).real(), (i == j ? 1.0 : 0.0 ) );
+            EXPECT_DOUBLE_EQ( prod.get( i, j ).imag(), 0.0 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, TridiagonalInverseWorks ) {
+    Matrix<test_t> tdiag( square.clone() );
+    Matrix<test_t> itdiag;
+    EXPECT_NO_THROW( { itdiag = tdiag.inverse(); } );
+    // cout << "Inverse:" << endl << itdiag << endl;
+    Matrix<test_t> prod = tdiag * itdiag;
+    for (size_t i = 0; i < prod.rows(); ++i) {
+        for (size_t j = 0; j < prod.columns(); ++j) {
+            EXPECT_NEAR( prod.get( i, j ).real(), (i == j ? 1.0 : 0.0 ), 1e-12 );
+            EXPECT_NEAR( prod.get( i, j ).imag(), 0.0, 1e-12 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForDiagonalMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+    test_t det = mat.identity(10,10).determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 1.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForNullMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+    test_t det = mat.resize(10,10).determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 0.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForEmptyMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+    test_t det = mat.determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 1.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForTridiagonalMatrix ) {
+    Matrix<test_t> mat( square.clone() );
+    test_t det = mat.determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 24.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), -24.0 );
 }

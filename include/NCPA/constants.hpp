@@ -1,16 +1,18 @@
 #pragma once
 
 #include "defines.hpp"
-#include <complex>
+
 #include <cmath>
+#include <complex>
 
 namespace NCPA {
     namespace constants {
         // double precision to enable DOUBLE_EQUAL unit tests
         constexpr double PI
             = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
-            
-        constexpr double EGAMMA = 0.57721566490153286060651209008240243104215933593992;
+
+        constexpr double EGAMMA
+            = 0.57721566490153286060651209008240243104215933593992;
 
         constexpr std::complex<double> I = std::complex<double>( 0.0, 1.0 );
 
@@ -53,5 +55,31 @@ namespace NCPA {
         bool is_zero( T val ) {
             return is_zero( val.real() ) && is_zero( val.imag() );
         }
-    }
-}
+
+        template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
+        bool zero_out( T& val, T& tol ) {
+            if (std::abs( val ) < std::abs( tol )) {
+                val = zero<T>();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
+        bool zero_out( T& val, T& tol ) {
+            bool nonzero = false;
+            if (std::abs( val.real() ) < std::abs( tol )) {
+                val.real( zero<T>().real() );
+            } else {
+                nonzero = true;
+            }
+            if (std::abs( val.imag() ) < std::abs( tol )) {
+                val.imag( zero<T>().imag() );
+            } else {
+                nonzero = true;
+            }
+            return !nonzero;
+        }
+    }  // namespace constants
+}  // namespace NCPA

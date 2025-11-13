@@ -32,15 +32,15 @@ class _TEST_TITLE_ : public ::testing::Test {
             // cout << "square OK" << endl;
             dproduct = mat_t( dim1, dim1 );
             // cout << "dproduct OK" << endl;
-            testvec = VectorFactory<test_t>::build( vector_t::DENSE );
+            testvec  = VectorFactory<test_t>::build( vector_t::DENSE );
             testvec.resize( dim1 );
             // cout << "testvec OK" << endl;
-            leftvec = testvec;
+            leftvec  = testvec;
             // cout << "leftvec OK" << endl;
             rightvec = testvec;
             // cout << "rightvec OK" << endl;
 
-            for ( size_t i = 0; i < dim1; i++ ) {
+            for (size_t i = 0; i < dim1; i++) {
                 double di = (double)( i + 1 );
                 complex<double> cdi( di, di );
                 complex<double> cd0( 0.0, 12.0 * di );
@@ -50,7 +50,7 @@ class _TEST_TITLE_ : public ::testing::Test {
                 // cout << "dproduct.set_row() OK" << endl;
                 testvec.set( i, cdi );
                 // cout << "testvec.set() OK" << endl;
-                rightvec.set( i, test_t( 0.0, 12.0*di ));
+                rightvec.set( i, test_t( 0.0, 12.0 * di ) );
                 // cout << "rightvec.set() OK" << endl;
             }
             leftvec.set( test_t( 0.0, 28.0 ) );
@@ -112,8 +112,8 @@ TEST_F( _TEST_TITLE_, AssignmentOperatorWorks ) {
 
 TEST_F( _TEST_TITLE_, IndexingOperatorsWork ) {
     wrapper2 = wrapper1;
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ), wrapper2.get( i, j ) );
         }
     }
@@ -138,8 +138,8 @@ TEST_F( _TEST_TITLE_, ResizeWorks ) {
 TEST_F( _TEST_TITLE_, ResizePreservesExistingValues ) {
     wrapper2 = wrapper1;
     wrapper1.resize( dim1 + 1, dim1 + 1 );
-    for ( size_t i = 0; i < dim1; i++ ) {
-        for ( size_t j = 0; j < dim1; j++ ) {
+    for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim1; j++) {
             _TEST_EQ_( wrapper1.get( i, j ), wrapper2.get( i, j ) );
         }
     }
@@ -172,7 +172,7 @@ TEST_F( _TEST_TITLE_, GetReturnsZeroIfEmpty ) {
 TEST_F( _TEST_TITLE_, GetRowVectorReturnsRowAsVector ) {
     auto vec = *( wrapper1.get_row( 0 ) );
     EXPECT_EQ( vec.size(), 3 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( vec[ i ], wrapper1.get( 0, i ) );
     }
 }
@@ -180,7 +180,7 @@ TEST_F( _TEST_TITLE_, GetRowVectorReturnsRowAsVector ) {
 TEST_F( _TEST_TITLE_, GetColumnVectorReturnsColumnAsVector ) {
     auto vec = *( wrapper1.get_column( 0 ) );
     EXPECT_EQ( vec.size(), 3 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( vec[ i ], wrapper1.get( i, 0 ) );
     }
 }
@@ -188,32 +188,32 @@ TEST_F( _TEST_TITLE_, GetColumnVectorReturnsColumnAsVector ) {
 TEST_F( _TEST_TITLE_, GetDiagonalReturnsExpectedVector ) {
     auto vec = *( wrapper1.get_diagonal( 0 ) );
     EXPECT_EQ( vec.size(), dim1 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( vec[ i ], wrapper1.get( i, 0 ) );
     }
 
     vec = *( wrapper1.get_diagonal( 1 ) );
     EXPECT_EQ( vec.size(), dim1 - 1 );
-    for ( auto i = 0; i < dim1 - 1; i++ ) {
+    for (auto i = 0; i < dim1 - 1; i++) {
         _TEST_EQ_( vec[ i ], wrapper1.get( i, i + 1 ) );
     }
 
     vec = *( wrapper1.get_diagonal( -1 ) );
     EXPECT_EQ( vec.size(), dim1 - 1 );
-    for ( auto i = 0; i < dim1 - 1; i++ ) {
+    for (auto i = 0; i < dim1 - 1; i++) {
         _TEST_EQ_( vec[ i ], wrapper1.get( i + 1, i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     wrapper2 = wrapper1;
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         EXPECT_NE( wrapper2.get( 1, i ), one );
     }
 
     // constant
     wrapper2.set_row( 1, one );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
@@ -222,7 +222,7 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     test_t testrow[ 3 ] = { one, one, one };
     size_t inds[ 3 ]    = { 0, 1, 2 };
     wrapper2.set_row( 1, 3, inds, testrow );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
@@ -231,28 +231,28 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     std::vector<test_t> testrow_v( testrow, testrow + dim1 );
     std::vector<size_t> inds_v( inds, inds + dim1 );
     wrapper2.set_row( 1, inds_v, testrow_v );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
 
     // vector without indices
     wrapper2.set_row( 1, testrow_v );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
 
     // initializer list with indices
     wrapper2.set_row( 1, { 0, 1, 2 }, { one, one, one } );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
 
     // initializer list without indices
     wrapper2.set_row( 1, { one, one, one } );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), one );
     }
     wrapper2 = wrapper1;
@@ -260,7 +260,7 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     // abstract_vector
     auto avec = *( wrapper1.get_row( 0 ) );
     wrapper2.set_row( 1, avec );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), avec[ i ] );
     }
     wrapper2 = wrapper1;
@@ -268,26 +268,26 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
     // Vector
     Vector<test_t> aVec( *( wrapper1.get_row( 0 ) ) );
     wrapper2.set_row( 1, aVec );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), aVec[ i ] );
     }
     wrapper2 = wrapper1;
 
     // row from another matrix
     wrapper2.set_row( 1, wrapper1, 0 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), wrapper1.get( 0, i ) );
     }
     wrapper2 = wrapper1;
 
     // row matrix
     wrapper2.set_row( 1, *wrapper1.get_row( 0 ) );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), wrapper1.get( 0, i ) );
     }
     wrapper2 = wrapper1;
     wrapper2.set_row( 1, wrapper1.get_row( 0 ) );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( 1, i ), wrapper1.get( 0, i ) );
     }
     wrapper2 = wrapper1;
@@ -296,13 +296,13 @@ TEST_F( _TEST_TITLE_, SetRowMethodsWork ) {
 TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     wrapper2       = wrapper1;
     test_t testval = one * 5.0;
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         EXPECT_NE( wrapper2.get( i, 1 ), testval );
     }
 
     // constant
     wrapper2.set_column( 1, testval );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
@@ -311,7 +311,7 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     test_t testcol[ 3 ] = { testval, testval, testval };
     size_t inds[ 3 ]    = { 0, 1, 2 };
     wrapper2.set_column( 1, 3, inds, testcol );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
@@ -320,28 +320,28 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     std::vector<test_t> testcol_v( testcol, testcol + dim1 );
     std::vector<size_t> inds_v( inds, inds + dim1 );
     wrapper2.set_column( 1, inds_v, testcol_v );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
 
     // vector without indices
     wrapper2.set_column( 1, testcol_v );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
 
     // initializer list with indices
     wrapper2.set_column( 1, { 0, 1, 2 }, { testval, testval, testval } );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
 
     // initializer list without indices
     wrapper2.set_column( 1, { testval, testval, testval } );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), testval );
     }
     wrapper2 = wrapper1;
@@ -349,7 +349,7 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     // abstract_vector
     auto avec = *( wrapper1.get_column( 0 ) );
     wrapper2.set_column( 1, avec );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
     }
     wrapper2 = wrapper1;
@@ -357,26 +357,26 @@ TEST_F( _TEST_TITLE_, SetColumnMethodsWork ) {
     // Vector
     Vector<test_t> aVec( *( wrapper1.get_column( 0 ) ) );
     wrapper2.set_column( 1, aVec );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
     }
     wrapper2 = wrapper1;
 
     // row from another matrix
     wrapper2.set_column( 1, wrapper1, 0 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
     }
     wrapper2 = wrapper1;
 
     // row matrix
     wrapper2.set_column( 1, *wrapper1.get_column( 0 ) );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
     }
     wrapper2 = wrapper1;
     wrapper2.set_column( 1, wrapper1.get_column( 0 ) );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, 1 ), wrapper1.get( i, 0 ) );
     }
     wrapper2 = wrapper1;
@@ -386,7 +386,7 @@ TEST_F( _TEST_TITLE_,
         NCPALinearAlgebraMatrixDenseMatrixTest_SetDiagonalMethodsWork_Test ) {
     wrapper2 = wrapper1;
     wrapper2.clear().resize( 5, 5 );
-    for ( size_t i = 0; i < 5; i++ ) {
+    for (size_t i = 0; i < 5; i++) {
         _TEST_EQ_( wrapper2.get( i, i ), zero );
     }
 
@@ -419,7 +419,7 @@ TEST_F( _TEST_TITLE_,
     // abstract_vector
     auto avec = *( wrapper1.get_column( 0 ) );
     wrapper2.set_diagonal( avec, 2 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i, i + 2 ), wrapper1.get( i, 0 ) );
     }
     wrapper2.zero();
@@ -427,7 +427,7 @@ TEST_F( _TEST_TITLE_,
     // Vector
     Vector<test_t> aVec( *( wrapper1.get_column( 0 ) ) );
     wrapper2.set_diagonal( aVec, -2 );
-    for ( auto i = 0; i < dim1; i++ ) {
+    for (auto i = 0; i < dim1; i++) {
         _TEST_EQ_( wrapper2.get( i + 2, i ), wrapper1.get( i, 0 ) );
     }
 }
@@ -435,8 +435,8 @@ TEST_F( _TEST_TITLE_,
 TEST_F( _TEST_TITLE_, TransposeWorks ) {
     wrapper2 = wrapper1;
     wrapper2.transpose();
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ), wrapper2.get( j, i ) );
         }
     }
@@ -445,8 +445,8 @@ TEST_F( _TEST_TITLE_, TransposeWorks ) {
 TEST_F( _TEST_TITLE_, AddWorksWithMatrix ) {
     wrapper2 = wrapper1;
     wrapper1.add( wrapper1 );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ), ( 2.0 * wrapper2.get( i, j ) ) );
         }
     }
@@ -455,8 +455,8 @@ TEST_F( _TEST_TITLE_, AddWorksWithMatrix ) {
 TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
     wrapper2 = wrapper1;
     wrapper1.add( testval );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ),
                        ( testval + wrapper2.get( i, j ) ) );
         }
@@ -466,8 +466,8 @@ TEST_F( _TEST_TITLE_, AddWorksWithScalar ) {
 TEST_F( _TEST_TITLE_, SubtractWorksWithMatrix ) {
     wrapper2 = wrapper1;
     wrapper1.subtract( wrapper1 );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ), zero );
         }
     }
@@ -476,8 +476,8 @@ TEST_F( _TEST_TITLE_, SubtractWorksWithMatrix ) {
 TEST_F( _TEST_TITLE_, SubtractWorksWithScalar ) {
     wrapper2 = wrapper1;
     wrapper1.subtract( testval );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ),
                        ( wrapper2.get( i, j ) - testval ) );
         }
@@ -487,8 +487,8 @@ TEST_F( _TEST_TITLE_, SubtractWorksWithScalar ) {
 TEST_F( _TEST_TITLE_, ScaleWorksWithMatrix ) {
     wrapper2 = wrapper1;
     wrapper1.scale( wrapper1 );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ),
                        ( wrapper2.get( i, j ) * wrapper2.get( i, j ) ) );
         }
@@ -498,8 +498,8 @@ TEST_F( _TEST_TITLE_, ScaleWorksWithMatrix ) {
 TEST_F( _TEST_TITLE_, ScaleWorksWithScalar ) {
     wrapper2 = wrapper1;
     wrapper1.scale( testval );
-    for ( size_t i = 0; i < wrapper1.rows(); i++ ) {
-        for ( size_t j = 0; j < wrapper1.columns(); j++ ) {
+    for (size_t i = 0; i < wrapper1.rows(); i++) {
+        for (size_t j = 0; j < wrapper1.columns(); j++) {
             _TEST_EQ_( wrapper1.get( i, j ),
                        ( wrapper2.get( i, j ) * testval ) );
         }
@@ -514,7 +514,7 @@ TEST_F( _TEST_TITLE_, IdentityWorks ) {
 
 TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     wrapper1.resize( 2, 4 );
-    EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument );
+    EXPECT_THROW( { wrapper1.identity(); }, std::logic_error );
 }
 
 TEST_F( _TEST_TITLE_, RightMultiplyWorks ) {
@@ -570,12 +570,87 @@ TEST_F( _TEST_TITLE_, OtherBinaryOperatorsWork ) {
 }
 
 TEST_F( _TEST_TITLE_, InverseWorks ) {
-    wrapper2 = wrapper1;
-    wrapper1.zero( 0, 2 ).zero( 1, 1 ).zero( 2, 0 ).invert();
-    test_t base( 1.0, -1.0 );
-    wrapper2.zero()
-        .set_row( 0, { base*0.25, base*0.125, -base / 12.0 } )
-        .set_row( 1, { base*0.25, -base*0.125, base / 12.0 } )
-        .set_row( 2, { -base*0.25, base*0.125, base / 12.0 } );
-    EXPECT_TRUE( wrapper1 == wrapper2 );
+    wrapper1.zero( 0, 2 ).zero( 1, 1 ).zero( 2, 0 );
+    wrapper2 = wrapper1.inverse();
+    wrapper2.multiply(wrapper1).clean( 1e-15 );
+    // cout << "Product:" << endl << wrapper2 << endl;
+    for (size_t i = 0; i < wrapper2.rows(); ++i) {
+        for (size_t j = 0; j < wrapper2.columns(); ++j) {
+            EXPECT_NEAR( wrapper2.get( i, j ).real(), ( i == j ? 1.0 : 0.0 ),
+                         1e-12 );
+            EXPECT_NEAR( wrapper2.get( i, j ).imag(), 0.0, 1e-12 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, DiagonalInverseWorks ) {
+    Matrix<test_t> diag = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    diag.resize( 6, 6 );
+    for (size_t i = 0; i < 6; ++i) {
+        diag.set( i, i, test_t( (double)i, -(double)i ) );
+    }
+
+    Matrix<test_t> idiag;
+    EXPECT_THROW( { idiag = diag.inverse(); }, std::range_error );
+    diag.set( 0, 0, 6.0 );
+    EXPECT_NO_THROW( { idiag = diag.inverse(); } );
+    Matrix<test_t> prod = diag * idiag;
+    for (size_t i = 0; i < 6; ++i) {
+        for (size_t j = 0; j < 6; ++j) {
+            EXPECT_DOUBLE_EQ( prod.get( i, j ).real(),
+                              ( i == j ? 1.0 : 0.0 ) );
+            EXPECT_DOUBLE_EQ( prod.get( i, j ).imag(), 0.0 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, TridiagonalInverseWorks ) {
+    Matrix<test_t> tdiag = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    tdiag.resize( 7, 7 )
+        .set_diagonal( NCPA::math::random_numbers<test_t>( 7, -2.0, 2.0 ), 0 )
+        .set_diagonal( NCPA::math::random_numbers<test_t>( 6, -2.0, 2.0 ), 1 )
+        .set_diagonal( NCPA::math::random_numbers<test_t>( 6, -2.0, 2.0 ),
+                       -1 );
+    Matrix<test_t> itdiag;
+    EXPECT_NO_THROW( { itdiag = tdiag.inverse(); } );
+    Matrix<test_t> prod = tdiag * itdiag;
+    for (size_t i = 0; i < prod.rows(); ++i) {
+        for (size_t j = 0; j < prod.columns(); ++j) {
+            EXPECT_NEAR( prod.get( i, j ).real(), ( i == j ? 1.0 : 0.0 ),
+                         1e-12 );
+            EXPECT_NEAR( prod.get( i, j ).imag(), 0.0, 1e-12 );
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForDiagonalMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    test_t det         = mat.identity( 10, 10 ).determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 1.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForNullMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    test_t det         = mat.resize( 10, 10 ).determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 0.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForEmptyMatrix ) {
+    Matrix<test_t> mat = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    test_t det         = mat.determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 1.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), 0.0 );
+}
+
+TEST_F( _TEST_TITLE_, DeterminantWorksForTridiagonalMatrix ) {
+    Matrix<test_t> tdiag = MatrixFactory<test_t>::build( matrix_t::DENSE );
+    tdiag.resize( 5, 5 )
+        .set_diagonal( test_t { -2.0, 2.0 }, 0 )
+        .set_diagonal( test_t { 1.0, -1.0 }, 1 )
+        .set_diagonal( test_t { 1.0, -1.0 }, -1 );
+    test_t det = tdiag.determinant();
+    EXPECT_DOUBLE_EQ( det.real(), 24.0 );
+    EXPECT_DOUBLE_EQ( det.imag(), -24.0 );
 }

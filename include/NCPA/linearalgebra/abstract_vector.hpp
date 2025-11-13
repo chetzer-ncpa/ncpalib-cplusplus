@@ -28,10 +28,12 @@ namespace NCPA {
                     abstract_vector<ELEMENTTYPE>& a,
                     abstract_vector<ELEMENTTYPE>& b ) noexcept;
 
-                virtual size_t size() const                              = 0;
-                virtual ELEMENTTYPE& get( size_t n )                     = 0;
-                virtual const ELEMENTTYPE& get( size_t n ) const         = 0;
-                virtual std::vector<ELEMENTTYPE> as_std() const          = 0;
+                virtual size_t size() const                      = 0;
+                virtual ELEMENTTYPE& get( size_t n )             = 0;
+                virtual const ELEMENTTYPE& get( size_t n ) const = 0;
+                virtual std::vector<ELEMENTTYPE> as_std() const  = 0;
+                virtual abstract_vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol )
+                    = 0;
                 virtual abstract_vector<ELEMENTTYPE>& clear()            = 0;
                 virtual std::unique_ptr<abstract_vector> clone()         = 0;
                 virtual abstract_vector<ELEMENTTYPE>& resize( size_t n ) = 0;
@@ -51,7 +53,10 @@ namespace NCPA {
                     = 0;
                 virtual abstract_vector<ELEMENTTYPE>& set( ELEMENTTYPE val )
                     = 0;
-                virtual abstract_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start, size_t elements ) = 0;
+                virtual abstract_vector<ELEMENTTYPE>& splice(
+                    const abstract_vector<ELEMENTTYPE>& v, size_t start,
+                    size_t elements )
+                    = 0;
 
                 virtual abstract_vector<ELEMENTTYPE>& zero()           = 0;
                 virtual abstract_vector<ELEMENTTYPE>& zero( size_t n ) = 0;
@@ -61,7 +66,7 @@ namespace NCPA {
                 virtual abstract_vector<ELEMENTTYPE>& zero(
                     std::initializer_list<size_t> n )
                     = 0;
-                virtual bool is_zero() const = 0;
+                virtual bool is_zero() const               = 0;
                 virtual bool is_zero( size_t index ) const = 0;
 
                 virtual abstract_vector<ELEMENTTYPE>& scale( ELEMENTTYPE val )
@@ -108,9 +113,11 @@ namespace NCPA {
                     return true;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start ) {
+                virtual abstract_vector<ELEMENTTYPE>& splice(
+                    const abstract_vector<ELEMENTTYPE>& v, size_t start ) {
                     if (start > v.size()) {
-                        throw std::range_error( "Start point is past the end of the vector" );
+                        throw std::range_error(
+                            "Start point is past the end of the vector" );
                     }
                     return this->splice( v, start, v.size() - start );
                 }

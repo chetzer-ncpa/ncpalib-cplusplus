@@ -125,6 +125,13 @@ namespace NCPA {
                     return _ptr->as_std();
                 }
 
+                virtual Vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) {
+                    if (_ptr) {
+                        _ptr->clean( tol );
+                    }
+                    return *this;
+                }
+
                 virtual Vector<ELEMENTTYPE>& clear() {
                     if (_ptr) {
                         // _ptrclear();

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "NCPA/linearalgebra/declarations.hpp"
-
 #include <cmath>
 
 namespace NCPA {
     namespace linear {
+
+
         inline size_t matrix_diagonal_size( size_t rows, size_t columns,
                                             int diag = 0 ) {
                                                 int ic = (int)columns;

@@ -5,7 +5,7 @@ LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS) -lgslcblas -lgsl
 INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
 
-SOURCES=test_linearalgebra_banddiagonalmatrix.cpp test_linearalgebra_blockmatrix.cpp test_linearalgebra_symmetricmatrix.cpp
+SOURCES=test_linearalgebra_matrix_densematrix_complex.cpp
 # SOURCES=test_atmosphere.cpp
 # SOURCES=test_ndvector.cpp
 OBJECTS=$(SOURCES:.cpp=.o)

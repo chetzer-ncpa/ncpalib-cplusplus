@@ -322,6 +322,25 @@ namespace NCPA {
                         new sparse_vector<ELEMENTTYPE>( n ) );
                 }
 
+                virtual band_diagonal_matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                    // auto atol = std::abs( tol );
+                    for (auto diag_it = _contents.begin(); diag_it != _contents.end(); ++diag_it) {
+                        bool not_zero = false;
+                        for (auto elem_it = diag_it->begin(); elem_it != diag_it->end(); ++elem_it) {
+                            not_zero = (!NCPA::constants::zero_out( *elem_it, tol )) || not_zero; 
+                            // if (std::abs( *elem_it ) < atol) {
+                            //     *elem_it = _zero;
+                            // } else {
+                            //     allzero = false;
+                            // }
+                        }
+                        if (!not_zero) {
+                            diag_it->clear();
+                        }
+                    }
+                    return *this;
+                }
+
                 virtual band_diagonal_matrix<ELEMENTTYPE>& clear() override {
                     _nrows   = 0;
                     _ncols   = 0;

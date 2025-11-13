@@ -147,17 +147,17 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual const Matrix<ELEMENTTYPE>& lower() const {
-                    return _lower;
-                }
+                // virtual const Matrix<ELEMENTTYPE>& lower() const {
+                //     return _lower;
+                // }
 
-                virtual const Matrix<ELEMENTTYPE>& upper() const {
-                    return _upper;
-                }
+                // virtual const Matrix<ELEMENTTYPE>& upper() const {
+                //     return _upper;
+                // }
 
-                virtual const Matrix<ELEMENTTYPE>& permutation() const {
-                    return _permutation;
-                }
+                // virtual const Matrix<ELEMENTTYPE>& permutation() const {
+                //     return _permutation;
+                // }
 
                 // protected:
                 virtual Matrix<ELEMENTTYPE>& lower() { return _lower; }
@@ -193,12 +193,13 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual LUDecomposition<ELEMENTTYPE>& clear() override {
+                virtual BandDiagonalLUDecomposition<ELEMENTTYPE>& clear() override {
                     _A.clear();
-                    return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                    return *this;
+                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
                 }
 
-                virtual LUDecomposition<ELEMENTTYPE>& decompose(
+                virtual BandDiagonalLUDecomposition<ELEMENTTYPE>& decompose(
                     const Matrix<ELEMENTTYPE>& Mbase,
                     bool pivot = true ) override {
                     if (!Mbase) {
@@ -222,6 +223,8 @@ namespace NCPA {
                     }
 
                     _A.clear();
+                    _lower.clear();
+                    _upper.clear();
                     if (auto bdm_ptr = dynamic_cast<
                             const band_diagonal_matrix<ELEMENTTYPE> *>(
                             Mbase.internal() )) {
@@ -264,11 +267,58 @@ namespace NCPA {
                         }
                     }
                     NCPA_DEBUG << "LU decomposition complete" << std::endl;
-                    return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                    return *this;
+                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
                 }
+
+                virtual  Matrix<ELEMENTTYPE>& lower() override {
+                    if (_A.is_empty()) {
+                        throw std::logic_error( "Decomposition has not yet been performed" );
+                    }
+                    if (_lower.is_empty()) {
+                        _lower = MatrixFactory<ELEMENTTYPE>::build(matrix_t::BAND_DIAGONAL);
+                        _lower.identity( _A.rows(), _A.columns() );
+                    }
+                    std::vector<int> diags = _A.diagonals();
+                    for (auto it = diags.begin(); it != diags.end() && *it < 0; ++it) {
+                        _lower.set_diagonal( *_A.get_diagonal( *it ), *it );
+                    }
+                    return _lower;
+                }
+
+                virtual  Matrix<ELEMENTTYPE>& upper() override {
+                    if (_A.is_empty()) {
+                        throw std::logic_error( "Decomposition has not yet been performed" );
+                    }
+                    if (_upper.is_empty()) {
+                        _upper = MatrixFactory<ELEMENTTYPE>::build(matrix_t::BAND_DIAGONAL);
+                        _upper.resize( _A.rows(), _A.columns() );
+                    }
+                    std::vector<int> diags = _A.diagonals();
+                    for (auto it = diags.rbegin(); it != diags.rend() && *it >= 0; ++it) {
+                        _upper.set_diagonal( *_A.get_diagonal( *it ), *it );
+                    }
+                    return _upper;
+                }
+
+                virtual  Matrix<ELEMENTTYPE>& permutation() override {
+                    if (_A.is_empty()) {
+                        throw std::logic_error( "Decomposition has not yet been performed" );
+                    }
+                    if (_permutation.is_empty()) {
+                        _permutation.identity( _A.rows(), _A.columns() );
+                    }
+                    return _permutation;
+                }
+
+                
 
             protected:
                 band_diagonal_matrix<ELEMENTTYPE> _A;
+                Matrix<ELEMENTTYPE> _permutation;
+                Matrix<ELEMENTTYPE> _lower, _upper;
+
+
         };
 
     }  // namespace linear
