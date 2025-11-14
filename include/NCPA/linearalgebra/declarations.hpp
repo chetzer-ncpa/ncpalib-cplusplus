@@ -17,7 +17,13 @@ namespace NCPA {
             SYMMETRIC,
             SYMMETRIC_FINITE_DIFFERENCE
         };
-        enum class solver_t { INVALID, BASIC, BAND_DIAGONAL, TRIDIAGONAL };
+        enum class solver_t {
+            INVALID,
+            BASIC,
+            BAND_DIAGONAL,
+            TRIDIAGONAL,
+            BLOCK_TRIDIAGONAL
+        };
         enum class matrix_polynomial_algorithm_t {
             INVALID,
             MULTIPLY,

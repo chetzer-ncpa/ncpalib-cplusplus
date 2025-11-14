@@ -86,7 +86,7 @@ namespace NCPA {
                     set_system_matrix(
                         const Matrix<ELEMENTTYPE>& M ) override {
                     if (auto BM
-                        = dynamic_cast<BlockMatrix<ELEMENTTYPE>&>( M )) {
+                        = dynamic_cast<const BlockMatrix<ELEMENTTYPE>&>( M )) {
                         if (!BM.is_square()) {
                             throw std::logic_error(
                                 "System matrix must be square!" );
@@ -95,7 +95,7 @@ namespace NCPA {
                             throw std::logic_error(
                                 "System matrix must be tridiagonal!" );
                         }
-                        _mat = M.clone();
+                        _mat->copy( BM );
                         // return *static_cast<
                         //     abstract_linear_system_solver<ELEMENTTYPE> *>(
                         //     this );
@@ -130,8 +130,6 @@ namespace NCPA {
                     std::vector<Vector<ELEMENTTYPE>> Riss( nblocks );
                     std::vector<Matrix<ELEMENTTYPE>> Cis( nblocks );
                     Vector<ELEMENTTYPE> *Ris;
-                    Matrix<ELEMENTTYPE> Bi_inv;
-
                     Matrix<ELEMENTTYPE> Bi_inv
                         = _mat->get_block( 0, 0 ).inverse();
                     Cis[ 0 ] = Bi_inv * _mat->get_block( 0, 1 );

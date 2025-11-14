@@ -199,7 +199,7 @@ namespace NCPA {
                 }
 
                 virtual Vector<ELEMENTTYPE> subvector( size_t start,
-                                                       size_t end ) {
+                                                       size_t end ) const {
                     check_pointer();
                     return Vector<ELEMENTTYPE>(
                         _ptr->subvector( start, end ) );

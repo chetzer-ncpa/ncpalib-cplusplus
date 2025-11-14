@@ -3,8 +3,9 @@
 #include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
-#include "NCPA/linearalgebra/defines.hpp"
+#include "NCPA/linearalgebra/block_tridiagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
+#include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
@@ -103,6 +104,13 @@ namespace NCPA {
                                                   ELEMENTTYPE>>(
                                 new basic_band_diagonal_linear_system_solver<
                                     ELEMENTTYPE>() ) );
+                            break;
+                        case solver_t::BLOCK_TRIDIAGONAL:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_linear_system_solver<
+                                    ELEMENTTYPE>>(
+                                    new block_tridiagonal_linear_system_solver<
+                                        ELEMENTTYPE>() ) );
                             break;
                         default:
                             throw std::logic_error( "Unknown or unsupported "
