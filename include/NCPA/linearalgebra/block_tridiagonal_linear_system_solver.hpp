@@ -95,7 +95,10 @@ namespace NCPA {
                             throw std::logic_error(
                                 "System matrix must be tridiagonal!" );
                         }
-                        _mat->copy( BM );
+
+                        _mat = std::unique_ptr<BlockMatrix<ELEMENTTYPE>>(
+                            new BlockMatrix<ELEMENTTYPE>( BM ) );
+
                         // return *static_cast<
                         //     abstract_linear_system_solver<ELEMENTTYPE> *>(
                         //     this );
@@ -139,21 +142,17 @@ namespace NCPA {
                     for (size_t i = 1; i < nblocks; ++i) {
                         const Matrix<ELEMENTTYPE>& Ai
                             = _mat->get_block( i, i - 1 );
-                        const Matrix<ELEMENTTYPE>& Bi
-                            = _mat->get_block( i, i );
-                        Bi_inv = Bi.inverse();
+                        // const Matrix<ELEMENTTYPE>& Bi
+                        //     = _mat->get_block( i, i );
+                        Bi_inv = (_mat->get_block( i, i ) - Ai*Cis[i-1]).inverse();
                         if (i < nblocks - 1) {
                             Cis[ i ] = Bi_inv * _mat->get_block( i, i + 1 );
                         }
 
                         if (i == 1) {
                             Ris = &Ris_begin;
-                            // Ris = b.subvector( i * blocksize, blocksize ) -
-                            // (Ai * Ris_begin);
                         } else {
                             Ris = &( Riss.at( i - 1 ) );
-                            // Ris = b.subvector( i * blocksize, blocksize ) -
-                            // (Ai * Riss.at( i-1));
                         }
                         Riss[ i ] = Bi_inv
                                   * ( b.subvector( i * blocksize, blocksize )

@@ -93,11 +93,11 @@ namespace NCPA {
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     _permutation
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
-                    NCPA_DEBUG << "Setting LU lower matrix to size " << N << " x " << N << std::endl;
+                    // NCPA_DEBUG << "Setting LU lower matrix to size " << N << " x " << N << std::endl;
                     _lower.clear().resize( N, N );
-                    NCPA_DEBUG << "Setting LU upper matrix to size " << N << " x " << N << " and copying input matrix" << std::endl;
+                    // NCPA_DEBUG << "Setting LU upper matrix to size " << N << " x " << N << " and copying input matrix" << std::endl;
                     _upper.clear().resize( N, N ).copy( base );
-                    NCPA_DEBUG << "Setting permutation matrix to size " << N << " x " << N << " identity matrix" << std::endl;
+                    // NCPA_DEBUG << "Setting permutation matrix to size " << N << " x " << N << " identity matrix" << std::endl;
                     _permutation.identity( N, N );
 
                     size_t i, j, k;

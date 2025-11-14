@@ -507,6 +507,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual void print( std::ostream& os = std::cout ) const {
+                    os << *this << std::endl;
+                }
+
                 virtual Matrix<ELEMENTTYPE>& resize( size_t rows,
                                                      size_t cols ) {
                     check();

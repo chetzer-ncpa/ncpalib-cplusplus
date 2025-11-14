@@ -1018,21 +1018,21 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual BlockMatrix& resize( size_t rows, size_t cols,
-                                             size_t blockrows,
-                                             size_t blockcols ) {
+                virtual BlockMatrix& resize( size_t rows_of_blocks, size_t cols_of_blocks,
+                                             size_t rows_per_block,
+                                             size_t cols_per_block ) {
                     this->check();
-                    if (rows == _rows_of_blocks && cols == _cols_of_blocks
-                        && blockrows == _rows_per_block
-                        && blockcols == _cols_per_block) {
+                    if (rows_of_blocks == _rows_of_blocks && cols_of_blocks == _cols_of_blocks
+                        && rows_per_block == _rows_per_block
+                        && cols_per_block == _cols_per_block) {
                         return *this;
                     }
-                    std::vector<Matrix<ELEMENTTYPE>> _newelements( rows
-                                                                   * cols );
-                    for (size_t rowind = 0; rowind < rows; ++rowind) {
-                        for (size_t colind = 0; colind < cols; ++colind) {
+                    std::vector<Matrix<ELEMENTTYPE>> _newelements( rows_of_blocks
+                                                                   * cols_of_blocks );
+                    for (size_t rowind = 0; rowind < rows_of_blocks; ++rowind) {
+                        for (size_t colind = 0; colind < cols_of_blocks; ++colind) {
                             size_t newind
-                                = rc2index( rowind, colind, rows, cols );
+                                = rc2index( rowind, colind, rows_of_blocks, cols_of_blocks );
                             if (rowind < _rows_of_blocks
                                 && colind < _cols_of_blocks) {
                                 std::swap( _newelements[ newind ],
@@ -1043,14 +1043,14 @@ namespace NCPA {
                                     = MatrixFactory<ELEMENTTYPE>::build(
                                         _blocktype );
                             }
-                            _newelements[ newind ].resize( blockrows,
-                                                           blockcols );
+                            _newelements[ newind ].resize( rows_per_block,
+                                                           cols_per_block );
                         }
                     }
-                    _rows_of_blocks = rows;
-                    _cols_of_blocks = cols;
-                    _rows_per_block = blockrows;
-                    _cols_per_block = blockcols;
+                    _rows_of_blocks = rows_of_blocks;
+                    _cols_of_blocks = cols_of_blocks;
+                    _rows_per_block = rows_per_block;
+                    _cols_per_block = cols_per_block;
                     std::swap( _elements, _newelements );
                     return *this;
                 }
