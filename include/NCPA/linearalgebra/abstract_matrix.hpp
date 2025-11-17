@@ -405,9 +405,9 @@ namespace NCPA {
                     int blbw = b.lower_bandwidth();
                     for (int k = 0; k < (int)this->columns(); ++k) {
                         int rmin = std::max( 0, k - aubw );
-                        int rmax = std::min( k + bubw, a.rows() - 1 );
+                        int rmax = std::min( k + bubw, (int)this->rows() - 1 );
                         int cmin = std::max( 0, k - blbw );
-                        int cmax = std::min( k + bubw, b.columns() - 1 );
+                        int cmax = std::min( k + bubw, (int)b.columns() - 1 );
                         for (int r = rmin; r <= rmax; ++r) {
                             for (int c = cmin; c <= cmax; ++c) {
                                 product->set( r, c, product->get( r, c ) + this->get(r, k) * b.get( k, c ) );

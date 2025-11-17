@@ -237,15 +237,20 @@ namespace NCPA {
                 }
 
                 virtual size_t lower_bandwidth() const override {
-                    int off = this->max_off_diagonal();
-                    while (off > 0) {
-                        if (this->get_diagonal( -off )->count_nonzero_indices()
-                            > 0) {
-                            return (size_t)off;
-                        }
-                        off--;
-                    }
-                    return 0;
+                    return ( this->rows() > this->columns()
+                                 ? this->diagonal_size( 0 ) - 1 + this->rows()
+                                       - this->columns()
+                                 : this->diagonal_size( 0 ) - 1 );
+                    // int off = this->max_off_diagonal();
+                    // while (off > 0) {
+                    //     if (this->get_diagonal( -off
+                    //     )->count_nonzero_indices()
+                    //         > 0) {
+                    //         return (size_t)off;
+                    //     }
+                    //     off--;
+                    // }
+                    // return 0;
                 }
 
                 virtual dense_matrix<ELEMENTTYPE>& resize(
@@ -352,15 +357,20 @@ namespace NCPA {
                 }
 
                 virtual size_t upper_bandwidth() const override {
-                    int off = this->max_off_diagonal();
-                    while (off > 0) {
-                        if (this->get_diagonal( off )->count_nonzero_indices()
-                            > 0) {
-                            return (size_t)off;
-                        }
-                        off--;
-                    }
-                    return 0;
+                    return ( this->rows() > this->columns()
+                                 ? this->diagonal_size( 0 ) - 1
+                                 : this->diagonal_size( 0 ) - 1
+                                       + this->columns() - this->rows() );
+                    // int off = this->max_off_diagonal();
+                    // while (off > 0) {
+                    //     if (this->get_diagonal( off
+                    //     )->count_nonzero_indices()
+                    //         > 0) {
+                    //         return (size_t)off;
+                    //     }
+                    //     off--;
+                    // }
+                    // return 0;
                 }
 
                 // virtual dense_matrix<ELEMENTTYPE>& operator-() const
