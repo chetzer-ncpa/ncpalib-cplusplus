@@ -398,16 +398,32 @@ namespace NCPA {
                     product->resize( rows(), b.columns() );
                     std::vector<std::unique_ptr<abstract_vector<ELEMENTTYPE>>>
                         b_cols( b.columns() );
-                    for (size_t row = 0; row < product->rows(); row++) {
-                        auto a_row = get_row( row );
-                        for (size_t col = 0; col < product->columns(); col++) {
-                            if (!b_cols[ col ]) {
-                                b_cols[ col ] = b.get_column( col );
+                    
+                    int aubw = this->upper_bandwidth();
+                    int albw = this->lower_bandwidth();
+                    int bubw = b.upper_bandwidth();
+                    int blbw = b.lower_bandwidth();
+                    for (int k = 0; k < (int)this->columns(); ++k) {
+                        int rmin = std::max( 0, k - aubw );
+                        int rmax = std::min( k + bubw, a.rows() - 1 );
+                        int cmin = std::max( 0, k - blbw );
+                        int cmax = std::min( k + bubw, b.columns() - 1 );
+                        for (int r = rmin; r <= rmax; ++r) {
+                            for (int c = cmin; c <= cmax; ++c) {
+                                product->set( r, c, product->get( r, c ) + this->get(r, k) * b.get( k, c ) );
                             }
-                            product->set( row, col,
-                                          a_row->dot( *b_cols[ col ] ) );
                         }
                     }
+                    // for (size_t row = 0; row < product->rows(); row++) {
+                    //     auto a_row = get_row( row );
+                    //     for (size_t col = 0; col < product->columns(); col++) {
+                    //         if (!b_cols[ col ]) {
+                    //             b_cols[ col ] = b.get_column( col );
+                    //         }
+                    //         product->set( row, col,
+                    //                       a_row->dot( *b_cols[ col ] ) );
+                    //     }
+                    // }
                     return product;
                 }
 

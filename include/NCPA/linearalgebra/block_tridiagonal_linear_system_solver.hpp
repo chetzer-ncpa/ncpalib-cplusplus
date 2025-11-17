@@ -34,12 +34,18 @@ namespace NCPA {
                 block_tridiagonal_linear_system_solver() :
                     abstract_linear_system_solver<ELEMENTTYPE>() {}
 
+                block_tridiagonal_linear_system_solver( matrix_t blocktype ) :
+                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                    _blocktype = blocktype;
+                    this->init();
+                }
+
                 // copy constructor
                 block_tridiagonal_linear_system_solver(
                     const block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                         other ) :
                     abstract_linear_system_solver<ELEMENTTYPE>() {
-                    _mat = other._mat;
+                    _mat->copy( other._mat );
                     // _lu  = other._lu;
                 }
 
@@ -75,11 +81,21 @@ namespace NCPA {
                 virtual block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                     clear() override {
                     _mat.reset();
+                    this->init();
                     // _lu.reset();
                     return *this;
                     // return *static_cast<
                     //     abstract_linear_system_solver<ELEMENTTYPE> *>( this
                     //     );
+                }
+
+                virtual block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
+                    init() {
+                    if (_blocktype != matrix_t::INVALID) {
+                        _mat = std::unique_ptr<BlockMatrix<ELEMENTTYPE>>(
+                            new BlockMatrix<ELEMENTTYPE>( _blocktype ) );
+                    }
+                    return *this;
                 }
 
                 virtual block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
@@ -144,7 +160,9 @@ namespace NCPA {
                             = _mat->get_block( i, i - 1 );
                         // const Matrix<ELEMENTTYPE>& Bi
                         //     = _mat->get_block( i, i );
-                        Bi_inv = (_mat->get_block( i, i ) - Ai*Cis[i-1]).inverse();
+                        Bi_inv
+                            = ( _mat->get_block( i, i ) - Ai * Cis[ i - 1 ] )
+                                  .inverse();
                         if (i < nblocks - 1) {
                             Cis[ i ] = Bi_inv * _mat->get_block( i, i + 1 );
                         }
@@ -189,6 +207,7 @@ namespace NCPA {
                 }
 
             private:
+                matrix_t _blocktype = matrix_t::INVALID;
                 std::unique_ptr<NCPA::linear::BlockMatrix<ELEMENTTYPE>> _mat;
         };
     }  // namespace linear

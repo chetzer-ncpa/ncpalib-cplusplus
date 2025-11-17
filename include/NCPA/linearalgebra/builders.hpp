@@ -106,15 +106,34 @@ namespace NCPA {
                                     ELEMENTTYPE>() ) );
                             break;
                         case solver_t::BLOCK_TRIDIAGONAL:
-                            return Solver<ELEMENTTYPE>(
-                                std::unique_ptr<abstract_linear_system_solver<
-                                    ELEMENTTYPE>>(
-                                    new block_tridiagonal_linear_system_solver<
-                                        ELEMENTTYPE>() ) );
+                            // return Solver<ELEMENTTYPE>(
+                            //     std::unique_ptr<abstract_linear_system_solver<
+                            //         ELEMENTTYPE>>(
+                            //         new
+                            //         block_tridiagonal_linear_system_solver<
+                            //             ELEMENTTYPE>() ) );
+                            throw std::invalid_argument(
+                                "Block tridiagonal matrix must specify a "
+                                "block type" );
                             break;
                         default:
                             throw std::logic_error( "Unknown or unsupported "
                                                     "solver type requested" );
+                    }
+                }
+
+                static Solver<ELEMENTTYPE> build( solver_t family,
+                                                  matrix_t blocktype ) {
+                    switch (family) {
+                        case solver_t::BLOCK_TRIDIAGONAL:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_linear_system_solver<
+                                    ELEMENTTYPE>>(
+                                    new block_tridiagonal_linear_system_solver<
+                                        ELEMENTTYPE>( blocktype ) ) );
+                            break;
+                        default:
+                            return build( family );
                     }
                 }
         };

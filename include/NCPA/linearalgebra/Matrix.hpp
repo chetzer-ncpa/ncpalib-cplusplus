@@ -1106,7 +1106,7 @@ namespace NCPA {
 
                 std::unique_ptr<LUDecomposition<ELEMENTTYPE>> _lu;
 
-                matrix_t _type;
+                // matrix_t _type;
 
                 void _clear_cache() { _lu.reset( nullptr ); }
 
