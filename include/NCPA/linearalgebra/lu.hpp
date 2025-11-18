@@ -228,27 +228,27 @@ namespace NCPA {
                     if (auto bdm_ptr = dynamic_cast<
                             const band_diagonal_matrix<ELEMENTTYPE> *>(
                             Mbase.internal() )) {
-                        NCPA_DEBUG << "Copying internal band-diagonal matrix pointer" << std::endl;
+                        // NCPA_DEBUG << "Copying internal band-diagonal matrix pointer" << std::endl;
                         _A.copy( *bdm_ptr );
                     } else {
-                        NCPA_DEBUG << "Copying band-diagonal matrix by diagonals" << std::endl;
+                        // NCPA_DEBUG << "Copying band-diagonal matrix by diagonals" << std::endl;
                         _A.resize( Mbase.rows(), Mbase.columns() );
                         std::vector<int> diags = Mbase.diagonals();
                         for (auto it = diags.begin(); it != diags.end(); ++it) {
-                            NCPA_DEBUG << "Setting diagonal " << *it << std::endl;
+                            // NCPA_DEBUG << "Setting diagonal " << *it << std::endl;
                             _A.set_diagonal( Mbase.get_diagonal( *it )->as_std(), (size_t)(*it) );
                         }
                     }
 
                     size_t nrows = _A.rows();
-                    NCPA_DEBUG << "Original vector has " << nrows << " rows" << std::endl;
+                    // NCPA_DEBUG << "Original vector has " << nrows << " rows" << std::endl;
                     size_t lbw   = _A.lower_bandwidth();
-                    NCPA_DEBUG << "Original vector has lower bandwidth " << lbw << std::endl;
+                    // NCPA_DEBUG << "Original vector has lower bandwidth " << lbw << std::endl;
                     size_t ubw   = _A.upper_bandwidth();
-                    NCPA_DEBUG << "Original vector has upper bandwidth " << ubw << std::endl;
+                    // NCPA_DEBUG << "Original vector has upper bandwidth " << ubw << std::endl;
 
                     for (auto k = 1; k <= nrows - 1; k++) {
-                        NCPA_DEBUG << "Decomposing row " << k << std::endl;
+                        // NCPA_DEBUG << "Decomposing row " << k << std::endl;
                         size_t ni = std::min( k + lbw, nrows );
                         for (auto i = k + 1; i <= ni; i++) {
                             _A.set( i - 1, k - 1,
