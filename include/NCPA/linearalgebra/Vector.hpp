@@ -140,6 +140,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual void print( std::ostream& os = std::cout ) const {
+                    os << *this << std::endl;
+                }
+
                 virtual Vector<ELEMENTTYPE>& resize( size_t n ) {
                     check_pointer();
                     _ptr->resize( n );

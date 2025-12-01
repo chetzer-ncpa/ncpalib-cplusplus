@@ -30,9 +30,8 @@ namespace NCPA {
             class block_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
             : public abstract_linear_system_solver<ELEMENTTYPE> {
+                friend class block_outrigger_linear_system_solver<ELEMENTTYPE>;
 
-            friend class block_outrigger_linear_system_solver<ELEMENTTYPE>;
-            
             public:
                 block_tridiagonal_linear_system_solver() :
                     abstract_linear_system_solver<ELEMENTTYPE>() {}
@@ -147,52 +146,50 @@ namespace NCPA {
                     size_t blocksize = _mat->rows_per_block();
                     size_t nblocks   = _mat->block_rows();
 
-                    // hold the first-modified and second-modified versions of
-                    // b, respectively
+                    // hold the modified versions of b and C
                     std::vector<Vector<ELEMENTTYPE>> Riss( nblocks );
                     std::vector<Matrix<ELEMENTTYPE>> Cis( nblocks );
                     Vector<ELEMENTTYPE> *Ris;
                     Matrix<ELEMENTTYPE> Bi_inv
                         = _mat->get_block( 0, 0 ).inverse();
-                    Cis[ 0 ] = Bi_inv * _mat->get_block( 0, 1 );
-                    Vector<ELEMENTTYPE> Ris_begin
+                    Matrix<ELEMENTTYPE> Ci = _mat->get_block(0,1);
+                    Cis[ 0 ] = Bi_inv * Ci;
+                    Vector<ELEMENTTYPE> Ris0
                         = Bi_inv * b.subvector( 0, blocksize );
 
                     for (size_t i = 1; i < nblocks; ++i) {
                         const Matrix<ELEMENTTYPE>& Ai
                             = _mat->get_block( i, i - 1 );
-                        // const Matrix<ELEMENTTYPE>& Bi
-                        //     = _mat->get_block( i, i );
-                        Bi_inv
-                            = ( _mat->get_block( i, i ) - Ai * Cis[ i - 1 ] )
-                                  .inverse();
+                        const Matrix<ELEMENTTYPE>& Bi
+                            = _mat->get_block( i, i );
+                        Bi_inv = ( Bi - Ai * Cis[ i - 1 ] ).inverse();
                         if (i < nblocks - 1) {
-                            Cis[ i ] = Bi_inv * _mat->get_block( i, i + 1 );
+                            const Matrix<ELEMENTTYPE>& Ci
+                                = _mat->get_block( i, i + 1 );
+                            Cis[ i ] = Bi_inv * Ci;
                         }
-
+                        Vector<ELEMENTTYPE> Ri
+                            = b.subvector( i * blocksize, blocksize );
                         if (i == 1) {
-                            Ris = &Ris_begin;
+                            Ris = &Ris0;
                         } else {
                             Ris = &( Riss.at( i - 1 ) );
                         }
-                        Riss[ i ] = Bi_inv
-                                  * ( b.subvector( i * blocksize, blocksize )
-                                      - ( Ai * ( *Ris ) ) );
+                        Riss[ i ] = Bi_inv * ( Ri - ( Ai * ( *Ris ) ) );
                     }
 
                     x.splice( Riss.back(), ( nblocks - 1 ) * blocksize,
                               blocksize );
+                    Vector<ELEMENTTYPE> xsub;
                     for (size_t i = nblocks - 2; i >= 1; --i) {
-                        x.splice( Riss.at( i )
-                                      - ( Cis.at( i )
-                                          * x.subvector( ( i + 1 ) * blocksize,
-                                                         blocksize ) ),
-                                  i * blocksize, blocksize );
+                        xsub = x.subvector( ( i + 1 ) * blocksize, blocksize );
+                        Vector<ELEMENTTYPE> xseg
+                            = Riss.at( i ) - ( Cis.at( i ) * xsub );
+                        x.splice( xseg, i * blocksize, blocksize );
                     }
-                    x.splice( Ris_begin
-                                  - ( Cis.at( 0 )
-                                      * x.subvector( blocksize, blocksize ) ),
-                              0, blocksize );
+
+                    xsub = x.subvector( blocksize, blocksize );
+                    x.splice( Ris0 - ( Cis.at( 0 ) * xsub ), 0, blocksize );
                     return x;
                 }
 

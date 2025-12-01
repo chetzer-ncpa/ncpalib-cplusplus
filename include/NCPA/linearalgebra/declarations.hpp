@@ -22,7 +22,8 @@ namespace NCPA {
             BASIC,
             BAND_DIAGONAL,
             TRIDIAGONAL,
-            BLOCK_TRIDIAGONAL
+            BLOCK_TRIDIAGONAL,
+            BLOCK_OUTRIGGER
         };
         enum class matrix_polynomial_algorithm_t {
             INVALID,

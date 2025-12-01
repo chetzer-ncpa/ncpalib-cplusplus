@@ -4,6 +4,7 @@
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/block_tridiagonal_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/block_outrigger_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
@@ -106,15 +107,9 @@ namespace NCPA {
                                     ELEMENTTYPE>() ) );
                             break;
                         case solver_t::BLOCK_TRIDIAGONAL:
-                            // return Solver<ELEMENTTYPE>(
-                            //     std::unique_ptr<abstract_linear_system_solver<
-                            //         ELEMENTTYPE>>(
-                            //         new
-                            //         block_tridiagonal_linear_system_solver<
-                            //             ELEMENTTYPE>() ) );
+                        case solver_t::BLOCK_OUTRIGGER:
                             throw std::invalid_argument(
-                                "Block tridiagonal matrix must specify a "
-                                "block type" );
+                                "Block matrix must specify a block type" );
                             break;
                         default:
                             throw std::logic_error( "Unknown or unsupported "
@@ -130,6 +125,13 @@ namespace NCPA {
                                 std::unique_ptr<abstract_linear_system_solver<
                                     ELEMENTTYPE>>(
                                     new block_tridiagonal_linear_system_solver<
+                                        ELEMENTTYPE>( blocktype ) ) );
+                            break;
+                        case solver_t::BLOCK_OUTRIGGER:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_linear_system_solver<
+                                    ELEMENTTYPE>>(
+                                    new block_outrigger_linear_system_solver<
                                         ELEMENTTYPE>( blocktype ) ) );
                             break;
                         default:

@@ -100,11 +100,6 @@ namespace NCPA {
                                 throw std::invalid_argument(
                                     "System matrix must be square!" );
                             }
-                            if (!BM.is_block_tridiagonal()) {
-                                throw std::invalid_argument(
-                                    "System matrix must be block "
-                                    "tridiagonal!" );
-                            }
                             size_t n = BM.block_rows();
                             if (n != BM.block_columns()) {
                                 throw std::invalid_argument(
@@ -123,8 +118,8 @@ namespace NCPA {
                                     _check_block_is_diagonal( BM, r, c );
                                 }
                             }
-                            _check_block_is_diagonal( 0, n - 1 );
-                            _check_block_is_diagonal( n - 1, 0 );
+                            _check_block_is_diagonal( BM, 0, n - 1 );
+                            _check_block_is_diagonal( BM, n - 1, 0 );
                         }
 
                         _mat = std::unique_ptr<BlockMatrix<ELEMENTTYPE>>(
@@ -135,6 +130,7 @@ namespace NCPA {
                             "Block tridiagonal solver only works for block "
                             "matrices" );
                     }
+                    return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE> solve(
@@ -144,7 +140,7 @@ namespace NCPA {
 
                     // we assign the system matrix first, then make a reference
                     // to it, to avoid copying twice
-                    solver.set_system_matrix( _mat, false );
+                    solver.set_system_matrix( *_mat, false );
                     BlockMatrix<ELEMENTTYPE>& A = solver.internal();
 
                     // we're going to mess with the input vector too
@@ -188,18 +184,24 @@ namespace NCPA {
                     }
 
                     // explicitly remove the lower left corner
-                    A.get_block( A.block_rows()-1, 0 ).zero();
+                    A.get_block( A.block_rows() - 1, 0 ).zero();
 
                     // now the upper right
                     for (r = 0; r < rows_per_block; ++r) {
                         c = ( rows_of_blocks - 1 ) * rows_per_block + r;
-                        while (c < ( r + rows_per_block )) {
+                        while (c > ( r + rows_per_block )) {
                             rs = c - rows_per_block;
-                            ELEMENTTYPE factor = A.get(r,c) / A.get(rs,c);
-                            A.set( r, rs-rows_per_block, factor * A.get(rs,rs-rows_per_block));
-                            A.set(r,rs,A.get(r,rs) - factor * A.get(rs,rs));
-                            A.zero(r,rs+rows_per_block);
-                            f.set( r, r.get(r) - factor * f.get(rs) );
+                            ELEMENTTYPE factor
+                                = A.get( r, c ) / A.get( rs, c );
+                            A.set(
+                                r, rs - rows_per_block,
+                                A.get( r, rs - rows_per_block )
+                                    - factor
+                                          * A.get( rs, rs - rows_per_block ) );
+                            A.set( r, rs,
+                                   A.get( r, rs ) - factor * A.get( rs, rs ) );
+                            A.zero( r, rs + rows_per_block );
+                            f.set( r, f.get( r ) - factor * f.get( rs ) );
                             c -= rows_per_block;
                         }
                     }

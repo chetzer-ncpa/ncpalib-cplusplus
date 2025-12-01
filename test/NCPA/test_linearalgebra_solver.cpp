@@ -330,8 +330,8 @@ TEST_F( _TEST_TITLE_,
 }
 
 TEST_F( _TEST_TITLE_, BlockTridiagonalSolverWorks ) {
-    Solver<double> bsolver
-        = SolverFactory<double>::build( solver_t::BLOCK_TRIDIAGONAL );
+    Solver<double> bsolver = SolverFactory<double>::build(
+        solver_t::BLOCK_TRIDIAGONAL, matrix_t::BAND_DIAGONAL );
     Matrix<double> Zblock
         = MatrixFactory<double>::build( matrix_t::BAND_DIAGONAL );
     Zblock.resize( 5, 5 ).set_diagonal( { 1, 2, 3, 4, 5 }, 0 );
@@ -376,5 +376,40 @@ TEST_F( _TEST_TITLE_, BlockTridiagonalSolverWorks ) {
 
     for (size_t i = 0; i < 25; ++i) {
         EXPECT_NEAR( product.get( i ), prodtest.get( i ), 1e-12 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, BlockOutriggerSolverWorks ) {
+    size_t m = 4;
+    size_t n = 2;
+
+    Solver<double> bsolver = SolverFactory<double>::build(
+        solver_t::BLOCK_OUTRIGGER, matrix_t::BAND_DIAGONAL );
+    Solver<double> testsolver = SolverFactory<double>::build(
+        solver_t::BAND_DIAGONAL );
+
+    BlockMatrix<double> BM( matrix_t::BAND_DIAGONAL );
+    BM.resize( m, m, n, n );
+    for (size_t r = 0; r < m; ++r) {
+        size_t cmin = ( r == 0 ? 0 : r - 1 );
+        size_t cmax = ( r == ( m - 1 ) ? r : r + 1 );
+        for (size_t c = cmin; c <= cmax; ++c) {
+            double factor = ( r == c ? 2.0 : 0.5 );
+            BM.get_block( r, c ).set_diagonal(
+                NCPA::math::random_numbers<double>( n, -factor, factor ) );
+        }
+    }
+    BM.get_block( m - 1, 0 )
+        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
+    BM.get_block( 0, m - 1 )
+        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
+
+    Vector<double> f = VectorFactory<double>::build( vector_t::DENSE );
+    f.set( NCPA::math::random_numbers<double>( m*n, -0.5, 0.5 ) );
+
+    Vector<double> soln = bsolver.set_system_matrix( BM ).solve( f );
+    Vector<double> testsoln = testsolver.set_system_matrix( BM ).solve( f );
+    for (size_t i = 0; i < m*n; ++i) {
+        EXPECT_NEAR( soln[i], testsoln[i], 1e-12 );
     }
 }

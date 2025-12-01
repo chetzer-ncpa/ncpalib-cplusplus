@@ -78,9 +78,9 @@ namespace NCPA {
                 }
 
                 virtual Solver<ELEMENTTYPE>& set_system_matrix(
-                    const Matrix<ELEMENTTYPE>& M ) {
+                    const Matrix<ELEMENTTYPE>& M, bool check = true ) {
                     check_pointer();
-                    _ptr->set_system_matrix( M );
+                    _ptr->set_system_matrix( M, check );
                     return *this;
                 }
 
