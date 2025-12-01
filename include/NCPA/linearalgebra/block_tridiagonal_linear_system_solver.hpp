@@ -30,6 +30,9 @@ namespace NCPA {
             class block_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
             : public abstract_linear_system_solver<ELEMENTTYPE> {
+
+            friend class block_outrigger_linear_system_solver<ELEMENTTYPE>;
+            
             public:
                 block_tridiagonal_linear_system_solver() :
                     abstract_linear_system_solver<ELEMENTTYPE>() {}
@@ -51,7 +54,7 @@ namespace NCPA {
 
                 /**
                  * Move constructor.
-                 * @param source The vector to assimilate.
+                 * @param source The solver to assimilate.
                  */
                 block_tridiagonal_linear_system_solver(
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>&&
@@ -99,17 +102,17 @@ namespace NCPA {
                 }
 
                 virtual block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
-                    set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M ) override {
+                    set_system_matrix( const Matrix<ELEMENTTYPE>& M,
+                                       bool check = true ) override {
                     if (auto BM
                         = dynamic_cast<const BlockMatrix<ELEMENTTYPE>&>( M )) {
-                        if (!BM.is_square()) {
+                        if (check && !BM.is_square()) {
                             throw std::logic_error(
                                 "System matrix must be square!" );
                         }
-                        if (!BM.is_block_tridiagonal()) {
+                        if (check && !BM.is_block_tridiagonal()) {
                             throw std::logic_error(
-                                "System matrix must be tridiagonal!" );
+                                "System matrix must be block tridiagonal!" );
                         }
 
                         _mat = std::unique_ptr<BlockMatrix<ELEMENTTYPE>>(
@@ -206,9 +209,12 @@ namespace NCPA {
                     }
                 }
 
+            protected:
+                BlockMatrix<ELEMENTTYPE>& internal() { return *_mat; }
+
             private:
                 matrix_t _blocktype = matrix_t::INVALID;
-                std::unique_ptr<NCPA::linear::BlockMatrix<ELEMENTTYPE>> _mat;
+                std::unique_ptr<BlockMatrix<ELEMENTTYPE>> _mat;
         };
     }  // namespace linear
 }  // namespace NCPA

@@ -127,7 +127,7 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( symmetric_matrix,
                                                      band_diagonal_matrix );
 
-        // solvers
+        // solvers (behind the scenes)
         template<typename ELEMENTTYPE>
         class abstract_linear_system_solver;
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
@@ -140,6 +140,9 @@ namespace NCPA {
             abstract_linear_system_solver );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
             block_tridiagonal_linear_system_solver,
+            abstract_linear_system_solver );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE(
+            block_outrigger_linear_system_solver,
             abstract_linear_system_solver );
 
         class TridiagonalEigensolver;

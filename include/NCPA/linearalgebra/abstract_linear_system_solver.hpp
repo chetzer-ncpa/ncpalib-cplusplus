@@ -37,7 +37,7 @@ namespace NCPA {
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
                     set_system_matrix(
-                        const NCPA::linear::Matrix<ELEMENTTYPE>& M )
+                        const NCPA::linear::Matrix<ELEMENTTYPE>& M, bool check )
                     = 0;
                 virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                     = 0;
