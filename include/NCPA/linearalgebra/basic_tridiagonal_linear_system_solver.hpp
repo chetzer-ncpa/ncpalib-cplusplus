@@ -80,18 +80,21 @@ namespace NCPA {
                 }
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
-                    set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M ) override {
-                    if ( !M.is_square() ) {
-                        throw std::logic_error(
-                            "System matrix must be square!" );
+                    set_system_matrix( const Matrix<ELEMENTTYPE>& M,
+                                       bool check = true ) override {
+                    if (check) {
+                        if (!M.is_square()) {
+                            throw std::logic_error(
+                                "System matrix must be square!" );
+                        }
+                        if (!M.is_tridiagonal()) {
+                            throw std::logic_error(
+                                "System matrix must be tridiagonal!" );
+                        }
                     }
-                    if ( !M.is_tridiagonal() ) {
-                        throw std::logic_error(
-                            "System matrix must be tridiagonal!" );
-                    }
-                    _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
-                        new Matrix<ELEMENTTYPE>( M ) );
+                    // NCPA_DEBUG << "Cloning into tridiagonal solver..." <<
+                    // std::endl;
+                    _mat = M.clone();
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
                 }
@@ -99,7 +102,7 @@ namespace NCPA {
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                     const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
                     size_t N = b.size();
-                    if ( N != _mat->rows() ) {
+                    if (N != _mat->rows()) {
                         std::ostringstream oss;
                         oss << "solver: size mismatch between system "
                                "matrix "
@@ -108,19 +111,20 @@ namespace NCPA {
                             << "] and input vector size " << b.size();
                         throw std::logic_error( oss.str() );
                     }
-                    ELEMENTTYPE cup, pot;
+                    // ELEMENTTYPE cup, pot;
+                    ELEMENTTYPE tmpval;
                     std::vector<ELEMENTTYPE> diag
                         = _mat->get_diagonal()->as_std(),
                         lower = _mat->get_diagonal( -1 )->as_std(),
                         upper = _mat->get_diagonal( 1 )->as_std();
 
                     size_t L = diag.size();
-                    if ( b.size() != L ) {
+                    if (b.size() != L) {
                         throw std::logic_error(
                             "Matrix diagonal and RHS vector are not the "
                             "same size!" );
                     }
-                    if ( b.size() != L ) {
+                    if (b.size() != L) {
                         throw std::logic_error(
                             "Matrix diagonal and solution vector are not "
                             "the same size!" );
@@ -130,26 +134,28 @@ namespace NCPA {
                     x.resize( N ).zero();
                     int i;
 
-                    if ( NCPA::math::is_zero<ELEMENTTYPE>( diag[ 0 ] ) ) {
+                    if (NCPA::math::is_zero<ELEMENTTYPE>( diag[ 0 ] )) {
                         throw std::range_error(
                             "First diagonal element is zero." );
                     }
-                    cup      = diag[ 0 ];
-                    vec[ 0 ] = cup;
+                    // cup      = diag[ 0 ];
+                    // vec[ 0 ] = cup;
+                    vec[ 0 ] = diag[ 0 ];
                     x.set( 0, b[ 0 ] );
-                    for ( i = 1; i < L; i++ ) {
-                        pot = lower[ i - 1 ] / cup;
-                        x.set( i, b[ i ] - ( x.get( i - 1 ) * pot ) );
-                        cup = diag[ i ] - ( upper[ i - 1 ] * pot );
-                        if ( NCPA::math::is_zero<ELEMENTTYPE>( cup ) ) {
+                    for (i = 1; i < L; i++) {
+                        tmpval = lower[ i - 1 ] / vec[ i - 1 ];
+                        x.set( i, b[ i ] - ( x.get( i - 1 ) * tmpval ) );
+                        // cup = diag[ i ] - ( upper[ i - 1 ] * pot );
+                        vec[ i ] = diag[ i ] - ( upper[ i - 1 ] * tmpval );
+                        if (NCPA::math::is_zero<ELEMENTTYPE>( vec[ i ] )) {
                             throw std::invalid_argument(
                                 "Matrix needs to be pivoted" );
                         }
-                        vec[ i ] = cup;
+                        // vec[ i ] = cup;
                     }
 
                     x.set( L - 1, x.get( L - 1 ) / vec[ L - 1 ] );
-                    for ( i = L - 2; i >= 0; i-- ) {
+                    for (i = L - 2; i >= 0; i--) {
                         x.set( i,
                                ( x.get( i ) - ( upper[ i ] * x.get( i + 1 ) ) )
                                    / vec[ i ] );
@@ -159,9 +165,9 @@ namespace NCPA {
 
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                     const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
-                    if ( b.is_column_matrix() ) {
+                    if (b.is_column_matrix()) {
                         return solve( *b.get_column( 0 ) );
-                    } else if ( b.is_row_matrix() ) {
+                    } else if (b.is_row_matrix()) {
                         return solve( *b.get_row( 0 ) );
                     } else {
                         throw std::logic_error(

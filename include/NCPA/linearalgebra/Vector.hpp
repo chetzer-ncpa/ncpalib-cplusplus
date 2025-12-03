@@ -2,6 +2,7 @@
 
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/constants.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -48,8 +49,7 @@ namespace NCPA {
 
                 Vector() {}
 
-                Vector( std::unique_ptr<abstract_vector<ELEMENTTYPE>>
-                            ptr ) :
+                Vector( std::unique_ptr<abstract_vector<ELEMENTTYPE>> ptr ) :
                     Vector<ELEMENTTYPE>() {
                     _ptr = std::move( ptr );
                 }
@@ -125,12 +125,23 @@ namespace NCPA {
                     return _ptr->as_std();
                 }
 
+                virtual Vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) {
+                    if (_ptr) {
+                        _ptr->clean( tol );
+                    }
+                    return *this;
+                }
+
                 virtual Vector<ELEMENTTYPE>& clear() {
-                    if ( _ptr ) {
+                    if (_ptr) {
                         // _ptrclear();
                         _ptr.reset();
                     }
                     return *this;
+                }
+
+                virtual void print( std::ostream& os = std::cout ) const {
+                    os << *this << std::endl;
                 }
 
                 virtual Vector<ELEMENTTYPE>& resize( size_t n ) {
@@ -176,6 +187,8 @@ namespace NCPA {
                     return *this;
                 }
 
+
+
                 virtual Vector<ELEMENTTYPE>& scale( ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->scale( val );
@@ -186,6 +199,19 @@ namespace NCPA {
                     const Vector<ELEMENTTYPE>& b ) {
                     check_pointer();
                     _ptr->scale( *( b._ptr ) );
+                    return *this;
+                }
+
+                virtual Vector<ELEMENTTYPE> subvector( size_t start,
+                                                       size_t end ) const {
+                    check_pointer();
+                    return Vector<ELEMENTTYPE>(
+                        _ptr->subvector( start, end ) );
+                }
+
+                virtual Vector<ELEMENTTYPE>& splice( const Vector<ELEMENTTYPE>& v, size_t start, size_t elements ) {
+                    check_pointer();
+                    _ptr->splice( *v.internal(), start, elements );
                     return *this;
                 }
 
@@ -209,14 +235,14 @@ namespace NCPA {
 
                 // implementations, not abstract
                 virtual bool equals( const Vector<ELEMENTTYPE>& other ) const {
-                    if ( !_ptr || !( other._ptr ) ) {
+                    if (!_ptr || !( other._ptr )) {
                         return false;
                     }
-                    if ( size() != other.size() ) {
+                    if (size() != other.size()) {
                         return false;
                     }
-                    for ( auto i = 0; i < size(); i++ ) {
-                        if ( get( i ) != other.get( i ) ) {
+                    for (auto i = 0; i < size(); i++) {
+                        if (get( i ) != other.get( i )) {
                             return false;
                         }
                     }
@@ -225,7 +251,8 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE> operator-() const {
                     check_pointer();
-                    return Vector<ELEMENTTYPE>( *this ).scale( -1.0 );
+                    return Vector<ELEMENTTYPE>( *this ).scale(
+                        -NCPA::constants::one<ELEMENTTYPE>() );
                 }
 
                 virtual Vector<ELEMENTTYPE>& operator+=(
@@ -273,7 +300,7 @@ namespace NCPA {
                 virtual Vector<ELEMENTTYPE>& operator/=(
                     const ELEMENTTYPE& other ) {
                     check_pointer();
-                    this->scale( 1.0 / other );
+                    this->scale( NCPA::constants::one<ELEMENTTYPE>() / other );
                     return *this;
                 }
 
@@ -301,8 +328,8 @@ namespace NCPA {
                 friend std::ostream& operator<<(
                     std::ostream& os, const Vector<ELEMENTTYPE>& vec ) {
                     os << "[ ";
-                    for ( size_t r = 0; r < vec.size(); r++ ) {
-                        if ( r > 0 ) {
+                    for (size_t r = 0; r < vec.size(); r++) {
+                        if (r > 0) {
                             os << ", ";
                         }
                         os << vec[ r ];
@@ -370,13 +397,12 @@ namespace NCPA {
                     return out;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE> *internal()
-                    const {
+                virtual abstract_vector<ELEMENTTYPE> *internal() const {
                     return _ptr.get();
                 }
 
                 virtual void check_pointer() const {
-                    if ( _ptr == nullptr ) {
+                    if (_ptr == nullptr) {
                         throw std::logic_error(
                             "Vector: Internal pointer has not been set!" );
                     }
@@ -394,8 +420,8 @@ namespace NCPA {
                     os << this->size() << std::endl;
                     auto nzinds = this->_ptr->nonzero_indices();
 
-                    for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
-                          ++cit ) {
+                    for (auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                         ++cit) {
                         element = this->get( *cit );
                         os << *cit << sep << element.real() << sep
                            << element.imag() << std::endl;
@@ -409,8 +435,8 @@ namespace NCPA {
                     os << this->size() << std::endl;
 
                     auto nzinds = this->_ptr->nonzero_indices();
-                    for ( auto cit = nzinds.cbegin(); cit != nzinds.cend();
-                          ++cit ) {
+                    for (auto cit = nzinds.cbegin(); cit != nzinds.cend();
+                         ++cit) {
                         os << *cit << sep << this->get( *cit ) << std::endl;
                     }
                 }
@@ -418,7 +444,7 @@ namespace NCPA {
             protected:
                 void _check_same_size(
                     const Vector<ELEMENTTYPE>& other ) const {
-                    if ( size() != other.size() ) {
+                    if (size() != other.size()) {
                         throw std::invalid_argument(
                             "Vectors are not the same size!" );
                     }
@@ -427,154 +453,6 @@ namespace NCPA {
             private:
                 std::unique_ptr<abstract_vector<ELEMENTTYPE>> _ptr;
         };
-
-        // NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-        //     class WrapperVector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-        //     : public Vector<ELEMENTTYPE> {
-        //     public:
-        //         WrapperVector() : Vector<ELEMENTTYPE>(), _ptr { nullptr } {}
-
-        //         WrapperVector( abstract_vector<ELEMENTTYPE>& vec ) {
-        //             _ptr = &vec;
-        //         }
-
-        //         WrapperVector( const WrapperVector<ELEMENTTYPE>& other ) :
-        //             WrapperVector<ELEMENTTYPE>() {
-        //             _ptr = other._ptr;
-        //         }
-
-        //         ~WrapperVector() {}
-
-        //         friend void ::swap<ELEMENTTYPE>(
-        //             WrapperVector<ELEMENTTYPE>& a,
-        //             WrapperVector<ELEMENTTYPE>& b ) noexcept;
-
-        //         /**
-        //          * Assignment operator.
-        //          * @param other The vector to assign to this.
-        //          */
-        //         WrapperVector<ELEMENTTYPE>& operator=(
-        //             WrapperVector<ELEMENTTYPE> other ) {
-        //             ::swap( *this, other );
-        //             return *this;
-        //         }
-
-        //         friend bool operator==( const WrapperVector<ELEMENTTYPE>& a,
-        //                                 const WrapperVector<ELEMENTTYPE>& b ) {
-        //             return a.equals( b );
-        //         }
-
-        //         friend bool operator!=( const WrapperVector<ELEMENTTYPE>& a,
-        //                                 const WrapperVector<ELEMENTTYPE>& b ) {
-        //             return !( a.equals( b ) );
-        //         }
-
-        //         virtual abstract_vector<ELEMENTTYPE> *internal()
-        //             const override {
-        //             return _ptr;
-        //         }
-
-        //         virtual Vector<ELEMENTTYPE>& clear() override {
-        //             _ptr = nullptr;
-        //             return *static_cast<Vector<ELEMENTTYPE> *>( this );
-        //         }
-
-        //         virtual Vector<ELEMENTTYPE>& operator-=(
-        //             const Vector<ELEMENTTYPE>& other ) override {
-        //             this->check_pointer();
-        //             this->_check_same_size( other );
-        //             for ( size_t i = 0; i < this->size(); i++ ) {
-        //                 internal()->set( i, this->get( i ) - other.get( i ) );
-        //             }
-        //             // this->add( -other );
-        //             return *this;
-        //         }
-
-        //         virtual Vector<ELEMENTTYPE>& operator-=(
-        //             const ELEMENTTYPE& other ) override {
-        //             this->check_pointer();
-        //             this->add( -other );
-        //             return *this;
-        //         }
-
-        //         // friend binary operators
-        //         friend std::ostream& operator<<(
-        //             std::ostream& os, const WrapperVector<ELEMENTTYPE>& vec ) {
-        //             os << "[ ";
-        //             for ( size_t r = 0; r < vec.size(); r++ ) {
-        //                 if ( r > 0 ) {
-        //                     os << ", ";
-        //                 }
-        //                 os << vec[ r ];
-        //             }
-        //             os << " ]";
-        //             return os;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator+(
-        //             const WrapperVector<ELEMENTTYPE>& c1,
-        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out += c2;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator+(
-        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out += c2;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator+(
-        //             ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
-        //             Vector<ELEMENTTYPE> out( c2 );
-        //             out += c1;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator-(
-        //             const WrapperVector<ELEMENTTYPE>& c1,
-        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out -= c2;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator-(
-        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out -= c2;
-        //             return out;
-        //         }
-
-        //         friend NCPA::linear::Vector<ELEMENTTYPE> operator*(
-        //             const WrapperVector<ELEMENTTYPE>& c1,
-        //             const WrapperVector<ELEMENTTYPE>& c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out *= c2;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator*(
-        //             const WrapperVector<ELEMENTTYPE>& c1, ELEMENTTYPE c2 ) {
-        //             Vector<ELEMENTTYPE> out( c1 );
-        //             out *= c2;
-        //             return out;
-        //         }
-
-        //         friend Vector<ELEMENTTYPE> operator*(
-        //             ELEMENTTYPE c1, const WrapperVector<ELEMENTTYPE>& c2 ) {
-        //             Vector<ELEMENTTYPE> out( c2 );
-        //             out *= c1;
-        //             return out;
-        //         }
-
-        //         explicit operator bool() const { return ( _ptr != nullptr ); }
-
-        //     private:
-        //         abstract_vector<ELEMENTTYPE> *_ptr;
-        // };
     }  // namespace linear
 }  // namespace NCPA
 
@@ -584,13 +462,3 @@ static void swap( NCPA::linear::Vector<T>& a,
     // using std::swap;
     a._ptr.swap( b._ptr );
 }
-
-// template<typename T>
-// static void swap( NCPA::linear::WrapperVector<T>& a,
-//                   NCPA::linear::WrapperVector<T>& b ) noexcept {
-//     using std::swap;
-//     ::swap( static_cast<NCPA::linear::Vector<T>&>( a ),
-//             static_cast<NCPA::linear::Vector<T>&>( b ) );
-//     swap( a._ptr, b._ptr );
-// }
-

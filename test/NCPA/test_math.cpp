@@ -558,6 +558,19 @@ TEST( NCPAMathLibraryTest, IsZeroReturnsFalseForNonzeroValue ) {
     EXPECT_FALSE( is_zero( cld ) );
 }
 
+TEST( NCPAMathLibraryTest, InverseWorksForRealNumbers ) {
+    double d = -3.4;
+    double di = inverse( d );
+    EXPECT_NEAR( d * di, 1.0, 1e-12 );
+}
+
+TEST( NCPAMathLibraryTest, InverseWorksForComplexNumbers ) {
+    complex<double> d( -3.4, 2.9 );
+    complex<double> di = inverse( d );
+    EXPECT_NEAR( (d * di).real(), 1.0, 1e-12 );
+    EXPECT_NEAR( (d * di).imag(), 0.0, 1e-12 );
+}
+
 TEST( NCPAMathLibraryTest, ComplexRootFinderWorks ) {
     std::vector<double> testroots_real { 1.0, 3.0, 5.0, 7.0, 9.0 };
     std::vector<double> testcoeffs_real { 1.0,    -25.0,  230.0,

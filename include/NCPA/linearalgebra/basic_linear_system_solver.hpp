@@ -80,20 +80,13 @@ namespace NCPA {
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
                     set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M ) override {
-                    if ( !M.is_square() ) {
+                        const Matrix<ELEMENTTYPE>& M, bool check = true ) override {
+                    if ( check && !M.is_square() ) {
                         throw std::logic_error(
                             "System matrix must be square!" );
                     }
                     _mat = std::unique_ptr<Matrix<ELEMENTTYPE>>(
                         new Matrix<ELEMENTTYPE>( M ) );
-                    // if ( _lu ) {
-                    //     _lu->clear();
-                    // } else {
-                    //     _build_lu();
-                    // }
-                    // _lu->decompose( *_mat, false );
-
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
                 }

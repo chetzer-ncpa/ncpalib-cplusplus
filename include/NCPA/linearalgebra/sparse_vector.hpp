@@ -33,7 +33,7 @@ namespace NCPA {
                 }
 
                 sparse_vector( size_t n ) : sparse_vector<ELEMENTTYPE>() {
-                    if ( n > 0 ) {
+                    if (n > 0) {
                         resize( n );
                     }
                 }
@@ -75,11 +75,11 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual sparse_vector<ELEMENTTYPE>& set(
                     size_t n, const ELEMENTTYPE *val ) override {
                     clear();
-                    for ( size_t i = 0; i < n; i++ ) {
-                        if ( !NCPA::math::is_zero( val[ i ] ) ) {
+                    for (size_t i = 0; i < n; i++) {
+                        if (!NCPA::math::is_zero( val[ i ] )) {
                             // std::cout << "Setting _elements[" << i << "]
                             // = " << val[i] << std::endl;
                             _elements[ i ] = val[ i ];
@@ -87,26 +87,28 @@ namespace NCPA {
                     }
 
                     _capacity = n;
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual sparse_vector<ELEMENTTYPE>& set(
                     const std::vector<ELEMENTTYPE>& v ) override {
                     return set( v.size(), &v[ 0 ] );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual sparse_vector<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
-                    if ( NCPA::math::is_zero( val ) ) {
+                    if (NCPA::math::is_zero( val )) {
                         _elements.clear();
                     } else {
-                        for ( size_t i = 0; i < _capacity; i++ ) {
+                        for (size_t i = 0; i < _capacity; i++) {
                             set( i, val );
                         }
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
                 virtual size_t size() const override { return _capacity; }
@@ -114,7 +116,7 @@ namespace NCPA {
                 virtual const ELEMENTTYPE& get( size_t n ) const override {
                     _check_out_of_range( n );
                     auto it = _elements.find( n );
-                    if ( it != _elements.cend() ) {
+                    if (it != _elements.cend()) {
                         return it->second;
                     } else {
                         return _zero;
@@ -124,7 +126,7 @@ namespace NCPA {
                 virtual ELEMENTTYPE& get( size_t n ) override {
                     _check_out_of_range( n );
                     auto it = _elements.find( n );
-                    if ( it == _elements.end() ) {
+                    if (it == _elements.end()) {
                         _elements[ n ] = _zero;
                     }
                     return _elements[ n ];
@@ -132,8 +134,8 @@ namespace NCPA {
 
                 virtual std::vector<ELEMENTTYPE> as_std() const override {
                     std::vector<ELEMENTTYPE> v( _capacity );
-                    for ( auto it = _elements.cbegin(); it != _elements.cend();
-                          ++it ) {
+                    for (auto it = _elements.cbegin(); it != _elements.cend();
+                         ++it) {
                         v[ it->first ] = it->second;
                     }
                     return v;
@@ -146,101 +148,106 @@ namespace NCPA {
                         new sparse_vector( *this ) );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& clear() override {
+                virtual sparse_vector<ELEMENTTYPE>& clear() override {
                     _elements.clear();
                     _capacity = 0;
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& resize(
+                virtual sparse_vector<ELEMENTTYPE>& resize(
                     size_t n ) override {
-                    if ( n < _capacity ) {
+                    if (n < _capacity) {
                         auto last = _elements.upper_bound( n - 1 );
-                        while ( last != _elements.end() ) {
+                        while (last != _elements.end()) {
                             _elements.erase( last );
                             last = _elements.upper_bound( n - 1 );
                         }
                     }
                     _capacity = n;
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& as_array(
+                virtual sparse_vector<ELEMENTTYPE>& as_array(
                     size_t& n, ELEMENTTYPE *& vals ) override {
-                    if ( n == 0 ) {
+                    if (n == 0) {
                         n = size();
-                        if ( vals != nullptr ) {
+                        if (vals != nullptr) {
                             delete[] vals;
                             vals = nullptr;
                         }
                         vals = NCPA::arrays::zeros<ELEMENTTYPE>( n );
-                    } else if ( n != size() ) {
+                    } else if (n != size()) {
                         throw std::invalid_argument(
                             "Size mismatch between vector and target "
                             "array" );
                     }
                     std::fill( vals, vals + n, _zero );
-                    for ( auto it = _elements.cbegin(); it != _elements.cend();
-                          ++it ) {
+                    for (auto it = _elements.cbegin(); it != _elements.cend();
+                         ++it) {
                         vals[ it->first ] = it->second;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& set(
+                virtual sparse_vector<ELEMENTTYPE>& set(
                     size_t n, ELEMENTTYPE val ) override {
                     _check_out_of_range( n );
-                    if ( NCPA::math::is_zero( val ) ) {
+                    if (NCPA::math::is_zero( val )) {
                         _elements.erase( n );
                     } else {
                         _elements[ n ] = val;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& scale(
+                virtual sparse_vector<ELEMENTTYPE>& scale(
                     ELEMENTTYPE val ) override {
-                    for ( auto it = _elements.begin(); it != _elements.end();
-                          ++it ) {
+                    for (auto it = _elements.begin(); it != _elements.end();
+                         ++it) {
                         it->second *= val;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& scale(
+                virtual sparse_vector<ELEMENTTYPE>& scale(
                     const abstract_vector<ELEMENTTYPE>& b ) override {
                     _check_same_size( b );
                     std::vector<size_t> keep = this->nonzero_index_union( b );
 
                     sparse_vector<ELEMENTTYPE> newv;
                     newv.resize( size() );
-                    for ( auto uit = keep.cbegin(); uit != keep.cend();
-                          ++uit ) {
+                    for (auto uit = keep.cbegin(); uit != keep.cend(); ++uit) {
                         newv.set( *uit, get( *uit ) * b.get( *uit ) );
                     }
                     swap( *this, newv );
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
                 virtual ELEMENTTYPE dot(
                     const abstract_vector<ELEMENTTYPE>& b ) const override {
-                    if ( auto *derived
-                         = dynamic_cast<const sparse_vector<ELEMENTTYPE> *>(
-                             &b ) ) {
+                    if (auto *derived
+                        = dynamic_cast<const sparse_vector<ELEMENTTYPE> *>(
+                            &b )) {
                         return _sparse_dot(
                             dynamic_cast<const sparse_vector<ELEMENTTYPE>&>(
                                 b ) );
                     } else {
                         _check_same_size( b );
                         ELEMENTTYPE product = _zero;
-                        for ( auto it = _elements.cbegin();
-                              it != _elements.cend(); ++it ) {
+                        for (auto it = _elements.cbegin();
+                             it != _elements.cend(); ++it) {
                             product += it->second * b.get( it->first );
                         }
                         return product;
@@ -253,13 +260,13 @@ namespace NCPA {
                     ELEMENTTYPE product = _zero;
                     auto a_it           = this->_elements.cbegin();
                     auto b_it           = b._elements.cbegin();
-                    while ( a_it != this->_elements.cend()
-                            && b_it != b._elements.cend() ) {
-                        if ( a_it->first == b_it->first ) {
+                    while (a_it != this->_elements.cend()
+                           && b_it != b._elements.cend()) {
+                        if (a_it->first == b_it->first) {
                             product += a_it->second * b_it->second;
                             ++a_it;
                             ++b_it;
-                        } else if ( a_it->first < b_it->first ) {
+                        } else if (a_it->first < b_it->first) {
                             ++a_it;
                         } else {
                             ++b_it;
@@ -287,9 +294,9 @@ namespace NCPA {
 
                 virtual std::vector<size_t> nonzero_indices() const override {
                     std::vector<size_t> nz;
-                    for ( auto it = _elements.cbegin(); it != _elements.cend();
-                          ++it ) {
-                        if ( !NCPA::math::is_zero( it->second ) ) {
+                    for (auto it = _elements.cbegin(); it != _elements.cend();
+                         ++it) {
+                        if (!NCPA::math::is_zero( it->second )) {
                             nz.push_back( it->first );
                         }
                     }
@@ -306,52 +313,74 @@ namespace NCPA {
                     return _elements.size() == 0;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero() override {
-                    _elements.clear();
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                virtual bool is_zero( size_t index ) const override {
+                    auto it = _elements.find( index );
+                    return ( it == _elements.cend() || it == _elements.end() );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual sparse_vector<ELEMENTTYPE>& zero() override {
+                    _elements.clear();
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
+                }
+
+                virtual sparse_vector<ELEMENTTYPE>& zero(
                     size_t n ) override {
                     _erase( n );
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual sparse_vector<ELEMENTTYPE>& zero(
                     const std::vector<size_t>& n ) override {
-                    for ( auto it = n.cbegin(); it != n.cend(); ++it ) {
+                    for (auto it = n.cbegin(); it != n.cend(); ++it) {
                         _erase( *it );
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& zero(
+                virtual sparse_vector<ELEMENTTYPE>& zero(
                     std::initializer_list<size_t> n ) override {
                     return zero( std::vector<size_t>( n ) );
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& add(
+                virtual sparse_vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                    auto atol = std::abs( tol );
+                    for (auto it = _elements.begin(); it != _elements.end(); ) {
+                        if (std::abs( it->second ) < atol) {
+                            it = _elements.erase( it );
+                        } else {
+                            ++it;
+                        }
+                    }
+                    return *this;
+                }
+
+                virtual sparse_vector<ELEMENTTYPE>& add(
                     const abstract_vector<ELEMENTTYPE>& b,
                     ELEMENTTYPE modifier = 1.0 ) override {
                     _check_same_size( b );
-                    for ( size_t i = 0; i < b.size(); i++ ) {
+                    for (size_t i = 0; i < b.size(); i++) {
                         set( i, get( i ) + b.get( i ) * modifier );
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
-                virtual abstract_vector<ELEMENTTYPE>& add(
+                virtual sparse_vector<ELEMENTTYPE>& add(
                     ELEMENTTYPE b ) override {
-                    for ( auto i = 0; i < size(); i++ ) {
+                    for (auto i = 0; i < size(); i++) {
                         set( i, get( i ) + b );
                         // _elements[ i ] += b;
                     }
-                    return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
-                        this );
+                    // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
+                    //     this );
+                    return *this;
                 }
 
                 typename std::map<size_t, ELEMENTTYPE>::iterator
@@ -386,31 +415,62 @@ namespace NCPA {
 
                 friend class band_diagonal_matrix<ELEMENTTYPE>;
 
+                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                    subvector( size_t start, size_t elements ) const override {
+                    size_t last_element = start + elements;
+                    if (last_element > this->size()) {
+                        throw std::range_error( "Requested segment extends past end of vector" );
+                    }
+                    std::unique_ptr<abstract_vector<ELEMENTTYPE>> newPtr(
+                        new sparse_vector<ELEMENTTYPE>( elements ) );
+                    
+                    for (auto it = _elements.begin();
+                         it != _elements.end() && it->first < last_element; ++it) {
+                        if (it->first >= start) {
+                            newPtr->set( it->first, it->second );
+                        }
+                    }
+                    return newPtr;
+                }
+
+                virtual sparse_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start, size_t elements ) override {
+                    size_t last = start + elements;
+                    if (last > this->size()) {
+                        this->resize( last );
+                    }
+                    for (size_t i = 0; i < elements; ++i) {
+                        if (!v.is_zero( i ))
+                        {this->set( start + i, v.get( i ) );}
+                    }
+                    return *this;
+                }
+
+
             protected:
                 void _verify_nonzero() {
                     std::vector<size_t> bad_inds;
-                    for ( auto it = _elements.begin(); it != _elements.end();
-                          ++it ) {
-                        if ( NCPA::math::is_zero( it->second ) ) {
+                    for (auto it = _elements.begin(); it != _elements.end();
+                         ++it) {
+                        if (NCPA::math::is_zero( it->second )) {
                             bad_inds.push_back( it->first );
                         }
                     }
-                    for ( auto it = bad_inds.begin(); it != bad_inds.end();
-                          ++it ) {
+                    for (auto it = bad_inds.begin(); it != bad_inds.end();
+                         ++it) {
                         _elements.erase( *it );
                     }
                 }
 
                 void _erase( size_t n ) {
                     auto it = _elements.find( n );
-                    if ( it != _elements.cend() ) {
+                    if (it != _elements.cend()) {
                         _elements.erase( it );
                     }
                 }
 
                 void _check_same_size(
                     const abstract_vector<ELEMENTTYPE>& b ) const {
-                    if ( b.size() != size() ) {
+                    if (b.size() != size()) {
                         throw std::invalid_argument(
                             "Operation requires vectors to be the same "
                             "size" );
@@ -418,7 +478,7 @@ namespace NCPA {
                 }
 
                 void _check_out_of_range( size_t n ) const {
-                    if ( n >= _capacity ) {
+                    if (n >= _capacity) {
                         std::ostringstream oss;
                         oss << "Index " << n
                             << " exceeds range for vector of size "

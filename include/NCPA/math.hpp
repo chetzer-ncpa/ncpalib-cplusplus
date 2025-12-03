@@ -36,6 +36,16 @@ namespace NCPA {
         //     return is_zero( val.real() ) && is_zero( val.imag() );
         // }
 
+        template<typename T>
+        constexpr T pi() {
+            return (T)( NCPA::constants::PI );
+        }
+
+        template<typename T>
+        constexpr std::complex<T> ii() {
+            return std::complex<T>( NCPA::constants::zero<T>(),
+                                    NCPA::constants::one<T>() );
+        }
 
         template<typename T>
         bool equals( T x, T y, size_t n = 1,
@@ -85,6 +95,11 @@ namespace NCPA {
                 && equals( x.imag(), y.imag() );
         }
 
+        template<typename T>
+        bool is_divisible( T x, T y, ENABLE_FUNCTION_IF_INTEGRAL( T ) ) {
+            return ( x % y == 0 );
+        }
+
         /**
          * Returns -1, 0, or 1 depending on the sign of the argument.
          * @brief Returns -1, 0, or 1 depending on the sign of the argument.
@@ -111,6 +126,33 @@ namespace NCPA {
             return n * n;
         }
 
+        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        T inverse( T val ) {
+            return ((T)1.0) / val;
+        }
+
+        template<typename T>
+        std::complex<T> inverse( std::complex<T> val ) {
+            T denominator = val.real() * val.real() + val.imag()*val.imag();
+            return std::complex<T>( val.real() / denominator, -val.imag() / denominator );
+        }
+
+        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        bool within( const T& val1, const T& val2, const T& tol ) {
+            return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
+        }
+
+        /**
+         * Returns whether two values are equal within a given tolerance
+         */
+        template<typename T>
+        bool within( const std::complex<T>& val1, const std::complex<T>& val2,
+                     const T& tol ) {
+            return ( std::abs( val1.real() - val2.real() ) <= std::abs( tol )
+                     && std::abs( val1.imag() - val2.imag() ) <= std::abs( tol ) );
+        }
+
+        
         /**
          * Finds and returns the indices of the array elements before and after
          * the supplied value.
@@ -334,6 +376,24 @@ namespace NCPA {
         }
 
         /**
+        @brief Returns the index of the maximum absolute value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the maximum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_max_abs( const std::vector<T>& vals ) {
+            T maxval   = std::abs( vals[ 0 ] );
+            size_t ind = 0;
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (std::abs( vals[ i ] ) > maxval) {
+                    maxval = std::abs( vals[ i ] );
+                    ind    = i;
+                }
+            }
+            return ind;
+        }
+
+        /**
         @brief Returns the index of the maximum value from a vector.
         @param vals The vector holding the values to check.
         @returns The index of the maximum value found in the vector.
@@ -397,6 +457,24 @@ namespace NCPA {
                 minval = std::min( *cit, minval );
             }
             return minval;
+        }
+
+        /**
+        @brief Returns the index of the minimum absolute value from a vector.
+        @param vals The vector holding the values to check.
+        @returns The index of the minimum value found in the vector.
+        */
+        template<typename T>
+        size_t index_of_min_abs( const std::vector<T>& vals ) {
+            T minval   = std::abs( vals.front() );
+            size_t ind = 0;
+            for (size_t i = 1; i < vals.size(); i++) {
+                if (std::abs( vals[ i ] ) < minval) {
+                    minval = std::abs( vals[ i ] );
+                    ind    = i;
+                }
+            }
+            return ind;
         }
 
         /**
@@ -896,25 +974,26 @@ namespace NCPA {
                 std::vector<std::complex<double>> find(
                     const std::vector<std::complex<double>> coeffs,
                     bool leading_term_first = true ) {
-                        std::vector<std::complex<double>> roots( coeffs.size() );
-                        std::vector<std::complex<double>> c = coeffs;
-                        if (!leading_term_first) {
-                            std::reverse( c.begin(), c.end() );
-                        }
-                        this->Newton( (int)coeffs.size() - 1, &c[0], &roots[0] );
-                        roots.erase( roots.begin() );
-                        return roots;
+                    std::vector<std::complex<double>> roots( coeffs.size() );
+                    std::vector<std::complex<double>> c = coeffs;
+                    if (!leading_term_first) {
+                        std::reverse( c.begin(), c.end() );
                     }
+                    this->Newton( (int)coeffs.size() - 1, &c[ 0 ],
+                                  &roots[ 0 ] );
+                    roots.erase( roots.begin() );
+                    return roots;
+                }
 
                 std::vector<std::complex<double>> find(
                     const std::vector<double> coeffs,
                     bool leading_term_first = true ) {
-                        std::vector<std::complex<double>> ccoeffs(coeffs.size());
-                        for (size_t i = 0; i < coeffs.size(); ++i) {
-                            ccoeffs[i].real( coeffs[ i ] );
-                        }
-                        return this->find( ccoeffs, leading_term_first );
+                    std::vector<std::complex<double>> ccoeffs( coeffs.size() );
+                    for (size_t i = 0; i < coeffs.size(); ++i) {
+                        ccoeffs[ i ].real( coeffs[ i ] );
                     }
+                    return this->find( ccoeffs, leading_term_first );
+                }
 
             protected:
                 const int _DBL_RADIX = std::numeric_limits<double>::radix;

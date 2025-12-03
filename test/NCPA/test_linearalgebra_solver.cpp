@@ -28,10 +28,8 @@ class _TEST_TITLE_ : public ::testing::Test {
             invec  = VectorFactory<test_t>::build( vector_t::DENSE );
             cmat   = MatrixFactory<ctest_t>::build( matrix_t::DENSE );
             cinvec = VectorFactory<ctest_t>::build( vector_t::DENSE );
-            dsmat
-                = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
-            csmat = MatrixFactory<ctest_t>::build(
-                matrix_t::BAND_DIAGONAL );
+            dsmat  = MatrixFactory<test_t>::build( matrix_t::BAND_DIAGONAL );
+            csmat  = MatrixFactory<ctest_t>::build( matrix_t::BAND_DIAGONAL );
 
         }  // void TearDown() override {}
 
@@ -53,7 +51,7 @@ class _TEST_TITLE_ : public ::testing::Test {
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForTrivialDenseCase ) {
     dmat.identity( 4, 4 );
     invec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, (test_t)( i + 1 ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::BASIC );
@@ -61,7 +59,7 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForTrivialDenseCase ) {
     // std::cout << "Solving..." << endl;
     Vector<test_t> solution = solver.solve( invec );
     // cout << "Done" << endl;
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         _TEST_EQ_( solution.get( i ), invec.get( i ) );
     }
 }
@@ -69,31 +67,30 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForTrivialDenseCase ) {
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForComplexTrivialDenseCase ) {
     cmat.identity( 4, 4 );
     cinvec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, cone * (test_t)( i + 1 ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::BASIC );
     csolver.set_system_matrix( cmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinvec.get( i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomDenseCase ) {
-    Vector<test_t> expected
-        = VectorFactory<test_t>::build( vector_t::DENSE );
+    Vector<test_t> expected = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         dmat.set_row( i, NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
         invec.set( i, dmat.get_row( i )->dot( expected ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::BASIC );
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }
@@ -104,31 +101,29 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomComplexDenseCase ) {
     expected.set( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
     cinvec.resize( 4 ).zero();
     cmat.resize( 4, 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cmat.set_row( i, NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ) );
         cinvec.set( i, cmat.get_row( i )->dot( expected ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::BASIC );
     csolver.set_system_matrix( cmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
-        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(),
-                     1.0e-10 );
-        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(),
-                     1.0e-10 );
+    for (size_t i = 0; i < 4; i++) {
+        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(), 1.0e-10 );
+        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(), 1.0e-10 );
     }
 }
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForTrivialBandDiagonalCase ) {
     dsmat.identity( 4, 4 );
     invec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, (test_t)( i + 1 ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::BASIC );
     solver.set_system_matrix( dsmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         _TEST_EQ_( solution.get( i ), invec.get( i ) );
     }
 }
@@ -136,20 +131,19 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForTrivialBandDiagonalCase ) {
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForComplexTrivialBandDiagonalCase ) {
     csmat.identity( 4, 4 );
     cinvec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, cone * (test_t)( i + 1 ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::BASIC );
     csolver.set_system_matrix( csmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinvec.get( i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomBandDiagonalCase ) {
-    Vector<test_t> expected
-        = VectorFactory<test_t>::build( vector_t::DENSE );
+    Vector<test_t> expected = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dsmat.resize( 4, 4 );
@@ -157,13 +151,13 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomBandDiagonalCase ) {
         .set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ), 1 )
         .set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
                        -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, dsmat.get_row( i )->dot( expected ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::TRIDIAGONAL );
     solver.set_system_matrix( dsmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }
@@ -178,30 +172,28 @@ TEST_F( _TEST_TITLE_, BasicSolverIsCorrectForRandomComplexBandDiagonalCase ) {
         .set_diagonal( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ), 1 )
         .set_diagonal( NCPA::math::random_numbers<ctest_t>( 4, -5.0, 5.0 ),
                        -1 );
-    for ( size_t i = 0; i < 5; i++ ) {
+    for (size_t i = 0; i < 5; i++) {
         cinvec.set( i, csmat.get_row( i )->dot( expected ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::BASIC );
     csolver.set_system_matrix( csmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 5; i++ ) {
-        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(),
-                     1.0e-10 );
-        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(),
-                     1.0e-10 );
+    for (size_t i = 0; i < 5; i++) {
+        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(), 1.0e-10 );
+        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(), 1.0e-10 );
     }
 }
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForTrivialDenseCase ) {
     dmat.identity( 4, 4 );
     invec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, (test_t)( i + 1 ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::TRIDIAGONAL );
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         _TEST_EQ_( solution.get( i ), invec.get( i ) );
     }
 }
@@ -209,20 +201,19 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForTrivialDenseCase ) {
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForComplexTrivialDenseCase ) {
     cmat.identity( 4, 4 );
     cinvec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, cone * (test_t)( i + 1 ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::TRIDIAGONAL );
     csolver.set_system_matrix( cmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinvec.get( i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomDenseCase ) {
-    Vector<test_t> expected
-        = VectorFactory<test_t>::build( vector_t::DENSE );
+    Vector<test_t> expected = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dmat.resize( 4, 4 );
@@ -230,13 +221,13 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomDenseCase ) {
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ), 1 );
     dmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
                        -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, dmat.get_row( i )->dot( expected ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::TRIDIAGONAL );
     solver.set_system_matrix( dmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }
@@ -252,30 +243,28 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomComplexDenseCase ) {
                        1 );
     cmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ),
                        -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, cmat.get_row( i )->dot( expected ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::TRIDIAGONAL );
     csolver.set_system_matrix( cmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
-        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(),
-                     1.0e-10 );
-        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(),
-                     1.0e-10 );
+    for (size_t i = 0; i < 4; i++) {
+        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(), 1.0e-10 );
+        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(), 1.0e-10 );
     }
 }
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForTrivialBandDiagonalCase ) {
     dsmat.identity( 4, 4 );
     invec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, (test_t)( i + 1 ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::TRIDIAGONAL );
     solver.set_system_matrix( dsmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         _TEST_EQ_( solution.get( i ), invec.get( i ) );
     }
 }
@@ -284,20 +273,19 @@ TEST_F( _TEST_TITLE_,
         TridiagonalSolverIsCorrectForComplexTrivialBandDiagonalCase ) {
     csmat.identity( 4, 4 );
     cinvec.resize( 4 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, cone * (test_t)( i + 1 ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::TRIDIAGONAL );
     csolver.set_system_matrix( csmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_COMPLEX_DOUBLE_EQ( solution.get( i ), cinvec.get( i ) );
     }
 }
 
 TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomBandDiagonalCase ) {
-    Vector<test_t> expected
-        = VectorFactory<test_t>::build( vector_t::DENSE );
+    Vector<test_t> expected = VectorFactory<test_t>::build( vector_t::DENSE );
     expected.set( NCPA::math::random_numbers<test_t>( 4, -5.0, 5.0 ) );
     invec.resize( 4 ).zero();
     dsmat.resize( 4, 4 );
@@ -306,13 +294,13 @@ TEST_F( _TEST_TITLE_, TridiagonalSolverIsCorrectForRandomBandDiagonalCase ) {
                         1 );
     dsmat.set_diagonal( NCPA::math::random_numbers<test_t>( 3, -5.0, 5.0 ),
                         -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         invec.set( i, dsmat.get_row( i )->dot( expected ) );
     }
     solver = SolverFactory<test_t>::build( solver_t::TRIDIAGONAL );
     solver.set_system_matrix( dsmat );
     Vector<test_t> solution = solver.solve( invec );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         EXPECT_NEAR( solution.get( i ), expected[ i ], 1.0e-10 );
     }
 }
@@ -329,16 +317,99 @@ TEST_F( _TEST_TITLE_,
                         1 );
     csmat.set_diagonal( NCPA::math::random_numbers<ctest_t>( 3, -5.0, 5.0 ),
                         -1 );
-    for ( size_t i = 0; i < 4; i++ ) {
+    for (size_t i = 0; i < 4; i++) {
         cinvec.set( i, csmat.get_row( i )->dot( expected ) );
     }
     csolver = SolverFactory<ctest_t>::build( solver_t::TRIDIAGONAL );
     csolver.set_system_matrix( csmat );
     Vector<ctest_t> solution = csolver.solve( cinvec );
-    for ( size_t i = 0; i < 4; i++ ) {
-        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(),
-                     1.0e-10 );
-        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(),
-                     1.0e-10 );
+    for (size_t i = 0; i < 4; i++) {
+        EXPECT_NEAR( solution.get( i ).real(), expected[ i ].real(), 1.0e-10 );
+        EXPECT_NEAR( solution.get( i ).imag(), expected[ i ].imag(), 1.0e-10 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, BlockTridiagonalSolverWorks ) {
+    Solver<double> bsolver = SolverFactory<double>::build(
+        solver_t::BLOCK_TRIDIAGONAL, matrix_t::BAND_DIAGONAL );
+    Matrix<double> Zblock
+        = MatrixFactory<double>::build( matrix_t::BAND_DIAGONAL );
+    Zblock.resize( 5, 5 ).set_diagonal( { 1, 2, 3, 4, 5 }, 0 );
+    Matrix<double> Qtheta_diag = Zblock;
+    Zblock.set_diagonal( 1, 1 ).set_diagonal( -2, -1 );
+    Matrix<double> eye
+        = MatrixFactory<double>::build( matrix_t::BAND_DIAGONAL );
+    eye.identity( 5, 5 );
+    BlockMatrix<double> Qz( matrix_t::BAND_DIAGONAL ), Qtheta, BM;
+    Qz.resize( 5, 5, 5, 5 );
+    Qtheta                  = Qz;
+    Vector<double> b        = VectorFactory<double>::build( vector_t::DENSE );
+    Vector<double> bseg     = b;
+    Vector<double> prodtest = b;
+    prodtest.set( { 1.285424780722586,  0.783513568659457, 0.662190539345712,
+                    0.361185270668029,  0.149873104458390, -0.378344574269339,
+                    -0.047881384751411, 0.064185455349248, 0.076480033376585,
+                    0.044857468739083,  0.113976758177385, 0.119703461878528,
+                    0.138538903625111,  0.093505153849981, 0.045379781731251,
+                    0.015840220385675,  0.065292797388288, 0.092782935455349,
+                    0.067834464386189,  0.034334398161593, 0.023669294829169,
+                    0.060939944229069,  0.083885941644562, 0.060918009193871,
+                    0.030816466537877 } );
+    bseg.resize( 5 ).set( { 2, 4, 5, 3, 1 } );
+
+    for (size_t i = 0; i < 5; ++i) {
+        Qz.set_block( i, i, Zblock );
+        Qtheta.set_block( i, i, Qtheta_diag );
+        if (i > 0) {
+            Qtheta.set_block( i, i - 1, eye * 2.0 );
+        }
+        if (i < 4) {
+            Qtheta.set_block( i, i + 1, eye * 2.0 );
+        }
+        Qtheta_diag += 5.0;
+        b.splice( bseg, i * 5, 5 );
+    }
+    BM = Qz * Qtheta;
+
+    bsolver.set_system_matrix( BM );
+    Vector<double> product = bsolver.solve( b );
+
+    for (size_t i = 0; i < 25; ++i) {
+        EXPECT_NEAR( product.get( i ), prodtest.get( i ), 1e-12 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, BlockOutriggerSolverWorks ) {
+    size_t m = 4;
+    size_t n = 2;
+
+    Solver<double> bsolver = SolverFactory<double>::build(
+        solver_t::BLOCK_OUTRIGGER, matrix_t::BAND_DIAGONAL );
+    Solver<double> testsolver = SolverFactory<double>::build(
+        solver_t::BAND_DIAGONAL );
+
+    BlockMatrix<double> BM( matrix_t::BAND_DIAGONAL );
+    BM.resize( m, m, n, n );
+    for (size_t r = 0; r < m; ++r) {
+        size_t cmin = ( r == 0 ? 0 : r - 1 );
+        size_t cmax = ( r == ( m - 1 ) ? r : r + 1 );
+        for (size_t c = cmin; c <= cmax; ++c) {
+            double factor = ( r == c ? 2.0 : 0.5 );
+            BM.get_block( r, c ).set_diagonal(
+                NCPA::math::random_numbers<double>( n, -factor, factor ) );
+        }
+    }
+    BM.get_block( m - 1, 0 )
+        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
+    BM.get_block( 0, m - 1 )
+        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
+
+    Vector<double> f = VectorFactory<double>::build( vector_t::DENSE );
+    f.set( NCPA::math::random_numbers<double>( m*n, -0.5, 0.5 ) );
+
+    Vector<double> soln = bsolver.set_system_matrix( BM ).solve( f );
+    Vector<double> testsoln = testsolver.set_system_matrix( BM ).solve( f );
+    for (size_t i = 0; i < m*n; ++i) {
+        EXPECT_NEAR( soln[i], testsoln[i], 1e-12 );
     }
 }

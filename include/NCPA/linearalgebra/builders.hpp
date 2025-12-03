@@ -3,7 +3,10 @@
 #include "NCPA/linearalgebra/band_diagonal_matrix.hpp"
 #include "NCPA/linearalgebra/basic_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/basic_tridiagonal_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/block_tridiagonal_linear_system_solver.hpp"
+#include "NCPA/linearalgebra/block_outrigger_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
+#include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/dense_matrix.hpp"
 #include "NCPA/linearalgebra/dense_vector.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
@@ -15,14 +18,12 @@
 
 namespace NCPA {
     namespace linear {
-
-
         template<typename ELEMENTTYPE>
         class VectorFactory {
             public:
                 static Vector<ELEMENTTYPE> build( vector_t vectype,
                                                   size_t n = 0 ) {
-                    switch ( vectype ) {
+                    switch (vectype) {
                         case vector_t::DENSE:
                             return Vector<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
@@ -46,7 +47,7 @@ namespace NCPA {
                 static Matrix<ELEMENTTYPE> build( matrix_t mattype,
                                                   size_t nrows = 0,
                                                   size_t ncols = 0 ) {
-                    switch ( mattype ) {
+                    switch (mattype) {
                         case matrix_t::DENSE:
                             return Matrix<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
@@ -82,7 +83,7 @@ namespace NCPA {
         class SolverFactory {
             public:
                 static Solver<ELEMENTTYPE> build( solver_t family ) {
-                    switch ( family ) {
+                    switch (family) {
                         case solver_t::BASIC:
                             return Solver<ELEMENTTYPE>(
                                 std::unique_ptr<abstract_linear_system_solver<
@@ -105,9 +106,36 @@ namespace NCPA {
                                 new basic_band_diagonal_linear_system_solver<
                                     ELEMENTTYPE>() ) );
                             break;
+                        case solver_t::BLOCK_TRIDIAGONAL:
+                        case solver_t::BLOCK_OUTRIGGER:
+                            throw std::invalid_argument(
+                                "Block matrix must specify a block type" );
+                            break;
                         default:
                             throw std::logic_error( "Unknown or unsupported "
                                                     "solver type requested" );
+                    }
+                }
+
+                static Solver<ELEMENTTYPE> build( solver_t family,
+                                                  matrix_t blocktype ) {
+                    switch (family) {
+                        case solver_t::BLOCK_TRIDIAGONAL:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_linear_system_solver<
+                                    ELEMENTTYPE>>(
+                                    new block_tridiagonal_linear_system_solver<
+                                        ELEMENTTYPE>( blocktype ) ) );
+                            break;
+                        case solver_t::BLOCK_OUTRIGGER:
+                            return Solver<ELEMENTTYPE>(
+                                std::unique_ptr<abstract_linear_system_solver<
+                                    ELEMENTTYPE>>(
+                                    new block_outrigger_linear_system_solver<
+                                        ELEMENTTYPE>( blocktype ) ) );
+                            break;
+                        default:
+                            return build( family );
                     }
                 }
         };

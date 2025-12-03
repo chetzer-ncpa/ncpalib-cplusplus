@@ -89,17 +89,17 @@ namespace NCPA {
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
                     set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M ) override {
-                    if ( !M.is_band_diagonal() ) {
+                        const Matrix<ELEMENTTYPE>& M, bool check = true ) override {
+                    if ( check && !M.is_band_diagonal() ) {
                         throw std::logic_error(
                             "System matrix must be band-diagonal" );
                     }
-                    if ( !M.is_square() ) {
+                    if ( check && !M.is_square() ) {
                         throw std::logic_error(
                             "System matrix must be square!" );
                     }
                     this->clear();
-                    // _mat.copy( M.internal() );
+                    NCPA_DEBUG << "Decomposing into LU structure..." << std::endl;
                     _lu.decompose( M );
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
