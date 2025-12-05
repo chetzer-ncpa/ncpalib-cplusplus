@@ -135,13 +135,7 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE> solve(
                     const Vector<ELEMENTTYPE>& b ) override {
-                    block_tridiagonal_linear_system_solver<ELEMENTTYPE> solver(
-                        _mat->block_type() );
-
-                    // we assign the system matrix first, then make a reference
-                    // to it, to avoid copying twice
-                    solver.set_system_matrix( *_mat, false );
-                    BlockMatrix<ELEMENTTYPE>& A = solver.internal();
+                    BlockMatrix<ELEMENTTYPE> A = *_mat;
 
                     // we're going to mess with the input vector too
                     Vector<ELEMENTTYPE> f = b;
@@ -206,9 +200,13 @@ namespace NCPA {
                         }
                     }
                     A.get_block( 0, A.block_columns() - 1 ).zero();
+                    Solver<ELEMENTTYPE> tdsolver
+                        = SolverFactory<ELEMENTTYPE>::build(
+                            solver_t::BLOCK_OUTRIGGER, _mat->block_type() );
+                    tdsolver.set_system_matrix( A );
 
                     // internal is now block tridiagonal, solve as normal
-                    return solver.solve( f );
+                    return tdsolver.solve( f );
                 }
 
                 virtual Vector<ELEMENTTYPE> solve(
