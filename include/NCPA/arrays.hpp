@@ -664,10 +664,10 @@ namespace NCPA {
         }
 
         /**
-        @brief Performs element-wise array addition.
-        @param v1 The first array to add.
-        @param v2 The second array to add.
-        @returns The array holding the sum.
+        @brief Performs element-wise vector addition.
+        @param v1 The first vector to add.
+        @param v2 The second vector to add.
+        @returns The vector holding the sum.
         */
         template<typename T>
         T add_vectors( const T& v1, const T& v2,

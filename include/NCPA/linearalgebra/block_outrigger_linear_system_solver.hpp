@@ -135,80 +135,80 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE> solve(
                     const Vector<ELEMENTTYPE>& b ) override {
-                    block_tridiagonal_linear_system_solver<ELEMENTTYPE> solver(
-                        _mat->block_type() );
-
-                    // we assign the system matrix first, then make a reference
-                    // to it, to avoid copying twice
-                    solver.set_system_matrix( *_mat, false );
-                    BlockMatrix<ELEMENTTYPE>& A = solver.internal();
-
-                    // we're going to mess with the input vector too
-                    Vector<ELEMENTTYPE> f = b;
-                    size_t rows_per_block = A.rows_per_block();
-                    size_t rows_of_blocks = A.block_rows();
-
-                    // active overall row
-                    size_t r;
-
-                    // active overall column
-                    size_t c;
-
-                    // row to be scaled and subtracted from r
-                    size_t rs;
-
-                    // first we eliminate the lower-left corner
-                    for (size_t row_in_block = 0;
-                         row_in_block < rows_per_block; ++row_in_block) {
-                        c = row_in_block;
-                        r = rows_per_block * ( rows_of_blocks - 1 )
-                          + row_in_block;
-
-                        // repeat until we reach the lower off-diagonal
-                        while (c < ( r - rows_per_block )) {
-                            rs = c + rows_per_block;
-
-                            ELEMENTTYPE factor
-                                = A.get( r, c ) / A.get( rs, c );
-                            A.zero( r, c );
-                            A.set( r, rs,
-                                   A.get( r, rs ) - factor * A.get( rs, rs ) );
-                            A.set(
-                                r, rs + rows_per_block,
-                                A.get( r, rs + rows_per_block )
-                                    - factor
-                                          * A.get( rs, rs + rows_per_block ) );
-                            f.set( r, f.get( r ) - factor * f.get( rs ) );
-                            c += rows_per_block;
-                        }
+                    if (b.size() != _mat->rows()) {
+                        throw std::invalid_argument(
+                            "Size mismatch between matrix and vector "
+                            "arguments" );
                     }
 
-                    // explicitly remove the lower left corner
-                    A.get_block( A.block_rows() - 1, 0 ).zero();
+                    size_t m = _mat->block_rows();
+                    size_t n = _mat->get_block( 0, 0 ).rows();
+                    Matrix<ELEMENTTYPE> blankcell
+                        = MatrixFactory<ELEMENTTYPE>::build(
+                            matrix_t::BAND_DIAGONAL );
+                    blankcell.resize( n, n );
+                    Matrix<ELEMENTTYPE> eye = blankcell;
+                    eye.identity();
+                    std::vector<Matrix<ELEMENTTYPE>> blankvec( m, blankcell );
+                    BlockMatrix<ELEMENTTYPE> blankmat(
+                        matrix_t::BAND_DIAGONAL );
+                    blankmat.resize( m, m, n, n );
 
-                    // now the upper right
-                    for (r = 0; r < rows_per_block; ++r) {
-                        c = ( rows_of_blocks - 1 ) * rows_per_block + r;
-                        while (c > ( r + rows_per_block )) {
-                            rs = c - rows_per_block;
-                            ELEMENTTYPE factor
-                                = A.get( r, c ) / A.get( rs, c );
-                            A.set(
-                                r, rs - rows_per_block,
-                                A.get( r, rs - rows_per_block )
-                                    - factor
-                                          * A.get( rs, rs - rows_per_block ) );
-                            A.set( r, rs,
-                                   A.get( r, rs ) - factor * A.get( rs, rs ) );
-                            A.zero( r, rs + rows_per_block );
-                            f.set( r, f.get( r ) - factor * f.get( rs ) );
-                            c -= rows_per_block;
+                    std::vector<Matrix<ELEMENTTYPE>> D = blankvec;
+                    for (size_t i = 0; i < m; ++i) {
+                        D.at( i ).set_diagonal( b.subvector( n * i, n ) );
+                    }
+
+                    Matrix<ELEMENTTYPE> gamma  = -_mat->get_block( 0, 0 );
+                    Matrix<ELEMENTTYPE> igamma = gamma.inverse();
+
+                    BlockMatrix<ELEMENTTYPE> B = *_mat;
+                    B.get_block( 0, m - 1 ).zero();
+                    B.get_block( m - 1, 0 ).zero();
+                    B.get_block( 0, 0 )         -= gamma;
+                    B.get_block( m - 1, m - 1 ) -= _mat->get_block( 0, m - 1 )
+                                                 * _mat->get_block( m - 1, 0 )
+                                                 * igamma;
+
+                    std::vector<Matrix<ELEMENTTYPE>> U = blankvec;
+                    U.front()                          = gamma;
+                    U.back() = _mat->get_block( m - 1, 0 );
+                    std::vector<Matrix<ELEMENTTYPE>> V = blankvec;
+                    V.front()                          = eye;
+                    V.back() = _mat->get_block( 0, m - 1 ) * igamma;
+
+                    BlockMatrix<ELEMENTTYPE> UVT = blankmat;
+                    UVT.set_block( 0, 0, U.front() * V.front() )
+                        .set_block( 0, m - 1, U.front() * V.back() )
+                        .set_block( m - 1, 0, U.back() * V.front() )
+                        .set_block( m - 1, m - 1, U.back() * V.back() );
+                    std::vector<Matrix<ELEMENTTYPE>> Y
+                        = _block_vector_solve( B, D );
+                    std::vector<Matrix<ELEMENTTYPE>> Q
+                        = _block_vector_solve( B, U );
+                    Matrix<ELEMENTTYPE> vTq = blankcell;
+                    Matrix<ELEMENTTYPE> vTy = blankcell;
+                    for (size_t i = 0; i < m; ++i) {
+                        vTq += V[ i ] * Q[ i ];
+                        vTy += V[ i ] * Y[ i ];
+                    }
+                    vTq                      += eye;
+                    // ivTq.invert();
+                    Matrix<ELEMENTTYPE> QVTY  = blankcell;
+                    Vector<ELEMENTTYPE> X     = b;
+                    X.zero();
+                    for (size_t i = 0; i < m; ++i) {
+                        QVTY.zero();
+                        for (size_t j = 0; j < m; ++j) {
+                            QVTY += Q[ i ] * V[ j ] * Y[ j ];
+                        }
+                        for (size_t k = 0; k < n; ++k) {
+                            X.set( i * n + k,
+                                   Y[ i ].get( k, k )
+                                       - QVTY.get( k, k ) / vTq.get( k, k ) );
                         }
                     }
-                    A.get_block( 0, A.block_columns() - 1 ).zero();
-
-                    // internal is now block tridiagonal, solve as normal
-                    return solver.solve( f );
+                    return X;
                 }
 
                 virtual Vector<ELEMENTTYPE> solve(
@@ -236,6 +236,50 @@ namespace NCPA {
                             << " ] is not diagonal!";
                         throw std::invalid_argument( oss.str() );
                     }
+                }
+
+                std::vector<Matrix<ELEMENTTYPE>> _block_vector_solve(
+                    const BlockMatrix<ELEMENTTYPE>& A,
+                    const std::vector<Matrix<ELEMENTTYPE>>& D ) const {
+                    if (!( A.is_square()
+                           && A.block_rows() == A.block_columns() )) {
+                        throw std::invalid_argument(
+                            "Matrix must be square and block square!" );
+                    }
+                    if (A.block_rows() != D.size()) {
+                        throw std::invalid_argument(
+                            "Matrix-vector size mismatch" );
+                    }
+                    size_t m = D.size();
+                    std::vector<Matrix<ELEMENTTYPE>> Cprime( m - 1 ),
+                        Dprime( m );
+                    Matrix<ELEMENTTYPE> A00inv = A.get_block( 0, 0 ).inverse();
+                    Cprime[ 0 ]                = A.get_block( 0, 1 ) * A00inv;
+                    Dprime[ 0 ]                = D.at( 0 ) * A00inv;
+                    int i;
+                    Matrix<ELEMENTTYPE> idenom
+                        = ( A.get_block( 1, 1 )
+                            - A.get_block( 1, 0 ) * Cprime[ 0 ] )
+                              .inverse();
+                    for (i = 1; i < m - 1; ++i) {
+                        Cprime[ i ] = idenom * A.get_block( i, i + 1 );
+                        Dprime[ i ]
+                            = idenom
+                            * ( D[ i ]
+                                - A.get_block( i, i - 1 ) * Dprime[ i - 1 ] );
+                        idenom = ( A.get_block( i + 1, i + 1 )
+                                   - A.get_block( i + 1, i ) * Cprime[ i ] )
+                                     .inverse();
+                    }
+                    i = m - 1;
+                    std::vector<Matrix<ELEMENTTYPE>> X( m );
+                    X[ i ] = idenom
+                           * ( D[ i ]
+                               - A.get_block( i, i - 1 ) * Dprime[ i - 1 ] );
+                    for (i = m - 2; i >= 0; --i) {
+                        X[ i ] = Dprime[ i ] - Cprime[ i ] * X[ i + 1 ];
+                    }
+                    return X;
                 }
         };
     }  // namespace linear

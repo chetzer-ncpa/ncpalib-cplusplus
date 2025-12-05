@@ -19,222 +19,84 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::band_diagonal_matrix, ELEMENTTYPE );
+NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::diagonal_matrix,
+                                             ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
 
-        enum class diagonal_index_status_t {
-            INVALID,
-            VALID_BUT_NOT_DEFINED,
-            VALID
-        };
-
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class band_diagonal_matrix<ELEMENTTYPE,
-                                       _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_matrix<ELEMENTTYPE> {
+            class diagonal_matrix<ELEMENTTYPE,
+                                  _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+            : public band_diagonal_matrix<ELEMENTTYPE> {
             public:
-                using abstract_matrix<ELEMENTTYPE>::set_row;
-                using abstract_matrix<ELEMENTTYPE>::set_column;
-                using abstract_matrix<ELEMENTTYPE>::set_diagonal;
-                friend class BandDiagonalLUDecomposition<ELEMENTTYPE>;
-                friend class basic_band_diagonal_linear_system_solver<
-                    ELEMENTTYPE>;
-
-                band_diagonal_matrix( size_t nrows, size_t ncols,
-                                      size_t n_lower_offdiags,
-                                      size_t n_upper_offdiags ) :
-                    _nrows { nrows },
-                    _ncols { ncols },
-                    _n_lower { n_lower_offdiags },
-                    _n_upper { n_upper_offdiags } {
-                    _prep_diagonals();
-                }
-
-                band_diagonal_matrix( size_t nrows, size_t ncols ) :
+                diagonal_matrix( size_t nrows, size_t ncols ) :
                     band_diagonal_matrix<ELEMENTTYPE>( nrows, ncols, 0, 0 ) {}
 
-                band_diagonal_matrix() :
-                    band_diagonal_matrix<ELEMENTTYPE>( 0, 0, 0, 0 ) {}
+                diagonal_matrix() : diagonal_matrix<ELEMENTTYPE>( 0, 0 ) {}
 
-                band_diagonal_matrix(
-                    const band_diagonal_matrix<ELEMENTTYPE>& other ) :
-                    band_diagonal_matrix<ELEMENTTYPE>( other.rows(),
-                                                       other.columns() ) {
-                    _n_lower  = other._n_lower;
-                    _n_upper  = other._n_upper;
-                    _contents = other._contents;
-                }
+                diagonal_matrix( const diagonal_matrix<ELEMENTTYPE>& other ) :
+                    band_diagonal_matrix<ELEMENTTYPE>( other ) {}
 
-                band_diagonal_matrix(
-                    const abstract_matrix<ELEMENTTYPE>& other ) :
-                    band_diagonal_matrix<ELEMENTTYPE>() {
+                diagonal_matrix( const abstract_matrix<ELEMENTTYPE>& other ) :
+                    diagonal_matrix<ELEMENTTYPE>() {
                     this->copy( other );
                 }
 
-                band_diagonal_matrix(
-                    band_diagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
-                    band_diagonal_matrix<ELEMENTTYPE>() {
+                diagonal_matrix(
+                    diagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
+                    diagonal_matrix<ELEMENTTYPE>() {
                     ::swap( *this, source );
                 }
 
                 // constructors, destructors, copying, and assignment
-                virtual ~band_diagonal_matrix() {}
+                virtual ~diagonal_matrix() {}
 
                 friend void ::swap<ELEMENTTYPE>(
-                    band_diagonal_matrix<ELEMENTTYPE>& a,
-                    band_diagonal_matrix<ELEMENTTYPE>& b ) noexcept;
+                    diagonal_matrix<ELEMENTTYPE>& a,
+                    diagonal_matrix<ELEMENTTYPE>& b ) noexcept;
 
-                band_diagonal_matrix<ELEMENTTYPE>& operator=(
-                    band_diagonal_matrix<ELEMENTTYPE> other ) {
+                diagonal_matrix<ELEMENTTYPE>& operator=(
+                    diagonal_matrix<ELEMENTTYPE> other ) {
                     swap( *this, other );
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& add(
+                virtual diagonal_matrix<ELEMENTTYPE>& add(
                     const abstract_matrix<ELEMENTTYPE>& babs,
                     ELEMENTTYPE modifier = 1.0 ) override {
-                    if (!is_this_subclass( babs )) {
-                        return dynamic_cast<
-                            band_diagonal_matrix<ELEMENTTYPE>&>(
-                            abstract_matrix<ELEMENTTYPE>::add( babs,
-                                                               modifier ) );
-                    }
-                    const band_diagonal_matrix<ELEMENTTYPE> *b
-                        = downcast( &babs );
-
-                    this->check_size( *b );
-                    int sum_n_lower
-                        = (int)std::max( this->_n_lower, b->_n_lower );
-                    int sum_n_upper
-                        = (int)std::max( this->_n_upper, b->_n_upper );
-                    if (_n_lower < sum_n_lower) {
-                        this->_add_subdiagonal( sum_n_lower - _n_lower );
-                    }
-                    if (_n_upper < sum_n_upper) {
-                        this->_add_superdiagonal( sum_n_upper - _n_upper );
-                    }
-                    for (int i = -sum_n_lower; i <= sum_n_upper; ++i) {
-                        if (b->has_diagonal( i )) {
-                            int i1 = 0, i2 = 0;
-                            if (!this->diag2internal( i, i1 )) {
-                                throw std::logic_error(
-                                    "Diagonal index mismatch in first "
-                                    "matrix" );
-                            }
-                            if (!b->diag2internal( i, i2 )) {
-                                throw std::logic_error(
-                                    "Diagonal index mismatch in second "
-                                    "matrix" );
-                            }
-                            if (this->internal( i1 ).empty()) {
-                                this->internal( i1 )
-                                    = NCPA::arrays::scale_vector(
-                                        b->contents().at( i2 ), modifier );
-                            } else {
-                                this->internal( i1 )
-                                    = NCPA::arrays::add_vectors(
-                                        this->internal( i1 ),
-                                        NCPA::arrays::scale_vector(
-                                            b->contents().at( i2 ),
-                                            modifier ) );
-                            }
-                        }
+                    this->check_size( babs );
+                    if (!babs.is_diagonal()) {
+                        throw std::invalid_argument(
+                            "Both operands must be diagonal!" );
                     }
 
-
-                    // // lower half
-                    // size_t skip = 0, add_on = 0, both = 0;
-                    // if (_n_lower > b->_n_lower) {
-                    //     skip = _n_lower - b->_n_lower;
-                    //     both = b->_n_lower;
-                    // } else if (_n_lower < b->_n_lower) {
-                    //     add_on = b->_n_lower - _n_lower;
-                    //     both   = _n_lower;
-                    // } else {
-                    //     both = _n_lower;
-                    // }
-                    // for (size_t ind1 = 0; ind1 < both; ind1++) {
-                    //     this->contents()[ ind1 + skip ]
-                    //         = NCPA::arrays::add_vectors(
-                    //             this->contents()[ ind1 + skip ],
-                    //             NCPA::arrays::scale_vector(
-                    //                 b->contents()[ ind1 + add_on ],
-                    //                 modifier ) );
-                    // }
-                    // if (add_on > 0) {
-                    //     this->contents().insert(
-                    //         this->contents().begin(), b->contents().begin(),
-                    //         b->contents().begin() + add_on );
-                    //     for (size_t ind1 = 0; ind1 < add_on; ind1++) {
-                    //         this->contents()[ ind1 ]
-                    //             = NCPA::arrays::scale_vector(
-                    //                 this->contents()[ ind1 ], modifier );
-                    //     }
-                    //     _n_lower += add_on;
-                    // }
-
-                    // // upper half
-                    // skip   = 0;
-                    // add_on = 0;
-                    // both   = 0;
-                    // if (_n_upper > b->_n_upper) {
-                    //     both = b->_n_upper;
-                    // } else if (_n_upper < b->_n_upper) {
-                    //     both   = _n_upper;
-                    //     add_on = b->_n_upper - _n_upper;
-                    // } else {
-                    //     both = _n_upper;
-                    // }
-                    // for (size_t ind1 = 0; ind1 < both; ind1++) {
-                    //     this->contents()[ _n_lower + ind1 + 1 ]
-                    //         = NCPA::arrays::add_vectors(
-                    //             this->contents()[ _n_lower + ind1 + 1 ],
-                    //             NCPA::arrays::scale_vector(
-                    //                 b->contents()[ b->_n_lower + ind1 + 1 ],
-                    //                 modifier ) );
-                    // }
-
-                    // // insert the last add_on diagonals from b, then negate
-                    // // them
-                    // if (add_on > 0) {
-                    //     this->contents().insert( this->contents().end(),
-                    //                              b->contents().end() -
-                    //                              add_on, b->contents().end()
-                    //                              );
-                    //     _n_upper += add_on;
-                    //     for (size_t ind1 = this->contents().size() - add_on;
-                    //          ind1 < this->contents().size(); ind1++) {
-                    //         this->contents()[ ind1 ]
-                    //             = NCPA::arrays::scale_vector(
-                    //                 this->contents()[ ind1 ], modifier );
-                    //     }
-                    // }
-
-                    // // and the center diagonal
-                    // this->contents()[ _n_lower ] =
-                    // NCPA::arrays::add_vectors(
-                    //     this->contents()[ _n_lower ],
-                    //     NCPA::arrays::scale_vector(
-                    //         b->contents()[ b->_n_lower ], modifier ) );
+                    if (this->contents().empty()) {
+                        this->contents().push_back(
+                            babs.get_diagonal()->as_std() );
+                    } else {
+                        this->contents().at( 0 ) = NCPA::arrays::add_vectors(
+                            this->contents().at( 0 ),
+                            babs.get_diagonal()->as_std() );
+                    }
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& add(
+                virtual diagonal_matrix<ELEMENTTYPE>& add(
                     ELEMENTTYPE b ) override {
-                    for (size_t ind1 = 0; ind1 < this->contents().size();
-                         ind1++) {
-                        for (size_t ind2 = _min_ind2( ind1 );
-                             ind2 < _max_ind2( ind1 ); ind2++) {
-                            this->internal( ind1, ind2 ) += b;
+                    if (this->contents().empty()) {
+                        this->contents().emplace_back( this->diagonal_size(),
+                                                       b );
+                    } else {
+                        for (auto it = this->contents().at( 0 ).begin();
+                             it != this->contents().at( 0 ).end(); ++it) {
+                            *it += b;
                         }
                     }
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& as_array(
+                virtual diagonal_matrix<ELEMENTTYPE>& as_array(
                     size_t& nrows, size_t& ncols,
                     ELEMENTTYPE **& vals ) override {
                     if (vals == nullptr) {
@@ -318,12 +180,17 @@ namespace NCPA {
                         new sparse_vector<ELEMENTTYPE>( n ) );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                virtual diagonal_matrix<ELEMENTTYPE>& clean(
+                    ELEMENTTYPE tol ) override {
                     // auto atol = std::abs( tol );
-                    for (auto diag_it = _contents.begin(); diag_it != _contents.end(); ++diag_it) {
+                    for (auto diag_it = _contents.begin();
+                         diag_it != _contents.end(); ++diag_it) {
                         bool not_zero = false;
-                        for (auto elem_it = diag_it->begin(); elem_it != diag_it->end(); ++elem_it) {
-                            not_zero = (!NCPA::constants::zero_out( *elem_it, tol )) || not_zero; 
+                        for (auto elem_it = diag_it->begin();
+                             elem_it != diag_it->end(); ++elem_it) {
+                            not_zero = ( !NCPA::constants::zero_out( *elem_it,
+                                                                     tol ) )
+                                    || not_zero;
                             // if (std::abs( *elem_it ) < atol) {
                             //     *elem_it = _zero;
                             // } else {
@@ -337,7 +204,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& clear() override {
+                virtual diagonal_matrix<ELEMENTTYPE>& clear() override {
                     _nrows   = 0;
                     _ncols   = 0;
                     _n_lower = 0;
@@ -350,7 +217,7 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> clone()
                     const override {
                     return std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
-                        new band_diagonal_matrix( *this ) );
+                        new diagonal_matrix( *this ) );
                 }
 
                 virtual size_t columns() const override { return _ncols; }
@@ -364,7 +231,7 @@ namespace NCPA {
                     return _contents;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& copy(
+                virtual diagonal_matrix<ELEMENTTYPE>& copy(
                     const abstract_matrix<ELEMENTTYPE>& other ) override {
                     this->clear().resize( other.rows(), other.columns() );
                     if (other.is_zero()) {
@@ -409,10 +276,10 @@ namespace NCPA {
                     return diag;
                 }
 
-                const band_diagonal_matrix<ELEMENTTYPE> *downcast(
+                const diagonal_matrix<ELEMENTTYPE> *downcast(
                     const abstract_matrix<ELEMENTTYPE> *in ) const {
-                    return dynamic_cast<
-                        const band_diagonal_matrix<ELEMENTTYPE> *>( in );
+                    return dynamic_cast<const diagonal_matrix<ELEMENTTYPE> *>(
+                        in );
                 }
 
                 virtual bool equals( const abstract_matrix<ELEMENTTYPE>&
@@ -420,8 +287,7 @@ namespace NCPA {
                     if (!is_this_subclass( other )) {
                         return abstract_matrix<ELEMENTTYPE>::equals( other );
                     }
-                    const band_diagonal_matrix<ELEMENTTYPE> *b
-                        = downcast( &other );
+                    const diagonal_matrix<ELEMENTTYPE> *b = downcast( &other );
 
                     bool contents_equal
                         = ( this->contents() == b->contents() );
@@ -434,7 +300,7 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                     fresh_clone() const override {
                     return std::unique_ptr<abstract_matrix<ELEMENTTYPE>>(
-                        new band_diagonal_matrix() );
+                        new diagonal_matrix() );
                 }
 
                 virtual const ELEMENTTYPE& get( size_t row,
@@ -520,7 +386,7 @@ namespace NCPA {
                     return "NCPA band-diagonal matrix";
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& identity(
+                virtual diagonal_matrix<ELEMENTTYPE>& identity(
                     size_t nrows, size_t ncols ) override {
                     this->clear().resize( nrows, ncols );
                     this->internal( 0 ) = std::vector<ELEMENTTYPE>(
@@ -613,8 +479,9 @@ namespace NCPA {
 
                 virtual bool is_this_subclass(
                     const abstract_matrix<ELEMENTTYPE>& b ) const override {
-                    if (auto *derived = dynamic_cast<
-                            const band_diagonal_matrix<ELEMENTTYPE> *>( &b )) {
+                    if (auto *derived
+                        = dynamic_cast<const diagonal_matrix<ELEMENTTYPE> *>(
+                            &b )) {
                         return true;
                     } else {
                         return false;
@@ -724,22 +591,20 @@ namespace NCPA {
                     if (!is_this_subclass( other )) {
                         return abstract_matrix<ELEMENTTYPE>::multiply( other );
                     }
-                    const band_diagonal_matrix<ELEMENTTYPE> *b
-                        = downcast( &other );
+                    const diagonal_matrix<ELEMENTTYPE> *b = downcast( &other );
 
                     // size_t new_n_lower
                     //     = this->lower_bandwidth() + b->lower_bandwidth(),
                     //     new_n_upper
                     //     = this->upper_bandwidth() + b->upper_bandwidth();
                     std::unique_ptr<abstract_matrix<ELEMENTTYPE>> product(
-                        new band_diagonal_matrix<ELEMENTTYPE>(
+                        new diagonal_matrix<ELEMENTTYPE>(
                             this->rows(), b->columns(), 0, 0 ) );
-                    band_diagonal_matrix<ELEMENTTYPE> *bproduct
-                        = dynamic_cast<band_diagonal_matrix<ELEMENTTYPE> *>(
+                    diagonal_matrix<ELEMENTTYPE> *bproduct
+                        = dynamic_cast<diagonal_matrix<ELEMENTTYPE> *>(
                             product.get() );
-                    band_diagonal_matrix<
-                        ELEMENTTYPE>::_do_band_diagonal_multiply( *this, *b,
-                                                                  *bproduct );
+                    diagonal_matrix<ELEMENTTYPE>::_do_band_diagonal_multiply(
+                        *this, *b, *bproduct );
                     // int prows = (int)( product->rows() );
                     // int pcols = (int)( product->columns() );
                     // for ( int r = 0; r < prows; r++ ) {
@@ -768,7 +633,7 @@ namespace NCPA {
                     return product;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& resize(
+                virtual diagonal_matrix<ELEMENTTYPE>& resize(
                     size_t r, size_t c ) override {
                     if (this->contents().size() == 0) {
                         // starting from scratch
@@ -872,7 +737,7 @@ namespace NCPA {
 
                 virtual size_t rows() const override { return _nrows; }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& scale(
+                virtual diagonal_matrix<ELEMENTTYPE>& scale(
                     const abstract_matrix<ELEMENTTYPE>& b ) override {
                     this->check_size( b );
                     int r, c;
@@ -890,7 +755,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& scale(
+                virtual diagonal_matrix<ELEMENTTYPE>& scale(
                     ELEMENTTYPE val ) override {
                     for (auto it1 = this->contents().begin();
                          it1 != this->contents().end(); ++it1) {
@@ -902,7 +767,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_internal(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_internal(
                     size_t ind1, size_t ind2, ELEMENTTYPE val ) {
                     if (ind1 >= this->contents().size()) {
                         std::ostringstream oss;
@@ -918,7 +783,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set(
+                virtual diagonal_matrix<ELEMENTTYPE>& set(
                     size_t row, size_t col, ELEMENTTYPE val ) override {
                     this->check_size( row, col );
                     int ind1, ind2;
@@ -939,7 +804,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set(
+                virtual diagonal_matrix<ELEMENTTYPE>& set(
                     ELEMENTTYPE val ) override {
                     for (auto it1 = this->contents().begin();
                          it1 != this->contents().end(); ++it1) {
@@ -948,7 +813,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_column(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_column(
                     size_t column, size_t nvals, const size_t *row_inds,
                     const ELEMENTTYPE *vals ) override {
                     for (size_t i = 0; i < nvals; i++) {
@@ -957,12 +822,11 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_column(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_column(
                     size_t col,
                     const std::vector<ELEMENTTYPE>& vals ) override {
                     if (vals.size() == rows()) {
-                        return dynamic_cast<
-                            band_diagonal_matrix<ELEMENTTYPE>&>(
+                        return dynamic_cast<diagonal_matrix<ELEMENTTYPE>&>(
                             this->set_column(
                                 col,
                                 NCPA::arrays::index_vector<size_t>(
@@ -970,8 +834,7 @@ namespace NCPA {
                                 vals ) );
                     }
                     if (vals.size() == bandwidth()) {
-                        return dynamic_cast<
-                            band_diagonal_matrix<ELEMENTTYPE>&>(
+                        return dynamic_cast<diagonal_matrix<ELEMENTTYPE>&>(
                             this->set_column(
                                 col, this->band_row_indices( col ), vals ) );
                     }
@@ -980,13 +843,13 @@ namespace NCPA {
                         "bandwidth" );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_column(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_column(
                     size_t col, ELEMENTTYPE val ) override {
                     return this->set_column(
                         col, std::vector<ELEMENTTYPE>( bandwidth(), val ) );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_diagonal(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_diagonal(
                     size_t nvals, const ELEMENTTYPE *vals,
                     int offset = 0 ) override {
                     if (nvals > this->diagonal_size( offset )) {
@@ -1040,7 +903,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_row(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_row(
                     size_t row, size_t nvals, const size_t *column_inds,
                     const ELEMENTTYPE *vals ) override {
                     for (size_t i = 0; i < nvals; i++) {
@@ -1049,33 +912,33 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_row(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_row(
                     size_t row,
                     const std::vector<ELEMENTTYPE>& vals ) override {
                     if (vals.size() == columns()) {
-                        return dynamic_cast<
-                            band_diagonal_matrix<ELEMENTTYPE>&>( this->set_row(
-                            row,
-                            NCPA::arrays::index_vector<size_t>( vals.size() ),
-                            vals ) );
+                        return dynamic_cast<diagonal_matrix<ELEMENTTYPE>&>(
+                            this->set_row( row,
+                                           NCPA::arrays::index_vector<size_t>(
+                                               vals.size() ),
+                                           vals ) );
                     }
                     if (vals.size() == bandwidth()) {
-                        return dynamic_cast<
-                            band_diagonal_matrix<ELEMENTTYPE>&>( this->set_row(
-                            row, band_column_indices( row ), vals ) );
+                        return dynamic_cast<diagonal_matrix<ELEMENTTYPE>&>(
+                            this->set_row( row, band_column_indices( row ),
+                                           vals ) );
                     }
                     throw std::invalid_argument(
                         "Value vector size matches neither number of columns "
                         "nor bandwidth" );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_row(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_row(
                     size_t row, ELEMENTTYPE val ) override {
                     return set_row(
                         row, std::vector<ELEMENTTYPE>( bandwidth(), val ) );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& set_safe(
+                virtual diagonal_matrix<ELEMENTTYPE>& set_safe(
                     size_t row, size_t col, ELEMENTTYPE val ) {
                     this->check_size( row, col );
                     int ind1, ind2;
@@ -1091,20 +954,19 @@ namespace NCPA {
                     }
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& swap_columns(
+                virtual diagonal_matrix<ELEMENTTYPE>& swap_columns(
                     size_t ind1, size_t ind2 ) override {
                     throw std::logic_error(
                         "Cannot swap columns of a band-diagonal matrix!" );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& swap_rows(
+                virtual diagonal_matrix<ELEMENTTYPE>& swap_rows(
                     size_t ind1, size_t ind2 ) override {
                     throw std::logic_error(
                         "Cannot swap rows of a band-diagonal matrix!" );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& transpose()
-                    override {
+                virtual diagonal_matrix<ELEMENTTYPE>& transpose() override {
                     std::vector<std::vector<ELEMENTTYPE>> newcontents
                         = this->contents();
                     std::reverse( newcontents.begin(), newcontents.end() );
@@ -1154,7 +1016,7 @@ namespace NCPA {
                     return uband;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& zero() override {
+                virtual diagonal_matrix<ELEMENTTYPE>& zero() override {
                     _n_lower = 0;
                     _n_upper = 0;
                     this->contents().clear();
@@ -1162,7 +1024,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& zero(
+                virtual diagonal_matrix<ELEMENTTYPE>& zero(
                     size_t row, size_t col ) override {
                     return this->set( row, col, _zero );
                 }
@@ -1219,8 +1081,8 @@ namespace NCPA {
                     //                          );
                 }
 
-                // virtual band_diagonal_matrix<ELEMENTTYPE>& _add(
-                //     const band_diagonal_matrix<ELEMENTTYPE>& b,
+                // virtual diagonal_matrix<ELEMENTTYPE>& _add(
+                //     const diagonal_matrix<ELEMENTTYPE>& b,
                 //     ELEMENTTYPE modifier = 1.0 ) {
                 //     this->check_size( b );
                 //     size_t new_n_lower = std::max( _n_lower, b._n_lower );
@@ -1282,9 +1144,9 @@ namespace NCPA {
                 // }
 
                 static void _do_band_diagonal_multiply(
-                    const band_diagonal_matrix<ELEMENTTYPE>& a,
-                    const band_diagonal_matrix<ELEMENTTYPE>& b,
-                    band_diagonal_matrix<ELEMENTTYPE>& product ) {
+                    const diagonal_matrix<ELEMENTTYPE>& a,
+                    const diagonal_matrix<ELEMENTTYPE>& b,
+                    diagonal_matrix<ELEMENTTYPE>& product ) {
                     int prows      = (int)( product.rows() );
                     int pcols      = (int)( product.columns() );
                     // int new_n_lower = product.lower_bandwidth();
@@ -1354,8 +1216,8 @@ namespace NCPA {
 }  // namespace NCPA
 
 template<typename T>
-static void swap( NCPA::linear::band_diagonal_matrix<T>& a,
-                  NCPA::linear::band_diagonal_matrix<T>& b ) noexcept {
+static void swap( NCPA::linear::diagonal_matrix<T>& a,
+                  NCPA::linear::diagonal_matrix<T>& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
             static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );

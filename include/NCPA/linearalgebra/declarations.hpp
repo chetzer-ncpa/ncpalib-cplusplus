@@ -127,6 +127,8 @@ namespace NCPA {
                                                      abstract_matrix );
         NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( symmetric_matrix,
                                                      band_diagonal_matrix );
+        NCPA_LINEARALGEBRA_DECLARE_GENERIC_TEMPLATE( diagonal_matrix,
+                                                     band_diagonal_matrix );
 
         // solvers (behind the scenes)
         template<typename ELEMENTTYPE>
