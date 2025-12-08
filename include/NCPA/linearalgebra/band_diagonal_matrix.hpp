@@ -318,12 +318,17 @@ namespace NCPA {
                         new sparse_vector<ELEMENTTYPE>( n ) );
                 }
 
-                virtual band_diagonal_matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                virtual band_diagonal_matrix<ELEMENTTYPE>& clean(
+                    ELEMENTTYPE tol ) override {
                     // auto atol = std::abs( tol );
-                    for (auto diag_it = _contents.begin(); diag_it != _contents.end(); ++diag_it) {
+                    for (auto diag_it = _contents.begin();
+                         diag_it != _contents.end(); ++diag_it) {
                         bool not_zero = false;
-                        for (auto elem_it = diag_it->begin(); elem_it != diag_it->end(); ++elem_it) {
-                            not_zero = (!NCPA::constants::zero_out( *elem_it, tol )) || not_zero; 
+                        for (auto elem_it = diag_it->begin();
+                             elem_it != diag_it->end(); ++elem_it) {
+                            not_zero = ( !NCPA::constants::zero_out( *elem_it,
+                                                                     tol ) )
+                                    || not_zero;
                             // if (std::abs( *elem_it ) < atol) {
                             //     *elem_it = _zero;
                             // } else {
@@ -737,9 +742,14 @@ namespace NCPA {
                     band_diagonal_matrix<ELEMENTTYPE> *bproduct
                         = dynamic_cast<band_diagonal_matrix<ELEMENTTYPE> *>(
                             product.get() );
-                    band_diagonal_matrix<
-                        ELEMENTTYPE>::_do_band_diagonal_multiply( *this, *b,
-                                                                  *bproduct );
+                    if (this->is_diagonal() && b->is_diagonal()) {
+                        band_diagonal_matrix<
+                            ELEMENTTYPE>::_do_diagonal_multiply( *this, *b,
+                                                                 *bproduct );
+                    } else {
+                        band_diagonal_matrix<ELEMENTTYPE>::
+                            _do_band_diagonal_multiply( *this, *b, *bproduct );
+                    }
                     // int prows = (int)( product->rows() );
                     // int pcols = (int)( product->columns() );
                     // for ( int r = 0; r < prows; r++ ) {
@@ -1318,35 +1328,17 @@ namespace NCPA {
                         }
                     }
                     return;
+                }
 
-
-                    // for (int r = 0; r < prows; r++) {
-                    //     for (int c = std::max( 0, r - (int)new_n_lower );
-                    //          c < std::min( pcols, r + (int)new_n_upper + 1
-                    //          ); c++) {
-                    //         ELEMENTTYPE val = a._zero;
-                    //         int kmin        = std::max(
-                    //             std::max( 0,
-                    //                              r - (int)(
-                    //                              a.lower_bandwidth() ) ),
-                    //             std::max( 0,
-                    //                              c - (int)(
-                    //                              b.upper_bandwidth() ) ) );
-                    //         int kmax = std::min(
-                    //             std::min( (int)( a.columns() ),
-                    //                       r + (int)a.upper_bandwidth() + 1
-                    //                       ),
-                    //             std::min( (int)( b.rows() ),
-                    //                       c + (int)( b.lower_bandwidth() )
-                    //                           + 1 ) );
-                    //         for (int k = kmin; k < kmax; k++) {
-                    //             val += a.get( r, k ) * b.get( k, c );
-                    //             counter++;
-                    //         }
-                    //         product.set( (size_t)r, (size_t)c, val );
-                    //     }
-                    // }
-                    // std::cout << counter << " multiplications" << std::endl;
+                static void _do_diagonal_multiply(
+                    const band_diagonal_matrix<ELEMENTTYPE>& a,
+                    const band_diagonal_matrix<ELEMENTTYPE>& b,
+                    band_diagonal_matrix<ELEMENTTYPE>& product ) {
+                    size_t nd = a.diagonal_size( 0 );
+                    product.zero().resize( nd, nd );
+                    for (size_t i = 0; i < nd; ++i) {
+                        product.set( i, i, a.get( i, i ) * b.get( i, i ) );
+                    }
                 }
         };
 
