@@ -135,7 +135,8 @@ namespace NCPA {
                 virtual Vector<ELEMENTTYPE>& clear() {
                     if (_ptr) {
                         // _ptrclear();
-                        _ptr.reset();
+                        _ptr->clear();
+                        // _ptr.reset();
                     }
                     return *this;
                 }
