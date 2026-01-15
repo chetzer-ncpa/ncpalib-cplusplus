@@ -1040,30 +1040,82 @@ namespace NCPA {
 
                 template<typename OUTTYPE>
                 virtual std::ostream& write_as( std::ostream& os ) const {
-                    OUTTYPE *buffer = new OUTTYPE[ this->size() ];
-                    size_t elements = this->buffer_as<OUTTYPE>( buffer );
+                    OUTTYPE *b = new OUTTYPE[ this->size() ];
+                    size_t elements = this->buffer_as<OUTTYPE>( b );
                     if (elements != this->size()) {
                         throw std::runtime_error( "ArrayLike.write_as(): Mismatch between internal array size and size of buffer output" );
                     }
-                    os.write( reinterpret_cast<const char *>( buffer ), elements * sizeof(OUTTYPE) );
-                    delete [] buffer;
+                    os.write( reinterpret_cast<const char *>( b ), elements * sizeof(OUTTYPE) );
+                    delete [] b;
                     return os;
                 }
 
                 virtual std::ostream& write( std::ostream& os ) const {
-                    T *buffer = new T[ this->size() ];
-                    size_t elements = this->buffer( buffer );
+                    T *b = new T[ this->size() ];
+                    size_t elements = this->buffer( b );
                     if (elements != this->size()) {
                         throw std::runtime_error( "ArrayLike.write(): Mismatch between internal array size and size of buffer output" );
                     }
-                    os.write( reinterpret_cast<const char *>( buffer ), elements * sizeof(T) );
-                    delete [] buffer;
+                    os.write( reinterpret_cast<const char *>( b ), elements * sizeof(T) );
+                    delete [] b;
                     return os;
+                }
+
+                virtual std::ostream& read( std::istream& is ) const {
+                    T *b = new T[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ), this->size() * sizeof(T) );
+                    if (is.gcount() != this->size() * sizeof(T)) {
+                        throw std::runtime_error( "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error( "ArrayLike.read(): Mismatch between internal array size and size of buffer input" );
+                    }
+                    delete [] b;
+                    return is;
+                }
+
+                template<typename BUFFERTYPE>
+                virtual std::ostream& read_as( std::istream& is ) const {
+                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ), this->size() * sizeof(BUFFERTYPE) );
+                    if (is.gcount() != this->size() * sizeof(T)) {
+                        throw std::runtime_error( "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error( "ArrayLike.read(): Mismatch between internal array size and size of buffer input" );
+                    }
+                    delete [] b;
+                    return is;
+                }
+
+                virtual size_t debuffer( const T *&b )  {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < dimensions().front(); ++i) {
+                        counter += this->view( i ).debuffer( b + counter );
+                    }
+                    return counter;
+                }
+
+                template<typename BUFFERTYPE>
+                virtual size_t debuffer_as( const BUFFERTYPE *&b )  {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < dimensions().front(); ++i) {
+                        counter += this->view( i ).debuffer_as<BUFFERTYPE>( b + counter );
+                    }
+                    return counter;
                 }
 
                 virtual size_t buffer( T *&b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     size_t counter = 0;
                     for (size_t i = 0; i < dimensions().front(); ++i) {
@@ -1075,7 +1127,7 @@ namespace NCPA {
                 template<typename BUFFERTYPE>
                 virtual size_t buffer_as( BUFFERTYPE *&b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     size_t counter = 0;
                     for (size_t i = 0; i < dimensions().front(); ++i) {
@@ -1229,9 +1281,30 @@ namespace NCPA {
 
                 virtual void redimension( size_t dim ) { _dimension = dim; }
 
+                virtual size_t debuffer( const T *&b ) override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
+                    }
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at(i) = b[ i ];
+                    }
+                    return this->size();
+                }
+
+                template<typename BUFFERTYPE>
+                virtual size_t debuffer_as( const BUFFERTYPE *&b ) override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
+                    }
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at(i) = (T)(b[ i ]);
+                    }
+                    return this->size();
+                }
+
                 virtual size_t buffer( T *&b ) const override {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     size_t counter = 0;
                     for (size_t i = 0; i < _dimension; ++i) {
@@ -1243,7 +1316,7 @@ namespace NCPA {
                 template<typename BUFFERTYPE>
                 virtual size_t buffer_as( BUFFERTYPE *&b ) const override {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     size_t counter = 0;
                     for (size_t i = 0; i < _dimension; ++i) {
@@ -1515,7 +1588,7 @@ namespace NCPA {
 
                 virtual size_t buffer( T *&b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     sts::memcpy( b, _internal.data(), _internal.size() * sizeof(T) );
                     return _internal.size();
@@ -1524,7 +1597,7 @@ namespace NCPA {
                 template<typename BUFFERTYPE>
                 virtual size_t buffer_as( BUFFERTYPE *&b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                        throw std::invalid_argument( "Null pointer passed to buffer()" );
                     }
                     for (size_t i = 0; i < _internal.size(); ++i) {
                         b[ i ] = (BUFFERTYPE)(_internal.at(i));
