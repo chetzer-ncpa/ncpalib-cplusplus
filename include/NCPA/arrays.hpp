@@ -54,36 +54,36 @@ namespace NCPA {
         template<typename T, size_t N>
         using global_registry_t
             = std::map<const ArrayLike<T, N> *, global_registry_entry_t<T, N>>;
-    }
-}
+    }  // namespace arrays
+}  // namespace NCPA
 
 // predeclare swap functions
 template<typename T, size_t N>
 static void swap( NCPA::arrays::ArrayLike<T, N>& a,
                   NCPA::arrays::ArrayLike<T, N>& b ) noexcept;
 
-                  template<typename T>
+template<typename T>
 static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
                   NCPA::arrays::ArrayLike<T, 1>& b ) noexcept;
 
 
-                  template<typename T, size_t N>
+template<typename T, size_t N>
 static void swap( NCPA::arrays::ArrayLikeView<T, N>& a,
                   NCPA::arrays::ArrayLikeView<T, N>& b ) noexcept;
 
-                  template<typename T>
+template<typename T>
 static void swap( NCPA::arrays::ArrayLikeView<T, 0>& a,
                   NCPA::arrays::ArrayLikeView<T, 0>& b ) noexcept;
 
-                  template<typename T, size_t N>
+template<typename T, size_t N>
 static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
                   NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept;
 
-                  template<typename T>
+template<typename T>
 static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
                   NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept;
 
-                  template<typename T>
+template<typename T>
 static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
                   NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept;
 
@@ -945,8 +945,6 @@ std::vector<T> operator-( const std::vector<T>& a ) {
         a, -NCPA::constants::one<T>() );
 }
 
-
-
 namespace NCPA {
     namespace arrays {
 
@@ -1028,8 +1026,62 @@ namespace NCPA {
 
                 virtual const size_t dimensions() const { return N; }
 
+                virtual const size_t size() const {
+                    size_t count = 1;
+                    for (auto it = _dimensions.begin(); it != _dimensions.end(); ++it) {
+                        count *= (*it);
+                    }
+                    return count;
+                }
+
                 virtual void redimension( const std::array<size_t, N>& dims ) {
                     _dimensions = dims;
+                }
+
+                template<typename OUTTYPE>
+                virtual std::ostream& write_as( std::ostream& os ) const {
+                    OUTTYPE *buffer = new OUTTYPE[ this->size() ];
+                    size_t elements = this->buffer_as<OUTTYPE>( buffer );
+                    if (elements != this->size()) {
+                        throw std::runtime_error( "ArrayLike.write_as(): Mismatch between internal array size and size of buffer output" );
+                    }
+                    os.write( reinterpret_cast<const char *>( buffer ), elements * sizeof(OUTTYPE) );
+                    delete [] buffer;
+                    return os;
+                }
+
+                virtual std::ostream& write( std::ostream& os ) const {
+                    T *buffer = new T[ this->size() ];
+                    size_t elements = this->buffer( buffer );
+                    if (elements != this->size()) {
+                        throw std::runtime_error( "ArrayLike.write(): Mismatch between internal array size and size of buffer output" );
+                    }
+                    os.write( reinterpret_cast<const char *>( buffer ), elements * sizeof(T) );
+                    delete [] buffer;
+                    return os;
+                }
+
+                virtual size_t buffer( T *&b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < dimensions().front(); ++i) {
+                        counter += this->view( i ).buffer( b + counter );
+                    }
+                    return counter;
+                }
+
+                template<typename BUFFERTYPE>
+                virtual size_t buffer_as( BUFFERTYPE *&b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < dimensions().front(); ++i) {
+                        counter += this->view( i ).buffer_as<BUFFERTYPE>( b + counter );
+                    }
+                    return counter;
                 }
 
                 static bool global_registry_contains( ArrayLike<T, N> *key );
@@ -1177,6 +1229,29 @@ namespace NCPA {
 
                 virtual void redimension( size_t dim ) { _dimension = dim; }
 
+                virtual size_t buffer( T *&b ) const override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < _dimension; ++i) {
+                        b[ i ] = this->at(i);
+                    }
+                    return _dimension;
+                }
+
+                template<typename BUFFERTYPE>
+                virtual size_t buffer_as( BUFFERTYPE *&b ) const override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < _dimension; ++i) {
+                        b[ i ] = (BUFFERTYPE)(this->at(i));
+                    }
+                    return _dimension;
+                }
+
                 static bool global_registry_contains(
                     const ArrayLike<T, 1> *key );
 
@@ -1198,7 +1273,7 @@ namespace NCPA {
 
         template<typename T>
         global_registry_t<T, 1> ArrayLike<T, 1>::_global_views;
-   
+
         template<typename T, size_t N>
         class ArrayLikeView : public ArrayLike<T, N> {
             public:
@@ -1297,8 +1372,10 @@ namespace NCPA {
                     return *_parent;
                 }
 
-                virtual void redimension( const std::array<size_t, N>& dims ) override {
-                    throw std::logic_error( "Cannot redimension an array view!" );
+                virtual void redimension(
+                    const std::array<size_t, N>& dims ) override {
+                    throw std::logic_error(
+                        "Cannot redimension an array view!" );
                 }
 
             private:
@@ -1309,7 +1386,7 @@ namespace NCPA {
                 std::array<size_t, N> _var_dims;
                 std::array<size_t, N + 1> _mapped_indices;
         };
-    
+
         template<typename T>
         class ArrayLikeView<T, 0> {
             public:
@@ -1339,7 +1416,7 @@ namespace NCPA {
                     }
                 }
 
-                ArrayLikeView( ArrayLikeView<T, 0>&& other ) noexcept  {
+                ArrayLikeView( ArrayLikeView<T, 0>&& other ) noexcept {
                     ::swap( *this, other );
                 }
 
@@ -1371,7 +1448,8 @@ namespace NCPA {
                 virtual ArrayLike<T, 1>& parent() const { return *_parent; }
 
                 virtual void redimension( const std::array<size_t, N>& dims ) {
-                    throw std::logic_error( "Cannot redimension an array view!" );
+                    throw std::logic_error(
+                        "Cannot redimension an array view!" );
                 }
 
             private:
@@ -1382,19 +1460,21 @@ namespace NCPA {
         };
 
         template<typename T, size_t N>
-        class NDimensionalArray : public ArrayLike<T,N> {
+        class NDimensionalArray : public ArrayLike<T, N> {
             public:
-                NDimensionalArray( const std::array<size_t,N>& dims ) : ArrayLike<T,N>( dims ) {
+                NDimensionalArray( const std::array<size_t, N>& dims ) :
+                    ArrayLike<T, N>( dims ) {
                     this->redimension( dims );
                 }
 
                 virtual ~NDimensionalArray() {}
 
-                NDimensionalArray( NDimensionalArray<T, N>&& other ) noexcept  {
+                NDimensionalArray( NDimensionalArray<T, N>&& other ) noexcept {
                     ::swap( *this, other );
                 }
 
-                NDimensionalArray<T, N>& operator=( NDimensionalArray<T, N> other ) {
+                NDimensionalArray<T, N>& operator=(
+                    NDimensionalArray<T, N> other ) {
                     ::swap( *this, other );
                     return *this;
                 }
@@ -1402,35 +1482,65 @@ namespace NCPA {
                 friend void ::swap<>( NDimensionalArray<T, N>& a,
                                       NDimensionalArray<T, N>& b ) noexcept;
 
-                NDimensionalArray(
-                    const NDimensionalArray<T,N>& other ) :
+                NDimensionalArray( const NDimensionalArray<T, N>& other ) :
                     ArrayLike<T, N>( other ), _internal { other._internal } {}
 
                 virtual T& at( const std::array<size_t, N>& coords ) override {
                     return this->internal().at( this->coords2index( coords ) );
                 }
 
-                virtual const T& at( const std::array<size_t, N>& coords ) const override {
+                virtual const T& at(
+                    const std::array<size_t, N>& coords ) const override {
                     return this->internal().at( this->coords2index( coords ) );
                 }
 
-                virtual void redimension( const std::array<size_t, N>& dims ) override {
+                virtual void redimension(
+                    const std::array<size_t, N>& dims ) override {
                     size_t intsize = 1;
                     for (auto it = dims.begin(); it != dims.end(); ++it) {
-                        intsize *= (*it);
+                        intsize *= ( *it );
                     }
                     _internal.clear();
                     _internal.resize( intsize );
                 }
 
-            protected:
-                size_t coords2index( const std::array<size_t,N>& coords ) const {
-                    if (N == 1) {
-                        return coords[0];
+                virtual size_t size() const override {
+                    return _internal.size();
+                }
+
+                virtual std::ostream& write( std::ostream& os ) const {
+                    os.write( reinterpret_cast<const char *>( _internal.data() ), _internal.size() * sizeof(T) );
+                    return os;
+                }
+
+                virtual size_t buffer( T *&b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
                     }
-                    size_t index = coords[N-1];
-                    size_t scale = 1;
-                    size_t counter = N-1;
+                    sts::memcpy( b, _internal.data(), _internal.size() * sizeof(T) );
+                    return _internal.size();
+                }
+
+                template<typename BUFFERTYPE>
+                virtual size_t buffer_as( BUFFERTYPE *&b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument( "Null pointer passed to flatten()" );
+                    }
+                    for (size_t i = 0; i < _internal.size(); ++i) {
+                        b[ i ] = (BUFFERTYPE)(_internal.at(i));
+                    }
+                    return _internal.size();
+                }
+
+            protected:
+                size_t coords2index(
+                    const std::array<size_t, N>& coords ) const {
+                    if (N == 1) {
+                        return coords[ 0 ];
+                    }
+                    size_t index   = coords[ N - 1 ];
+                    size_t scale   = 1;
+                    size_t counter = N - 1;
                     while (counter > 0) {
                         scale *= this->dimension( counter );
                         index += scale * coords[ --counter ];
@@ -1438,44 +1548,66 @@ namespace NCPA {
                     return index;
                 }
 
-                std::vector<T>& internal() {
-                    return _internal;
-                }
+                std::vector<T>& internal() { return _internal; }
 
             private:
                 std::vector<T> _internal;
         };
-    
-        template<typename T>
-    class TwoDimensionalArray : public NDimensionalArray<T,2> {
-        public:
-            
-            TwoDimensionalArray( const std::array<size_t, 2>& dims ) : NDimensionalArray<T,2>( dims ) {}
-            TwoDimensionalArray( size_t N1, size_t N2 ) : TwoDimensionalArray<T,2>( { N1, N2 } ) {}
-            TwoDimensionalArray( const TwoDimensionalArray<T>& other ) : NDimensionalArray<T,2>( other ) {}
-            TwoDimensionalArray( TwoDimensionalArray<T>&& other ) noexcept { ::swap( *this, other ); }
-            virtual ~TwoDimensionalArray() {}
-            TwoDimensionalArray<T>& operator=( TwoDimensionalArray<T> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-    };
 
-    template<typename T>
-    class ThreeDimensionalArray : public NDimensionalArray<T,3> {
-        public:
-            
-            ThreeDimensionalArray( const std::array<size_t, 3>& dims ) : NDimensionalArray<T,3>( dims ) {}
-            ThreeDimensionalArray( size_t N1, size_t N2, size_t N3 ) : ThreeDimensionalArray<T,3>( { N1, N2, N3 } ) {}
-            ThreeDimensionalArray( const ThreeDimensionalArray<T>& other ) : NDimensionalArray<T,3>( other ) {}
-            ThreeDimensionalArray( ThreeDimensionalArray<T>&& other ) noexcept { ::swap( *this, other ); }
-            virtual ~ThreeDimensionalArray() {}
-            ThreeDimensionalArray<T>& operator=( ThreeDimensionalArray<T> other ) {
+        template<typename T>
+        class TwoDimensionalArray : public NDimensionalArray<T, 2> {
+            public:
+                TwoDimensionalArray( const std::array<size_t, 2>& dims ) :
+                    NDimensionalArray<T, 2>( dims ) {}
+
+                TwoDimensionalArray( size_t N1, size_t N2 ) :
+                    TwoDimensionalArray<T, 2>( { N1, N2 } ) {}
+
+                TwoDimensionalArray( const TwoDimensionalArray<T>& other ) :
+                    NDimensionalArray<T, 2>( other ) {}
+
+                TwoDimensionalArray(
+                    TwoDimensionalArray<T>&& other ) noexcept {
+                    ::swap( *this, other );
+                }
+
+                virtual ~TwoDimensionalArray() {}
+
+                TwoDimensionalArray<T>& operator=(
+                    TwoDimensionalArray<T> other ) {
                     ::swap( *this, other );
                     return *this;
                 }
-    };
-}}
+        };
+
+        template<typename T>
+        class ThreeDimensionalArray : public NDimensionalArray<T, 3> {
+            public:
+                ThreeDimensionalArray( const std::array<size_t, 3>& dims ) :
+                    NDimensionalArray<T, 3>( dims ) {}
+
+                ThreeDimensionalArray( size_t N1, size_t N2, size_t N3 ) :
+                    ThreeDimensionalArray<T, 3>( { N1, N2, N3 } ) {}
+
+                ThreeDimensionalArray(
+                    const ThreeDimensionalArray<T>& other ) :
+                    NDimensionalArray<T, 3>( other ) {}
+
+                ThreeDimensionalArray(
+                    ThreeDimensionalArray<T>&& other ) noexcept {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ThreeDimensionalArray() {}
+
+                ThreeDimensionalArray<T>& operator=(
+                    ThreeDimensionalArray<T> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+        };
+    }  // namespace arrays
+}  // namespace NCPA
 
 template<typename T, size_t N>
 static void swap( NCPA::arrays::ArrayLike<T, N>& a,
@@ -1524,14 +1656,14 @@ static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
     ::swap( static_cast<ArrayLike<T, N>&>( a ),
             static_cast<ArrayLike<T, N>&>( b ) );
     swap( a._internal, b._internal );
-} 
+}
 
 template<typename T>
 static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
                   NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NDimensionalArray<T, 2>&>( a ),
-            static_cast<NDimensionalArray<T, 2&>( b ) );
+            static_cast < NDimensionalArray<T, 2 &>( b ) );
 }
 
 template<typename T>
@@ -1539,11 +1671,5 @@ static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
                   NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NDimensionalArray<T, 3>&>( a ),
-            static_cast<NDimensionalArray<T, 3&>( b ) );
+            static_cast < NDimensionalArray<T, 3 &>( b ) );
 }
-
-
-
-
-
-
