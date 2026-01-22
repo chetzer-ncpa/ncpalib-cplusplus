@@ -547,7 +547,10 @@ TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
     EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
 
     // all views along first and second dimension should be 1 x dim3
-    EXPECT_EQ( arr.view( 0, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
+    auto view1 = arr.view(0,0);
+    auto view2 = view1.view(0,0);
+    size_t testdim = view2.dimension(0);
+    EXPECT_EQ( testdim, dim3 );
     EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
 
     // all views along first and third dimension should be 1 x dim2
@@ -569,7 +572,26 @@ TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
     // all views along third and second dimension should be 1 x dim1
     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
-
-
 }
 
+TEST( _TEST_TITLE_, BracketOperatorsWorkCorrectly ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+    for (size_t i = 0; i < dim1; ++i) {
+        auto view2d = arr[i];
+        EXPECT_EQ( view2d.dimension(0), dim2 );
+        for (size_t j = 0; j < dim2; ++j) {
+            auto view1d = view2d[j];
+            EXPECT_EQ( view1d.dimension(0), dim3 );
+            for (size_t k = 0; k < dim3; ++k) {
+                auto view0d = view1d[k];
+                EXPECT_EQ( view1d[k].at(), 0 );
+            //     view1d[k]    = (int)( i + j + k );
+            //     EXPECT_EQ( view1d[k], (int)( i + j + k ) );
+            }
+        }
+    }
+}
