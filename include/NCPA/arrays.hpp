@@ -26,7 +26,7 @@ namespace NCPA {
         class ArrayLike;
 
         template<typename T, size_t N>
-        class ArrayLikeView;
+        class ArrayView;
 
         template<typename T, size_t N>
         class NDimensionalArray;
@@ -41,7 +41,7 @@ namespace NCPA {
         class TwoDimensionalArray;
 
         template<typename T, size_t N>
-        using view_t = ArrayLikeView<T, N - 1>;
+        using view_t = ArrayView<T, N - 1>;
 
         template<typename T, size_t N>
         using local_registry_t
@@ -68,12 +68,12 @@ static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
 
 
 template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLikeView<T, N>& a,
-                  NCPA::arrays::ArrayLikeView<T, N>& b ) noexcept;
+static void swap( NCPA::arrays::ArrayView<T, N>& a,
+                  NCPA::arrays::ArrayView<T, N>& b ) noexcept;
 
 template<typename T>
-static void swap( NCPA::arrays::ArrayLikeView<T, 0>& a,
-                  NCPA::arrays::ArrayLikeView<T, 0>& b ) noexcept;
+static void swap( NCPA::arrays::ArrayView<T, 0>& a,
+                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept;
 
 template<typename T, size_t N>
 static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
@@ -948,12 +948,71 @@ std::vector<T> operator-( const std::vector<T>& a ) {
 namespace NCPA {
     namespace arrays {
 
+        template<typename T, size_t N>
+        class _abstract_arraylike {
+            public:
+                // virtual T& at( const std::array<size_t, N>& coords ) = 0;
+                // virtual const T& at(
+                //     const std::array<size_t, N>& coords ) const
+                //     = 0;
+                virtual size_t buffer( T *b ) const            = 0;
+                virtual size_t debuffer( const T *b )          = 0;
+                virtual size_t dimension( size_t d ) const     = 0;
+                virtual std::istream& read( std::istream& is ) = 0;
+                virtual void redimension( const std::array<size_t, N>& dims )
+                    = 0;
+                virtual size_t size() const                             = 0;
+                virtual view_t<T, N>& view( size_t dim, size_t dimind ) = 0;
+                virtual const view_t<T, N>& view( size_t dim,
+                                                  size_t dimind ) const
+                    = 0;
+                virtual std::ostream& write( std::ostream& os ) const = 0;
+
+                virtual const size_t dimensions() const { return N; }
+
+            protected:
+                virtual std::array<size_t, N>& dimensions_array() = 0;
+                virtual const std::array<size_t, N>& dimensions_array() const
+                    = 0;
+
+                virtual void check_dimensions( size_t dim ) const {
+                    if (dim >= this->dimensions()) {
+                        std::ostringstream oss;
+                        oss << "ArrayLike: Requested dimension " << dim
+                            << " too large for " << this->dimensions()
+                            << "-dimensional array";
+                        throw std::range_error( oss.str() );
+                    }
+                }
+
+                virtual void check_dimension_size( size_t dim,
+                                                   size_t dimind ) const {
+                    if (dimind >= this->dimensions_array().at( dim )) {
+                        std::ostringstream oss;
+                        oss << "ArrayLike: Requested element " << dimind
+                            << " too large for " << this->dimensions()
+                            << "th dimension of " << this->dimensions_string()
+                            << " array";
+                        throw std::range_error( oss.str() );
+                    }
+                }
+
+                virtual std::string dimensions_string() const {
+                    std::ostringstream dimstr;
+                    dimstr << this->dimension( 0 );
+                    for (size_t i = 1; i < this->dimensions(); ++i) {
+                        dimstr << "x" << this->dimension( i );
+                    }
+                    return dimstr.str();
+                }
+        };
+
         /*
         Generalized interface for an N-D array that can be pointed back to a
         1-D array or vector
         */
         template<typename T, size_t N>
-        class ArrayLike {
+        class ArrayLike : public _abstract_arraylike<T, N> {
                 static_assert( N > 0, "Dimension must be nonzero." );
 
             public:
@@ -987,7 +1046,131 @@ namespace NCPA {
                     const std::array<size_t, N>& coords ) const
                     = 0;
 
-                virtual view_t<T, N>& view( size_t dim, size_t dimind ) {
+                virtual size_t buffer( T *b ) const override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        counter += this->view( 0, i ).buffer( b + counter );
+                    }
+                    return counter;
+                }
+
+                template<typename BUFFERTYPE>
+                size_t buffer_as( BUFFERTYPE *b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        counter += this->view( 0, i ).buffer_as( b + counter );
+                    }
+                    return counter;
+                }
+
+                virtual size_t debuffer( const T *b ) override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to debuffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        counter += this->view( 0, i ).debuffer( b + counter );
+                    }
+                    return counter;
+                }
+
+                template<typename BUFFERTYPE>
+                size_t debuffer_as( const BUFFERTYPE *b ) {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to debuffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        // auto v   = this->view( 0, i );
+                        // counter += v.debuffer_as( b + counter );
+                        counter
+                            += this->view( 0, i ).debuffer_as( b + counter );
+                    }
+                    return counter;
+                }
+
+                virtual size_t dimension( size_t d ) const override {
+                    this->check_dimensions( d );
+                    return this->dimensions_array().at( d );
+                }
+
+                // virtual size_t& dimension( size_t d ) {
+                //     return ( d >= this->dimensions_array().size()
+                //                  ? 1
+                //                  : this->dimensions_array().at( d ) );
+                // }
+
+                // virtual const size_t dimensions() const { return N; }
+
+                virtual std::istream& read( std::istream& is ) override {
+                    T *b = new T[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ),
+                             this->size() * sizeof( T ) );
+                    if (is.gcount() != this->size() * sizeof( T )) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Mismatch between internal "
+                            "array size and size of buffer input" );
+                    }
+                    delete[] b;
+                    return is;
+                }
+
+                template<typename BUFFERTYPE>
+                std::istream& read_as( std::istream& is ) {
+                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ),
+                             this->size() * sizeof( BUFFERTYPE ) );
+                    if (is.gcount() != this->size() * sizeof( T )) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Mismatch between internal "
+                            "array size and size of buffer input" );
+                    }
+                    delete[] b;
+                    return is;
+                }
+
+                virtual void redimension(
+                    const std::array<size_t, N>& dims ) override {
+                    this->dimensions_array() = dims;
+                }
+
+                virtual size_t size() const override {
+                    size_t count = 1;
+                    for (auto it = this->dimensions_array().begin();
+                         it != this->dimensions_array().end(); ++it) {
+                        count *= ( *it );
+                    }
+                    return count;
+                }
+
+                virtual view_t<T, N>& view( size_t dim,
+                                            size_t dimind ) override {
+                    this->check_dimensions( dim );
+                    this->check_dimension_size( dim, dimind );
                     std::pair<size_t, size_t> key { dim, dimind };
                     auto keyview = _local_views.find( key );
                     if (keyview == _local_views.end()) {
@@ -999,8 +1182,10 @@ namespace NCPA {
                     }
                 }
 
-                virtual const view_t<T, N>& view( size_t dim,
-                                                  size_t dimind ) const {
+                virtual const view_t<T, N>& view(
+                    size_t dim, size_t dimind ) const override {
+                    this->check_dimensions( dim );
+                    this->check_dimension_size( dim, dimind );
                     std::pair<size_t, size_t> key { dim, dimind };
                     auto global_registry = _global_views.find( this );
                     if (global_registry == _global_views.end()) {
@@ -1016,124 +1201,34 @@ namespace NCPA {
                     return entry[ key ];
                 }
 
-                virtual size_t dimension( size_t d ) const {
-                    return _dimensions.at( d );
-                }
-
-                virtual size_t& dimension( size_t d ) {
-                    return _dimensions.at( d );
-                }
-
-                virtual const size_t dimensions() const { return N; }
-
-                virtual const size_t size() const {
-                    size_t count = 1;
-                    for (auto it = _dimensions.begin(); it != _dimensions.end(); ++it) {
-                        count *= (*it);
+                virtual std::ostream& write(
+                    std::ostream& os ) const override {
+                    T *b            = new T[ this->size() ];
+                    size_t elements = this->buffer( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.write(): Mismatch between internal "
+                            "array size and size of buffer output" );
                     }
-                    return count;
-                }
-
-                virtual void redimension( const std::array<size_t, N>& dims ) {
-                    _dimensions = dims;
+                    os.write( reinterpret_cast<const char *>( b ),
+                              elements * sizeof( T ) );
+                    delete[] b;
+                    return os;
                 }
 
                 template<typename OUTTYPE>
-                virtual std::ostream& write_as( std::ostream& os ) const {
-                    OUTTYPE *b = new OUTTYPE[ this->size() ];
+                std::ostream& write_as( std::ostream& os ) const {
+                    OUTTYPE *b      = new OUTTYPE[ this->size() ];
                     size_t elements = this->buffer_as<OUTTYPE>( b );
                     if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.write_as(): Mismatch between internal array size and size of buffer output" );
+                        throw std::runtime_error(
+                            "ArrayLike.write_as(): Mismatch between internal "
+                            "array size and size of buffer output" );
                     }
-                    os.write( reinterpret_cast<const char *>( b ), elements * sizeof(OUTTYPE) );
-                    delete [] b;
+                    os.write( reinterpret_cast<const char *>( b ),
+                              elements * sizeof( OUTTYPE ) );
+                    delete[] b;
                     return os;
-                }
-
-                virtual std::ostream& write( std::ostream& os ) const {
-                    T *b = new T[ this->size() ];
-                    size_t elements = this->buffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.write(): Mismatch between internal array size and size of buffer output" );
-                    }
-                    os.write( reinterpret_cast<const char *>( b ), elements * sizeof(T) );
-                    delete [] b;
-                    return os;
-                }
-
-                virtual std::ostream& read( std::istream& is ) const {
-                    T *b = new T[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ), this->size() * sizeof(T) );
-                    if (is.gcount() != this->size() * sizeof(T)) {
-                        throw std::runtime_error( "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.read(): Mismatch between internal array size and size of buffer input" );
-                    }
-                    delete [] b;
-                    return is;
-                }
-
-                template<typename BUFFERTYPE>
-                virtual std::ostream& read_as( std::istream& is ) const {
-                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ), this->size() * sizeof(BUFFERTYPE) );
-                    if (is.gcount() != this->size() * sizeof(T)) {
-                        throw std::runtime_error( "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.read(): Mismatch between internal array size and size of buffer input" );
-                    }
-                    delete [] b;
-                    return is;
-                }
-
-                virtual size_t debuffer( const T *&b )  {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < dimensions().front(); ++i) {
-                        counter += this->view( i ).debuffer( b + counter );
-                    }
-                    return counter;
-                }
-
-                template<typename BUFFERTYPE>
-                virtual size_t debuffer_as( const BUFFERTYPE *&b )  {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < dimensions().front(); ++i) {
-                        counter += this->view( i ).debuffer_as<BUFFERTYPE>( b + counter );
-                    }
-                    return counter;
-                }
-
-                virtual size_t buffer( T *&b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < dimensions().front(); ++i) {
-                        counter += this->view( i ).buffer( b + counter );
-                    }
-                    return counter;
-                }
-
-                template<typename BUFFERTYPE>
-                virtual size_t buffer_as( BUFFERTYPE *&b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < dimensions().front(); ++i) {
-                        counter += this->view( i ).buffer_as<BUFFERTYPE>( b + counter );
-                    }
-                    return counter;
                 }
 
                 static bool global_registry_contains( ArrayLike<T, N> *key );
@@ -1144,7 +1239,18 @@ namespace NCPA {
                 static void deregister_parent( ArrayLike<T, N> *key );
 
                 static void register_view( ArrayLike<T, N> *key,
-                                           const ArrayLikeView<T, N - 1>& v );
+                                           const ArrayView<T, N - 1>& v );
+
+            protected:
+                virtual std::array<size_t, N>& dimensions_array() override {
+                    return _dimensions;
+                }
+
+                virtual const std::array<size_t, N>& dimensions_array()
+                    const override {
+                    return _dimensions;
+                }
+
 
             private:
                 std::array<size_t, N> _dimensions;
@@ -1164,8 +1270,8 @@ namespace NCPA {
         }
 
         template<typename T, size_t N>
-        void ArrayLike<T, N>::register_view(
-            ArrayLike<T, N> *key, const ArrayLikeView<T, N - 1>& v ) {
+        void ArrayLike<T, N>::register_view( ArrayLike<T, N> *key,
+                                             const ArrayView<T, N - 1>& v ) {
             ArrayLike<T, N>::register_parent( key );
             ArrayLike<T, N>::_global_views[ key ].emplace( v.key(), v );
         }
@@ -1190,12 +1296,15 @@ namespace NCPA {
         }
 
         template<typename T>
-        class ArrayLike<T, 1> {
+        class ArrayLike<T, 1> : public _abstract_arraylike<T, 1> {
             public:
                 ArrayLike() {}
 
                 ArrayLike( const std::array<size_t, 1>& dims ) :
-                    _dimension { dims[ 0 ] } {}
+                    _dimensions { dims } {}
+
+                ArrayLike( size_t newdim ) :
+                    _dimensions { std::array<size_t, 1>( { newdim } ) } {}
 
                 virtual ~ArrayLike() {}
 
@@ -1203,7 +1312,7 @@ namespace NCPA {
                                       ArrayLike<T, 1>& b ) noexcept;
 
                 ArrayLike( const ArrayLike<T, 1>& other ) : ArrayLike<T, 1>() {
-                    _dimension   = other._dimension;
+                    _dimensions  = other._dimensions;
                     _local_views = other._local_views;
                 }
 
@@ -1230,7 +1339,118 @@ namespace NCPA {
                     return this->at( std::array<size_t, 1> { coord } );
                 }
 
-                virtual view_t<T, 1>& view( size_t dim, size_t dimind ) {
+                virtual size_t buffer( T *b ) const override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        b[ i ] = this->at( i );
+                    }
+                    return this->dimensions_array().at( 0 );
+                }
+
+                template<typename BUFFERTYPE>
+                size_t buffer_as( BUFFERTYPE *b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
+                    }
+                    size_t counter = 0;
+                    for (size_t i = 0; i < this->dimensions_array().at( 0 );
+                         ++i) {
+                        b[ i ] = (BUFFERTYPE)( this->at( i ) );
+                    }
+                    return this->dimensions_array().at( 0 );
+                }
+
+                virtual size_t debuffer( const T *b ) override {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to debuffer()" );
+                    }
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at( i ) = b[ i ];
+                    }
+                    return this->size();
+                }
+
+                template<typename BUFFERTYPE>
+                size_t debuffer_as( const BUFFERTYPE *b ) {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to debuffer()" );
+                    }
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        this->at( i ) = (T)( b[ i ] );
+                    }
+                    return this->size();
+                }
+
+                virtual size_t dimension( size_t d ) const override {
+                    this->check_dimensions( d );
+                    return this->dimensions_array().at( d );
+                }
+
+                // virtual const size_t dimensions() const { return 1; }
+
+                virtual std::istream& read( std::istream& is ) override {
+                    T *b = new T[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ),
+                             this->size() * sizeof( T ) );
+                    if (is.gcount() != this->size() * sizeof( T )) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Mismatch between internal "
+                            "array size and size of buffer input" );
+                    }
+                    delete[] b;
+                    return is;
+                }
+
+                template<typename BUFFERTYPE>
+                std::istream& read_as( std::istream& is ) {
+                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
+                    is.read( reinterpret_cast<char *>( b ),
+                             this->size() * sizeof( BUFFERTYPE ) );
+                    if (is.gcount() != this->size() * sizeof( T )) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Not enough samples read!" );
+                    }
+                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.read(): Mismatch between internal "
+                            "array size and size of buffer input" );
+                    }
+                    delete[] b;
+                    return is;
+                }
+
+                virtual void redimension(
+                    const std::array<size_t, 1>& dims ) override {
+                    this->dimensions_array() = dims;
+                }
+
+                virtual void redimension( size_t dim ) {
+                    this->dimensions_array().at( 0 ) = dim;
+                }
+
+                virtual size_t size() const override {
+                    return this->dimensions_array().at( 0 );
+                }
+
+                virtual view_t<T, 1>& view( size_t dim,
+                                            size_t dimind ) override {
+                    this->check_dimensions( dim );
+                    this->check_dimension_size( dim, dimind );
+                    if (dimind >= this->dimension( dim )) {}
                     std::pair<size_t, size_t> key { dim, dimind };
                     auto keyview = _local_views.find( key );
                     if (keyview == _local_views.end()) {
@@ -1242,8 +1462,10 @@ namespace NCPA {
                     }
                 }
 
-                virtual const view_t<T, 1>& view( size_t dim,
-                                                  size_t dimind ) const {
+                virtual const view_t<T, 1>& view(
+                    size_t dim, size_t dimind ) const override {
+                    this->check_dimensions( dim );
+                    this->check_dimension_size( dim, dimind );
                     std::pair<size_t, size_t> key { dim, dimind };
                     auto global_registry = _global_views.find( this );
                     if (global_registry == _global_views.end()) {
@@ -1264,65 +1486,34 @@ namespace NCPA {
                     return view_it->second;
                 }
 
-                virtual size_t dimension( size_t d ) const {
-                    if (d == 0) {
-                        return _dimension;
-                    } else {
-                        throw std::range_error(
-                            "Only one dimension available" );
+                virtual std::ostream& write(
+                    std::ostream& os ) const override {
+                    T *b            = new T[ this->size() ];
+                    size_t elements = this->buffer( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.write(): Mismatch between internal "
+                            "array size and size of buffer output" );
                     }
+                    os.write( reinterpret_cast<const char *>( b ),
+                              elements * sizeof( T ) );
+                    delete[] b;
+                    return os;
                 }
 
-                virtual const size_t dimensions() const { return 1; }
-
-                virtual void redimension( const std::array<size_t, 1>& dims ) {
-                    _dimension = dims[ 0 ];
-                }
-
-                virtual void redimension( size_t dim ) { _dimension = dim; }
-
-                virtual size_t debuffer( const T *&b ) override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
+                template<typename OUTTYPE>
+                std::ostream& write_as( std::ostream& os ) const {
+                    OUTTYPE *b      = new OUTTYPE[ this->size() ];
+                    size_t elements = this->buffer_as<OUTTYPE>( b );
+                    if (elements != this->size()) {
+                        throw std::runtime_error(
+                            "ArrayLike.write_as(): Mismatch between internal "
+                            "array size and size of buffer output" );
                     }
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i) = b[ i ];
-                    }
-                    return this->size();
-                }
-
-                template<typename BUFFERTYPE>
-                virtual size_t debuffer_as( const BUFFERTYPE *&b ) override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to debuffer()" );
-                    }
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i) = (T)(b[ i ]);
-                    }
-                    return this->size();
-                }
-
-                virtual size_t buffer( T *&b ) const override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < _dimension; ++i) {
-                        b[ i ] = this->at(i);
-                    }
-                    return _dimension;
-                }
-
-                template<typename BUFFERTYPE>
-                virtual size_t buffer_as( BUFFERTYPE *&b ) const override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < _dimension; ++i) {
-                        b[ i ] = (BUFFERTYPE)(this->at(i));
-                    }
-                    return _dimension;
+                    os.write( reinterpret_cast<const char *>( b ),
+                              elements * sizeof( OUTTYPE ) );
+                    delete[] b;
+                    return os;
                 }
 
                 static bool global_registry_contains(
@@ -1336,10 +1527,22 @@ namespace NCPA {
 
 
                 static void register_view( const ArrayLike<T, 1> *key,
-                                           const ArrayLikeView<T, 0>& v );
+                                           const ArrayView<T, 0>& v );
+
+            protected:
+                virtual std::array<size_t, 1>& dimensions_array() override {
+                    return _dimensions;
+                }
+
+                virtual const std::array<size_t, 1>& dimensions_array()
+                    const override {
+                    return _dimensions;
+                }
 
             private:
-                size_t _dimension;
+                // use std::array so we can return reference in
+                // dimensions_array()
+                std::array<size_t, 1> _dimensions;
                 local_registry_t<T, 1> _local_views;
                 static global_registry_t<T, 1> _global_views;
         };
@@ -1348,16 +1551,16 @@ namespace NCPA {
         global_registry_t<T, 1> ArrayLike<T, 1>::_global_views;
 
         template<typename T, size_t N>
-        class ArrayLikeView : public ArrayLike<T, N> {
+        class ArrayView : public ArrayLike<T, N> {
             public:
-                ArrayLikeView() :
+                ArrayView() :
                     ArrayLike<T, N>(),
                     _parent { nullptr },
                     _cparent { nullptr },
                     _const_dim { 0 } {}
 
-                ArrayLikeView( ArrayLike<T, N + 1> *parent, size_t const_dim,
-                               size_t const_dim_ind ) :
+                ArrayView( ArrayLike<T, N + 1> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
                     ArrayLike<T, N>(),
                     _parent { parent },
                     _cparent { parent },
@@ -1373,11 +1576,12 @@ namespace NCPA {
                         }
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
-                    this->redimension( newdims );
+
+                    this->dimensions_array() = newdims;
                 }
 
-                ArrayLikeView( const ArrayLike<T, N + 1> *parent,
-                               size_t const_dim, size_t const_dim_ind ) :
+                ArrayView( const ArrayLike<T, N + 1> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
                     ArrayLike<T, N>(),
                     _parent { nullptr },
                     _cparent { parent },
@@ -1393,12 +1597,12 @@ namespace NCPA {
                         }
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
-                    this->redimension( newdims );
+                    this->dimensions_array()      = newdims;
                 }
 
-                virtual ~ArrayLikeView() {}
+                virtual ~ArrayView() {}
 
-                ArrayLikeView( const ArrayLikeView<T, N>& other ) :
+                ArrayView( const ArrayView<T, N>& other ) :
                     ArrayLike<T, N>(),
                     _parent { other._parent },
                     _const_dim { other._const_dim },
@@ -1406,18 +1610,18 @@ namespace NCPA {
                     _var_dims { other._var_dims },
                     _mapped_indices { other._mapped_indices } {}
 
-                ArrayLikeView( ArrayLikeView<T, N>&& other ) noexcept :
+                ArrayView( ArrayView<T, N>&& other ) noexcept :
                     ArrayLike<T, N>() {
                     ::swap( *this, other );
                 }
 
-                ArrayLikeView<T, N>& operator=( ArrayLikeView<T, N> other ) {
+                ArrayView<T, N>& operator=( ArrayView<T, N> other ) {
                     ::swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ArrayLikeView<T, N>& a,
-                                      ArrayLikeView<T, N>& b ) noexcept;
+                friend void ::swap<>( ArrayView<T, N>& a,
+                                      ArrayView<T, N>& b ) noexcept;
 
                 virtual T& at( const std::array<size_t, N>& coords ) override {
                     if (_parent == nullptr) {
@@ -1461,12 +1665,119 @@ namespace NCPA {
         };
 
         template<typename T>
-        class ArrayLikeView<T, 0> {
+        class ArrayView<T, 1> : public ArrayLike<T, 1> {
             public:
-                ArrayLikeView() : _parent { nullptr }, _parent_ind { 0 } {}
+                ArrayView() :
+                    ArrayLike<T, 1>(),
+                    _parent { nullptr },
+                    _cparent { nullptr },
+                    _const_dim { 0 } {}
 
-                ArrayLikeView( ArrayLike<T, 1> *parent, size_t const_dim,
-                               size_t const_dim_ind ) :
+                ArrayView( ArrayLike<T, 2> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
+                    ArrayLike<T, 1>(),
+                    _parent { parent },
+                    _cparent { parent },
+                    _const_dim { const_dim },
+                    _key { const_dim, const_dim_ind } {
+                    size_t counter = 0;
+                    std::array<size_t, 1> newdims;
+                    for (size_t i = 0; i <= 1; ++i) {
+                        if (i != const_dim) {
+                            _var_dims[ counter ] = i;
+                            newdims[ counter ]   = parent->dimension( i );
+                            counter++;
+                        }
+                    }
+                    _mapped_indices[ _const_dim ] = const_dim_ind;
+                    this->dimensions_array()      = newdims;
+                }
+
+                ArrayView( const ArrayLike<T, 2> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
+                    ArrayLike<T, 1>(),
+                    _parent { nullptr },
+                    _cparent { parent },
+                    _const_dim { const_dim },
+                    _key { const_dim, const_dim_ind } {
+                    size_t counter = 0;
+                    std::array<size_t, 1> newdims;
+                    for (size_t i = 0; i <= 1; ++i) {
+                        if (i != const_dim) {
+                            _var_dims[ counter ] = i;
+                            newdims[ counter ]   = parent->dimension( i );
+                            counter++;
+                        }
+                    }
+                    _mapped_indices[ _const_dim ] = const_dim_ind;
+                    this->dimensions_array()      = newdims;
+                }
+
+                virtual ~ArrayView() {}
+
+                ArrayView( const ArrayView<T, 1>& other ) :
+                    ArrayLike<T, 1>(),
+                    _parent { other._parent },
+                    _const_dim { other._const_dim },
+                    _key { other._key },
+                    _var_dims { other._var_dims },
+                    _mapped_indices { other._mapped_indices } {}
+
+                ArrayView( ArrayView<T, 1>&& other ) noexcept :
+                    ArrayLike<T, 1>() {
+                    ::swap( *this, other );
+                }
+
+                ArrayView<T, 1>& operator=( ArrayView<T, 1> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ArrayView<T, 1>& a,
+                                      ArrayView<T, 1>& b ) noexcept;
+
+                virtual T& at( const std::array<size_t, 1>& coords ) override {
+                    if (_parent == nullptr) {
+                        throw std::logic_error(
+                            "Attempted non-const access to const view" );
+                    }
+                    _mapped_indices[ _var_dims[ 0 ] ] = coords[ 0 ];
+                    return _parent->at( _mapped_indices );
+                }
+
+                virtual const T& at(
+                    const std::array<size_t, 1>& coords ) const override {
+                    std::array<size_t, 2> mapped = _mapped_indices;
+                    mapped[ _var_dims[ 0 ] ]     = coords[ 0 ];
+                    return _cparent->at( mapped );
+                }
+
+                virtual std::pair<size_t, size_t> key() const { return _key; }
+
+                virtual ArrayLike<T, 2>& parent() const { return *_parent; }
+
+                virtual void redimension(
+                    const std::array<size_t, 1>& dims ) override {
+                    throw std::logic_error(
+                        "Cannot redimension an array view!" );
+                }
+
+            private:
+                ArrayLike<T, 2> *_parent;
+                const ArrayLike<T, 2> *_cparent;
+                size_t _const_dim;
+                std::pair<size_t, size_t> _key;
+                std::array<size_t, 1> _var_dims;
+                std::array<size_t, 2> _mapped_indices;
+        };
+
+        template<typename T>
+        class ArrayView<T, 0> {
+            public:
+                ArrayView() : _parent { nullptr }, _parent_ind { 0 } {}
+
+                ArrayView( ArrayLike<T, 1> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
                     _parent { parent },
                     _cparent { parent },
                     _parent_ind { const_dim_ind },
@@ -1477,8 +1788,8 @@ namespace NCPA {
                     }
                 }
 
-                ArrayLikeView( const ArrayLike<T, 1> *parent, size_t const_dim,
-                               size_t const_dim_ind ) :
+                ArrayView( const ArrayLike<T, 1> *parent, size_t const_dim,
+                           size_t const_dim_ind ) :
                     _parent { nullptr },
                     _cparent { parent },
                     _parent_ind { const_dim_ind },
@@ -1489,19 +1800,19 @@ namespace NCPA {
                     }
                 }
 
-                ArrayLikeView( ArrayLikeView<T, 0>&& other ) noexcept {
+                ArrayView( ArrayView<T, 0>&& other ) noexcept {
                     ::swap( *this, other );
                 }
 
-                ArrayLikeView<T, 0>& operator=( ArrayLikeView<T, 0> other ) {
+                ArrayView<T, 0>& operator=( ArrayView<T, 0> other ) {
                     ::swap( *this, other );
                     return *this;
                 }
 
-                virtual ~ArrayLikeView() {}
+                virtual ~ArrayView() {}
 
-                friend void ::swap<>( ArrayLikeView<T, 0>& a,
-                                      ArrayLikeView<T, 0>& b ) noexcept;
+                friend void ::swap<>( ArrayView<T, 0>& a,
+                                      ArrayView<T, 0>& b ) noexcept;
 
                 virtual T& at() {
                     if (_parent != nullptr) {
@@ -1516,20 +1827,81 @@ namespace NCPA {
                     return _cparent->at( { _parent_ind } );
                 }
 
+                virtual T& at( const std::array<T, 0>& ) { return this->at(); }
+
+                virtual const T& at( const std::array<T, 0>& ) const {
+                    return this->at();
+                }
+
+                virtual size_t buffer( T *b ) const {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
+                    }
+                    b[ 0 ] = this->at();
+                    return 1;
+                }
+
+                virtual size_t debuffer( T *b ) {
+                    if (b == nullptr) {
+                        throw std::invalid_argument(
+                            "Null pointer passed to debuffer()" );
+                    }
+                    this->at() = b[ 0 ];
+                    return 1;
+                }
+
+                // virtual size_t dimension( size_t n ) const { return 1; }
+
                 virtual std::pair<size_t, size_t> key() const { return _key; }
 
                 virtual ArrayLike<T, 1>& parent() const { return *_parent; }
 
-                virtual void redimension( const std::array<size_t, N>& dims ) {
-                    throw std::logic_error(
-                        "Cannot redimension an array view!" );
+                virtual std::istream& read( std::istream& is ) {
+                    is >> this->at();
+                    return is;
                 }
+
+                // virtual void redimension( const std::array<size_t, 1>& dims
+                // ) {
+                //     throw std::logic_error(
+                //         "Cannot redimension an array view!" );
+                // }
+
+
+                virtual size_t size() const { return 1; }
+
+                // virtual view_t<T, 0>& view( size_t dim, size_t dimind )
+                // override {
+                //     throw std::logic_error( "Can't get a view of a
+                //     0-dimensional array" );
+                // }
+                // virtual const view_t<T, 0>& view( size_t dim,
+                //                                   size_t dimind ) const
+                //     override {
+                //     throw std::logic_error( "Can't get a view of a
+                //     0-dimensional array" );
+                // }
+                virtual std::ostream& write( std::ostream& os ) const {
+                    os << this->at();
+                    return os;
+                }
+
+            protected:
+                // virtual std::array<size_t, 0>& dimensions_array() override {
+                //     return _empty_dim_array;
+                // }
+                // virtual const std::array<size_t, 0>& dimensions_array()
+                // const override {
+                //     return _empty_dim_array;
+                // }
 
             private:
                 ArrayLike<T, 1> *_parent;
                 const ArrayLike<T, 1> *_cparent;
                 size_t _parent_ind;
                 std::pair<size_t, size_t> _key;
+                // std::array<size_t,0> _empty_dim_array;
         };
 
         template<typename T, size_t N>
@@ -1582,25 +1954,30 @@ namespace NCPA {
                 }
 
                 virtual std::ostream& write( std::ostream& os ) const {
-                    os.write( reinterpret_cast<const char *>( _internal.data() ), _internal.size() * sizeof(T) );
+                    os.write(
+                        reinterpret_cast<const char *>( _internal.data() ),
+                        _internal.size() * sizeof( T ) );
                     return os;
                 }
 
-                virtual size_t buffer( T *&b ) const {
+                virtual size_t buffer( T *b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
                     }
-                    sts::memcpy( b, _internal.data(), _internal.size() * sizeof(T) );
+                    std::memcpy( b, _internal.data(),
+                                 _internal.size() * sizeof( T ) );
                     return _internal.size();
                 }
 
                 template<typename BUFFERTYPE>
-                virtual size_t buffer_as( BUFFERTYPE *&b ) const {
+                size_t buffer_as( BUFFERTYPE *b ) const {
                     if (b == nullptr) {
-                        throw std::invalid_argument( "Null pointer passed to buffer()" );
+                        throw std::invalid_argument(
+                            "Null pointer passed to buffer()" );
                     }
                     for (size_t i = 0; i < _internal.size(); ++i) {
-                        b[ i ] = (BUFFERTYPE)(_internal.at(i));
+                        b[ i ] = (BUFFERTYPE)( _internal.at( i ) );
                     }
                     return _internal.size();
                 }
@@ -1623,6 +2000,8 @@ namespace NCPA {
 
                 std::vector<T>& internal() { return _internal; }
 
+                const std::vector<T>& internal() const { return _internal; }
+
             private:
                 std::vector<T> _internal;
         };
@@ -1634,7 +2013,8 @@ namespace NCPA {
                     NDimensionalArray<T, 2>( dims ) {}
 
                 TwoDimensionalArray( size_t N1, size_t N2 ) :
-                    TwoDimensionalArray<T, 2>( { N1, N2 } ) {}
+                    TwoDimensionalArray<T>(
+                        std::array<size_t, 2> { N1, N2 } ) {}
 
                 TwoDimensionalArray( const TwoDimensionalArray<T>& other ) :
                     NDimensionalArray<T, 2>( other ) {}
@@ -1660,7 +2040,8 @@ namespace NCPA {
                     NDimensionalArray<T, 3>( dims ) {}
 
                 ThreeDimensionalArray( size_t N1, size_t N2, size_t N3 ) :
-                    ThreeDimensionalArray<T, 3>( { N1, N2, N3 } ) {}
+                    ThreeDimensionalArray<T>(
+                        std::array<size_t, 3> { N1, N2, N3 } ) {}
 
                 ThreeDimensionalArray(
                     const ThreeDimensionalArray<T>& other ) :
@@ -1694,16 +2075,16 @@ template<typename T>
 static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
                   NCPA::arrays::ArrayLike<T, 1>& b ) noexcept {
     using std::swap;
-    swap( a._dimension, b._dimension );
+    swap( a._dimensions, b._dimensions );
     swap( a._local_views, b._local_views );
 }
 
 template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLikeView<T, N>& a,
-                  NCPA::arrays::ArrayLikeView<T, N>& b ) noexcept {
+static void swap( NCPA::arrays::ArrayView<T, N>& a,
+                  NCPA::arrays::ArrayView<T, N>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<ArrayLike<T, N>&>( a ),
-            static_cast<ArrayLike<T, N>&>( b ) );
+    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
+            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
     swap( a._parent, b._parent );
     swap( a._cparent, b._cparent );
     swap( a._const_dim, b._const_dim );
@@ -1713,8 +2094,8 @@ static void swap( NCPA::arrays::ArrayLikeView<T, N>& a,
 }
 
 template<typename T>
-static void swap( NCPA::arrays::ArrayLikeView<T, 0>& a,
-                  NCPA::arrays::ArrayLikeView<T, 0>& b ) noexcept {
+static void swap( NCPA::arrays::ArrayView<T, 0>& a,
+                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept {
     using std::swap;
     swap( a._parent, b._parent );
     swap( a._cparent, b._cparent );
@@ -1726,8 +2107,8 @@ template<typename T, size_t N>
 static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
                   NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<ArrayLike<T, N>&>( a ),
-            static_cast<ArrayLike<T, N>&>( b ) );
+    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
+            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
     swap( a._internal, b._internal );
 }
 
@@ -1735,14 +2116,14 @@ template<typename T>
 static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
                   NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NDimensionalArray<T, 2>&>( a ),
-            static_cast < NDimensionalArray<T, 2 &>( b ) );
+    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( a ),
+            static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( b ) );
 }
 
 template<typename T>
 static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
                   NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NDimensionalArray<T, 3>&>( a ),
-            static_cast < NDimensionalArray<T, 3 &>( b ) );
+    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( a ),
+            static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( b ) );
 }

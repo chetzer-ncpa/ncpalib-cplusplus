@@ -13,7 +13,7 @@ using namespace std;
 using namespace NCPA::arrays;
 using namespace testing;
 
-#define _TEST_TITLE_ NCPAArraysLibraryTest 
+#define _TEST_TITLE_ NCPAArraysLibraryTest
 
 TEST( _TEST_TITLE_, ZerosCreatesArray ) {
     double *testArray    = zeros<double>( 5 );
@@ -27,8 +27,8 @@ TEST( _TEST_TITLE_, ZerosCreatesArray ) {
 
 TEST( _TEST_TITLE_, ZerosCreates2DArray ) {
     double **testArray = zeros<double>( 10, 5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
+    for (auto i = 0; i < 10; i++) {
+        for (auto j = 0; j < 5; j++) {
             EXPECT_EQ( testArray[ i ][ j ], 0.0 );
         }
     }
@@ -42,9 +42,9 @@ TEST( _TEST_TITLE_, FreeArray2DFreesArrayWithoutError ) {
 
 TEST( _TEST_TITLE_, ZerosCreates3DArray ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            for ( auto k = 0; k < 3; k++ ) {
+    for (auto i = 0; i < 10; i++) {
+        for (auto j = 0; j < 5; j++) {
+            for (auto k = 0; k < 3; k++) {
                 EXPECT_EQ( testArray[ i ][ j ][ k ], 0.0 );
             }
         }
@@ -59,11 +59,11 @@ TEST( _TEST_TITLE_, FreeArray3DFreesArrayWithoutError ) {
 
 TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectors ) {
     vector<int> testArray = index_vector<int>( 5 );
-    for ( int i = 0; i < 5; i++ ) {
+    for (int i = 0; i < 5; i++) {
         EXPECT_EQ( i, testArray[ i ] );
     }
     vector<double> testArray2 = index_vector<double>( 5 );
-    for ( int i = 0; i < 5; i++ ) {
+    for (int i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( (double)i, testArray2[ i ] );
     }
 }
@@ -71,11 +71,11 @@ TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectors ) {
 TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectorsWithOffset ) {
     int offset            = 2;
     vector<int> testArray = index_vector<int>( 5, offset );
-    for ( int i = 0; i < 5; i++ ) {
+    for (int i = 0; i < 5; i++) {
         EXPECT_EQ( i + offset, testArray[ i ] );
     }
     vector<double> testArray2 = index_vector<double>( 5, (double)offset );
-    for ( int i = 0; i < 5; i++ ) {
+    for (int i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( (double)( i + offset ), testArray2[ i ] );
     }
 }
@@ -107,8 +107,8 @@ TEST( _TEST_TITLE_, CircShiftZeroDoesNotShift ) {
 TEST( _TEST_TITLE_, FillArray2DSetsValuesCorrectly ) {
     double **testArray = zeros<double>( 10, 5 );
     fill( testArray, 10, 5, 4.5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
+    for (auto i = 0; i < 10; i++) {
+        for (auto j = 0; j < 5; j++) {
             EXPECT_DOUBLE_EQ( testArray[ i ][ j ], 4.5 );
         }
     }
@@ -118,9 +118,9 @@ TEST( _TEST_TITLE_, FillArray2DSetsValuesCorrectly ) {
 TEST( _TEST_TITLE_, FillArray3DSetsValuesCorrectly ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     fill( testArray, 10, 5, 3, 4.5 );
-    for ( auto i = 0; i < 10; i++ ) {
-        for ( auto j = 0; j < 5; j++ ) {
-            for ( auto k = 0; k < 3; k++ ) {
+    for (auto i = 0; i < 10; i++) {
+        for (auto j = 0; j < 5; j++) {
+            for (auto k = 0; k < 3; k++) {
                 EXPECT_DOUBLE_EQ( testArray[ i ][ j ][ k ], 4.5 );
             }
         }
@@ -149,11 +149,11 @@ TEST( _TEST_TITLE_, ReverseReversesOrderPartially ) {
 TEST( _TEST_TITLE_, AsArrayLinksToVector ) {
     std::vector<int> vi = { 0, 1, 2, 3, 4 };
     int *pi             = as_array( vi );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         ASSERT_EQ( pi[ i ], vi[ i ] );
     }
     vi[ 0 ] = 5;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         ASSERT_EQ( pi[ i ], vi[ i ] );
     }
 }
@@ -203,7 +203,8 @@ TEST( _TEST_TITLE_, SortPermutationAppliedProperlyInPlace ) {
 TEST( _TEST_TITLE_, DoubleSortPermutationCreatedProperly ) {
     std::vector<int> unsorted1 { 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5 };
     std::vector<int> unsorted2 { 2, 1, 3, 4, 0, 0, 1, 2, 4, 3, 2, 2, 1 };
-    std::vector<size_t> perm_expected { 1, 0, 2, 4, 5, 3, 6, 7, 9, 8, 10, 11, 12 };
+    std::vector<size_t> perm_expected { 1, 0, 2, 4,  5,  3, 6,
+                                        7, 9, 8, 10, 11, 12 };
     auto perm = sort_permutation_increasing( unsorted1, unsorted2 );
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
@@ -211,7 +212,8 @@ TEST( _TEST_TITLE_, DoubleSortPermutationCreatedProperly ) {
 TEST( _TEST_TITLE_, DoubleSortPermutationDecreasingCreatedProperly ) {
     std::vector<int> unsorted1 { 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5 };
     std::vector<int> unsorted2 { 2, 1, 3, 4, 0, 0, 1, 2, 4, 3, 2, 2, 1 };
-    std::vector<size_t> perm_expected { 12, 10, 11, 8, 9, 7, 6, 3, 4, 5, 2, 0, 1 };
+    std::vector<size_t> perm_expected { 12, 10, 11, 8, 9, 7, 6,
+                                        3,  4,  5,  2, 0, 1 };
     auto perm = sort_permutation_decreasing( unsorted1, unsorted2 );
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
@@ -220,10 +222,10 @@ TEST( _TEST_TITLE_, AddVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = add_vectors( x, y );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] + y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( y[ i ], z[ i ] );
     }
 }
@@ -241,7 +243,7 @@ TEST( _TEST_TITLE_, AddArraysWorksCorrectly ) {
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
     add_arrays( 5, &x[ 0 ], &y[ 0 ], z );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] + y[ i ], z[ i ] );
     }
 }
@@ -260,10 +262,10 @@ TEST( _TEST_TITLE_, DivideVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.1, 1.0 );
     vector<double> z = divide_vectors( x, y );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] / y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( z[ i ], 0.0 );
     }
 }
@@ -273,7 +275,7 @@ TEST( _TEST_TITLE_, DivideArraysWorksCorrectly ) {
                    y = NCPA::math::random_numbers<double>( 5, 0.1, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
     divide_arrays( 5, &x[ 0 ], &y[ 0 ], z );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] / y[ i ], z[ i ] );
     }
 }
@@ -282,10 +284,10 @@ TEST( _TEST_TITLE_, MultiplyVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, -1.0, 1.0 );
     vector<double> z = multiply_vectors( x, y );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] * y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( z[ i ], 0.0 );
     }
 }
@@ -295,7 +297,7 @@ TEST( _TEST_TITLE_, MultiplyArraysWorksCorrectly ) {
                    y = NCPA::math::random_numbers<double>( 5, -1.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
     multiply_arrays( 5, &x[ 0 ], &y[ 0 ], z );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] * y[ i ], z[ i ] );
     }
 }
@@ -322,7 +324,7 @@ TEST( _TEST_TITLE_, ScaleVectorWorksProperly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double scalar    = NCPA::math::random_number<double>( -3.0, 3.0 );
     vector<double> y = scale_vector( x, scalar );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( y[ i ], x[ i ] * scalar );
     }
 }
@@ -332,7 +334,7 @@ TEST( _TEST_TITLE_, ScaleArrayWorksProperly ) {
     double scalar    = NCPA::math::random_number<double>( -3.0, 3.0 );
     double *y        = NCPA::arrays::zeros<double>( 5 );
     scale_array( 5, &x[ 0 ], scalar, y );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( y[ i ], x[ i ] * scalar );
     }
 }
@@ -343,7 +345,7 @@ TEST( _TEST_TITLE_, ScaleArrayWorksProperlyInPlace ) {
     std::copy( xv.cbegin(), xv.cend(), x );
     double scalar = NCPA::math::random_number<double>( -3.0, 3.0 );
     scale_array( 5, x, scalar );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ], xv[ i ] * scalar );
     }
 }
@@ -352,10 +354,10 @@ TEST( _TEST_TITLE_, SubtractVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = subtract_vectors( x, y );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] - y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( -y[ i ], z[ i ] );
     }
 }
@@ -365,7 +367,7 @@ TEST( _TEST_TITLE_, SubtractArraysWorksCorrectly ) {
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
     subtract_arrays( 5, &x[ 0 ], &y[ 0 ], z );
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] - y[ i ], z[ i ] );
     }
 }
@@ -374,19 +376,19 @@ TEST( _TEST_TITLE_, PlusOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x + y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] + y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( y[ i ], z[ i ] );
     }
 }
 
 TEST( _TEST_TITLE_, PlusOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
-    double y = 3.5;
+    double y         = 3.5;
     vector<double> z = x + y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] + y, z[ i ] );
     }
 }
@@ -395,19 +397,19 @@ TEST( _TEST_TITLE_, MinusOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x - y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] - y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( -y[ i ], z[ i ] );
     }
 }
 
 TEST( _TEST_TITLE_, MinusOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
-    double y = 3.5;
+    double y         = 3.5;
     vector<double> z = x - y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] - y, z[ i ] );
     }
 }
@@ -415,7 +417,7 @@ TEST( _TEST_TITLE_, MinusOperatorWorksForVectorScalar ) {
 TEST( _TEST_TITLE_, NegationOperatorWorksForVector ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     vector<double> z = -x;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( -x[ i ], z[ i ] );
     }
 }
@@ -424,19 +426,150 @@ TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x * y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] * y[ i ], z[ i ] );
     }
-    for ( auto i = 5; i < 8; i++ ) {
+    for (auto i = 5; i < 8; i++) {
         EXPECT_DOUBLE_EQ( 0.0, z[ i ] );
     }
 }
 
 TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
-    double y = 3.5;
+    double y         = 3.5;
     vector<double> z = x / y;
-    for ( auto i = 0; i < 5; i++ ) {
+    for (auto i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ( x[ i ] / y, z[ i ] );
     }
 }
+
+TEST( _TEST_TITLE_, ThreeDimensionalArrayConstructorWorks ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+    for (size_t i = 0; i < dim1; ++i) {
+        for (size_t j = 0; j < dim2; ++j) {
+            for (size_t k = 0; k < dim3; ++k) {
+                EXPECT_EQ( arr.at( { i, j, k } ), 0 );
+            }
+        }
+    }
+}
+
+TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayPassThrough ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+    for (size_t i = 0; i < dim1; ++i) {
+        auto view2d = arr.view( 0, i );
+        for (size_t j = 0; j < dim2; ++j) {
+            auto view1d = view2d.view( 0, j );
+            for (size_t k = 0; k < dim3; ++k) {
+                EXPECT_EQ( view1d.at( { k } ), 0 );
+                view1d.at( { k } )    = (int)( i + j + k );
+                arr.at( { i, j, k } ) = (int)( i + j + k );
+            }
+        }
+    }
+}
+
+TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidDimension ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_THROW( { arr.view( dim1, 0 ).dimension( 0 ); }, std::range_error );
+}
+
+TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidDimension ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_NO_THROW( { arr.view( dim1-1, 0 ).dimension( 0 ); } );
+}
+
+TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidElement ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_THROW( { arr.view( 0, dim1 ); }, std::range_error );
+}
+
+TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidElement ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    EXPECT_NO_THROW( { arr.view( 0, dim1-1 ); } );
+}
+
+TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
+    size_t dim1 = 3;
+    size_t dim2 = 4;
+    size_t dim3 = 5;
+    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+    ASSERT_EQ( arr.size(), dim1 * dim2 * dim3 );
+
+    // all views along first dimension should be dim2 x dim3
+    EXPECT_EQ( arr.view( 0, 0 ).dimension( 0 ), dim2 );
+    EXPECT_EQ( arr.view( 0, 0 ).dimension( 1 ), dim3 );
+    EXPECT_EQ( arr.view( 0, 1 ).dimension( 0 ), dim2 );
+    EXPECT_EQ( arr.view( 0, 1 ).dimension( 1 ), dim3 );
+    EXPECT_EQ( arr.view( 0, 2 ).dimension( 0 ), dim2 );
+    EXPECT_EQ( arr.view( 0, 2 ).dimension( 1 ), dim3 );
+
+    // all views along second dimension should be dim1 x dim3
+    EXPECT_EQ( arr.view( 1, 0 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 1, 0 ).dimension( 1 ), dim3 );
+    EXPECT_EQ( arr.view( 1, 1 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 1, 1 ).dimension( 1 ), dim3 );
+    EXPECT_EQ( arr.view( 1, 2 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 1, 2 ).dimension( 1 ), dim3 );
+    EXPECT_EQ( arr.view( 1, 3 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 1, 3 ).dimension( 1 ), dim3 );
+
+    // all views along third dimension should be dim1 x dim2
+    EXPECT_EQ( arr.view( 2, 0 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 0 ).dimension( 1 ), dim2 );
+    EXPECT_EQ( arr.view( 2, 1 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 1 ).dimension( 1 ), dim2 );
+    EXPECT_EQ( arr.view( 2, 2 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 2 ).dimension( 1 ), dim2 );
+    EXPECT_EQ( arr.view( 2, 3 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 3 ).dimension( 1 ), dim2 );
+    EXPECT_EQ( arr.view( 2, 4 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
+
+    // all views along first and second dimension should be 1 x dim3
+    EXPECT_EQ( arr.view( 0, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
+    EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+
+    // all views along first and third dimension should be 1 x dim2
+    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 0 ).dimension( 0 ), dim2 );
+    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 1 ).dimension( 0 ), dim2 );
+
+    // all views along second and first dimension should be 1 x dim3
+    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
+    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+
+    // all views along second and third dimension should be 1 x dim1
+    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
+
+    // all views along third and first dimension should be 1 x dim2
+    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 0 ).dimension( 0 ), dim2 );
+    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 1 ).dimension( 0 ), dim2 );
+
+    // all views along third and second dimension should be 1 x dim1
+    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
+    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
+
+
+}
+
