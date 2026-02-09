@@ -5,6 +5,162 @@
 #include <stdexcept>
 #include <string>
 
+
+/**
+ * Convenience macros to define classes and templates in up to three namespaces
+ * deep, with or without type checking
+ */
+#define DECLARE_CLASS( _CLASSNAME_ ) class _CLASSNAME_;
+#define DECLARE_TEMPLATE( _CLASSNAME_ ) \
+    template<typename T>                \
+    class _CLASSNAME_;
+#define DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ ) \
+    template<typename T, typename Enable = void>    \
+    class _CLASSNAME_;
+#define DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    namespace _NAMESPACE1_ {                                  \
+        DECLARE_CLASS( _CLASSNAME_ )                         \
+    }
+#define DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    namespace _NAMESPACE1_ {                                     \
+        DECLARE_TEMPLATE( _CLASSNAME_ )                         \
+    }
+#define DECLARE_TYPELIMITED_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    namespace _NAMESPACE1_ {                                                 \
+        DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )                         \
+    }
+#define DECLARE_CLASS_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
+    namespace _NAMESPACE1_ {                                                \
+        DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE2_ )               \
+    }
+#define DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,  \
+                                     _NAMESPACE2_ )              \
+    namespace _NAMESPACE1_ {                                     \
+        DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE2_ ) \
+    }
+#define DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,  \
+                                                 _NAMESPACE2_ )              \
+    namespace _NAMESPACE1_ {                                                 \
+        DECLARE_TYPELIMITED_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE2_ ) \
+    }
+
+#define DECLARE_CLASS_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_,  \
+                                  _NAMESPACE3_ )                            \
+    namespace _NAMESPACE1_ {                                                \
+        DECLARE_CLASS_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_, _NAMESPACE3_ ) \
+    }
+#define DECLARE_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_, \
+                                     _NAMESPACE3_ )                           \
+    namespace _NAMESPACE1_ {                                                  \
+        DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,                \
+                                     _NAMESPACE3_ )                          \
+    }
+#define DECLARE_TYPELIMITED_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                                 _NAMESPACE2_, _NAMESPACE3_ ) \
+    namespace _NAMESPACE1_ {                                                  \
+        DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,    \
+                                                 _NAMESPACE3_ )              \
+    }
+
+/**
+ * Convenience macros for declaring (not defining) swap functions in namespaces
+ * up to three deep.
+ */
+#define DECLARE_SWAP_FUNCTION( _CLASSNAME_ ) \
+    void swap( _CLASSNAME_& a, _CLASSNAME_& b ) noexcept;
+#define DECLARE_SWAP_TEMPLATE( _CLASSNAME_ ) \
+    template<typename T>                     \
+    DECLARE_SWAP_FUNCTION( _CLASSNAME_<T> )
+#define DECLARE_SWAP_FUNCTION_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    DECLARE_SWAP_FUNCTION( _NAMESPACE1_::_CLASSNAME_ )
+#define DECLARE_SWAP_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    template<typename T>                                              \
+    DECLARE_SWAP_FUNCTION_1NAMESPACE( _CLASSNAME_<T>, _NAMESPACE1_ )
+#define DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, \
+                                          _NAMESPACE2_ )             \
+    DECLARE_SWAP_FUNCTION_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_::_NAMESPACE2_ )
+#define DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, \
+                                          _NAMESPACE2_ )             \
+    template<typename T>                                             \
+    DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_<T>,                   \
+                                      _NAMESPACE1_, _NAMESPACE2_ )
+#define DECLARE_SWAP_FUNCTION_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                          _NAMESPACE2_, _NAMESPACE3_ ) \
+    DECLARE_SWAP_FUNCTION_1NAMESPACE(                                  \
+        _CLASSNAME_, _NAMESPACE1_::_NAMESPACE2_::_NAMESPACE3_ )
+#define DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                          _NAMESPACE2_, _NAMESPACE3_ ) \
+    template<typename T>                                               \
+    DECLARE_SWAP_FUNCTION_3NAMESPACE(                                  \
+        _CLASSNAME_<T>, _NAMESPACE1_,_NAMESPACE2_,_NAMESPACE3_ )
+
+/**
+ * Convenience macros for declaring classes and swap functions together, in
+ * namespaces up to three deep.
+ */
+#define DECLARE_CLASS_AND_SWAP( _CLASSNAME_ ) \
+    DECLARE_CLASS( _CLASSNAME_ )             \
+    DECLARE_SWAP_FUNCTION( _CLASSNAME_ )
+
+#define DECLARE_TEMPLATE_AND_SWAP( _CLASSNAME_ ) \
+    DECLARE_TEMPLATE( _CLASSNAME_ )             \
+    DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )
+
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP( _CLASSNAME_ ) \
+    DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )             \
+    DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )
+
+#define DECLARE_CLASS_AND_SWAP_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )             \
+    DECLARE_SWAP_FUNCTION_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
+
+#define DECLARE_TEMPLATE_AND_SWAP_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )             \
+    DECLARE_SWAP_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
+
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_1NAMESPACE( _CLASSNAME_,    \
+                                                          _NAMESPACE1_ )  \
+    DECLARE_TYPELIMITED_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
+    DECLARE_SWAP_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
+
+#define DECLARE_CLASS_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
+                                           _NAMESPACE2_ )                \
+    DECLARE_CLASS_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
+    DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
+
+#define DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
+                                              _NAMESPACE2_ )                \
+    DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
+    DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
+
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_2NAMESPACE(               \
+    _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )                           \
+    DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, \
+                                             _NAMESPACE2_ )            \
+    DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
+
+#define DECLARE_CLASS_AND_SWAP_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                           _NAMESPACE2_, _NAMESPACE3_ ) \
+    DECLARE_CLASS_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_,  \
+                              _NAMESPACE3_ )                           \
+    DECLARE_SWAP_FUNCTION_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,        \
+                                      _NAMESPACE2_, _NAMESPACE3_ )
+
+#define DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                              _NAMESPACE2_, _NAMESPACE3_ ) \
+    DECLARE_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_,  \
+                                 _NAMESPACE3_ )                           \
+    DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,           \
+                                      _NAMESPACE2_, _NAMESPACE3_ )
+
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE(                  \
+    _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_, _NAMESPACE3_ )                \
+    DECLARE_TYPELIMITED_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
+                                             _NAMESPACE2_, _NAMESPACE3_ ) \
+    DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,           \
+                                      _NAMESPACE2_, _NAMESPACE3_ )
+
+
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -107,7 +263,6 @@
                             int>::type ENABLER                       \
         = 0
 
-
 #define DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( _CLASSNAME_ ) \
     template<typename ELEMENTTYPE, typename = void>           \
     class _CLASSNAME_ {}
@@ -118,7 +273,8 @@
 
 #define DECLARE_SPECIALIZED_TEMPLATE( _TYPE_ ) template<typename _TYPE_>
 
-#define DECLARE_SWAP_FUNCTION( _CLASSNAME_ )      \
+
+#define DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )      \
     template<typename _TYPENAME_>                 \
     static void swap( _CLASSNAME_<_TYPENAME_>& a, \
                       _CLASSNAME_<_TYPENAME_>& b ) noexcept;
@@ -238,12 +394,12 @@
     friend void ::swap( _THISCLASS_& a, _THISCLASS_& b ) noexcept;
 
 #define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE( _THISCLASS_, _TYPE1_ ) \
-    friend void ::swap<>( _THISCLASS_<_TYPE1_>& a,                    \
-                        _THISCLASS_<_TYPE1_>& b ) noexcept;
+    friend void ::swap<>( _THISCLASS_<_TYPE1_> & a,                 \
+                          _THISCLASS_<_TYPE1_> & b ) noexcept;
 
 #define DECLARE_FRIEND_SWAP_METHOD_TEMPLATE2( _THISCLASS_, _TYPE1_, _TYPE2_ ) \
-    friend void ::swap<>( _THISCLASS_<_TYPE1_, _TYPE2_>& a,                     \
-                        _THISCLASS_<_TYPE1_, _TYPE2_>& b ) noexcept;
+    friend void ::swap<>( _THISCLASS_<_TYPE1_, _TYPE2_> & a,                  \
+                          _THISCLASS_<_TYPE1_, _TYPE2_> & b ) noexcept;
 
 #define DECLARE_WRAPPER_BOILERPLATE_METHODS( _THISCLASS_ ) \
     DECLARE_MOVE_CONSTRUCTOR( _THISCLASS_ )                \

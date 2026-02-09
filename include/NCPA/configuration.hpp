@@ -120,6 +120,9 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 
 #pragma once
 
+#include "NCPA/defines.hpp"
+
+#include <array>
 #include <cstdlib>
 #include <initializer_list>
 #include <iostream>
@@ -134,113 +137,171 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 namespace NCPA {
     namespace config {
         enum class test_status_t { NONE, PENDING, FAILED, PASSED };
+    }
+}  // namespace NCPA
 
-        class _configuration_parameter;
+// class _configuration_parameter;
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( _configuration_parameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( BooleanParameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( DoubleParameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( IntegerParameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( StringParameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTest, NCPA, config )
+DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTestSuite, NCPA, config )
+DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( _typed_parameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_3NAMESPACE( NullaryValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( TypedValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( UnaryValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( BinaryValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( ListValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsEqualToTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotEqualToTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotOneOfTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsOneOfTest, NCPA, config, validation )
+DECLARE_CLASS_AND_SWAP_3NAMESPACE( WasSetTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsBetweenTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanOrEqualToTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanOrEqualToTest, NCPA, config, validation )
 
-        class BooleanParameter;
-        class DoubleParameter;
-        class IntegerParameter;
-        class StringParameter;
-        class ValidationTest;
-        class ValidationTestSuite;
+namespace NCPA {
+    namespace config {
+        // class BooleanParameter;
+        // class DoubleParameter;
+        // class IntegerParameter;
+        // class StringParameter;
+        // class ValidationTest;
+        // class ValidationTestSuite;
 
         typedef std::unique_ptr<ValidationTest> test_ptr_t;
 
-        template<typename T>
-        class _typed_parameter;
+        // template<typename T>
+        // class _typed_parameter;
 
-        namespace validation {
+        // namespace validation {
+        // class NullaryValidationTest;
+        // template<typename T>
+        // class TypedValidationTest;
+        // template<typename T>
+        // class UnaryValidationTest;
+        // template<typename T>
+        // class BinaryValidationTest;
+        // template<typename T>
+        // class ListValidationTest;
+        // template<typename T, typename Enable = void>
+        // class IsBetweenTest;
+        // template<typename T, typename Enable = void>
+        // class IsGreaterThanTest;
+        // template<typename T, typename Enable = void>
+        // class IsGreaterThanOrEqualToTest;
+        // template<typename T, typename Enable = void>
+        // class IsLessThanTest;
+        // template<typename T, typename Enable = void>
+        // class IsLessThanOrEqualToTest;
+        // template<typename T>
+        // class IsEqualToTest;
+        // template<typename T>
+        // class IsNotEqualToTest;
+        // template<typename T>
+        // class IsOneOfTest;
+        // template<typename T>
+        // class IsNotOneOfTest;
+        // class WasSetTest;
 
-            class NullaryValidationTest;
-            template<typename T>
-            class TypedValidationTest;
-            template<typename T>
-            class UnaryValidationTest;
-            template<typename T>
-            class BinaryValidationTest;
+        // DECLARE_NEW_TESTS_HERE
 
-            template<typename T, typename Enable = void>
-            class IsBetweenTest;
-            template<typename T, typename Enable = void>
-            class IsGreaterThanTest;
-            template<typename T, typename Enable = void>
-            class IsGreaterThanOrEqualToTest;
-            template<typename T, typename Enable = void>
-            class IsLessThanTest;
-            template<typename T, typename Enable = void>
-            class IsLessThanOrEqualToTest;
-            template<typename T>
-            class IsEqualToTest;
-            template<typename T>
-            class IsNotEqualToTest;
-
-            class WasSetTest;
-
-            // DECLARE_NEW_TESTS_HERE
-
-
-        }  // namespace validation
+        // }  // namespace validation
     }  // namespace config
 }  // namespace NCPA
 
-void swap( NCPA::config::_configuration_parameter& a,
-           NCPA::config::_configuration_parameter& b ) noexcept;
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( _configuration_parameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( BooleanParameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( DoubleParameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( IntegerParameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( StringParameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( ValidationTest, NCPA, config )
+// DECLARE_SWAP_FUNCTION_2NAMESPACE( ValidationTestSuite, NCPA, config )
+// DECLARE_SWAP_TEMPLATE_2NAMESPACE( _typed_parameter, NCPA, config )
+// DECLARE_SWAP_FUNCTION_3NAMESPACE( NullaryValidationTest, NCPA, config,
+//                                   validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( TypedValidationTest, NCPA, config,
+//                                   validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( UnaryValidationTest, NCPA, config,
+//                                   validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( BinaryValidationTest, NCPA, config,
+//                                   validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( ListValidationTest, NCPA, config,
+//                                   validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsEqualToTest, NCPA, config, validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsNotEqualToTest, NCPA, config, validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsNotOneOfTest, NCPA, config, validation )
+// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsOneOfTest, NCPA, config, validation )
+// DECLARE_SWAP_FUNCTION_3NAMESPACE( WasSetTest, NCPA, config, validation )
 
-void swap( NCPA::config::BooleanParameter& a,
-           NCPA::config::BooleanParameter& b ) noexcept;
 
-void swap( NCPA::config::DoubleParameter& a,
-           NCPA::config::DoubleParameter& b ) noexcept;
+// void swap( NCPA::config::_configuration_parameter& a,
+//            NCPA::config::_configuration_parameter& b ) noexcept;
 
-void swap( NCPA::config::IntegerParameter& a,
-           NCPA::config::IntegerParameter& b ) noexcept;
+// void swap( NCPA::config::BooleanParameter& a,
+//            NCPA::config::BooleanParameter& b ) noexcept;
 
-void swap( NCPA::config::StringParameter& a,
-           NCPA::config::StringParameter& b ) noexcept;
+// void swap( NCPA::config::DoubleParameter& a,
+//            NCPA::config::DoubleParameter& b ) noexcept;
 
-void swap( NCPA::config::ValidationTest& a,
-           NCPA::config::ValidationTest& b ) noexcept;
+// void swap( NCPA::config::IntegerParameter& a,
+//            NCPA::config::IntegerParameter& b ) noexcept;
 
-void swap( NCPA::config::ValidationTestSuite& a,
-           NCPA::config::ValidationTestSuite& b ) noexcept;
+// void swap( NCPA::config::StringParameter& a,
+//            NCPA::config::StringParameter& b ) noexcept;
+
+// void swap( NCPA::config::ValidationTest& a,
+//            NCPA::config::ValidationTest& b ) noexcept;
+
+// void swap( NCPA::config::ValidationTestSuite& a,
+//            NCPA::config::ValidationTestSuite& b ) noexcept;
 
 
-void swap( NCPA::config::validation::NullaryValidationTest& a,
-           NCPA::config::validation::NullaryValidationTest& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::TypedValidationTest<T>& a,
-           NCPA::config::validation::TypedValidationTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::UnaryValidationTest<T>& a,
-           NCPA::config::validation::UnaryValidationTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::BinaryValidationTest<T>& a,
-           NCPA::config::validation::BinaryValidationTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsBetweenTest<T>& a,
-           NCPA::config::validation::IsBetweenTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsGreaterThanTest<T>& a,
-           NCPA::config::validation::IsGreaterThanTest<T>& b ) noexcept;
-template<typename T>
-void swap(
-    NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& a,
-    NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsLessThanTest<T>& a,
-           NCPA::config::validation::IsLessThanTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsLessThanOrEqualToTest<T>& a,
-           NCPA::config::validation::IsLessThanOrEqualToTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsEqualToTest<T>& a,
-           NCPA::config::validation::IsEqualToTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::validation::IsNotEqualToTest<T>& a,
-           NCPA::config::validation::IsNotEqualToTest<T>& b ) noexcept;
+// void swap( NCPA::config::validation::NullaryValidationTest& a,
+//            NCPA::config::validation::NullaryValidationTest& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::TypedValidationTest<T>& a,
+//            NCPA::config::validation::TypedValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::UnaryValidationTest<T>& a,
+//            NCPA::config::validation::UnaryValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::BinaryValidationTest<T>& a,
+//            NCPA::config::validation::BinaryValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::ListValidationTest<T>& a,
+//            NCPA::config::validation::ListValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsBetweenTest<T>& a,
+//            NCPA::config::validation::IsBetweenTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsGreaterThanTest<T>& a,
+//            NCPA::config::validation::IsGreaterThanTest<T>& b ) noexcept;
+// template<typename T>
+// void swap(
+//     NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& a,
+//     NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsLessThanTest<T>& a,
+//            NCPA::config::validation::IsLessThanTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsLessThanOrEqualToTest<T>& a,
+//            NCPA::config::validation::IsLessThanOrEqualToTest<T>& b )
+//            noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsEqualToTest<T>& a,
+//            NCPA::config::validation::IsEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::validation::IsNotEqualToTest<T>& a,
+//            NCPA::config::validation::IsNotEqualToTest<T>& b ) noexcept;
 
-void swap( NCPA::config::validation::WasSetTest& a,
-           NCPA::config::validation::WasSetTest& b ) noexcept;
+// void swap( NCPA::config::validation::WasSetTest& a,
+//            NCPA::config::validation::WasSetTest& b ) noexcept;
 
 // DECLARE_SWAP_FUNCTIONS_HERE
 
@@ -511,7 +572,8 @@ namespace NCPA {
                     return _tests;
                 }
 
-                virtual std::vector<const ValidationTest*> failed_tests() const {
+                virtual std::vector<const ValidationTest *> failed_tests()
+                    const {
                     return _tests.failed_tests();
                 }
 
@@ -519,13 +581,10 @@ namespace NCPA {
                     const ValidationTest& newtest ) {
                     _tests.prepend( newtest );
                     return *this;
-
-
                 }
 
-                
-
-                virtual std::ostream& validation_report( std::ostream& os, bool newline = true, 
+                virtual std::ostream& validation_report(
+                    std::ostream& os, bool newline = true,
                     const std::string& prepend = "" ) const {
                     if (this->passed()) {
                         os << prepend << "All tests passed";
@@ -535,7 +594,8 @@ namespace NCPA {
                             if (it != f.begin()) {
                                 os << std::endl;
                             }
-                            os << prepend << "Failed: " << (*it)->description();
+                            os << prepend
+                               << "Failed: " << ( *it )->description();
                         }
                     }
                     if (newline) {
@@ -601,6 +661,8 @@ namespace NCPA {
                                    param )
                             ->value();
                     }
+
+                    virtual T value( size_t n ) const = 0;
             };
 
             class NullaryValidationTest : public ValidationTest {
@@ -617,14 +679,16 @@ namespace NCPA {
             };
 
             template<typename T>
-            class UnaryValidationTest : public TypedValidationTest<T> {
+            class UnaryValidationTest : public TypedValidationTest<T, 1> {
                 public:
-                    UnaryValidationTest( T value ) :
-                        TypedValidationTest<T>(), _value { value } {}
+                    UnaryValidationTest( T value ) : TypedValidationTest<T>() {
+                        _values.resize( 1 );
+                        _values[ 0 ] = value;
+                    }
 
                     UnaryValidationTest(
                         const UnaryValidationTest<T>& other ) {
-                        _value = other._value;
+                        _values = other._values;
                     }
 
                     virtual ~UnaryValidationTest() {}
@@ -632,24 +696,35 @@ namespace NCPA {
                     friend void ::swap<>( UnaryValidationTest<T>& a,
                                           UnaryValidationTest<T>& b ) noexcept;
 
-                    virtual T value() const { return _value; }
+                    virtual T value( size_t n = 0 ) const override {
+                        if (n > 0) {
+                            throw std::out_of_range(
+                                "Requested index out of range" );
+                        }
+                        return _values.at( 0 );
+                    }
+
+                    virtual const std::vector<T>& values() const {
+                        return _values;
+                    }
 
                 protected:
-                    T _value;
+                    std::vector<T> _values;
             };
 
             template<typename T>
-            class BinaryValidationTest : public TypedValidationTest<T> {
+            class BinaryValidationTest : public TypedValidationTest<T, 2> {
                 public:
                     BinaryValidationTest( T value1, T value2 ) :
-                        TypedValidationTest<T>(),
-                        _value1 { value1 },
-                        _value2 { value2 } {}
+                        TypedValidationTest<T>() {
+                        _values.resize( 2 );
+                        _values[ 0 ] = value1;
+                        _values[ 1 ] = value2;
+                    }
 
                     BinaryValidationTest(
                         const BinaryValidationTest<T>& other ) {
-                        _value1 = other._value1;
-                        _value2 = other._value2;
+                        _values = other._values;
                     }
 
                     virtual ~BinaryValidationTest() {}
@@ -658,12 +733,55 @@ namespace NCPA {
                         BinaryValidationTest<T>& a,
                         BinaryValidationTest<T>& b ) noexcept;
 
-                    virtual T value1() const { return _value1; }
+                    virtual T value( size_t n ) const override {
+                        if (n > 1) {
+                            throw std::out_of_range(
+                                "Requested index out of range" );
+                        }
+                        return _values.at( n );
+                    }
 
-                    virtual T value2() const { return _value2; }
+                    virtual const std::vector<T>& values() const {
+                        return _values;
+                    }
 
                 protected:
-                    T _value1, _value2;
+                    std::vector<T> _values;
+                    // T _value1, _value2;
+            };
+
+            template<typename T>
+            class ListValidationTest : public TypedValidationTest<T> {
+                public:
+                    ListValidationTest( std::vector<T> values ) :
+                        TypedValidationTest<T>(), _values { values } {}
+
+                    ListValidationTest( std::initializer_list<T> values ) :
+                        TypedValidationTest<T>(), _values { values } {}
+
+                    ListValidationTest( const ListValidationTest<T>& other ) {
+                        _values = other._values;
+                    }
+
+                    virtual ~ListValidationTest() {}
+
+                    friend void ::swap<>( ListValidationTest<T>& a,
+                                          ListValidationTest<T>& b ) noexcept;
+
+                    virtual T value( size_t n ) const override {
+                        if (n >= _values.size()) {
+                            throw std::out_of_range(
+                                "Requested index out of range" );
+                        }
+                        return _values.at( n );
+                    }
+
+                    virtual const std::vector<T>& values() const {
+                        return _values;
+                    }
+
+                protected:
+                    std::vector<T> _values;
             };
 
             // specialization for integers
@@ -693,8 +811,8 @@ namespace NCPA {
 
                     virtual std::string description() const override {
                         std::ostringstream oss;
-                        oss << "is between " << this->value1() << " and "
-                            << this->value2();
+                        oss << "is between " << this->value( 0 ) << " and "
+                            << this->value( 1 );
                         if (_inclusive) {
                             oss << " (inclusive)";
                         }
@@ -705,14 +823,15 @@ namespace NCPA {
                         const _configuration_parameter *param ) override {
                         int val = param->as_int();
                         if (_inclusive) {
-                            if (val >= this->value1()
-                                && val <= this->value2()) {
+                            if (val >= this->value( 0 )
+                                && val <= this->value( 1 )) {
                                 this->pass();
                             } else {
                                 this->fail();
                             }
                         } else {
-                            if (val > this->value1() && val < this->value2()) {
+                            if (val > this->value( 0 )
+                                && val < this->value( 1 )) {
                                 this->pass();
                             } else {
                                 this->fail();
@@ -752,8 +871,8 @@ namespace NCPA {
 
                     virtual std::string description() const override {
                         std::ostringstream oss;
-                        oss << "is between " << this->value1() << " and "
-                            << this->value2();
+                        oss << "is between " << this->value( 0 ) << " and "
+                            << this->value( 1 );
                         if (_inclusive) {
                             oss << " (inclusive)";
                         }
@@ -764,14 +883,15 @@ namespace NCPA {
                         const _configuration_parameter *param ) override {
                         double val = param->as_double();
                         if (_inclusive) {
-                            if (val >= this->value1()
-                                && val <= this->value2()) {
+                            if (val >= this->value( 0 )
+                                && val <= this->value( 1 )) {
                                 this->pass();
                             } else {
                                 this->fail();
                             }
                         } else {
-                            if (val > this->value1() && val < this->value2()) {
+                            if (val > this->value( 0 )
+                                && val < this->value( 1 )) {
                                 this->pass();
                             } else {
                                 this->fail();
@@ -1507,9 +1627,11 @@ namespace NCPA {
                     return oss.str();
                 }
 
-                std::ostream& validation_report( std::ostream &os, bool newline = true ) const {
+                std::ostream& validation_report( std::ostream& os,
+                                                 bool newline = true ) const {
                     bool firsttime = true;
-                    for (auto it = _parameters.begin(); it != _parameters.end(); ++it) {
+                    for (auto it = _parameters.begin();
+                         it != _parameters.end(); ++it) {
                         if (firsttime) {
                             firsttime = false;
                         } else {
@@ -1522,7 +1644,7 @@ namespace NCPA {
                         os << std::endl;
                     }
                     return os;
-                } 
+                }
 
                 bool passed() const {
                     bool pass = true;
@@ -1601,7 +1723,7 @@ void swap( NCPA::config::validation::UnaryValidationTest<T>& a,
     ::swap(
         static_cast<NCPA::config::validation::TypedValidationTest<T>&>( a ),
         static_cast<NCPA::config::validation::TypedValidationTest<T>&>( b ) );
-    swap( a._value, b._value );
+    swap( a._values, b._values );
 }
 
 template<typename T>
@@ -1611,8 +1733,17 @@ void swap( NCPA::config::validation::BinaryValidationTest<T>& a,
     ::swap(
         static_cast<NCPA::config::validation::TypedValidationTest<T>&>( a ),
         static_cast<NCPA::config::validation::TypedValidationTest<T>&>( b ) );
-    swap( a._value1, b._value1 );
-    swap( a._value2, b._value2 );
+    swap( a._values, b._values );
+}
+
+template<typename T>
+void swap( NCPA::config::validation::ListValidationTest<T>& a,
+           NCPA::config::validation::ListValidationTest<T>& b ) noexcept {
+    using std::swap;
+    ::swap(
+        static_cast<NCPA::config::validation::TypedValidationTest<T>&>( a ),
+        static_cast<NCPA::config::validation::TypedValidationTest<T>&>( b ) );
+    swap( a._values, b._values );
 }
 
 template<typename T>
