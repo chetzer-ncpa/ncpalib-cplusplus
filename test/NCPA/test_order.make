@@ -7,6 +7,7 @@ test_ndvector.cpp \
 test_math.cpp \
 test_units.cpp \
 test_strings.cpp \
+test_configuration.cpp \
 test_atmosphere.cpp \
 test_interpolation_extrapolation.cpp \
 test_interpolation.cpp \
