@@ -274,10 +274,10 @@
 #define DECLARE_SPECIALIZED_TEMPLATE( _TYPE_ ) template<typename _TYPE_>
 
 
-#define DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )      \
-    template<typename _TYPENAME_>                 \
-    static void swap( _CLASSNAME_<_TYPENAME_>& a, \
-                      _CLASSNAME_<_TYPENAME_>& b ) noexcept;
+// #define DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )      \
+//     template<typename _TYPENAME_>                 \
+//     static void swap( _CLASSNAME_<_TYPENAME_>& a, \
+//                       _CLASSNAME_<_TYPENAME_>& b ) noexcept;
 
 #define DECLARE_FRIEND_FUNCTIONS( _CLASSNAME_, _TYPENAME_ )  \
     template<typename _TYPENAME_>                            \

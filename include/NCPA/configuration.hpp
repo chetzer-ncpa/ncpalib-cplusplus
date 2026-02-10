@@ -679,7 +679,7 @@ namespace NCPA {
             };
 
             template<typename T>
-            class UnaryValidationTest : public TypedValidationTest<T, 1> {
+            class UnaryValidationTest : public TypedValidationTest<T> {
                 public:
                     UnaryValidationTest( T value ) : TypedValidationTest<T>() {
                         _values.resize( 1 );
@@ -713,7 +713,7 @@ namespace NCPA {
             };
 
             template<typename T>
-            class BinaryValidationTest : public TypedValidationTest<T, 2> {
+            class BinaryValidationTest : public TypedValidationTest<T> {
                 public:
                     BinaryValidationTest( T value1, T value2 ) :
                         TypedValidationTest<T>() {
