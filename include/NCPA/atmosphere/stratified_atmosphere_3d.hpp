@@ -279,7 +279,8 @@ namespace NCPA {
 
                 virtual double get( const std::string& key, double x1,
                                     double x2 ) override {
-                    return _scalar_splines.at( key ).eval_f( x1, x2 );
+                    // return _scalar_splines.at( key ).eval_f( x1, x2 );
+                    return _get_scalar( key, x1, x2 );
                 }
 
                 virtual double get( const std::string& key, double x1,
@@ -311,8 +312,11 @@ namespace NCPA {
                                        this->get_units( key ) );
                     for (size_t i = 0; i < x1.size(); ++i) {
                         for (size_t j = 0; j < x2.size(); ++j) {
-                            vout[ i ][ j ] = _scalar_splines.at( key ).eval_f(
-                                x1[ i ], x2[ j ] );
+                            // vout[ i ][ j ] = _scalar_splines.at( key
+                            // ).eval_f(
+                            //     x1[ i ], x2[ j ] );
+                            vout[ i ][ j ]
+                                = _get_scalar( key, x1[ i ], x2[ j ] );
                         }
                     }
                     return vout;
@@ -332,7 +336,7 @@ namespace NCPA {
                 virtual double get_first_derivative( const std::string& key,
                                                      double x1, double x2,
                                                      size_t wrt ) override {
-                    if (wrt != 2) {
+                    if (wrt != 2 && contains_2d_scalar( key )) {
                         return _scalar_splines.at( key ).eval_df( x1, x2,
                                                                   wrt );
                     } else {
@@ -355,7 +359,7 @@ namespace NCPA {
                                                       double x1, double x2,
                                                       size_t wrt1,
                                                       size_t wrt2 ) override {
-                    if (wrt1 != 2 && wrt2 != 2) {
+                    if (wrt1 != 2 && wrt2 != 2 && contains_2d_scalar( key )) {
                         return _scalar_splines.at( key ).eval_ddf(
                             x1, x2, wrt1, wrt2 );
                     } else {
@@ -374,7 +378,11 @@ namespace NCPA {
                         return _1d_atmos.get_units( key );
                     } else {
                         _assert_contains_scalar( key );
-                        return _2d_scalar_properties.at( key ).get_units();
+                        if (contains_1d_scalar( key )) {
+                            return _1d_atmos.get_units( key );
+                        } else {
+                            return _2d_scalar_properties.at( key ).get_units();
+                        }
                     }
                 }
 
@@ -392,9 +400,11 @@ namespace NCPA {
                     if (n != 2) {
                         return DBL_MAX;
                     } else {
-                        return _1d_atmos.get_minimum_axis();
+                        return _1d_atmos.get_maximum_axis();
                     }
                 }
+
+                virtual bool is_stratified() const override { return true; }
 
                 virtual abstract_atmosphere_3d& convert_axis_units(
                     size_t n, units_ptr_t new_units ) override {
@@ -411,10 +421,12 @@ namespace NCPA {
                     const std::string& key, units_ptr_t new_units ) override {
                     if (this->contains_vector( key )) {
                         _1d_atmos.convert_units( key, new_units );
-                    } else if (this->contains_scalar( key )) {
+                    } else if (this->contains_2d_scalar( key )) {
                         _2d_scalar_properties[ key ].convert_units(
                             *new_units );
                         _build_scalar_splines();
+                    } else if (contains_1d_scalar( key )) {
+                        _1d_atmos.convert_units( key, new_units );
                     } else {
                         throw std::range_error( "Unknown key: " + key );
                     }
@@ -517,11 +529,28 @@ namespace NCPA {
                          it != _2d_scalar_properties.cend(); ++it) {
                         skeys.push_back( it->first );
                     }
+                    std::vector<std::string> skeys1d
+                        = _1d_atmos.get_scalar_keys();
+                    skeys.insert( skeys.begin(), skeys1d.begin(),
+                                  skeys1d.end() );
                     return skeys;
                 }
 
                 virtual bool contains_scalar(
                     const std::string& key ) const override {
+                    return contains_1d_scalar( key )
+                        || contains_2d_scalar( key );
+                    // return _1d_atmos.contains_scalar( key )
+                    //     || _2d_scalar_properties.count( key ) == 1;
+                }
+
+                virtual bool contains_1d_scalar(
+                    const std::string& key ) const {
+                    return _1d_atmos.contains_scalar( key );
+                }
+
+                virtual bool contains_2d_scalar(
+                    const std::string& key ) const {
                     return _2d_scalar_properties.count( key ) == 1;
                 }
 
@@ -598,6 +627,15 @@ namespace NCPA {
                             .init( _axes[ 0 ].size(), _axes[ 1 ].size() )
                             .fill( _axes[ 0 ], _axes[ 1 ], propit->second )
                             .ready();
+                    }
+                }
+
+                double _get_scalar( const std::string& key, double x1,
+                                    double x2 ) {
+                    if (contains_2d_scalar( key )) {
+                        return _scalar_splines.at( key ).eval_f( x1, x2 );
+                    } else {
+                        return _1d_atmos.get( key );
                     }
                 }
 

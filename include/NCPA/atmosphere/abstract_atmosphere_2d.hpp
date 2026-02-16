@@ -114,6 +114,7 @@ namespace NCPA {
                                                       size_t wrt1,
                                                       size_t wrt2 )
                     = 0;
+                virtual bool is_stratified() const = 0;
                 virtual bool same( scalar_u_t r1, scalar_u_t r2 ) const = 0;
                 virtual bool same( double r1, double r2 ) const         = 0;
 

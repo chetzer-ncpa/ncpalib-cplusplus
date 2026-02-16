@@ -403,6 +403,10 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual bool is_stratified() const override {
+                    return true;
+                }
+
                 virtual Atmosphere1D set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type ) {
                     check_pointer();
@@ -627,21 +631,10 @@ namespace NCPA {
     }  // namespace atmos
 }  // namespace NCPA
 
-// static void swap( NCPA::atmos::tuple_atmosphere_1d& a,
-//                   NCPA::atmos::tuple_atmosphere_1d& b ) noexcept {
-//     using std::swap;
-//     ::swap( static_cast<NCPA::atmos::abstract_atmosphere_1d&>( a ),
-//             static_cast<NCPA::atmos::abstract_atmosphere_1d&>( b ) );
-//     swap( a._properties, b._properties );
-//     swap( a._scalar_properties, b._scalar_properties );
-//     swap( a._z, b._z );
-//     swap( a._interpolator_type, b._interpolator_type );
-// }
-
 static void swap( NCPA::atmos::Atmosphere1D& a,
                   NCPA::atmos::Atmosphere1D& b ) noexcept {
     using std::swap;
-    swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
+    ::swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
           static_cast<NCPA::atmos::AtmosphericModel&>( b ) );
     a._ptr.swap( b._ptr );
 }

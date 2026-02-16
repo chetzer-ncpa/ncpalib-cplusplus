@@ -571,6 +571,8 @@ namespace NCPA {
                     return contains_vector( key ) || contains_scalar( key );
                 }
 
+                virtual bool is_stratified() const override { return false; }
+
                 virtual void print( std::ostream& os ) override {
                     throw std::runtime_error(
                         "Print function not yet implemented." );

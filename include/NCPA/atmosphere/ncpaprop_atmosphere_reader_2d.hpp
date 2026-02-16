@@ -14,7 +14,10 @@
 // #include "NCPA/atmosphere/builders.hpp"
 #include "NCPA/atmosphere/abstract_atmosphere_reader_2d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/grid_atmosphere_2d.hpp"
 #include "NCPA/atmosphere/ncpaprop_atmosphere_reader_1d.hpp"
+#include "NCPA/atmosphere/piecewise_stratified_atmosphere_2d.hpp"
+#include "NCPA/atmosphere/stratified_atmosphere_2d.hpp"
 #include "NCPA/files.hpp"
 
 #include <fstream>
