@@ -367,7 +367,7 @@ namespace NCPA {
                 // tests are pending, return PENDING.  Otherwise return PASSED.
                 virtual test_status_t status() const {
                     if (_tests.empty()) {
-                        return test_status_t::PENDING;
+                        return test_status_t::PASSED;
                     }
                     bool pending = false;
                     for (auto it = _tests.cbegin(); it != _tests.cend();
