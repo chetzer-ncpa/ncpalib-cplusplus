@@ -606,6 +606,10 @@ namespace NCPA {
                     }
                 }
 
+                virtual void print( std::ostream& os ) {
+                    os << *this;
+                }
+
                 // friend binary operators
                 friend std::ostream& operator<<( std::ostream& os,
                                                  const Atmosphere1D& atm ) {

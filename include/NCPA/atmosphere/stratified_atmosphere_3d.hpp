@@ -19,10 +19,17 @@ namespace NCPA {
         class stratified_atmosphere_3d : public abstract_atmosphere_3d {
             public:
                 stratified_atmosphere_3d() : abstract_atmosphere_3d() {
-                    for (auto it = _axes.begin(); it != _axes.end(); ++it) {
-                        it->set_units(
-                            NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS );
-                    }
+                    // for (auto it = _axes.begin(); it != _axes.end(); ++it) {
+                    //     it->set_units(
+                    //         NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS );
+                    // }
+                    this->set_axis( 0, NCPA::atmos::vector_u_t( 
+                        std::vector<double>{ 0.0, 1.0e15 }, NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS )
+                    );
+                    this->set_axis( 1, NCPA::atmos::vector_u_t( 
+                        std::vector<double>{ 0.0, 1.0e15 }, NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS )
+                    );
+                    _axes[2].set_units( NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS );
                 }
 
                 stratified_atmosphere_3d(
@@ -57,6 +64,7 @@ namespace NCPA {
                     }
                     _1d_atmos = Atmosphere1D( atmos1d.clone() );
                     _1d_atmos.set_interpolator( _interpolator_type );
+                    this->set_axis( 2, _1d_atmos.get_axis_vector() );
                     RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
                 }
 
@@ -565,8 +573,9 @@ namespace NCPA {
                 }
 
                 virtual void print( std::ostream& os ) override {
-                    throw std::runtime_error(
-                        "Print function not yet implemented." );
+                    // throw std::runtime_error(
+                    //     "Print function not yet implemented." );
+                    _1d_atmos.print( os );
                 }
 
                 virtual bool same( scalar_u_t x1_1, scalar_u_t x2_1,

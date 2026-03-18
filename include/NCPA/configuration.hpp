@@ -137,7 +137,10 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 namespace NCPA {
     namespace config {
         enum class test_status_t { NONE, PENDING, FAILED, PASSED };
-    }
+        class ConfigurationParameter;
+        template<typename T>
+        class TypedParameter;
+    }  // namespace config
 }  // namespace NCPA
 
 // class _configuration_parameter;
@@ -148,162 +151,41 @@ DECLARE_CLASS_AND_SWAP_2NAMESPACE( IntegerParameter, NCPA, config )
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( StringParameter, NCPA, config )
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTest, NCPA, config )
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTestSuite, NCPA, config )
-DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( _typed_parameter, NCPA, config )
-DECLARE_CLASS_AND_SWAP_3NAMESPACE( NullaryValidationTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( TypedValidationTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( UnaryValidationTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( BinaryValidationTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( ListValidationTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( Parameter, NCPA, config )
+DECLARE_CLASS_AND_SWAP_3NAMESPACE( NullaryValidationTest, NCPA, config,
+                                   validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( TypedValidationTest, NCPA, config,
+                                      validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( UnaryValidationTest, NCPA, config,
+                                      validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( BinaryValidationTest, NCPA, config,
+                                      validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( ListValidationTest, NCPA, config,
+                                      validation )
 DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsEqualToTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotEqualToTest, NCPA, config, validation )
-DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotOneOfTest, NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotEqualToTest, NCPA, config,
+                                      validation )
+DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsNotOneOfTest, NCPA, config,
+                                      validation )
 DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( IsOneOfTest, NCPA, config, validation )
 DECLARE_CLASS_AND_SWAP_3NAMESPACE( WasSetTest, NCPA, config, validation )
-DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsBetweenTest, NCPA, config, validation )
-DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanTest, NCPA, config, validation )
-DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanOrEqualToTest, NCPA, config, validation )
-DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanTest, NCPA, config, validation )
-DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanOrEqualToTest, NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsBetweenTest, NCPA, config,
+                                                  validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanTest, NCPA,
+                                                  config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsGreaterThanOrEqualToTest,
+                                                  NCPA, config, validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanTest, NCPA, config,
+                                                  validation )
+DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanOrEqualToTest,
+                                                  NCPA, config, validation )
+DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( ConfigurationMap, NCPA, config )
 
 namespace NCPA {
     namespace config {
-        // class BooleanParameter;
-        // class DoubleParameter;
-        // class IntegerParameter;
-        // class StringParameter;
-        // class ValidationTest;
-        // class ValidationTestSuite;
-
         typedef std::unique_ptr<ValidationTest> test_ptr_t;
-
-        // template<typename T>
-        // class _typed_parameter;
-
-        // namespace validation {
-        // class NullaryValidationTest;
-        // template<typename T>
-        // class TypedValidationTest;
-        // template<typename T>
-        // class UnaryValidationTest;
-        // template<typename T>
-        // class BinaryValidationTest;
-        // template<typename T>
-        // class ListValidationTest;
-        // template<typename T, typename Enable = void>
-        // class IsBetweenTest;
-        // template<typename T, typename Enable = void>
-        // class IsGreaterThanTest;
-        // template<typename T, typename Enable = void>
-        // class IsGreaterThanOrEqualToTest;
-        // template<typename T, typename Enable = void>
-        // class IsLessThanTest;
-        // template<typename T, typename Enable = void>
-        // class IsLessThanOrEqualToTest;
-        // template<typename T>
-        // class IsEqualToTest;
-        // template<typename T>
-        // class IsNotEqualToTest;
-        // template<typename T>
-        // class IsOneOfTest;
-        // template<typename T>
-        // class IsNotOneOfTest;
-        // class WasSetTest;
-
-        // DECLARE_NEW_TESTS_HERE
-
-        // }  // namespace validation
     }  // namespace config
 }  // namespace NCPA
-
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( _configuration_parameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( BooleanParameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( DoubleParameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( IntegerParameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( StringParameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( ValidationTest, NCPA, config )
-// DECLARE_SWAP_FUNCTION_2NAMESPACE( ValidationTestSuite, NCPA, config )
-// DECLARE_SWAP_TEMPLATE_2NAMESPACE( _typed_parameter, NCPA, config )
-// DECLARE_SWAP_FUNCTION_3NAMESPACE( NullaryValidationTest, NCPA, config,
-//                                   validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( TypedValidationTest, NCPA, config,
-//                                   validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( UnaryValidationTest, NCPA, config,
-//                                   validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( BinaryValidationTest, NCPA, config,
-//                                   validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( ListValidationTest, NCPA, config,
-//                                   validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsEqualToTest, NCPA, config, validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsNotEqualToTest, NCPA, config, validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsNotOneOfTest, NCPA, config, validation )
-// DECLARE_SWAP_TEMPLATE_3NAMESPACE( IsOneOfTest, NCPA, config, validation )
-// DECLARE_SWAP_FUNCTION_3NAMESPACE( WasSetTest, NCPA, config, validation )
-
-
-// void swap( NCPA::config::_configuration_parameter& a,
-//            NCPA::config::_configuration_parameter& b ) noexcept;
-
-// void swap( NCPA::config::BooleanParameter& a,
-//            NCPA::config::BooleanParameter& b ) noexcept;
-
-// void swap( NCPA::config::DoubleParameter& a,
-//            NCPA::config::DoubleParameter& b ) noexcept;
-
-// void swap( NCPA::config::IntegerParameter& a,
-//            NCPA::config::IntegerParameter& b ) noexcept;
-
-// void swap( NCPA::config::StringParameter& a,
-//            NCPA::config::StringParameter& b ) noexcept;
-
-// void swap( NCPA::config::ValidationTest& a,
-//            NCPA::config::ValidationTest& b ) noexcept;
-
-// void swap( NCPA::config::ValidationTestSuite& a,
-//            NCPA::config::ValidationTestSuite& b ) noexcept;
-
-
-// void swap( NCPA::config::validation::NullaryValidationTest& a,
-//            NCPA::config::validation::NullaryValidationTest& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::TypedValidationTest<T>& a,
-//            NCPA::config::validation::TypedValidationTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::UnaryValidationTest<T>& a,
-//            NCPA::config::validation::UnaryValidationTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::BinaryValidationTest<T>& a,
-//            NCPA::config::validation::BinaryValidationTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::ListValidationTest<T>& a,
-//            NCPA::config::validation::ListValidationTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsBetweenTest<T>& a,
-//            NCPA::config::validation::IsBetweenTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsGreaterThanTest<T>& a,
-//            NCPA::config::validation::IsGreaterThanTest<T>& b ) noexcept;
-// template<typename T>
-// void swap(
-//     NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& a,
-//     NCPA::config::validation::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsLessThanTest<T>& a,
-//            NCPA::config::validation::IsLessThanTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsLessThanOrEqualToTest<T>& a,
-//            NCPA::config::validation::IsLessThanOrEqualToTest<T>& b )
-//            noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsEqualToTest<T>& a,
-//            NCPA::config::validation::IsEqualToTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::validation::IsNotEqualToTest<T>& a,
-//            NCPA::config::validation::IsNotEqualToTest<T>& b ) noexcept;
-
-// void swap( NCPA::config::validation::WasSetTest& a,
-//            NCPA::config::validation::WasSetTest& b ) noexcept;
-
-// DECLARE_SWAP_FUNCTIONS_HERE
 
 namespace NCPA {
     namespace config {
@@ -564,10 +446,6 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual bool as_bool() const {
-                    return ( this->as_int() != 0 );
-                }
-
                 virtual const ValidationTestSuite& tests() const {
                     return _tests;
                 }
@@ -629,10 +507,23 @@ namespace NCPA {
                     return _tests.status();
                 }
 
-                virtual std::string as_string() const = 0;
-                virtual int as_int() const            = 0;
-                virtual double as_double() const      = 0;
-                virtual bool was_set() const          = 0;
+                virtual bool as_bool() const {
+                    return ( this->as_int() != 0 );
+                }
+
+                virtual std::string as_string() const {
+                    throw std::logic_error( "as_string(): not implemented" );
+                }
+
+                virtual int as_int() const {
+                    throw std::logic_error( "as_int(): not implemented" );
+                }
+
+                virtual double as_double() const {
+                    throw std::logic_error( "as_double(): not implemented" );
+                }
+
+                virtual bool was_set() const = 0;
                 virtual std::unique_ptr<_configuration_parameter> clone() const
                     = 0;
 
@@ -657,8 +548,7 @@ namespace NCPA {
 
                     virtual const T& parameter_value(
                         const _configuration_parameter *param ) const {
-                        return dynamic_cast<const _typed_parameter<T> *>(
-                                   param )
+                        return dynamic_cast<const Parameter<T> *>( param )
                             ->value();
                     }
 
@@ -1367,11 +1257,11 @@ namespace NCPA {
                 return IsGreaterThan<T>( (T)0 );
             }
 
-            test_ptr_t IsNotEmptyString() {
+            inline test_ptr_t IsNotEmptyString() {
                 return IsNotEqualTo<std::string>( "" );
             }
 
-            test_ptr_t IsEmptyString() {
+            inline test_ptr_t IsEmptyString() {
                 return IsEqualTo<std::string>( "" );
             }
 
@@ -1380,32 +1270,117 @@ namespace NCPA {
 
         }  // namespace validation
 
-        template<typename T>
-        class _typed_parameter : public _configuration_parameter {
-            public:
-                _typed_parameter() {}
+        // class ConfigurationParameter {
+        //         class ParameterBase {
+        //                 virtual ~ParameterBase() {}
+        //         };
 
-                _typed_parameter( const T& defaultval ) :
+        //         template<typename HiddenType>
+        //         struct Parameter : ParameterBase {
+        //                 using value_type = HiddenType;
+        //                 HiddenType storedObject;
+
+        //                 Parameter( HiddenType&& object ) :
+        //                     storedObject( std::move( object ) ) {}
+        //         };
+
+        //         std::unique_ptr<ParameterBase> held;
+
+        //     public:
+        //         template<typename HiddenType>
+        //         ConfigurationParameter( HiddenType objectToStore ) :
+        //             held( new Parameter<HiddenType>(
+        //                 std::move( objectToStore ) ) ) {}
+
+        //         virtual ~ConfigurationParameter() {}
+
+        //         template<typename T>
+        //         T get() {
+        //             decltype( *held ) val
+        //                 = dynamic_cast<
+        //                       TypedParameter<decltype( *held )::value_type> *>(
+        //                       this )
+        //                       ->value();
+        //             return (T)val;
+        //             // return dynamic_cast<TypedParameter<T>*>( this
+        //             // )->value();
+        //         }
+        // };
+
+        // template<typename T>
+        // class TypedParameter : public ConfigurationParameter {
+        //     public:
+        //         using value_type = T;
+
+        //         TypedParameter( T value ) :
+        //             ConfigurationParameter( value ), _value { value } {}
+
+        //         virtual ~TypedParameter() {}
+
+        //         T value() const { return _value; }
+
+        //     private:
+        //         T _value;
+        // };
+
+        /*
+        class DoubleParameter : public TypedParameter<double> {
+   public:
+    DoubleParameter() : TypedParameter<double>() {}
+    DoubleParameter(double d) : TypedParameter<double>(d) {}
+    virtual ~DoubleParameter() {}
+
+    virtual std::string as_string() const override {
+        std::ostringstream oss;
+        oss << this->_value;
+        return oss.str();
+    }
+    virtual int as_int() const override {
+        return (int)(this->_value + 1.0e-30);
+    }
+    virtual double as_double() const override { return this->_value; }
+};
+
+class StringParameter : public TypedParameter<std::string> {
+   public:
+    StringParameter() : TypedParameter<std::string>() {}
+    StringParameter(const std::string& d) : TypedParameter<std::string>(d) {}
+    virtual ~StringParameter() {}
+
+    virtual std::string as_string() const override { return this->_value; }
+    virtual int as_int() const override { return std::stoi(this->_value); }
+    virtual double as_double() const override {
+        return std::stod(this->_value);
+    }
+};
+        */
+
+        template<typename T>
+        class Parameter : public _configuration_parameter {
+            public:
+                Parameter() {}
+
+                Parameter( const T& defaultval ) :
                     _value { defaultval }, _was_set { false } {}
 
-                _typed_parameter( std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<T>() {
+                Parameter( std::initializer_list<test_ptr_t> tests ) :
+                    Parameter<T>() {
                     this->append_tests( tests );
                 }
 
-                _typed_parameter( const T& defaultval,
-                                  std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<T>( defaultval ) {
+                Parameter( const T& defaultval,
+                           std::initializer_list<test_ptr_t> tests ) :
+                    Parameter<T>( defaultval ) {
                     this->append_tests( tests );
                 }
 
-                _typed_parameter( const _typed_parameter<T>& other ) :
+                Parameter( const Parameter<T>& other ) :
                     _configuration_parameter( other ) {
                     _value   = other._value;
                     _was_set = other._was_set;
                 }
 
-                virtual ~_typed_parameter() {}
+                virtual ~Parameter() {}
 
                 T& value() { return _value; }
 
@@ -1418,24 +1393,30 @@ namespace NCPA {
 
                 virtual bool was_set() const override { return _was_set; }
 
+                virtual std::unique_ptr<_configuration_parameter> clone()
+                    const override {
+                    return std::unique_ptr<_configuration_parameter>(
+                        new Parameter<T>( *this ) );
+                }
+
             protected:
                 T _value;
                 bool _was_set = false;
         };
 
-        class StringParameter : public _typed_parameter<std::string> {
+        class StringParameter : public Parameter<std::string> {
             public:
-                StringParameter() : _typed_parameter<std::string>() {}
+                StringParameter() : Parameter<std::string>() {}
 
                 StringParameter( const std::string& defaultval ) :
-                    _typed_parameter<std::string>( defaultval ) {}
+                    Parameter<std::string>( defaultval ) {}
 
                 StringParameter( std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<std::string>( tests ) {}
+                    Parameter<std::string>( tests ) {}
 
                 StringParameter( const std::string& defaultval,
                                  std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<std::string>( defaultval, tests ) {}
+                    Parameter<std::string>( defaultval, tests ) {}
 
                 virtual ~StringParameter() {}
 
@@ -1458,19 +1439,19 @@ namespace NCPA {
                 }
         };
 
-        class IntegerParameter : public _typed_parameter<int> {
+        class IntegerParameter : public Parameter<int> {
             public:
-                IntegerParameter() : _typed_parameter<int>() {}
+                IntegerParameter() : Parameter<int>() {}
 
                 IntegerParameter( const int& defaultval ) :
-                    _typed_parameter<int>( defaultval ) {}
+                    Parameter<int>( defaultval ) {}
 
                 IntegerParameter( std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<int>( tests ) {}
+                    Parameter<int>( tests ) {}
 
                 IntegerParameter( const int& defaultval,
                                   std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<int>( defaultval, tests ) {}
+                    Parameter<int>( defaultval, tests ) {}
 
                 virtual ~IntegerParameter() {}
 
@@ -1493,19 +1474,19 @@ namespace NCPA {
                 }
         };
 
-        class DoubleParameter : public _typed_parameter<double> {
+        class DoubleParameter : public Parameter<double> {
             public:
-                DoubleParameter() : _typed_parameter<double>() {}
+                DoubleParameter() : Parameter<double>() {}
 
                 DoubleParameter( const double& defaultval ) :
-                    _typed_parameter<double>( defaultval ) {}
+                    Parameter<double>( defaultval ) {}
 
                 DoubleParameter( std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<double>( tests ) {}
+                    Parameter<double>( tests ) {}
 
                 DoubleParameter( const double& defaultval,
                                  std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<double>( defaultval, tests ) {}
+                    Parameter<double>( defaultval, tests ) {}
 
                 virtual ~DoubleParameter() {}
 
@@ -1534,19 +1515,19 @@ namespace NCPA {
                 }
         };
 
-        class BooleanParameter : public _typed_parameter<bool> {
+        class BooleanParameter : public Parameter<bool> {
             public:
-                BooleanParameter() : _typed_parameter<bool>() {}
+                BooleanParameter() : Parameter<bool>() {}
 
                 BooleanParameter( const bool& defaultval ) :
-                    _typed_parameter<bool>( defaultval ) {}
+                    Parameter<bool>( defaultval ) {}
 
                 BooleanParameter( std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<bool>( tests ) {}
+                    Parameter<bool>( tests ) {}
 
                 BooleanParameter( const bool& defaultval,
                                   std::initializer_list<test_ptr_t> tests ) :
-                    _typed_parameter<bool>( defaultval, tests ) {}
+                    Parameter<bool>( defaultval, tests ) {}
 
                 virtual ~BooleanParameter() {}
 
@@ -1579,13 +1560,52 @@ namespace NCPA {
         // PropagationModel model;
         // model.add_parameter( model_param_t::FREQUENCY,
         //      DoubleParameter( { validation::IsPositive } ) );
+        //
+        //
+        typedef std::unique_ptr<_configuration_parameter> param_ptr_t;
+
         template<typename KEYTYPE>
-        using param_pair_t
-            = std::pair<KEYTYPE, std::unique_ptr<_configuration_parameter>>;
+        using param_pair_t = std::pair<KEYTYPE, param_ptr_t>;
+
+        template<typename KEYTYPE>
+        class ConfigurationMap
+            : public std::unordered_map<KEYTYPE, param_ptr_t> {
+            public:
+                ConfigurationMap() {}
+
+                ConfigurationMap( const ConfigurationMap& other ) {
+                    for (auto it = other.begin(); it != other.end(); ++it) {
+                        this->emplace(
+                            std::make_pair( it->first, it->second->clone() ) );
+                    }
+                }
+
+                ConfigurationMap( ConfigurationMap&& other ) noexcept {
+                    ::swap( *this, other );
+                }
+
+                ConfigurationMap& operator=( ConfigurationMap other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ConfigurationMap<KEYTYPE>& a,
+                                    ConfigurationMap<KEYTYPE>& b ) noexcept;
+
+                virtual ~ConfigurationMap() {}
+        };
 
         template<typename DERIVEDTYPE, typename KEYTYPE>
         class Configurable {
             public:
+                Configurable() {}
+
+                Configurable(
+                    const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
+                    Configurable<DERIVEDTYPE, KEYTYPE>() {
+                        _parameters = other._parameters;
+                    }
+
                 virtual ~Configurable() {}
 
                 DERIVEDTYPE& add_parameter(
@@ -1668,40 +1688,63 @@ namespace NCPA {
                     return inv;
                 }
 
+                template<typename PARAMTYPE>
+                DERIVEDTYPE& set( KEYTYPE key, PARAMTYPE value ) {
+                    if (auto sub = dynamic_cast<Parameter<PARAMTYPE>*>(
+                            &this->parameter( key ) )) {
+                        sub->set( value );
+                    } else {
+                        throw std::logic_error(
+                            "Can't cast parameter to requested type!" );
+                    }
+                    return static_cast<DERIVEDTYPE&>( *this );
+                }
+
+                template<typename PARAMTYPE>
+                const PARAMTYPE& get( KEYTYPE key ) const {
+                    if (auto sub = dynamic_cast<const Parameter<PARAMTYPE>*>(
+                            &this->parameter( key ) )) {
+                        return sub->value();
+                    } else {
+                        throw std::logic_error(
+                            "Can't cast parameter to requested type!" );
+                    }
+                }
 
             private:
-                std::unordered_map<KEYTYPE,
-                                   std::unique_ptr<_configuration_parameter>>
-                    _parameters;
+                // std::unordered_map<KEYTYPE,
+                //                    std::unique_ptr<_configuration_parameter>>
+                //     _parameters;
+                ConfigurationMap<KEYTYPE> _parameters;
         };
 
     }  // namespace config
 }  // namespace NCPA
 
-void swap( NCPA::config::ValidationTest& a,
+inline void swap( NCPA::config::ValidationTest& a,
            NCPA::config::ValidationTest& b ) noexcept {
     using std::swap;
     swap( a._status, b._status );
 }
 
-void swap( NCPA::config::_configuration_parameter& a,
+inline void swap( NCPA::config::_configuration_parameter& a,
            NCPA::config::_configuration_parameter& b ) noexcept {}
 
 template<typename T>
-void swap( NCPA::config::_typed_parameter<T>& a,
-           NCPA::config::_typed_parameter<T>& b ) noexcept {
+void swap( NCPA::config::Parameter<T>& a,
+           NCPA::config::Parameter<T>& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NCPA::config::_configuration_parameter&>( a ),
             static_cast<NCPA::config::_configuration_parameter&>( b ) );
 }
 
-void swap( NCPA::config::ValidationTestSuite& a,
+inline void swap( NCPA::config::ValidationTestSuite& a,
            NCPA::config::ValidationTestSuite& b ) noexcept {
     using std::swap;
     swap( a._tests, b._tests );
 }
 
-void swap( NCPA::config::validation::NullaryValidationTest& a,
+inline void swap( NCPA::config::validation::NullaryValidationTest& a,
            NCPA::config::validation::NullaryValidationTest& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NCPA::config::ValidationTest&>( a ),
@@ -1811,12 +1854,28 @@ void swap( NCPA::config::validation::IsNotEqualToTest<T>& a,
         static_cast<NCPA::config::validation::UnaryValidationTest<T>&>( b ) );
 }
 
-void swap( NCPA::config::validation::WasSetTest& a,
+inline void swap( NCPA::config::validation::WasSetTest& a,
            NCPA::config::validation::WasSetTest& b ) noexcept {
     using std::swap;
     ::swap(
         static_cast<NCPA::config::validation::NullaryValidationTest&>( a ),
         static_cast<NCPA::config::validation::NullaryValidationTest&>( b ) );
+}
+
+template<typename T>
+void swap( NCPA::config::ConfigurationMap<T>& a,
+           NCPA::config::ConfigurationMap<T>& b ) noexcept {
+    using std::swap;
+    ::swap(
+        static_cast<std::unordered_map<T, NCPA::config::param_ptr_t>&>( a ),
+        static_cast<std::unordered_map<T, NCPA::config::param_ptr_t>&>( b ) );
+}
+
+template<typename DERIVEDTYPE, typename KEYTYPE>
+void swap( NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& a,
+           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) {
+    using std::swap;
+    swap( a._parameters, b._parameters );
 }
 
 // DEFINE_SWAP_FUNCTIONS_HERE

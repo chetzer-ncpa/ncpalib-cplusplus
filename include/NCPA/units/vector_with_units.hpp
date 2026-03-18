@@ -365,6 +365,14 @@ namespace NCPA {
                     _units = Units::from_string( new_units );
                 }
 
+                virtual std::vector<T>& std() {
+                    return static_cast<std::vector<T>&>( *this );
+                }
+
+                virtual const std::vector<T>& std() const {
+                    return static_cast<const std::vector<T>&>( *this );
+                }
+
                 explicit operator bool() const { return !this->empty(); }
 
                 VectorWithUnits operator+(
