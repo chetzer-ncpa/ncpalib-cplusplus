@@ -21,7 +21,7 @@ typedef double test_t;
 
 class ConfigurableVector
     : public std::vector<double>,
-      public Configurable<ConfigurableVector, std::string> {};
+      public Configurable< std::string> {};
 
 enum class testenum { NO, YES, FIRST_ONLY };
 
@@ -98,10 +98,12 @@ TEST_F( _TEST_TITLE_, ConfigurableClassWorksAsExpected ) {
     cvec1.push_back( 2.0 );
     cvec1.add_parameter( "par1",
                          DoubleParameter( 1.0, { IsNotZero<double>() } ) );
-    EXPECT_TRUE( cvec1.validate_parameters().passed() );
+    cvec1.validate_parameters();
+    EXPECT_TRUE( cvec1.passed() );
     cvec1.add_parameter( "par2",
                          DoubleParameter( 0.0, { IsNotZero<double>() } ) );
-    EXPECT_FALSE( cvec1.validate_parameters().passed() );
+    cvec1.validate_parameters();
+    EXPECT_FALSE( cvec1.passed() );
 }
 
 TEST_F( _TEST_TITLE_, ConfigurableClassWorksWithEnum ) {
@@ -109,7 +111,8 @@ TEST_F( _TEST_TITLE_, ConfigurableClassWorksWithEnum ) {
                          Parameter<testenum>( testenum::FIRST_ONLY ) );
     cvec1.add_parameter( "par1",
                          DoubleParameter( 1.0, { IsNotZero<double>() } ) );
-    EXPECT_TRUE( cvec1.validate_parameters().passed() );
+    cvec1.validate_parameters();
+    EXPECT_TRUE( cvec1.passed() );
     EXPECT_TRUE( cvec1.get<testenum>( "write_atmosphere" )
                  == testenum::FIRST_ONLY );
 }

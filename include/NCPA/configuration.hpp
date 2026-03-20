@@ -150,7 +150,7 @@ namespace NCPA {
             COMPLEX,
             OTHER
         };
-        template<typename DERIVEDTYPE, typename KEYTYPE>
+        template<typename KEYTYPE>
         class Configurable;
         // class ConfigurationParameter;
         // template<typename T>
@@ -197,8 +197,8 @@ DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanOrEqualToTest,
 DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( ConfigurationMap, NCPA, config )
 
 template<typename DERIVEDTYPE, typename KEYTYPE>
-void swap( NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& a,
-           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) noexcept;
+void swap( NCPA::config::Configurable<KEYTYPE>& a,
+           NCPA::config::Configurable<KEYTYPE>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
@@ -1977,41 +1977,37 @@ namespace NCPA {
                 virtual ~ConfigurationMap() {}
         };
 
-        template<typename DERIVEDTYPE, typename KEYTYPE>
+        template<typename KEYTYPE>
         class Configurable {
             public:
                 Configurable() { this->define_parameters(); }
 
-                Configurable(
-                    const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
-                    Configurable<DERIVEDTYPE, KEYTYPE>() {
+                Configurable( const Configurable<KEYTYPE>& other ) :
+                    Configurable<KEYTYPE>() {
                     _parameters = other._parameters;
                 }
 
                 virtual ~Configurable() {}
 
-                DERIVEDTYPE& add_parameter(
+                void add_parameter(
                     KEYTYPE key, const _configuration_parameter *param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
                     _parameters[ key ] = param->clone();
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
-                DERIVEDTYPE& add_parameter( KEYTYPE key,
+                void add_parameter( KEYTYPE key,
                                             const param_ptr_t param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
                     _parameters[ key ] = param->clone();
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
-                DERIVEDTYPE& add_parameter(
+                void add_parameter(
                     KEYTYPE key, const _configuration_parameter& param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param.clone() } );
                     _parameters[ key ] = param.clone();
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 _configuration_parameter& parameter( KEYTYPE key ) {
@@ -2023,27 +2019,25 @@ namespace NCPA {
                     return *( _parameters.at( key ).get() );
                 }
 
-                DERIVEDTYPE& copy_parameter( const KEYTYPE& key,
+                void copy_parameter( const KEYTYPE& key,
                                              const param_ptr_t& ptr ) {
                     // _parameters[ key ] = ptr->clone();
                     // return static_cast<DERIVEDTYPE&>( *this );
-                    return this->copy_parameter( key, *ptr );
+                    this->copy_parameter( key, *ptr );
                 }
 
-                DERIVEDTYPE& copy_parameter(
+               void  copy_parameter(
                     const KEYTYPE& key, const _configuration_parameter& ptr ) {
                     _parameters[ key ] = ptr.clone();
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 virtual void define_parameters() {}
 
-                DERIVEDTYPE& validate_parameters() {
+                void validate_parameters() {
                     for (auto it = _parameters.cbegin();
                          it != _parameters.cend(); ++it) {
                         it->second->validate();
                     }
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 std::string validation_report() const {
@@ -2094,7 +2088,7 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
-                DERIVEDTYPE& set( KEYTYPE key, PARAMTYPE value ) {
+                void set( KEYTYPE key, PARAMTYPE value ) {
                     if (!has_parameter( key )) {
                         return this->add_parameter(
                             key,
@@ -2107,7 +2101,6 @@ namespace NCPA {
                             throw std::logic_error(
                                 "Can't cast parameter to requested type!" );
                         }
-                        return static_cast<DERIVEDTYPE&>( *this );
                     }
                 }
 
@@ -2126,7 +2119,7 @@ namespace NCPA {
                     return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
-                DERIVEDTYPE& copy_parameters(
+                void copy_parameters(
                     const ConfigurationMap<KEYTYPE>& othermap,
                     bool create_if_missing = true ) {
                     for (auto it = othermap.cbegin(); it != othermap.cend();
@@ -2137,7 +2130,6 @@ namespace NCPA {
                                                   it->second->clone() );
                         }
                     }
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 virtual ConfigurationMap<KEYTYPE>& parameters() {
@@ -2464,9 +2456,9 @@ void swap( NCPA::config::ConfigurationMap<T>& a,
         static_cast<std::unordered_map<T, NCPA::config::param_ptr_t>&>( b ) );
 }
 
-template<typename DERIVEDTYPE, typename KEYTYPE>
-void swap( NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& a,
-           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) noexcept {
+template<typename KEYTYPE>
+void swap( NCPA::config::Configurable<KEYTYPE>& a,
+           NCPA::config::Configurable<KEYTYPE>& b ) noexcept {
     using std::swap;
     swap( a._parameters, b._parameters );
 }
