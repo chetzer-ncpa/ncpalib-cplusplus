@@ -2086,7 +2086,30 @@ namespace NCPA {
                     return inv;
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE, typename K = KEYTYPE,
+                         typename std::enable_if<
+                             std::is_convertible<K, std::string>::value,
+                             int>::type = 0>
+                void set( KEYTYPE key, PARAMTYPE value ) {
+                    if (!has_parameter( key )) {
+                        return this->add_parameter(
+                            key,
+                            param_ptr_t( new Parameter<PARAMTYPE>( value ) ) );
+                    } else {
+                        if (auto sub = dynamic_cast<Parameter<PARAMTYPE> *>(
+                                &this->parameter( key ) )) {
+                            sub->set( value );
+                        } else {
+                            throw std::logic_error(
+                                "Can't cast parameter " + key + " to requested type!" );
+                        }
+                    }
+                }
+
+                template<typename PARAMTYPE, typename K = KEYTYPE,
+                         typename std::enable_if<
+                             !( std::is_convertible<K, std::string>::value ),
+                             int>::type = 0>
                 void set( KEYTYPE key, PARAMTYPE value ) {
                     if (!has_parameter( key )) {
                         return this->add_parameter(
@@ -2103,7 +2126,24 @@ namespace NCPA {
                     }
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE, typename K = KEYTYPE,
+                         typename std::enable_if<
+                             std::is_convertible<K, std::string>::value,
+                             int>::type = 0>
+                const PARAMTYPE& get( KEYTYPE key ) const {
+                    if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
+                            &this->parameter( key ) )) {
+                        return sub->value();
+                    } else {
+                        throw std::logic_error(
+                            "Can't cast parameter " + key + " to requested type!" );
+                    }
+                }
+
+                template<typename PARAMTYPE, typename K = KEYTYPE,
+                         typename std::enable_if<
+                             !( std::is_convertible<K, std::string>::value ),
+                             int>::type = 0>
                 const PARAMTYPE& get( KEYTYPE key ) const {
                     if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
