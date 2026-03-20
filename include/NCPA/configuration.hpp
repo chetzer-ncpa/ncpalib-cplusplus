@@ -2131,6 +2131,10 @@ namespace NCPA {
                              std::is_convertible<K, std::string>::value,
                              int>::type = 0>
                 const PARAMTYPE& get( KEYTYPE key ) const {
+                    if (!has_parameter( key )) {
+                        throw std::out_of_range(
+                            "Parameter " + key + " not found!" );
+                    }
                     if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
                         return sub->value();
@@ -2145,6 +2149,10 @@ namespace NCPA {
                              !( std::is_convertible<K, std::string>::value ),
                              int>::type = 0>
                 const PARAMTYPE& get( KEYTYPE key ) const {
+                    if (!has_parameter( key )) {
+                        throw std::out_of_range(
+                            "Parameter not found!" );
+                    }
                     if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
                         return sub->value();
