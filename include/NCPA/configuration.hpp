@@ -1980,7 +1980,9 @@ namespace NCPA {
         template<typename DERIVEDTYPE, typename KEYTYPE>
         class Configurable {
             public:
-                Configurable() {}
+                Configurable() {
+                    this->define_parameters();
+                }
 
                 Configurable(
                     const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
@@ -2035,6 +2037,8 @@ namespace NCPA {
                     _parameters[ key ] = ptr.clone();
                     return static_cast<DERIVEDTYPE&>( *this );
                 }
+
+                virtual void define_parameters() {}
 
                 DERIVEDTYPE& validate_parameters() {
                     for (auto it = _parameters.cbegin();
