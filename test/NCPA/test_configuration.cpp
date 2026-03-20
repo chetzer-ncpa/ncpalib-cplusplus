@@ -120,7 +120,7 @@ TEST_F( _TEST_TITLE_, ConfigurableClassWorksWithEnum ) {
 TEST_F( _TEST_TITLE_, ConfigurableClassCopiesParameters ) {
     cvec1.add_parameter( "write_atmosphere",
                          Parameter<testenum>( testenum::FIRST_ONLY ) );
-    cvec2.copy_parameters( cvec1.parameters() );
+    cvec2.copy_parameters_from( cvec1 );
     EXPECT_TRUE( cvec2.has_parameter( "write_atmosphere" ) );
     EXPECT_TRUE( cvec2.get<testenum>( "write_atmosphere" ) == testenum::FIRST_ONLY );
 }

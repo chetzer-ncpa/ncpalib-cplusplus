@@ -1989,22 +1989,21 @@ namespace NCPA {
 
                 virtual ~Configurable() {}
 
-                void add_parameter(
-                    KEYTYPE key, const _configuration_parameter *param ) {
+                void add_parameter( KEYTYPE key,
+                                    const _configuration_parameter *param ) {
+                    // _parameters.emplace(
+                    //     param_pair_t<KEYTYPE>{ key, param->clone() } );
+                    _parameters[ key ] = param->clone();
+                }
+
+                void add_parameter( KEYTYPE key, const param_ptr_t param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
                     _parameters[ key ] = param->clone();
                 }
 
                 void add_parameter( KEYTYPE key,
-                                            const param_ptr_t param ) {
-                    // _parameters.emplace(
-                    //     param_pair_t<KEYTYPE>{ key, param->clone() } );
-                    _parameters[ key ] = param->clone();
-                }
-
-                void add_parameter(
-                    KEYTYPE key, const _configuration_parameter& param ) {
+                                    const _configuration_parameter& param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param.clone() } );
                     _parameters[ key ] = param.clone();
@@ -2020,14 +2019,14 @@ namespace NCPA {
                 }
 
                 void copy_parameter( const KEYTYPE& key,
-                                             const param_ptr_t& ptr ) {
+                                     const param_ptr_t& ptr ) {
                     // _parameters[ key ] = ptr->clone();
                     // return static_cast<DERIVEDTYPE&>( *this );
                     this->copy_parameter( key, *ptr );
                 }
 
-               void  copy_parameter(
-                    const KEYTYPE& key, const _configuration_parameter& ptr ) {
+                void copy_parameter( const KEYTYPE& key,
+                                     const _configuration_parameter& ptr ) {
                     _parameters[ key ] = ptr.clone();
                 }
 
@@ -2119,17 +2118,21 @@ namespace NCPA {
                     return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
-                void copy_parameters(
-                    const ConfigurationMap<KEYTYPE>& othermap,
-                    bool create_if_missing = true ) {
-                    for (auto it = othermap.cbegin(); it != othermap.cend();
-                         ++it) {
+                void copy_parameters_from( const Configurable<KEYTYPE>& other,
+                                bool create_if_missing = true ) {
+                    for (auto it = other.parameters().cbegin();
+                         it != other.parameters().cend(); ++it) {
                         if (create_if_missing
                             || this->has_parameter( it->first )) {
                             this->copy_parameter( it->first,
                                                   it->second->clone() );
                         }
                     }
+                }
+
+                void copy_parameters_to( Configurable<KEYTYPE>& other,
+                              bool create_if_missing = true ) const {
+                    other.copy_parameters_from( *this );
                 }
 
                 virtual ConfigurationMap<KEYTYPE>& parameters() {
