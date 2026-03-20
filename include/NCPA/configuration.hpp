@@ -121,11 +121,13 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 #pragma once
 
 #include "NCPA/defines.hpp"
+#include "NCPA/types.hpp"
 
 #include <array>
 #include <cstdlib>
 #include <initializer_list>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -137,18 +139,31 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 namespace NCPA {
     namespace config {
         enum class test_status_t { NONE, PENDING, FAILED, PASSED };
-        class ConfigurationParameter;
-        template<typename T>
-        class TypedParameter;
+        enum class parameter_form_t { UNDEF, SCALAR, VECTOR };
+        enum class parameter_type_t {
+            UNDEF,
+            INTEGER,
+            FLOAT,
+            STRING,
+            BOOLEAN,
+            ENUM,
+            COMPLEX,
+            OTHER
+        };
+        template<typename DERIVEDTYPE, typename KEYTYPE>
+        class Configurable;
+        // class ConfigurationParameter;
+        // template<typename T>
+        // class TypedParameter;
     }  // namespace config
 }  // namespace NCPA
 
 // class _configuration_parameter;
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( _configuration_parameter, NCPA, config )
-DECLARE_CLASS_AND_SWAP_2NAMESPACE( BooleanParameter, NCPA, config )
-DECLARE_CLASS_AND_SWAP_2NAMESPACE( DoubleParameter, NCPA, config )
-DECLARE_CLASS_AND_SWAP_2NAMESPACE( IntegerParameter, NCPA, config )
-DECLARE_CLASS_AND_SWAP_2NAMESPACE( StringParameter, NCPA, config )
+// DECLARE_CLASS_AND_SWAP_2NAMESPACE( BooleanParameter, NCPA, config )
+// DECLARE_CLASS_AND_SWAP_2NAMESPACE( DoubleParameter, NCPA, config )
+// DECLARE_CLASS_AND_SWAP_2NAMESPACE( IntegerParameter, NCPA, config )
+// DECLARE_CLASS_AND_SWAP_2NAMESPACE( StringParameter, NCPA, config )
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTest, NCPA, config )
 DECLARE_CLASS_AND_SWAP_2NAMESPACE( ValidationTestSuite, NCPA, config )
 DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( Parameter, NCPA, config )
@@ -180,6 +195,10 @@ DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanTest, NCPA, config,
 DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE( IsLessThanOrEqualToTest,
                                                   NCPA, config, validation )
 DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( ConfigurationMap, NCPA, config )
+
+template<typename DERIVEDTYPE, typename KEYTYPE>
+void swap( NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& a,
+           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
@@ -259,8 +278,7 @@ namespace NCPA {
 
                 virtual std::string description() const = 0;
                 virtual ValidationTest& test(
-                    const _configuration_parameter *param )
-                    = 0;
+                    const _configuration_parameter *param )           = 0;
                 virtual std::unique_ptr<ValidationTest> clone() const = 0;
 
             protected:
@@ -508,7 +526,7 @@ namespace NCPA {
                 }
 
                 virtual bool as_bool() const {
-                    return ( this->as_int() != 0 );
+                    throw std::logic_error( "as_bool(): not implemented" );
                 }
 
                 virtual std::string as_string() const {
@@ -523,12 +541,131 @@ namespace NCPA {
                     throw std::logic_error( "as_double(): not implemented" );
                 }
 
+                template<typename T>
+                const T& get() const {
+                    if (auto ptr
+                        = dynamic_cast<const Parameter<T> *>( this )) {
+                        return ptr->value();
+                    } else {
+                        throw std::out_of_range(
+                            "Can't cast parameter to requested type!" );
+                    }
+                }
+
+                template<typename T>
+                T& get() {
+                    if (auto ptr = dynamic_cast<Parameter<T> *>( this )) {
+                        return ptr->value();
+                    } else {
+                        throw std::out_of_range(
+                            "Can't cast parameter to requested type!" );
+                    }
+                }
+
+                template<typename T>
+                _configuration_parameter& set( T val ) {
+                    if (auto ptr = dynamic_cast<Parameter<T> *>( this )) {
+                        ptr->value() = val;
+                    } else {
+                        throw std::out_of_range(
+                            "Can't cast parameter to requested type!" );
+                    }
+                    return *this;
+                }
+
                 virtual bool was_set() const = 0;
                 virtual std::unique_ptr<_configuration_parameter> clone() const
                     = 0;
+                virtual parameter_form_t form() const = 0;
+                virtual parameter_type_t type() const = 0;
 
             protected:
                 ValidationTestSuite _tests;
+                // parameter_form_t _form;
+                // parameter_type_t _type;
+
+
+                // virtual parameter_form_t form() const { return _form; }
+
+                // virtual parameter_type_t type() const { return _type; }
+
+                // virtual _configuration_parameter& fromString(
+                //     const std::string& in ) = 0;
+
+                // // T is boolean specifically
+                // template<typename T,
+                //          typename std::enable_if<std::is_same<T,
+                //          bool>::value,
+                //                                  int>::type = 0>
+                // T as() const {
+                //     return this->as_bool();
+                // }
+
+                // // T is integral and not boolean
+                // template<typename T,
+                //          typename std::enable_if<
+                //              ( std::is_integral<T>::value
+                //                && !( std::is_same<T, bool>::value ) ),
+                //              int>::type = 0>
+                // T as() const {
+                //     return static_cast<T>( this->as_int() );
+                // }
+
+                // // T is floating-point
+                // template<typename T,
+                //          typename std::enable_if<
+                //              std::is_floating_point<T>::value, int>::type =
+                //              0>
+                // T as() const {
+                //     return static_cast<T>( this->as_double() );
+                // }
+
+                // // T is string
+                // template<typename T,
+                //          typename std::enable_if<
+                //              std::is_convertible<T, std::string>::value,
+                //              int>::type = 0>
+                // T as() const {
+                //     return this->as_string();
+                // }
+
+                // // T is scalar but not fundamental or pointer
+                // template<
+                //     typename T,
+                //     typename std::enable_if<
+                //         ( std::is_scalar<T>::value
+                //           && !( std::is_fundamental<T>::value
+                //                 || std::is_pointer<T>::value
+                //                 || std::is_same<T, std::string>::value ) ),
+                //         int>::type = 0>
+                // T as() const {
+                //     return dynamic_cast<const Parameter<T> *>( this
+                //     )->value();
+                // }
+
+                // // T is a vector
+
+
+                // virtual bool as_bool() const {
+                //     return ( this->as_int() != 0 );
+                // }
+
+                // virtual std::string as_string() const {
+                //     throw std::logic_error( "as_string(): not implemented"
+                //     );
+                // }
+
+                // virtual int as_int() const {
+                //     throw std::logic_error( "as_int(): not implemented" );
+                // }
+
+                // virtual double as_double() const {
+                //     throw std::logic_error( "as_double(): not implemented"
+                //     );
+                // }
+
+                // template<typename T>
+                // _configuration_parameter& set( const T& value ) {}
         };
 
         namespace validation {
@@ -1270,90 +1407,7 @@ namespace NCPA {
 
         }  // namespace validation
 
-        // class ConfigurationParameter {
-        //         class ParameterBase {
-        //                 virtual ~ParameterBase() {}
-        //         };
-
-        //         template<typename HiddenType>
-        //         struct Parameter : ParameterBase {
-        //                 using value_type = HiddenType;
-        //                 HiddenType storedObject;
-
-        //                 Parameter( HiddenType&& object ) :
-        //                     storedObject( std::move( object ) ) {}
-        //         };
-
-        //         std::unique_ptr<ParameterBase> held;
-
-        //     public:
-        //         template<typename HiddenType>
-        //         ConfigurationParameter( HiddenType objectToStore ) :
-        //             held( new Parameter<HiddenType>(
-        //                 std::move( objectToStore ) ) ) {}
-
-        //         virtual ~ConfigurationParameter() {}
-
-        //         template<typename T>
-        //         T get() {
-        //             decltype( *held ) val
-        //                 = dynamic_cast<
-        //                       TypedParameter<decltype( *held )::value_type> *>(
-        //                       this )
-        //                       ->value();
-        //             return (T)val;
-        //             // return dynamic_cast<TypedParameter<T>*>( this
-        //             // )->value();
-        //         }
-        // };
-
-        // template<typename T>
-        // class TypedParameter : public ConfigurationParameter {
-        //     public:
-        //         using value_type = T;
-
-        //         TypedParameter( T value ) :
-        //             ConfigurationParameter( value ), _value { value } {}
-
-        //         virtual ~TypedParameter() {}
-
-        //         T value() const { return _value; }
-
-        //     private:
-        //         T _value;
-        // };
-
-        /*
-        class DoubleParameter : public TypedParameter<double> {
-   public:
-    DoubleParameter() : TypedParameter<double>() {}
-    DoubleParameter(double d) : TypedParameter<double>(d) {}
-    virtual ~DoubleParameter() {}
-
-    virtual std::string as_string() const override {
-        std::ostringstream oss;
-        oss << this->_value;
-        return oss.str();
-    }
-    virtual int as_int() const override {
-        return (int)(this->_value + 1.0e-30);
-    }
-    virtual double as_double() const override { return this->_value; }
-};
-
-class StringParameter : public TypedParameter<std::string> {
-   public:
-    StringParameter() : TypedParameter<std::string>() {}
-    StringParameter(const std::string& d) : TypedParameter<std::string>(d) {}
-    virtual ~StringParameter() {}
-
-    virtual std::string as_string() const override { return this->_value; }
-    virtual int as_int() const override { return std::stoi(this->_value); }
-    virtual double as_double() const override {
-        return std::stod(this->_value);
-    }
-};
-        */
+        typedef std::unique_ptr<_configuration_parameter> param_ptr_t;
 
         template<typename T>
         class Parameter : public _configuration_parameter {
@@ -1362,6 +1416,12 @@ class StringParameter : public TypedParameter<std::string> {
 
                 Parameter( const T& defaultval ) :
                     _value { defaultval }, _was_set { false } {}
+
+                Parameter( const Parameter<T>& other ) :
+                    _configuration_parameter( other ) {
+                    _value   = other._value;
+                    _was_set = other._was_set;
+                }
 
                 Parameter( std::initializer_list<test_ptr_t> tests ) :
                     Parameter<T>() {
@@ -1374,13 +1434,22 @@ class StringParameter : public TypedParameter<std::string> {
                     this->append_tests( tests );
                 }
 
-                Parameter( const Parameter<T>& other ) :
-                    _configuration_parameter( other ) {
-                    _value   = other._value;
-                    _was_set = other._was_set;
+                virtual ~Parameter() {}
+
+                virtual bool as_bool() const override {
+                    return this->_as_bool();
                 }
 
-                virtual ~Parameter() {}
+                virtual std::string as_string() const override {
+                    return this->_as_string();
+                    ;
+                }
+
+                virtual int as_int() const override { return this->_as_int(); }
+
+                virtual double as_double() const override {
+                    return this->_as_double();
+                }
 
                 T& value() { return _value; }
 
@@ -1393,164 +1462,478 @@ class StringParameter : public TypedParameter<std::string> {
 
                 virtual bool was_set() const override { return _was_set; }
 
-                virtual std::unique_ptr<_configuration_parameter> clone()
-                    const override {
-                    return std::unique_ptr<_configuration_parameter>(
-                        new Parameter<T>( *this ) );
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t( new Parameter<T>( *this ) );
                 }
+
+                virtual parameter_form_t form() const override {
+                    return _form();
+                }
+
+                virtual parameter_type_t type() const { return _type(); }
 
             protected:
                 T _value;
                 bool _was_set = false;
-        };
 
-        class StringParameter : public Parameter<std::string> {
-            public:
-                StringParameter() : Parameter<std::string>() {}
-
-                StringParameter( const std::string& defaultval ) :
-                    Parameter<std::string>( defaultval ) {}
-
-                StringParameter( std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<std::string>( tests ) {}
-
-                StringParameter( const std::string& defaultval,
-                                 std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<std::string>( defaultval, tests ) {}
-
-                virtual ~StringParameter() {}
-
-                virtual std::string as_string() const override {
-                    return this->value();
+                // normal case: is scalar
+                template<typename U                         = T,
+                         typename std::enable_if<std::is_scalar<U>::value,
+                                                 int>::type = 0>
+                parameter_form_t _form() const {
+                    return parameter_form_t::SCALAR;
                 }
 
-                virtual int as_int() const override {
-                    return std::stoi( this->value() );
+                // special case: is complex
+                template<typename U = T,
+                         typename std::enable_if<
+                             !( std::is_scalar<U>::value
+                                || NCPA::types::is_complex<U>::value ),
+                             int>::type = 0>
+                parameter_form_t _form() const {
+                    return parameter_form_t::VECTOR;
                 }
 
-                virtual double as_double() const override {
-                    return std::stod( this->value() );
+                // otherwise vector
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_scalar<U>::value )
+                               && NCPA::types::is_complex<U>::value ),
+                             int>::type = 0>
+                parameter_form_t _form() const {
+                    return parameter_form_t::SCALAR;
                 }
 
-                virtual std::unique_ptr<_configuration_parameter> clone()
-                    const override {
-                    return std::unique_ptr<_configuration_parameter>(
-                        new StringParameter( *this ) );
-                }
-        };
-
-        class IntegerParameter : public Parameter<int> {
-            public:
-                IntegerParameter() : Parameter<int>() {}
-
-                IntegerParameter( const int& defaultval ) :
-                    Parameter<int>( defaultval ) {}
-
-                IntegerParameter( std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<int>( tests ) {}
-
-                IntegerParameter( const int& defaultval,
-                                  std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<int>( defaultval, tests ) {}
-
-                virtual ~IntegerParameter() {}
-
-                virtual std::string as_string() const override {
-                    std::ostringstream oss;
-                    oss << _value;
-                    return oss.str();
+                // general type detection
+                template<typename U                         = T,
+                         typename std::enable_if<std::is_same<U, bool>::value,
+                                                 int>::type = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::BOOLEAN;
                 }
 
-                virtual int as_int() const override { return this->value(); }
-
-                virtual double as_double() const override {
-                    return (double)this->value();
+                template<
+                    typename U                         = T,
+                    typename std::enable_if<( !( std::is_same<U, bool>::value )
+                                              && std::is_integral<U>::value ),
+                                            int>::type = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::INTEGER;
                 }
 
-                virtual std::unique_ptr<_configuration_parameter> clone()
-                    const override {
-                    return std::unique_ptr<_configuration_parameter>(
-                        new IntegerParameter( *this ) );
-                }
-        };
-
-        class DoubleParameter : public Parameter<double> {
-            public:
-                DoubleParameter() : Parameter<double>() {}
-
-                DoubleParameter( const double& defaultval ) :
-                    Parameter<double>( defaultval ) {}
-
-                DoubleParameter( std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<double>( tests ) {}
-
-                DoubleParameter( const double& defaultval,
-                                 std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<double>( defaultval, tests ) {}
-
-                virtual ~DoubleParameter() {}
-
-                virtual std::string as_string() const override {
-                    std::ostringstream oss;
-                    oss << _value;
-                    return oss.str();
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( std::is_floating_point<U>::value ), int>::type
+                         = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::INTEGER;
                 }
 
-                virtual int as_int() const override {
-                    return (int)( this->value() );
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_arithmetic<U>::value )
+                               && std::is_convertible<U, std::string>::value ),
+                             int>::type = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::STRING;
                 }
 
-                virtual double as_double() const override {
-                    return this->value();
+                template<typename U                         = T,
+                         typename std::enable_if<( std::is_enum<U>::value ),
+                                                 int>::type = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::ENUM;
                 }
 
-                virtual bool as_bool() const override {
-                    return ( this->value() != 0.0 );
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( NCPA::types::is_complex<U>::value ), int>::type
+                         = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::COMPLEX;
                 }
 
-                virtual std::unique_ptr<_configuration_parameter> clone()
-                    const override {
-                    return std::unique_ptr<_configuration_parameter>(
-                        new DoubleParameter( *this ) );
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_arithmetic<U>::value
+                                  || NCPA::types::is_complex<U>::value
+                                  || std::is_convertible<U, std::string>::value
+                                  || std::is_enum<U>::value ) ),
+                             int>::type = 0>
+                parameter_type_t _type() const {
+                    return parameter_type_t::COMPLEX;
                 }
-        };
 
-        class BooleanParameter : public Parameter<bool> {
-            public:
-                BooleanParameter() : Parameter<bool>() {}
+                // boolean conversions
+                template<typename U = T,
+                         typename std::enable_if<
+                             std::is_convertible<U, bool>::value, int>::type
+                         = 0>
+                bool _as_bool() const {
+                    return static_cast<bool>( this->value() );
+                }
 
-                BooleanParameter( const bool& defaultval ) :
-                    Parameter<bool>( defaultval ) {}
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_convertible<U, bool>::value )
+                               && std::is_convertible<U, std::string>::value ),
+                             int>::type = 0>
+                bool _as_bool() const {
+                    return ( this->_as_string().size() > 0 );
+                }
 
-                BooleanParameter( std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<bool>( tests ) {}
+                template<
+                    typename U = T,
+                    typename std::enable_if<
+                        !( std::is_convertible<U, bool>::value
+                           || std::is_convertible<U, std::string>::value ),
+                        int>::type = 0>
+                bool _as_bool() const {
+                    throw std::out_of_range( "Not convertible to bool" );
+                }
 
-                BooleanParameter( const bool& defaultval,
-                                  std::initializer_list<test_ptr_t> tests ) :
-                    Parameter<bool>( defaultval, tests ) {}
-
-                virtual ~BooleanParameter() {}
-
-                virtual std::string as_string() const override {
+                // string conversions
+                template<typename U                         = T,
+                         typename std::enable_if<std::is_same<U, bool>::value,
+                                                 int>::type = 0>
+                std::string _as_string() const {
                     return ( this->value() ? "true" : "false" );
                 }
 
-                virtual int as_int() const override {
-                    return ( this->value() ? 1 : 0 );
+                template<typename U = T,
+                         typename std::enable_if<
+                             NCPA::types::is_complex<U>::value, int>::type = 0>
+                std::string _as_string() const {
+                    std::ostringstream oss;
+                    double r = this->value().real();
+                    double i = this->value().imag();
+                    oss << "(" << r << "," << i << ")";
+                    return oss.str();
                 }
 
-                virtual double as_double() const override {
-                    return ( this->value() ? 1.0 : 0.0 );
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_same<U, bool>::value )
+                               && std::is_fundamental<U>::value ),
+                             int>::type = 0>
+                std::string _as_string() const {
+                    std::ostringstream oss;
+                    oss << this->value();
+                    return oss.str();
                 }
 
-                virtual bool as_bool() const override { return this->value(); }
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_fundamental<U>::value )
+                               && std::is_convertible<U, std::string>::value ),
+                             int>::type = 0>
+                std::string _as_string() const {
+                    std::string s = this->value();
+                    return s;
+                }
 
-                virtual std::unique_ptr<_configuration_parameter> clone()
-                    const override {
-                    return std::unique_ptr<_configuration_parameter>(
-                        new BooleanParameter( *this ) );
+                template<
+                    typename U = T,
+                    typename std::enable_if<
+                        ( !( std::is_fundamental<U>::value
+                             || std::is_convertible<U, std::string>::value ) ),
+                        int>::type = 0>
+                std::string _as_string() const {
+                    throw std::out_of_range( "Not convertible to string" );
+                }
+
+                // integer conversions
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( std::is_integral<U>::value ), int>::type = 0>
+                int _as_int() const {
+                    return static_cast<int>( this->value() );
+                }
+
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( std::is_floating_point<U>::value ), int>::type
+                         = 0>
+                int _as_int() const {
+                    return static_cast<int>(
+                        this->value() + std::numeric_limits<U>::epsilon() );
+                }
+
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_arithmetic<U>::value )
+                               && std::is_convertible<U, std::string>::value ),
+                             int>::type = 0>
+                int _as_int() const {
+                    return static_cast<int>(
+                        std::stoi( std::string( this->value() ) ) );
+                }
+
+                template<
+                    typename U = T,
+                    typename std::enable_if<
+                        !( std::is_arithmetic<U>::value
+                           || std::is_convertible<U, std::string>::value ),
+                        int>::type = 0>
+                int _as_int() const {
+                    throw std::out_of_range( "Not convertible to int" );
+                }
+
+                // float conversions
+                template<typename U = T,
+                         typename std::enable_if<
+                             std::is_convertible<U, double>::value, int>::type
+                         = 0>
+                double _as_double() const {
+                    return static_cast<double>( this->value() );
+                }
+
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_convertible<U, double>::value )
+                               && std::is_convertible<U, std::string>::value ),
+                             int>::type = 0>
+                double _as_double() const {
+                    return static_cast<double>(
+                        std::stod( std::string( this->value() ) ) );
+                }
+
+                template<
+                    typename U = T,
+                    typename std::enable_if<
+                        !( std::is_convertible<U, double>::value
+                           || std::is_convertible<U, std::string>::value ),
+                        int>::type = 0>
+                double _as_double() const {
+                    throw std::out_of_range( "Not convertible to int" );
                 }
         };
+
+        using DoubleParameter  = Parameter<double>;
+        using IntegerParameter = Parameter<int>;
+        using StringParameter  = Parameter<std::string>;
+        using BooleanParameter = Parameter<bool>;
+
+        // template<typename T>
+        // class Parameter : public _configuration_parameter {
+        //     public:
+        //         Parameter() {}
+
+        //         Parameter( const T& defaultval ) :
+        //             _value { defaultval }, _was_set { false } {}
+
+        //         Parameter( std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<T>() {
+        //             this->append_tests( tests );
+        //         }
+
+        //         Parameter( const T& defaultval,
+        //                    std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<T>( defaultval ) {
+        //             this->append_tests( tests );
+        //         }
+
+        //         Parameter( const Parameter<T>& other ) :
+        //             _configuration_parameter( other ) {
+        //             _value   = other._value;
+        //             _was_set = other._was_set;
+        //         }
+
+        //         virtual ~Parameter() {}
+
+        //         virtual bool as_bool() const override {
+        //             return ( this->as_int() != 0 );
+        //         }
+
+        //         virtual std::string as_string() const override {
+        //             throw std::logic_error( "as_string(): not implemented"
+        //             );
+        //         }
+
+        //         virtual int as_int() const override {
+        //             throw std::logic_error( "as_int(): not implemented" );
+        //         }
+
+        //         virtual double as_double() override const {
+        //             throw std::logic_error( "as_double(): not implemented"
+        //             );
+        //         }
+
+        //         T& value() { return _value; }
+
+        //         const T& value() const { return _value; }
+
+        //         void set( const T& newval ) {
+        //             _value   = newval;
+        //             _was_set = true;
+        //         }
+
+        //         virtual bool was_set() const override { return _was_set; }
+
+        //         virtual std::unique_ptr<_configuration_parameter> clone()
+        //             const override {
+        //             return std::unique_ptr<_configuration_parameter>(
+        //                 new Parameter<T>( *this ) );
+        //         }
+
+        //     protected:
+        //         T _value;
+        //         bool _was_set = false;
+        // };
+
+        // class StringParameter : public Parameter<std::string> {
+        //     public:
+        //         StringParameter() : Parameter<std::string>() {}
+
+        //         StringParameter( const std::string& defaultval ) :
+        //             Parameter<std::string>( defaultval ) {}
+
+        //         StringParameter( std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<std::string>( tests ) {}
+
+        //         StringParameter( const std::string& defaultval,
+        //                          std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<std::string>( defaultval, tests ) {}
+
+        //         virtual ~StringParameter() {}
+
+        //         virtual std::string as_string() const override {
+        //             return this->value();
+        //         }
+
+        //         virtual int as_int() const override {
+        //             return std::stoi( this->value() );
+        //         }
+
+        //         virtual double as_double() const override {
+        //             return std::stod( this->value() );
+        //         }
+
+        //         virtual std::unique_ptr<_configuration_parameter> clone()
+        //             const override {
+        //             return std::unique_ptr<_configuration_parameter>(
+        //                 new StringParameter( *this ) );
+        //         }
+        // };
+
+        // class IntegerParameter : public Parameter<int> {
+        //     public:
+        //         IntegerParameter() : Parameter<int>() {}
+
+        //         IntegerParameter( const int& defaultval ) :
+        //             Parameter<int>( defaultval ) {}
+
+        //         IntegerParameter( std::initializer_list<test_ptr_t> tests )
+        //         :
+        //             Parameter<int>( tests ) {}
+
+        //         IntegerParameter( const int& defaultval,
+        //                           std::initializer_list<test_ptr_t> tests )
+        //                           :
+        //             Parameter<int>( defaultval, tests ) {}
+
+        //         virtual ~IntegerParameter() {}
+
+        //         virtual std::string as_string() const override {
+        //             std::ostringstream oss;
+        //             oss << _value;
+        //             return oss.str();
+        //         }
+
+        //         virtual int as_int() const override { return this->value();
+        //         }
+
+        //         virtual double as_double() const override {
+        //             return (double)this->value();
+        //         }
+
+        //         virtual std::unique_ptr<_configuration_parameter> clone()
+        //             const override {
+        //             return std::unique_ptr<_configuration_parameter>(
+        //                 new IntegerParameter( *this ) );
+        //         }
+        // };
+
+        // class DoubleParameter : public Parameter<double> {
+        //     public:
+        //         DoubleParameter() : Parameter<double>() {}
+
+        //         DoubleParameter( const double& defaultval ) :
+        //             Parameter<double>( defaultval ) {}
+
+        //         DoubleParameter( std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<double>( tests ) {}
+
+        //         DoubleParameter( const double& defaultval,
+        //                          std::initializer_list<test_ptr_t> tests ) :
+        //             Parameter<double>( defaultval, tests ) {}
+
+        //         virtual ~DoubleParameter() {}
+
+        //         virtual std::string as_string() const override {
+        //             std::ostringstream oss;
+        //             oss << _value;
+        //             return oss.str();
+        //         }
+
+        //         virtual int as_int() const override {
+        //             return (int)( this->value() );
+        //         }
+
+        //         virtual double as_double() const override {
+        //             return this->value();
+        //         }
+
+        //         virtual bool as_bool() const override {
+        //             return ( this->value() != 0.0 );
+        //         }
+
+        //         virtual std::unique_ptr<_configuration_parameter> clone()
+        //             const override {
+        //             return std::unique_ptr<_configuration_parameter>(
+        //                 new DoubleParameter( *this ) );
+        //         }
+        // };
+
+        // class BooleanParameter : public Parameter<bool> {
+        //     public:
+        //         BooleanParameter() : Parameter<bool>() {}
+
+        //         BooleanParameter( const bool& defaultval ) :
+        //             Parameter<bool>( defaultval ) {}
+
+        //         BooleanParameter( std::initializer_list<test_ptr_t> tests )
+        //         :
+        //             Parameter<bool>( tests ) {}
+
+        //         BooleanParameter( const bool& defaultval,
+        //                           std::initializer_list<test_ptr_t> tests )
+        //                           :
+        //             Parameter<bool>( defaultval, tests ) {}
+
+        //         virtual ~BooleanParameter() {}
+
+        //         virtual std::string as_string() const override {
+        //             return ( this->value() ? "true" : "false" );
+        //         }
+
+        //         virtual int as_int() const override {
+        //             return ( this->value() ? 1 : 0 );
+        //         }
+
+        //         virtual double as_double() const override {
+        //             return ( this->value() ? 1.0 : 0.0 );
+        //         }
+
+        //         virtual bool as_bool() const override { return
+        //         this->value(); }
+
+        //         virtual std::unique_ptr<_configuration_parameter> clone()
+        //             const override {
+        //             return std::unique_ptr<_configuration_parameter>(
+        //                 new BooleanParameter( *this ) );
+        //         }
+        // };
 
         // example:
         // class PropagationModel :
@@ -1562,7 +1945,6 @@ class StringParameter : public TypedParameter<std::string> {
         //      DoubleParameter( { validation::IsPositive } ) );
         //
         //
-        typedef std::unique_ptr<_configuration_parameter> param_ptr_t;
 
         template<typename KEYTYPE>
         using param_pair_t = std::pair<KEYTYPE, param_ptr_t>;
@@ -1590,7 +1972,7 @@ class StringParameter : public TypedParameter<std::string> {
                 }
 
                 friend void ::swap<>( ConfigurationMap<KEYTYPE>& a,
-                                    ConfigurationMap<KEYTYPE>& b ) noexcept;
+                                      ConfigurationMap<KEYTYPE>& b ) noexcept;
 
                 virtual ~ConfigurationMap() {}
         };
@@ -1603,13 +1985,21 @@ class StringParameter : public TypedParameter<std::string> {
                 Configurable(
                     const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
                     Configurable<DERIVEDTYPE, KEYTYPE>() {
-                        _parameters = other._parameters;
-                    }
+                    _parameters = other._parameters;
+                }
 
                 virtual ~Configurable() {}
 
                 DERIVEDTYPE& add_parameter(
                     KEYTYPE key, const _configuration_parameter *param ) {
+                    // _parameters.emplace(
+                    //     param_pair_t<KEYTYPE>{ key, param->clone() } );
+                    _parameters[ key ] = param->clone();
+                    return static_cast<DERIVEDTYPE&>( *this );
+                }
+
+                DERIVEDTYPE& add_parameter( KEYTYPE key,
+                                            const param_ptr_t param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
                     _parameters[ key ] = param->clone();
@@ -1631,6 +2021,19 @@ class StringParameter : public TypedParameter<std::string> {
                 const _configuration_parameter& parameter(
                     KEYTYPE key ) const {
                     return *( _parameters.at( key ).get() );
+                }
+
+                DERIVEDTYPE& copy_parameter( const KEYTYPE& key,
+                                             const param_ptr_t& ptr ) {
+                    // _parameters[ key ] = ptr->clone();
+                    // return static_cast<DERIVEDTYPE&>( *this );
+                    return this->copy_parameter( key, *ptr );
+                }
+
+                DERIVEDTYPE& copy_parameter(
+                    const KEYTYPE& key, const _configuration_parameter& ptr ) {
+                    _parameters[ key ] = ptr.clone();
+                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 DERIVEDTYPE& validate_parameters() {
@@ -1690,25 +2093,35 @@ class StringParameter : public TypedParameter<std::string> {
 
                 template<typename PARAMTYPE>
                 DERIVEDTYPE& set( KEYTYPE key, PARAMTYPE value ) {
-                    if (auto sub = dynamic_cast<Parameter<PARAMTYPE>*>(
-                            &this->parameter( key ) )) {
-                        sub->set( value );
+                    if (!has_parameter( key )) {
+                        return this->add_parameter(
+                            key,
+                            param_ptr_t( new Parameter<PARAMTYPE>( value ) ) );
                     } else {
-                        throw std::logic_error(
-                            "Can't cast parameter to requested type!" );
+                        if (auto sub = dynamic_cast<Parameter<PARAMTYPE> *>(
+                                &this->parameter( key ) )) {
+                            sub->set( value );
+                        } else {
+                            throw std::logic_error(
+                                "Can't cast parameter to requested type!" );
+                        }
+                        return static_cast<DERIVEDTYPE&>( *this );
                     }
-                    return static_cast<DERIVEDTYPE&>( *this );
                 }
 
                 template<typename PARAMTYPE>
                 const PARAMTYPE& get( KEYTYPE key ) const {
-                    if (auto sub = dynamic_cast<const Parameter<PARAMTYPE>*>(
+                    if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
                         return sub->value();
                     } else {
                         throw std::logic_error(
                             "Can't cast parameter to requested type!" );
                     }
+                }
+
+                bool has_parameter( KEYTYPE key ) const {
+                    return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
             private:
@@ -1718,17 +2131,172 @@ class StringParameter : public TypedParameter<std::string> {
                 ConfigurationMap<KEYTYPE> _parameters;
         };
 
+        // template<typename KEYTYPE>
+        // class ConfigurationMap
+        //     : public std::unordered_map<KEYTYPE, param_ptr_t> {
+        //     public:
+        //         ConfigurationMap() {}
+
+        //         ConfigurationMap( const ConfigurationMap& other ) {
+        //             for (auto it = other.begin(); it != other.end(); ++it) {
+        //                 this->emplace(
+        //                     std::make_pair( it->first, it->second->clone() )
+        //                     );
+        //             }
+        //         }
+
+        //         ConfigurationMap( ConfigurationMap&& other ) noexcept {
+        //             ::swap( *this, other );
+        //         }
+
+        //         ConfigurationMap& operator=( ConfigurationMap other ) {
+        //             ::swap( *this, other );
+        //             return *this;
+        //         }
+
+        //         friend void ::swap<>( ConfigurationMap<KEYTYPE>& a,
+        //                               ConfigurationMap<KEYTYPE>& b )
+        //                               noexcept;
+
+        //         virtual ~ConfigurationMap() {}
+        // };
+
+        // template<typename DERIVEDTYPE, typename KEYTYPE>
+        // class Configurable {
+        //     public:
+        //         Configurable() {}
+
+        //         Configurable(
+        //             const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
+        //             Configurable<DERIVEDTYPE, KEYTYPE>() {
+        //             _parameters = other._parameters;
+        //         }
+
+        //         virtual ~Configurable() {}
+
+        //         DERIVEDTYPE& add_parameter(
+        //             KEYTYPE key, const _configuration_parameter *param ) {
+        //             // _parameters.emplace(
+        //             //     param_pair_t<KEYTYPE>{ key, param->clone() } );
+        //             _parameters[ key ] = param->clone();
+        //             return static_cast<DERIVEDTYPE&>( *this );
+        //         }
+
+        //         DERIVEDTYPE& add_parameter(
+        //             KEYTYPE key, const _configuration_parameter& param ) {
+        //             // _parameters.emplace(
+        //             //     param_pair_t<KEYTYPE>{ key, param.clone() } );
+        //             _parameters[ key ] = param.clone();
+        //             return static_cast<DERIVEDTYPE&>( *this );
+        //         }
+
+        //         _configuration_parameter& parameter( KEYTYPE key ) {
+        //             return *( _parameters.at( key ).get() );
+        //         }
+
+        //         const _configuration_parameter& parameter(
+        //             KEYTYPE key ) const {
+        //             return *( _parameters.at( key ).get() );
+        //         }
+
+        //         DERIVEDTYPE& validate_parameters() {
+        //             for (auto it = _parameters.cbegin();
+        //                  it != _parameters.cend(); ++it) {
+        //                 it->second->validate();
+        //             }
+        //             return static_cast<DERIVEDTYPE&>( *this );
+        //         }
+
+        //         std::string validation_report() const {
+        //             std::ostringstream oss;
+        //             validation_report( oss, false );
+        //             return oss.str();
+        //         }
+
+        //         std::ostream& validation_report( std::ostream& os,
+        //                                          bool newline = true ) const
+        //                                          {
+        //             bool firsttime = true;
+        //             for (auto it = _parameters.begin();
+        //                  it != _parameters.end(); ++it) {
+        //                 if (firsttime) {
+        //                     firsttime = false;
+        //                 } else {
+        //                     os << std::endl;
+        //                 }
+        //                 os << it->first << ":" << std::endl;
+        //                 it->second->validation_report( os, false, "  " );
+        //             }
+        //             if (newline) {
+        //                 os << std::endl;
+        //             }
+        //             return os;
+        //         }
+
+        //         bool passed() const {
+        //             bool pass = true;
+        //             for (auto it = _parameters.cbegin();
+        //                  it != _parameters.cend(); ++it) {
+        //                 pass = pass && it->second->passed();
+        //             }
+        //             return pass;
+        //         }
+
+        //         bool failed() const { return !( this->passed() ); }
+
+        //         std::vector<_configuration_parameter *> invalid() const {
+        //             std::vector<_configuration_parameter *> inv;
+        //             for (auto it = _parameters.cbegin();
+        //                  it != _parameters.cend(); ++it) {
+        //                 if (it->second->failed()) {
+        //                     inv.push_back( it->second.get() );
+        //                 }
+        //             }
+        //             return inv;
+        //         }
+
+        //         template<typename PARAMTYPE>
+        //         DERIVEDTYPE& set( KEYTYPE key, PARAMTYPE value ) {
+        //             if (auto sub = dynamic_cast<Parameter<PARAMTYPE> *>(
+        //                     &this->parameter( key ) )) {
+        //                 sub->set( value );
+        //             } else {
+        //                 throw std::logic_error(
+        //                     "Can't cast parameter to requested type!" );
+        //             }
+        //             return static_cast<DERIVEDTYPE&>( *this );
+        //         }
+
+        //         template<typename PARAMTYPE>
+        //         const PARAMTYPE& get( KEYTYPE key ) const {
+        //             if (auto sub = dynamic_cast<const Parameter<PARAMTYPE>
+        //             *>(
+        //                     &this->parameter( key ) )) {
+        //                 return sub->value();
+        //             } else {
+        //                 throw std::logic_error(
+        //                     "Can't cast parameter to requested type!" );
+        //             }
+        //         }
+
+        //     private:
+        //         // std::unordered_map<KEYTYPE,
+        //         // std::unique_ptr<_configuration_parameter>>
+        //         //     _parameters;
+        //         ConfigurationMap<KEYTYPE> _parameters;
+        // };
+
     }  // namespace config
 }  // namespace NCPA
 
 inline void swap( NCPA::config::ValidationTest& a,
-           NCPA::config::ValidationTest& b ) noexcept {
+                  NCPA::config::ValidationTest& b ) noexcept {
     using std::swap;
     swap( a._status, b._status );
 }
 
 inline void swap( NCPA::config::_configuration_parameter& a,
-           NCPA::config::_configuration_parameter& b ) noexcept {}
+                  NCPA::config::_configuration_parameter& b ) noexcept {}
 
 template<typename T>
 void swap( NCPA::config::Parameter<T>& a,
@@ -1739,13 +2307,14 @@ void swap( NCPA::config::Parameter<T>& a,
 }
 
 inline void swap( NCPA::config::ValidationTestSuite& a,
-           NCPA::config::ValidationTestSuite& b ) noexcept {
+                  NCPA::config::ValidationTestSuite& b ) noexcept {
     using std::swap;
     swap( a._tests, b._tests );
 }
 
-inline void swap( NCPA::config::validation::NullaryValidationTest& a,
-           NCPA::config::validation::NullaryValidationTest& b ) noexcept {
+inline void swap(
+    NCPA::config::validation::NullaryValidationTest& a,
+    NCPA::config::validation::NullaryValidationTest& b ) noexcept {
     using std::swap;
     ::swap( static_cast<NCPA::config::ValidationTest&>( a ),
             static_cast<NCPA::config::ValidationTest&>( b ) );
@@ -1855,7 +2424,7 @@ void swap( NCPA::config::validation::IsNotEqualToTest<T>& a,
 }
 
 inline void swap( NCPA::config::validation::WasSetTest& a,
-           NCPA::config::validation::WasSetTest& b ) noexcept {
+                  NCPA::config::validation::WasSetTest& b ) noexcept {
     using std::swap;
     ::swap(
         static_cast<NCPA::config::validation::NullaryValidationTest&>( a ),
@@ -1873,7 +2442,7 @@ void swap( NCPA::config::ConfigurationMap<T>& a,
 
 template<typename DERIVEDTYPE, typename KEYTYPE>
 void swap( NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& a,
-           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) {
+           NCPA::config::Configurable<DERIVEDTYPE, KEYTYPE>& b ) noexcept {
     using std::swap;
     swap( a._parameters, b._parameters );
 }
