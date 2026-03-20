@@ -1632,12 +1632,12 @@ namespace NCPA {
                     return s;
                 }
 
-                template<
-                    typename U = T,
-                    typename std::enable_if<
-                        ( !( std::is_fundamental<U>::value
-                             || std::is_convertible<U, std::string>::value ) ),
-                        int>::type = 0>
+                template<typename U = T,
+                         typename std::enable_if<
+                             ( !( std::is_fundamental<U>::value
+                                  || std::is_convertible<U, std::string>::value
+                                  || NCPA::types::is_complex<U>::value ) ),
+                             int>::type = 0>
                 std::string _as_string() const {
                     throw std::out_of_range( "Not convertible to string" );
                 }
@@ -2119,7 +2119,7 @@ namespace NCPA {
                 }
 
                 void copy_parameters_from( const Configurable<KEYTYPE>& other,
-                                bool create_if_missing = true ) {
+                                           bool create_if_missing = true ) {
                     for (auto it = other.parameters().cbegin();
                          it != other.parameters().cend(); ++it) {
                         if (create_if_missing
@@ -2131,7 +2131,8 @@ namespace NCPA {
                 }
 
                 void copy_parameters_to( Configurable<KEYTYPE>& other,
-                              bool create_if_missing = true ) const {
+                                         bool create_if_missing
+                                         = true ) const {
                     other.copy_parameters_from( *this );
                 }
 
