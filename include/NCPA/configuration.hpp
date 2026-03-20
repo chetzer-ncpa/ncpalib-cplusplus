@@ -1980,9 +1980,7 @@ namespace NCPA {
         template<typename DERIVEDTYPE, typename KEYTYPE>
         class Configurable {
             public:
-                Configurable() {
-                    this->define_parameters();
-                }
+                Configurable() { this->define_parameters(); }
 
                 Configurable(
                     const Configurable<DERIVEDTYPE, KEYTYPE>& other ) :
@@ -2126,6 +2124,28 @@ namespace NCPA {
 
                 bool has_parameter( KEYTYPE key ) const {
                     return ( _parameters.find( key ) != _parameters.cend() );
+                }
+
+                DERIVEDTYPE& copy_parameters(
+                    const ConfigurationMap<KEYTYPE>& othermap,
+                    bool create_if_missing = true ) {
+                    for (auto it = othermap.cbegin(); it != othermap.cend();
+                         ++it) {
+                        if (create_if_missing
+                            || this->has_parameter( it->first )) {
+                            this->copy_parameter( it->first,
+                                                  it->second->clone() );
+                        }
+                    }
+                    return static_cast<DERIVEDTYPE&>( *this );
+                }
+
+                virtual ConfigurationMap<KEYTYPE>& parameters() {
+                    return _parameters;
+                }
+
+                virtual const ConfigurationMap<KEYTYPE>& parameters() const {
+                    return _parameters;
                 }
 
             private:
