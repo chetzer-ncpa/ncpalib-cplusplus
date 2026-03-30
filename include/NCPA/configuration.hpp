@@ -278,7 +278,8 @@ namespace NCPA {
 
                 virtual std::string description() const = 0;
                 virtual ValidationTest& test(
-                    const _configuration_parameter *param )           = 0;
+                    const _configuration_parameter *param )
+                    = 0;
                 virtual std::unique_ptr<ValidationTest> clone() const = 0;
 
             protected:
@@ -1477,9 +1478,10 @@ namespace NCPA {
                 bool _was_set = false;
 
                 // normal case: is scalar
-                template<typename U                         = T,
+                template<typename U = T,
                          typename std::enable_if<std::is_scalar<U>::value,
-                                                 int>::type = 0>
+                                                 int>::type
+                         = 0>
                 parameter_form_t _form() const {
                     return parameter_form_t::SCALAR;
                 }
@@ -1489,7 +1491,8 @@ namespace NCPA {
                          typename std::enable_if<
                              !( std::is_scalar<U>::value
                                 || NCPA::types::is_complex<U>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 parameter_form_t _form() const {
                     return parameter_form_t::VECTOR;
                 }
@@ -1499,24 +1502,27 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_scalar<U>::value )
                                && NCPA::types::is_complex<U>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 parameter_form_t _form() const {
                     return parameter_form_t::SCALAR;
                 }
 
                 // general type detection
-                template<typename U                         = T,
+                template<typename U = T,
                          typename std::enable_if<std::is_same<U, bool>::value,
-                                                 int>::type = 0>
+                                                 int>::type
+                         = 0>
                 parameter_type_t _type() const {
                     return parameter_type_t::BOOLEAN;
                 }
 
                 template<
-                    typename U                         = T,
+                    typename U = T,
                     typename std::enable_if<( !( std::is_same<U, bool>::value )
                                               && std::is_integral<U>::value ),
-                                            int>::type = 0>
+                                            int>::type
+                    = 0>
                 parameter_type_t _type() const {
                     return parameter_type_t::INTEGER;
                 }
@@ -1533,14 +1539,16 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_arithmetic<U>::value )
                                && std::is_convertible<U, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 parameter_type_t _type() const {
                     return parameter_type_t::STRING;
                 }
 
-                template<typename U                         = T,
+                template<typename U = T,
                          typename std::enable_if<( std::is_enum<U>::value ),
-                                                 int>::type = 0>
+                                                 int>::type
+                         = 0>
                 parameter_type_t _type() const {
                     return parameter_type_t::ENUM;
                 }
@@ -1559,7 +1567,8 @@ namespace NCPA {
                                   || NCPA::types::is_complex<U>::value
                                   || std::is_convertible<U, std::string>::value
                                   || std::is_enum<U>::value ) ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 parameter_type_t _type() const {
                     return parameter_type_t::COMPLEX;
                 }
@@ -1577,7 +1586,8 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_convertible<U, bool>::value )
                                && std::is_convertible<U, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 bool _as_bool() const {
                     return ( this->_as_string().size() > 0 );
                 }
@@ -1587,22 +1597,25 @@ namespace NCPA {
                     typename std::enable_if<
                         !( std::is_convertible<U, bool>::value
                            || std::is_convertible<U, std::string>::value ),
-                        int>::type = 0>
+                        int>::type
+                    = 0>
                 bool _as_bool() const {
                     throw std::out_of_range( "Not convertible to bool" );
                 }
 
                 // string conversions
-                template<typename U                         = T,
+                template<typename U = T,
                          typename std::enable_if<std::is_same<U, bool>::value,
-                                                 int>::type = 0>
+                                                 int>::type
+                         = 0>
                 std::string _as_string() const {
                     return ( this->value() ? "true" : "false" );
                 }
 
                 template<typename U = T,
                          typename std::enable_if<
-                             NCPA::types::is_complex<U>::value, int>::type = 0>
+                             NCPA::types::is_complex<U>::value, int>::type
+                         = 0>
                 std::string _as_string() const {
                     std::ostringstream oss;
                     double r = this->value().real();
@@ -1615,7 +1628,8 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_same<U, bool>::value )
                                && std::is_fundamental<U>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 std::string _as_string() const {
                     std::ostringstream oss;
                     oss << this->value();
@@ -1626,7 +1640,8 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_fundamental<U>::value )
                                && std::is_convertible<U, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 std::string _as_string() const {
                     std::string s = this->value();
                     return s;
@@ -1637,7 +1652,8 @@ namespace NCPA {
                              ( !( std::is_fundamental<U>::value
                                   || std::is_convertible<U, std::string>::value
                                   || NCPA::types::is_complex<U>::value ) ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 std::string _as_string() const {
                     throw std::out_of_range( "Not convertible to string" );
                 }
@@ -1645,7 +1661,8 @@ namespace NCPA {
                 // integer conversions
                 template<typename U = T,
                          typename std::enable_if<
-                             ( std::is_integral<U>::value ), int>::type = 0>
+                             ( std::is_integral<U>::value ), int>::type
+                         = 0>
                 int _as_int() const {
                     return static_cast<int>( this->value() );
                 }
@@ -1663,7 +1680,8 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_arithmetic<U>::value )
                                && std::is_convertible<U, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 int _as_int() const {
                     return static_cast<int>(
                         std::stoi( std::string( this->value() ) ) );
@@ -1674,7 +1692,8 @@ namespace NCPA {
                     typename std::enable_if<
                         !( std::is_arithmetic<U>::value
                            || std::is_convertible<U, std::string>::value ),
-                        int>::type = 0>
+                        int>::type
+                    = 0>
                 int _as_int() const {
                     throw std::out_of_range( "Not convertible to int" );
                 }
@@ -1692,7 +1711,8 @@ namespace NCPA {
                          typename std::enable_if<
                              ( !( std::is_convertible<U, double>::value )
                                && std::is_convertible<U, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 double _as_double() const {
                     return static_cast<double>(
                         std::stod( std::string( this->value() ) ) );
@@ -1703,7 +1723,8 @@ namespace NCPA {
                     typename std::enable_if<
                         !( std::is_convertible<U, double>::value
                            || std::is_convertible<U, std::string>::value ),
-                        int>::type = 0>
+                        int>::type
+                    = 0>
                 double _as_double() const {
                     throw std::out_of_range( "Not convertible to int" );
                 }
@@ -1980,7 +2001,7 @@ namespace NCPA {
         template<typename KEYTYPE>
         class Configurable {
             public:
-                Configurable() { this->define_parameters(); }
+                Configurable() {}
 
                 Configurable( const Configurable<KEYTYPE>& other ) :
                     Configurable<KEYTYPE>() {
@@ -1993,12 +2014,14 @@ namespace NCPA {
                                     const _configuration_parameter *param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
+                    // this->init();
                     _parameters[ key ] = param->clone();
                 }
 
                 void add_parameter( KEYTYPE key, const param_ptr_t param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param->clone() } );
+                    // this->init();
                     _parameters[ key ] = param->clone();
                 }
 
@@ -2006,10 +2029,12 @@ namespace NCPA {
                                     const _configuration_parameter& param ) {
                     // _parameters.emplace(
                     //     param_pair_t<KEYTYPE>{ key, param.clone() } );
+                    // this->init();
                     _parameters[ key ] = param.clone();
                 }
 
                 _configuration_parameter& parameter( KEYTYPE key ) {
+                    // this->init();
                     return *( _parameters.at( key ).get() );
                 }
 
@@ -2022,17 +2047,26 @@ namespace NCPA {
                                      const param_ptr_t& ptr ) {
                     // _parameters[ key ] = ptr->clone();
                     // return static_cast<DERIVEDTYPE&>( *this );
+                    // this->init();
                     this->copy_parameter( key, *ptr );
                 }
 
                 void copy_parameter( const KEYTYPE& key,
                                      const _configuration_parameter& ptr ) {
+                    // this->init();
                     _parameters[ key ] = ptr.clone();
                 }
 
-                virtual void define_parameters() {}
+                // virtual void define_parameters() = 0;
+
+                // virtual void init() {
+                //     if (_parameters.size() == 0) {
+                //         this->define_parameters();
+                //     }
+                // }
 
                 void validate_parameters() {
+                    // this->init();
                     for (auto it = _parameters.cbegin();
                          it != _parameters.cend(); ++it) {
                         it->second->validate();
@@ -2086,11 +2120,13 @@ namespace NCPA {
                     return inv;
                 }
 
-                template<typename PARAMTYPE, typename K = KEYTYPE,
-                         typename std::enable_if<
-                             std::is_convertible<K, std::string>::value,
-                             int>::type = 0>
+                template<
+                    typename PARAMTYPE, typename K = KEYTYPE,
+                    typename std::enable_if<
+                        std::is_convertible<K, std::string>::value, int>::type
+                    = 0>
                 void set( KEYTYPE key, PARAMTYPE value ) {
+                    // this->init();
                     if (!has_parameter( key )) {
                         return this->add_parameter(
                             key,
@@ -2100,8 +2136,9 @@ namespace NCPA {
                                 &this->parameter( key ) )) {
                             sub->set( value );
                         } else {
-                            throw std::logic_error(
-                                "Can't cast parameter " + key + " to requested type!" );
+                            throw std::logic_error( "Can't cast parameter "
+                                                    + key
+                                                    + " to requested type!" );
                         }
                     }
                 }
@@ -2109,8 +2146,10 @@ namespace NCPA {
                 template<typename PARAMTYPE, typename K = KEYTYPE,
                          typename std::enable_if<
                              !( std::is_convertible<K, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 void set( KEYTYPE key, PARAMTYPE value ) {
+                    // this->init();
                     if (!has_parameter( key )) {
                         return this->add_parameter(
                             key,
@@ -2126,32 +2165,33 @@ namespace NCPA {
                     }
                 }
 
-                template<typename PARAMTYPE, typename K = KEYTYPE,
-                         typename std::enable_if<
-                             std::is_convertible<K, std::string>::value,
-                             int>::type = 0>
+                template<
+                    typename PARAMTYPE, typename K = KEYTYPE,
+                    typename std::enable_if<
+                        std::is_convertible<K, std::string>::value, int>::type
+                    = 0>
                 const PARAMTYPE& get( KEYTYPE key ) const {
                     if (!has_parameter( key )) {
-                        throw std::out_of_range(
-                            "Parameter " + key + " not found!" );
+                        throw std::out_of_range( "Parameter " + key
+                                                 + " not found!" );
                     }
                     if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
                         return sub->value();
                     } else {
-                        throw std::logic_error(
-                            "Can't cast parameter " + key + " to requested type!" );
+                        throw std::logic_error( "Can't cast parameter " + key
+                                                + " to requested type!" );
                     }
                 }
 
                 template<typename PARAMTYPE, typename K = KEYTYPE,
                          typename std::enable_if<
                              !( std::is_convertible<K, std::string>::value ),
-                             int>::type = 0>
+                             int>::type
+                         = 0>
                 const PARAMTYPE& get( KEYTYPE key ) const {
                     if (!has_parameter( key )) {
-                        throw std::out_of_range(
-                            "Parameter not found!" );
+                        throw std::out_of_range( "Parameter not found!" );
                     }
                     if (auto sub = dynamic_cast<const Parameter<PARAMTYPE> *>(
                             &this->parameter( key ) )) {
@@ -2168,10 +2208,13 @@ namespace NCPA {
 
                 void copy_parameters_from( const Configurable<KEYTYPE>& other,
                                            bool create_if_missing = true ) {
+                    // this->init();
                     for (auto it = other.parameters().cbegin();
                          it != other.parameters().cend(); ++it) {
                         if (create_if_missing
                             || this->has_parameter( it->first )) {
+                            std::cout << "Setting parameter " << it->first
+                                      << std::endl;
                             this->copy_parameter( it->first,
                                                   it->second->clone() );
                         }
@@ -2185,6 +2228,7 @@ namespace NCPA {
                 }
 
                 virtual ConfigurationMap<KEYTYPE>& parameters() {
+                    // this->init();
                     return _parameters;
                 }
 

@@ -10,12 +10,12 @@
 #include <string>
 #include <vector>
 
-DECLARE_SWAP_FUNCTION( NCPA::params::details::GreaterTest );
-DECLARE_SWAP_FUNCTION( NCPA::params::details::LessTest );
-DECLARE_SWAP_FUNCTION( NCPA::params::details::EqualTest );
-DECLARE_SWAP_FUNCTION( NCPA::params::details::OneOfTest );
-DECLARE_SWAP_FUNCTION( NCPA::params::Validator );
-DECLARE_SWAP_FUNCTION( NCPA::params::RangeValidator );
+DECLARE_SWAP_TEMPLATE( NCPA::params::details::GreaterTest );
+DECLARE_SWAP_TEMPLATE( NCPA::params::details::LessTest );
+DECLARE_SWAP_TEMPLATE( NCPA::params::details::EqualTest );
+DECLARE_SWAP_TEMPLATE( NCPA::params::details::OneOfTest );
+DECLARE_SWAP_TEMPLATE( NCPA::params::Validator );
+DECLARE_SWAP_TEMPLATE( NCPA::params::RangeValidator );
 
 namespace NCPA {
     namespace params {
