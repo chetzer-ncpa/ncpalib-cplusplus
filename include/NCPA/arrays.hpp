@@ -907,6 +907,15 @@ namespace NCPA {
             std::memcpy( v12, tempvec, N * sizeof( T ) );
             delete[] tempvec;
         }
+
+        template<typename FROMTYPE,typename TOTYPE>
+        std::vector<TOTYPE> cast_vector( const std::vector<FROMTYPE>& vec ) {
+            std::vector<TOTYPE> newvec( vec.size() );
+            for (size_t i = 0; i < vec.size(); ++i) {
+                newvec[i] = static_cast<TOTYPE>( vec.at(i) );
+            }
+            return newvec;
+        }
     }  // namespace arrays
 }  // namespace NCPA
 

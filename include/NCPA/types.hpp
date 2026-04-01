@@ -120,6 +120,14 @@
 #include <type_traits>
 #include <utility>
 
+#define DECLARE_HAS_FUNCTION_TRAIT( _FUNCTION_ )                \
+    template<typename T, typename = void>                       \
+    struct has_##_FUNCTION_ : std::false_type {};               \
+    template<typename T>                                        \
+    struct has_##_FUNCTION_<                                    \
+        T, void_t<decltype( _FUNCTION_( std::declval<T>() ) )>> \
+        : std::true_type {};
+
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -136,19 +144,18 @@
 
 namespace NCPA {
     namespace types {
-       
-            // In C++11 we have to define void_t ourselves.
 
-            // Helper class template to turn any type or types into void.
-            template<typename... Ts>
-            struct make_void {
-                    typedef void type;
-            };
+        // In C++11 we have to define void_t ourselves.
 
-            // declares the templated type alias
-            template<typename... Ts>
-            using void_t = typename make_void<Ts...>::type;
-       
+        // Helper class template to turn any type or types into void.
+        template<typename... Ts>
+        struct make_void {
+                typedef void type;
+        };
+
+        // declares the templated type alias
+        template<typename... Ts>
+        using void_t = typename make_void<Ts...>::type;
 
         // decltype( *std::declval<T>() ):
         // declval<T>.method() lets you get a dummy instance of t.method()
@@ -164,8 +171,7 @@ namespace NCPA {
         struct is_dereferenceable : std::false_type {};
 
         template<typename T>
-        struct is_dereferenceable<
-            T, void_t<decltype( *std::declval<T>() )>>
+        struct is_dereferenceable<T, void_t<decltype( *std::declval<T>() )>>
             : std::true_type {};
 
         template<typename T>
@@ -179,9 +185,8 @@ namespace NCPA {
         struct is_complex : std::false_type {};
 
         template<typename T>
-        struct is_complex<
-            T, void_t<decltype( std::declval<T>().real() )>,
-            void_t<decltype( std::declval<T>().imag() )>>
+        struct is_complex<T, void_t<decltype( std::declval<T>().real() )>,
+                          void_t<decltype( std::declval<T>().imag() )>>
             : std::true_type {};
 
         // Tester for deleteable: destructible and not a fundamental type.
@@ -194,39 +199,35 @@ namespace NCPA {
                    && ( !is_complex<T>::value );
         };
 
-        
-            // // Testers for complex: is a class, and has real() and imag()
-            // // methods
-            // template<typename T>
-            // constexpr bool _hasComplexFunctions( std::true_type ) {
-            //     return std::is_object<
-            //                decltype( std::declval<T>().real() )>::value
-            //         && std::is_object<
-            //                decltype( std::declval<T>().imag() )>::value;
-            // }
+        // // Testers for complex: is a class, and has real() and imag()
+        // // methods
+        // template<typename T>
+        // constexpr bool _hasComplexFunctions( std::true_type ) {
+        //     return std::is_object<
+        //                decltype( std::declval<T>().real() )>::value
+        //         && std::is_object<
+        //                decltype( std::declval<T>().imag() )>::value;
+        // }
 
-            // template<typename T>
-            // constexpr bool _hasComplexFunctions( std::false_type ) {
-            //     return false;
-            // }
+        // template<typename T>
+        // constexpr bool _hasComplexFunctions( std::false_type ) {
+        //     return false;
+        // }
 
-            // Testers for iterables: is a class, and has begin(), end(), and
-            // operator*() methods
-            template<typename T>
-            constexpr bool _hasIteratorFunctions( std::true_type ) {
-                return std::is_object<
-                           decltype( std::declval<T>().begin() )>::value
-                    && std::is_object<
-                           decltype( std::declval<T>().end() )>::value
-                    && is_dereferenceable<
-                           decltype( std::declval<T>().begin() )>::value;
-            }
+        // Testers for iterables: is a class, and has begin(), end(), and
+        // operator*() methods
+        template<typename T>
+        constexpr bool _hasIteratorFunctions( std::true_type ) {
+            return std::is_object<decltype( std::declval<T>().begin() )>::value
+                && std::is_object<decltype( std::declval<T>().end() )>::value
+                && is_dereferenceable<
+                       decltype( std::declval<T>().begin() )>::value;
+        }
 
-            template<typename T>
-            constexpr bool _hasIteratorFunctions( std::false_type ) {
-                return false;
-            }
-        
+        template<typename T>
+        constexpr bool _hasIteratorFunctions( std::false_type ) {
+            return false;
+        }
 
         // // Complex type
         // template<typename T>
@@ -257,9 +258,7 @@ namespace NCPA {
                             U, typename T::value_type>::value );
         };
 
-        
-
-
+        DECLARE_HAS_FUNCTION_TRAIT(to_string)
 
     }  // namespace types
 }  // namespace NCPA

@@ -1,0 +1,18 @@
+#pragma once
+
+#include "NCPA/configuration/validation/declarations.hpp"
+#include "NCPA/configuration/validation/ValidationTest.hpp"
+#include "NCPA/configuration/validation/ValidationTestSuite.hpp"
+#include "NCPA/configuration/validation/BinaryValidationTest.hpp"
+#include "NCPA/configuration/validation/IsBetweenTest.hpp"
+#include "NCPA/configuration/validation/IsEqualToTest.hpp"
+#include "NCPA/configuration/validation/IsGreaterThanOrEqualToTest.hpp"
+#include "NCPA/configuration/validation/IsGreaterThanTest.hpp"
+#include "NCPA/configuration/validation/IsLessThanOrEqualToTest.hpp"
+#include "NCPA/configuration/validation/IsLessThanTest.hpp"
+#include "NCPA/configuration/validation/IsNotEqualToTest.hpp"
+#include "NCPA/configuration/validation/ListValidationTest.hpp"
+#include "NCPA/configuration/validation/NullaryValidationTest.hpp"
+#include "NCPA/configuration/validation/TypedValidationTest.hpp"
+#include "NCPA/configuration/validation/UnaryValidationTest.hpp"
+#include "NCPA/configuration/validation/WasSetTest.hpp"
