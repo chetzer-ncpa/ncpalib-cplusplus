@@ -962,6 +962,19 @@ std::vector<T> operator-( const std::vector<T>& a ) {
         a, -NCPA::constants::one<T>() );
 }
 
+template<typename T>
+std::ostream& operator<<( std::ostream &os, const std::vector<T>& v ) {
+    os << "{ ";
+    for (auto it = v.cbegin(); it != v.cend(); ++it) {
+        if (it != v.cbegin()) {
+            os << ", ";
+        }
+        os << *it;
+    }
+    os << " }";
+    return os;
+}
+
 namespace NCPA {
     namespace arrays {
 

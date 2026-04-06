@@ -325,7 +325,8 @@ namespace NCPA {
                                   || std::is_convertible<PARAMTYPE,
                                                          std::string>::value
                                   || ( !( std::is_scalar<PARAMTYPE>::value )
-                                       && NCPA::types::is_complex<PARAMTYPE>::value ) ) ),
+                                       && NCPA::types::is_complex<
+                                           PARAMTYPE>::value ) ) ),
                              int>::type = 0>
                 PARAMTYPE get( KEYTYPE key, size_t n = 0 ) const {
                     return dynamic_cast<const TypedParameter<PARAMTYPE> *>(
@@ -334,10 +335,79 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
+                std::vector<PARAMTYPE> get_vector( KEYTYPE key ) const {
+                    size_t n = this->parameter( key ).size();
+                    // NCPA_DEBUG << "Vector size is " << n << std::endl;
+                    std::vector<PARAMTYPE> vec( n );
+                    for (size_t i = 0; i < n; ++i) {
+                        // NCPA_DEBUG << "Getting " << key << "[" << n << "]" << std::endl;
+                        vec[ i ] = this->get<PARAMTYPE>( key, i );
+                    }
+                    return vec;
+                }
+
+                template<typename PARAMTYPE = double>
+                NCPA::units::ScalarWithUnits<PARAMTYPE> get_with_units(
+                    KEYTYPE key, KEYTYPE units_key, size_t n = 0 ) const {
+                    return NCPA::units::ScalarWithUnits<PARAMTYPE>(
+                        this->get<PARAMTYPE>( key, n ),
+                        this->get<NCPA::units::units_ptr_t>( units_key ) );
+                }
+
+                template<typename PARAMTYPE = double,
+                         typename std::enable_if<
+                             std::is_convertible<KEYTYPE, std::string>::value,
+                             int>::type = 0>
+                NCPA::units::ScalarWithUnits<PARAMTYPE> get_with_units(
+                    KEYTYPE key, size_t n = 0 ) const {
+                    return NCPA::units::ScalarWithUnits<PARAMTYPE>(
+                        this->get<PARAMTYPE>( key, n ),
+                        this->get<NCPA::units::units_ptr_t>( key
+                                                             + "_units" ) );
+                }
+
+                template<typename PARAMTYPE = double>
+                NCPA::units::VectorWithUnits<PARAMTYPE> get_vector_with_units(
+                    KEYTYPE key, KEYTYPE units_key ) const {
+                    return NCPA::units::VectorWithUnits<PARAMTYPE>(
+                        this->get_vector<PARAMTYPE>( key ),
+                        this->get<NCPA::units::units_ptr_t>( units_key ) );
+                }
+
+                template<typename PARAMTYPE = double,
+                         typename std::enable_if<
+                             std::is_convertible<KEYTYPE, std::string>::value,
+                             int>::type = 0>
+                NCPA::units::VectorWithUnits<PARAMTYPE> get_vector_with_units(
+                    KEYTYPE key ) const {
+                    return NCPA::units::VectorWithUnits<PARAMTYPE>(
+                        this->get_vector<PARAMTYPE>( key ),
+                        this->get<NCPA::units::units_ptr_t>( key
+                                                             + "_units" ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             ( std::is_scalar<PARAMTYPE>::value
+                               || NCPA::types::is_complex<PARAMTYPE>::value ),
+                             int>::type = 0>
                 void set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
                         key,
                         param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) ) );
+                }
+
+                template<
+                    typename PARAMTYPE,
+                    typename std::enable_if<
+                        ( !( std::is_scalar<PARAMTYPE>::value
+                             || NCPA::types::is_complex<PARAMTYPE>::value ) ),
+                        int>::type = 0>
+                void set( KEYTYPE key, PARAMTYPE val ) {
+                    this->add_parameter(
+                        key, param_ptr_t( new VectorParameter<
+                                          typename PARAMTYPE::value_type>(
+                                 val ) ) );
                 }
 
                 template<typename PARAMTYPE,
@@ -346,15 +416,18 @@ namespace NCPA {
                              int>::type = 0>
                 void set( KEYTYPE key, PARAMTYPE val,
                           NCPA::units::units_ptr_t units ) {
-                    this->add_parameter<PARAMTYPE>(
-                        key,
-                        param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) ) );
+                    this->set<PARAMTYPE>( key, val );
+                    // this->add_parameter<PARAMTYPE>(
+                    //     key,
+                    //     param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) )
+                    //     );
                     std::string units_key = key + "_units";
-                    this->add_parameter<units_ptr_t>(
-                        units_key,
-                        param_ptr_t(
-                            new ScalarParameter<NCPA::units::units_ptr_t>(
-                                units ) ) );
+                    this->set<NCPA::units::units_ptr_t>( units_key, units );
+                    // this->add_parameter<units_ptr_t>(
+                    //     units_key,
+                    //     param_ptr_t(
+                    //         new ScalarParameter<NCPA::units::units_ptr_t>(
+                    //             units ) ) );
                 }
 
                 bool has_parameter( KEYTYPE key ) const {
