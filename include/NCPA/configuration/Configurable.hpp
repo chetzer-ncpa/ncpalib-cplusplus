@@ -40,7 +40,7 @@ namespace NCPA {
                         ->convert_to( this->parameter( key ).as_double(), *u );
                 }
 
-                void convert_parameter( KEYTYPE key,
+                Configurable<KEYTYPE>& convert_parameter( KEYTYPE key,
                                         const NCPA::units::units_ptr_t ufrom,
                                         const NCPA::units::units_ptr_t uto ) {
                     if (this->parameter( key ).is_scalar()) {
@@ -52,6 +52,7 @@ namespace NCPA {
                                 this->parameter( key ).as_double_vector(),
                                 uto ) );
                     }
+                    return *this;
                 }
 
                 // convert assuming units are stored as "<key>_units"
@@ -59,10 +60,10 @@ namespace NCPA {
                          typename std::enable_if<
                              std::is_convertible<K, std::string>::value,
                              int>::type = 0>
-                void convert_parameter( KEYTYPE key,
+                Configurable<KEYTYPE>& convert_parameter( KEYTYPE key,
                                         const NCPA::units::units_ptr_t uto ) {
                     std::string ukey = _make_units_key( key );
-                    this->convert_parameter<TOTYPE>(
+                    return this->convert_parameter<TOTYPE>(
                         key, this->get<NCPA::units::units_ptr_t>( ukey ),
                         uto );
                 }
@@ -166,22 +167,24 @@ namespace NCPA {
                     return *( _parameters.at( key ).get() );
                 }
 
-                void copy_parameter( const KEYTYPE& key,
+                Configurable<KEYTYPE>& copy_parameter( const KEYTYPE& key,
                                      const param_ptr_t& ptr ) {
-                    this->copy_parameter( key, *ptr );
+                    return this->copy_parameter( key, *ptr );
                 }
 
-                void copy_parameter( const KEYTYPE& key,
+                Configurable<KEYTYPE>& copy_parameter( const KEYTYPE& key,
                                      const Parameter& ptr ) {
                     _parameters[ key ] = ptr.clone();
+                    return *this;
                 }
 
-                void validate_parameters() {
+                Configurable<KEYTYPE>& validate_parameters() {
                     // this->init();
                     for (auto it = _parameters.cbegin();
                          it != _parameters.cend(); ++it) {
                         it->second->validate();
                     }
+                    return *this;
                 }
 
                 std::string validation_report() const {
@@ -391,10 +394,11 @@ namespace NCPA {
                              ( std::is_scalar<PARAMTYPE>::value
                                || NCPA::types::is_complex<PARAMTYPE>::value ),
                              int>::type = 0>
-                void set( KEYTYPE key, PARAMTYPE val ) {
+                Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
                         key,
                         param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) ) );
+                    return *this;
                 }
 
                 template<
@@ -403,18 +407,19 @@ namespace NCPA {
                         ( !( std::is_scalar<PARAMTYPE>::value
                              || NCPA::types::is_complex<PARAMTYPE>::value ) ),
                         int>::type = 0>
-                void set( KEYTYPE key, PARAMTYPE val ) {
+                Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
                         key, param_ptr_t( new VectorParameter<
                                           typename PARAMTYPE::value_type>(
                                  val ) ) );
+                    return *this;
                 }
 
                 template<typename PARAMTYPE,
                          typename std::enable_if<
                              std::is_convertible<KEYTYPE, std::string>::value,
                              int>::type = 0>
-                void set( KEYTYPE key, PARAMTYPE val,
+                Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                           NCPA::units::units_ptr_t units ) {
                     this->set<PARAMTYPE>( key, val );
                     // this->add_parameter<PARAMTYPE>(
@@ -428,13 +433,14 @@ namespace NCPA {
                     //     param_ptr_t(
                     //         new ScalarParameter<NCPA::units::units_ptr_t>(
                     //             units ) ) );
+                    return *this;
                 }
 
                 bool has_parameter( KEYTYPE key ) const {
                     return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
-                void copy_parameters_from( const Configurable<KEYTYPE>& other,
+                Configurable<KEYTYPE>& copy_parameters_from( const Configurable<KEYTYPE>& other,
                                            bool create_if_missing = true ) {
                     // this->init();
                     for (auto it = other.parameters().cbegin();
@@ -447,12 +453,14 @@ namespace NCPA {
                                                   it->second->clone() );
                         }
                     }
+                    return *this;
                 }
 
-                void copy_parameters_to( Configurable<KEYTYPE>& other,
+                const Configurable<KEYTYPE>& copy_parameters_to( Configurable<KEYTYPE>& other,
                                          bool create_if_missing
                                          = true ) const {
                     other.copy_parameters_from( *this, create_if_missing );
+                    return *this;
                 }
 
                 virtual ConfigurationMap<KEYTYPE>& parameters() {
