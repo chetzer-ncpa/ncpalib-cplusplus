@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
 #include "NCPA/configuration/validation/TypedValidationTest.hpp"
 #include <vector>
 
@@ -43,3 +42,13 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
+
+template<typename T>
+void swap( NCPA::config::ListValidationTest<T>& a,
+           NCPA::config::ListValidationTest<T>& b ) noexcept {
+    using std::swap;
+    ::swap(
+        static_cast<NCPA::config::TypedValidationTest<T>&>( a ),
+        static_cast<NCPA::config::TypedValidationTest<T>&>( b ) );
+    swap( a._values, b._values );
+}

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
 #include "NCPA/configuration/validation/UnaryValidationTest.hpp"
 
 #include <memory>
@@ -44,3 +43,11 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
+
+template<typename T>
+void swap( NCPA::config::IsEqualToTest<T>& a,
+           NCPA::config::IsEqualToTest<T>& b ) noexcept {
+    using std::swap;
+    ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
+            static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
+}

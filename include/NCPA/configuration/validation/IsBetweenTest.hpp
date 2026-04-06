@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
 #include "NCPA/configuration/validation/TypedValidationTest.hpp"
 
 #include <memory>
@@ -129,4 +128,14 @@ namespace NCPA {
                     bool _inclusive;
             };
     }
+}
+
+template<typename T>
+void swap( NCPA::config::IsBetweenTest<T>& a,
+           NCPA::config::IsBetweenTest<T>& b ) noexcept {
+    using std::swap;
+    ::swap(
+        static_cast<NCPA::config::BinaryValidationTest<T>&>( a ),
+        static_cast<NCPA::config::BinaryValidationTest<T>&>( b ) );
+    swap( a._inclusive, b._inclusive );
 }

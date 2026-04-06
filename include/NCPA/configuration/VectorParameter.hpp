@@ -1,14 +1,15 @@
 #pragma once
-
+#include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
+#include <regex>
 #include <vector>
 
 namespace NCPA {
     namespace config {
-        namespace implementation {
+        namespace hidden {
             template<typename T>
             class _base_vector_parameter;
         }
@@ -16,29 +17,77 @@ namespace NCPA {
 }  // namespace NCPA
 
 template<typename T>
-void swap(
-    NCPA::config::implementation::_base_vector_parameter<T>& a,
-    NCPA::config::implementation::_base_vector_parameter<T>& b ) noexcept;
+void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
+           NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
-        namespace implementation {
+
+        namespace hidden {
             template<typename PARAMTYPE>
             class _base_vector_parameter : public TypedParameter<PARAMTYPE> {
                 public:
-                    _base_vector_parameter() :
-                        TypedParameter<PARAMTYPE>(),
-                        _value { std::vector<PARAMTYPE>( 1 ) } {}
+                    _base_vector_parameter() : TypedParameter<PARAMTYPE>() {}
 
                     _base_vector_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(),
-                        _value { std::vector<PARAMTYPE>( 1, defaultval ) } {}
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
 
                     _base_vector_parameter(
                         const std::vector<PARAMTYPE>& defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
 
+                    _base_vector_parameter( const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {}
+
+                    _base_vector_parameter( const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {}
+
+                    _base_vector_parameter(
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ) {}
+
+                    _base_vector_parameter( PARAMTYPE defaultval,
+                                            const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+
+                    _base_vector_parameter( PARAMTYPE defaultval,
+                                            const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+
+                    _base_vector_parameter(
+                        PARAMTYPE defaultval,
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ),
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+
+                    _base_vector_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { defaultval } {}
+
+                    _base_vector_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { defaultval } {}
+
+                    _base_vector_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ),
+                        _value { defaultval } {}
+
                     virtual ~_base_vector_parameter() {}
+
+                    _base_vector_parameter(
+                        const _base_vector_parameter<PARAMTYPE>& other ) :
+                        TypedParameter<PARAMTYPE>( other ) {
+                        _value = other._value;
+                    }
 
                     _base_vector_parameter(
                         _base_vector_parameter<PARAMTYPE>&& other ) noexcept :
@@ -52,9 +101,7 @@ namespace NCPA {
                         return *this;
                     }
 
-                    virtual ~_base_vector_parameter() {}
-
-                    friend void ::swap(
+                    friend void ::swap<>(
                         _base_vector_parameter<PARAMTYPE>& a,
                         _base_vector_parameter<PARAMTYPE>& b ) noexcept;
 
@@ -66,240 +113,251 @@ namespace NCPA {
                         return _value.size();
                     }
 
-                    virtual std::vector<PARAMTYPE>& value() { return _value; }
-
-                    virtual const std::vector<PARAMTYPE>& value() const {
-                        return _value;
-                    }
-
-                    virtual PARAMTYPE value( size_t n ) const {
+                    virtual PARAMTYPE& get( size_t n = 0 ) override {
                         return _value.at( n );
                     }
 
-                    virtual bool as_bool( size_t n = 0 ) const override {
-                        return ( this->value( n ) != 0 );
+                    virtual const PARAMTYPE& get( size_t n
+                                                  = 0 ) const override {
+                        return _value.at( n );
                     }
 
-                    virtual std::string as_string( size_t n
-                                                   = 0 ) const override {
-                        return std::to_string( this->value( n ) );
-                    }
-
-                    virtual int as_int( size_t n = 0 ) const override {
-                        return static_cast<int>( this->value( n ) );
-                    }
-
-                    virtual long long as_long_int( size_t n
-                                                   = 0 ) const override {
-                        return static_cast<long long>( this->value( n ) );
-                    }
-
-                    virtual size_t as_size_t( size_t n = 0 ) const override {
-                        return static_cast<size_t>( this->as_long_int( n ) );
-                    }
-
-                    virtual double as_double( size_t n = 0 ) const override {
-                        return static_cast<double>( this->value( n ) );
-                    }
-
-                    virtual std::complex<double> as_complex(
-                        size_t n = 0 ) const override {
-                        return std::complex<double>( this->as_double( n ),
-                                                     0.0 );
-                    }
-
-                    virtual void from_bool( bool x ) override {
-                        this->from_bool( std::vector<bool>( 1, x ) );
-                    }
-
-                    virtual void from_string( const std::string& x ) override {
-                        this->from_string( std::vector<std::string>( 1, x ) );
-                    }
-
-                    virtual void from_int( long long x ) override {
-                        this->from_int( std::vector<long long>( 1, x ) );
-                    }
-
-                    virtual void from_unsigned_int( size_t x ) override {
-                        this->from_unsigned_int( std::vector<size_t>( 1, x ) );
-                    }
-
-                    virtual void from_double( double x ) override {
-                        this->from_double( std::vector<double>( 1, x ) );
-                    }
-
-                    virtual void from_complex(
-                        std::complex<double> x ) override {
-                        this->from_complex(
-                            std::vector<std::complex<double>>( 1, x ) );
-                    }
-
-                    virtual void from_bool(
-                        const std::vector<bool>& vec ) override {
-                        this->value().resize( vec.size() );
-                        for (size_t i = 0; i < vec.size(); ++i) {
-                            this->value().at( i )
-                                = static_cast<PARAMTYPE>( vec.at( i ) );
-                        }
-                    }
-
-                    virtual void from_int(
-                        const std::vector<long long>& vec ) override {
-                        this->value().resize( vec.size() );
-                        for (size_t i = 0; i < vec.size(); ++i) {
-                            this->value().at( i )
-                                = static_cast<PARAMTYPE>( vec.at( i ) );
-                        }
-                    }
-
-                    virtual void from_unsigned_int(
-                        const std::vector<size_t>& vec ) override {
-                        this->value().resize( vec.size() );
-                        for (size_t i = 0; i < vec.size(); ++i) {
-                            this->value().at( i )
-                                = static_cast<PARAMTYPE>( vec.at( i ) );
-                        }
-                    }
-
-                    virtual void from_double(
-                        const std::vector<double>& vec ) override {
-                        this->value().resize( vec.size() );
-                        for (size_t i = 0; i < vec.size(); ++i) {
-                            this->value().at( i )
-                                = static_cast<PARAMTYPE>( vec.at( i ) );
-                        }
-                    }
-
-                    virtual void from_complex(
-                        const std::vector<std::complex<double>>& vec )
-                        override {
-                        this->value().resize( vec.size() );
-                        for (size_t i = 0; i < vec.size(); ++i) {
-                            this->value().at( i ) = static_cast<PARAMTYPE>(
-                                std::abs( vec.at( i ) ) );
-                        }
+                    virtual std::vector<PARAMTYPE> get_vector()
+                        const override {
+                        return _value;
                     }
 
                 protected:
                     std::vector<PARAMTYPE> _value;
-            };
-        }  // namespace implementation
 
-        // floating point vector
+                    // void _get_first_value_from_vector(
+                    //     const std::vector<PARAMTYPE>& defaultval) {
+                    //     if (defaultval.size() > 0) {
+                    //         _value = defaultval.at(0);
+                    //     }
+                    // }
+
+                    template<typename T                         = PARAMTYPE,
+                             typename std::enable_if<NCPA::types::has_to_string<T>::value,
+                                                     int>::type = 0>
+                    std::string _as_string( size_t n = 0 ) const {
+                        return to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE,
+                             typename std::enable_if<
+                                 !( NCPA::types::has_to_string<T>::value ), int>::type = 0>
+                    std::string _as_string( size_t n = 0 ) const {
+                        throw std::out_of_range(
+                            "No as_string() conversion defined!" );
+                    }
+            };
+        }  // namespace hidden
+
+        // floating point
         template<typename PARAMTYPE>
         class VectorParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_vector_parameter() {}
-
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
-
-                virtual int as_int( size_t n = 0 ) const override {
-                    return static_cast<int>(
-                        this->value( n )
-                        + std::numeric_limits<PARAMTYPE>::epsilon() );
-                }
-
-                virtual long long as_long_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
-                        this->value( n )
+                        this->get( n )
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>(
+                        this->get( n )
+                        + std::numeric_limits<PARAMTYPE>::epsilon() );
+                }
+
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return ( this->get( n ) != 0 );
+                }
+
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return std::to_string( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::stod( x ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
+                            std::abs( vec.at( i ) ) );
+                    }
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = static_cast<PARAMTYPE>(
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
                             std::stod( vec.at( i ) ) );
                     }
                 }
         };
 
-        // signed integer vector
+        // signed integer
         template<typename PARAMTYPE>
         class VectorParameter<PARAMTYPE,
                               typename std::enable_if<(
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get( n ) );
                 }
 
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual ~_base_vector_parameter() {}
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return ( this->get( n ) != 0 );
+                }
 
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return std::to_string( this->get( n ) );
+                }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::stoll( x ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
+                            std::abs( vec.at( i ) ) );
+                    }
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = static_cast<PARAMTYPE>(
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
                             std::stoll( vec.at( i ) ) );
                     }
                 }
-
-                //    private:
-                //     PARAMTYPE _value;
         };
 
         // unsigned integer
@@ -309,110 +367,197 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get( n ) );
                 }
 
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual ~_base_vector_parameter() {}
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return ( this->get( n ) != 0 );
+                }
 
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return std::to_string( this->get( n ) );
+                }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->get( 0 )
+                        = static_cast<PARAMTYPE>( std::stoull( x ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
+                            std::abs( vec.at( i ) ) );
+                    }
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = static_cast<PARAMTYPE>(
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
                             std::stoull( vec.at( i ) ) );
                     }
                 }
         };
 
-        // boolean
+        // // boolean
         template<typename PARAMTYPE>
         class VectorParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
-
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_vector_parameter() {}
-
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    return this->value( n );
+                    return this->get( n );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
-                    return ( this->value( n ) ? "true" : "false" );
+                    return ( this->get( n ) ? "true" : "false" );
+                }
+
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get( n ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ) = x;
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->get( 0 ) = ( x == "true" );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
                     const std::vector<bool>& vec ) override {
-                    this->value() = vec;
+                    this->_value = vec;
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ) = static_cast<PARAMTYPE>(
+                            std::abs( vec.at( i ) ) );
+                    }
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i )
-                            = ( NCPA::strings::to_lower( vec.at( i ) )
-                                == "true" );
+                        this->_value.at( i )
+                            = ( NCPA::strings::to_lower( vec.at( i ) ) == "true" );
                     }
                 }
 
@@ -427,70 +572,36 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
-
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_vector_parameter() {}
-
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    std::string s = this->value( n );
+                    std::string s = this->get( n );
                     std::transform( s.begin(), s.end(), s.begin(),
                                     []( unsigned char c ) {
                                         return std::tolower( c );
                                     }  // correct
                     );
-                    return s == "true";
+                    return ( s == "true" );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
-                    std::string s = this->value( n );
+                    std::string s = this->get( n );
                     return s;
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
-                    return std::stoi( this->value( n ) );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return std::stoll( this->get( n ) );
                 }
 
-                virtual long long as_long_int( size_t n = 0 ) const override {
-                    return std::stol( this->value( n ) );
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return std::stoull( this->get( n ) );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
-                    return std::stod( this->value( n ) );
+                    return std::stod( this->get( n ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
@@ -498,60 +609,80 @@ namespace NCPA {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
-                virtual void from_bool(
-                    const std::vector<bool>& vec ) override {
-                    this->value().resize( vec.size() );
-                    for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i )
-                            = ( vec.at( i ) ? "true" : "false" );
-                    }
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ) = ( x ? "true" : "false" );
                 }
 
-                virtual void from_string(
-                    const std::vector<std::string>& vec ) override {
-                    this->value().resize( vec.size() );
+                virtual void from_string( const std::string& x ) override {
+                    this->get( 0 ) = x;
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ) = std::to_string( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ) = std::to_string( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ) = std::to_string( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ) = std::to_string( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = vec.at( i );
+                        this->_value.at( i )
+                            = ( vec.at( i ) ? "true" : "false" );
                     }
                 }
 
                 virtual void from_int(
                     const std::vector<long long>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = std::to_string( vec.at( i ) );
+                        this->_value.at( i ) = std::to_string( vec.at( i ) );
                     }
                 }
 
                 virtual void from_unsigned_int(
-                    const std::vector<size_t>& vec ) override {
-                    this->value().resize( vec.size() );
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = std::to_string( vec.at( i ) );
+                        this->_value.at( i ) = std::to_string( vec.at( i ) );
                     }
                 }
 
                 virtual void from_double(
                     const std::vector<double>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = std::to_string( vec.at( i ) );
+                        this->_value.at( i ) = std::to_string( vec.at( i ) );
                     }
                 }
 
                 virtual void from_complex(
                     const std::vector<std::complex<double>>& vec ) override {
-                    this->value().resize( vec.size() );
+                    this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i )
-                            = std::to_string( vec.at( i ).real() )
-                            + ( vec.at( i ).imag() < 0.0 ? " - " : " + " )
-                            + std::to_string( std::abs( vec.at( i ).imag() ) );
+                        this->_value.at( i )
+                            = std::to_string( std::abs( vec.at( i ) ) );
                     }
                 }
 
-                //    private:
-                //     PARAMTYPE _value;
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ) = vec.at( i );
+                    }
+                }
         };
 
         // complex
@@ -561,89 +692,122 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
-
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_vector_parameter() {}
-
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( std::abs( this->value( n ) ) != 0.0 );
+                    return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
                     std::ostringstream oss;
-                    oss << std::to_string( this->value( n ).real() ) << " "
-                        << ( this->value( n ).imag() < 0.0 ? "- " : "+ " )
-                        << std::to_string( this->value( n ).imag() );
+                    oss << std::to_string( this->get( n ).real() ) << " "
+                        << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
+                        << std::to_string( this->get( n ).imag() );
                     return oss.str();
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
-                    return static_cast<int>( std::abs( this->value( n ) ) );
-                }
-
-                virtual long long as_long_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
-                        std::abs( this->value( n ) ) );
+                        std::abs( this->get( n ) ) );
                 }
 
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>(
+                        std::abs( this->get( n ) ) );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( std::abs( this->value( n ) ) );
+                    return static_cast<double>( std::abs( this->get( n ) ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
                                                          = 0 ) const override {
-                    return std::complex<double>( this->value( n ).real(),
-                                                 this->value( n ).imag() );
+                    return std::complex<double>( this->get( n ).real(),
+                                                 this->get( n ).imag() );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    throw std::out_of_range(
+                        "from_string() not yet implemented for complex "
+                        "numbers" );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get( 0 ).real( x.real() );
+                    this->get( 0 ).imag( x.imag() );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get( 0 ).real( static_cast<double>( x ) );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get( 0 ).real( static_cast<double>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get( 0 ).real( static_cast<double>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get( 0 ).real( x );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ).real(
+                            static_cast<double>( vec.at( i ) ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ).real(
+                            static_cast<double>( vec.at( i ) ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ).real(
+                            static_cast<double>( vec.at( i ) ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ).real( vec.at( i ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    this->_value.resize( vec.size() );
+                    for (size_t i = 0; i < vec.size(); ++i) {
+                        this->_value.at( i ).real(
+                            static_cast<double>( vec.at( i ).real() ) );
+                        this->_value.at( i ).imag(
+                            static_cast<double>( vec.at( i ).imag() ) );
+                    }
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& vec ) override {
                     throw std::out_of_range(
-                        "No from_string() conversion implemented for complex "
+                        "from_string() not yet implemented for complex "
                         "numbers" );
-                }
-
-                virtual void from_complex(
-                    const std::vector<std::complex<double>>& vec ) override {
-                    this->value().resize( vec.size() );
-                    for (size_t i = 0; i < vec.size(); ++i) {
-                        this->value().at( i ) = vec.at( i );
-                    }
                 }
         };
 
@@ -656,40 +820,9 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public implementation::_base_vector_parameter {
+            : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                VectorParameter() :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {}
-
-                VectorParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_vector_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_vector_parameter() {}
-
-                friend void ::swap( VectorParameter<PARAMTYPE>& a,
-                                    VectorParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     throw std::out_of_range(
@@ -697,21 +830,20 @@ namespace NCPA {
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
+                    // throw std::out_of_range("No as_string() conversion
+                    // defined!");
                     return this->_as_string( n );
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n = 0 ) const override {
                     throw std::out_of_range(
                         "No as_int() conversion defined!" );
                 }
 
-                virtual long long as_long_int( size_t n = 0 ) const override {
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
                     throw std::out_of_range(
-                        "No as_long_int() conversion defined!" );
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                        "No as_unsigned_int() conversion defined!" );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -725,54 +857,85 @@ namespace NCPA {
                         "No as_complex() conversion defined!" );
                 }
 
-                virtual void from_bool(
-                    const std::vector<bool>& vec ) override {
+                virtual void from_bool( bool x ) override {
                     throw std::out_of_range(
                         "No from_bool() conversion defined!" );
                 }
 
-                virtual void from_string(
-                    const std::vector<std::string>& vec ) override {
+                virtual void from_string( const std::string& x ) override {
                     throw std::out_of_range(
                         "No from_string() conversion defined!" );
                 }
 
-                virtual void from_int(
-                    const std::vector<long long>& vec ) override {
+                virtual void from_int( long long x ) override {
                     throw std::out_of_range(
                         "No from_int() conversion defined!" );
                 }
 
                 virtual void from_unsigned_int(
-                    const std::vector<size_t>& vec ) override {
+                    unsigned long long x ) override {
+                    throw std::out_of_range(
+                        "No from_unsigned_int() conversion defined!" );
+                }
+
+                virtual void from_double( double x ) override {
+                    throw std::out_of_range(
+                        "No from_double() conversion defined!" );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    throw std::out_of_range(
+                        "No from_complex() conversion defined!" );
+                }
+
+                virtual void from_bool( const std::vector<bool>& x ) override {
+                    throw std::out_of_range(
+                        "No from_bool() conversion defined!" );
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& x ) override {
+                    throw std::out_of_range(
+                        "No from_string() conversion defined!" );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& x ) override {
+                    throw std::out_of_range(
+                        "No from_int() conversion defined!" );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& x ) override {
                     throw std::out_of_range(
                         "No from_unsigned_int() conversion defined!" );
                 }
 
                 virtual void from_double(
-                    const std::vector<double>& vec ) override {
+                    const std::vector<double>& x ) override {
                     throw std::out_of_range(
                         "No from_double() conversion defined!" );
                 }
 
                 virtual void from_complex(
-                    const std::vector<std::complex<double>>& vec ) override {
+                    const std::vector<std::complex<double>>& x ) override {
                     throw std::out_of_range(
                         "No from_complex() conversion defined!" );
                 }
+
+            protected:
+                using hidden::_base_vector_parameter<PARAMTYPE>::_as_string;
         };
 
-        using DoubleVectorParameter = VectorParameter<double>;
     }  // namespace config
 }  // namespace NCPA
 
 template<typename T>
-void swap(
-    NCPA::config::implementation::_base_vector_parameter<T>& a,
-    NCPA::config::implementation::_base_vector_parameter<T>& b ) noexcept {
+void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
+           NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept {
     using std::swap;
     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-          static_cast<NCPE::config::TypedParameter<T>&>( b ) );
+          static_cast<NCPA::config::TypedParameter<T>&>( b ) );
     swap( a._value, b._value );
 }
 
@@ -780,9 +943,6 @@ template<typename T>
 void swap( NCPA::config::VectorParameter<T>& a,
            NCPA::config::VectorParameter<T>& b ) noexcept {
     using std::swap;
-    swap(
-        static_cast<NCPA::config::implementation::_base_vector_parameter<T>&>(
-            a ),
-        static_cast<NCPE::config::implementation::_base_vector_parameter<T>&>(
-            b ) );
+    swap( static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( a ),
+          static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( b ) );
 }

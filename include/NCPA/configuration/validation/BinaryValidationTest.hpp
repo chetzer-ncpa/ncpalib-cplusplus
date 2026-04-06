@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
 #include "NCPA/configuration/validation/TypedValidationTest.hpp"
 
 namespace NCPA {

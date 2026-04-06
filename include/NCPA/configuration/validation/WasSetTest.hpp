@@ -1,9 +1,8 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
-#include "NCPA/configuration/validation/NullaryValidationTest.hpp"
 #include "NCPA/configuration/Parameter.hpp"
+#include "NCPA/configuration/validation/NullaryValidationTest.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -42,3 +41,10 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
+
+inline void swap( NCPA::config::WasSetTest& a,
+                  NCPA::config::WasSetTest& b ) noexcept {
+    using std::swap;
+    ::swap( static_cast<NCPA::config::NullaryValidationTest&>( a ),
+            static_cast<NCPA::config::NullaryValidationTest&>( b ) );
+}

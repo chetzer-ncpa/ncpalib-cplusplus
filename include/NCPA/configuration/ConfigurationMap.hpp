@@ -43,6 +43,8 @@ template<typename KEYTYPE>
 void swap( NCPA::config::ConfigurationMap<KEYTYPE>& a,
            NCPA::config::ConfigurationMap<KEYTYPE>& b ) noexcept {
     using std::swap;
-    swap( static_cast<std::unordered_map<KEYTYPE, param_ptr_t>&>( a ),
-          static_cast<std::unordered_map<KEYTYPE, param_ptr_t>&>( b ) );
+    swap( static_cast<std::unordered_map<KEYTYPE, NCPA::config::param_ptr_t>&>(
+              a ),
+          static_cast<std::unordered_map<KEYTYPE, NCPA::config::param_ptr_t>&>(
+              b ) );
 }

@@ -85,3 +85,10 @@ namespace NCPA {
         };
     }  // namespace config
 }  // namespace NCPA
+
+
+inline void swap( NCPA::config::ValidationTest& a,
+                  NCPA::config::ValidationTest& b ) noexcept {
+    using std::swap;
+    swap( a._status, b._status );
+}

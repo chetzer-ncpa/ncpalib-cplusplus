@@ -1,4 +1,5 @@
 #pragma once
+#include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
@@ -8,7 +9,7 @@
 
 namespace NCPA {
     namespace config {
-        namespace implementation {
+        namespace hidden {
             template<typename T>
             class _base_scalar_parameter;
         }
@@ -16,13 +17,13 @@ namespace NCPA {
 }  // namespace NCPA
 
 template<typename T>
-void swap(
-    NCPA::config::implementation::_base_scalar_parameter<T>& a,
-    NCPA::config::implementation::_base_scalar_parameter<T>& b ) noexcept;
+void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
+           NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
-        namespace implementation {
+
+        namespace hidden {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
@@ -34,12 +35,63 @@ namespace NCPA {
                     _base_scalar_parameter(
                         const std::vector<PARAMTYPE>& defaultval ) :
                         TypedParameter<PARAMTYPE>() {
-                        if (defaultval.size() > 0) {
-                            _value = defaultval.at( 0 );
-                        }
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter( const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {}
+
+                    _base_scalar_parameter( const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {}
+
+                    _base_scalar_parameter(
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ) {}
+
+                    _base_scalar_parameter( PARAMTYPE defaultval,
+                                            const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter( PARAMTYPE defaultval,
+                                            const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        PARAMTYPE defaultval,
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const ValidationTest& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const test_ptr_t& newtest ) :
+                        TypedParameter<PARAMTYPE>( newtest ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        std::initializer_list<test_ptr_t> new_tests ) :
+                        TypedParameter<PARAMTYPE>( new_tests ) {
+                        _get_first_value_from_vector( defaultval );
                     }
 
                     virtual ~_base_scalar_parameter() {}
+
+                    _base_scalar_parameter(
+                        const _base_scalar_parameter<PARAMTYPE>& other ) :
+                        TypedParameter<PARAMTYPE>( other ) {
+                        _value = other._value;
+                    }
 
                     _base_scalar_parameter(
                         _base_scalar_parameter<PARAMTYPE>&& other ) noexcept :
@@ -53,9 +105,7 @@ namespace NCPA {
                         return *this;
                     }
 
-                    virtual ~_base_scalar_parameter() {}
-
-                    friend void ::swap(
+                    friend void ::swap<>(
                         _base_scalar_parameter<PARAMTYPE>& a,
                         _base_scalar_parameter<PARAMTYPE>& b ) noexcept;
 
@@ -65,123 +115,36 @@ namespace NCPA {
 
                     virtual size_t size() const override { return 1; }
 
-                    virtual PARAMTYPE& value( size_t n = 0 ) { return _value; }
-
-                    virtual const PARAMTYPE& value( size_t n = 0 ) const {
+                    virtual PARAMTYPE& get( size_t n = 0 ) override {
                         return _value;
                     }
 
-                    virtual bool as_bool( size_t n = 0 ) const override {
-                        return ( this->value() != 0 );
+                    virtual const PARAMTYPE& get( size_t n
+                                                  = 0 ) const override {
+                        return _value;
                     }
 
-                    virtual std::string as_string( size_t n
-                                                   = 0 ) const override {
-                        return std::to_string( this->value() );
-                    }
-
-                    virtual int as_int( size_t n = 0 ) const override {
-                        return static_cast<int>( this->value() );
-                    }
-
-                    virtual long long as_long_int( size_t n
-                                                   = 0 ) const override {
-                        return static_cast<long long>( this->value() );
-                    }
-
-                    virtual size_t as_size_t( size_t n = 0 ) const override {
-                        return static_cast<size_t>( this->as_long_int( n ) );
-                    }
-
-                    virtual double as_double( size_t n = 0 ) const override {
-                        return static_cast<double>( this->value() );
-                    }
-
-                    virtual std::complex<double> as_complex(
-                        size_t n = 0 ) const override {
-                        return std::complex<double>( this->as_double(), 0.0 );
-                    }
-
-                    virtual void from_bool( bool x ) override {
-                        this->value() = static_cast<PARAMTYPE>( x );
-                    }
-
-                    // virtual void from_string( const std::string& x )
-                    // override {
-                    //     this->value() = static_cast<PARAMTYPE>( std::stod( x
-                    //     ) );
-                    // }
-
-                    virtual void from_int( long long x ) override {
-                        this->value() = static_cast<PARAMTYPE>( x );
-                    }
-
-                    virtual void from_unsigned_int( size_t x ) override {
-                        this->value() = static_cast<PARAMTYPE>( x );
-                    }
-
-                    virtual void from_double( double x ) override {
-                        this->value() = static_cast<PARAMTYPE>( x );
-                    }
-
-                    virtual void from_complex(
-                        std::complex<double> x ) override {
-                        this->value()
-                            = static_cast<PARAMTYPE>( std::abs( x ) );
-                    }
-
-                    virtual void from_bool(
-                        const std::vector<bool>& vec ) override {
-                        if (vec.size() > 0) {
-                            this->from_bool( vec.at( 0 ) );
-                        }
-                    }
-
-                    virtual void from_string(
-                        const std::vector<std::string>& vec ) override {
-                        if (vec.size() > 0) {
-                            this->from_string( vec.at( 0 ) );
-                        }
-                    }
-
-                    virtual void from_int(
-                        const std::vector<long long>& vec ) override {
-                        if (vec.size() > 0) {
-                            this->from_int( vec.at( 0 ) );
-                        }
-                    }
-
-                    virtual void from_unsigned_int(
-                        const std::vector<size_t>& vec ) override {
-                        if (vec.size() > 0) {
-                            this->from_unsigned_int( vec.at( 0 ) );
-                        }
-                    }
-
-                    virtual void from_double(
-                        const std::vector<double>& vec ) override {
-                        if (vec.size() > 0) {
-                            this->from_double( vec.at( 0 ) );
-                        }
-                    }
-
-                    virtual void from_complex(
-                        const std::vector<std::complex<double>>& vec )
-                        override {
-                        if (vec.size() > 0) {
-                            this->from_complex( vec.at( 0 ) );
-                        }
+                    virtual std::vector<PARAMTYPE> get_vector()
+                        const override {
+                        return std::vector<PARAMTYPE> { _value };
                     }
 
                 protected:
                     PARAMTYPE _value;
+
+                    void _get_first_value_from_vector(
+                        const std::vector<PARAMTYPE>& defaultval ) {
+                        if (defaultval.size() > 0) {
+                            _value = defaultval.at( 0 );
+                        }
+                    }
 
                     template<typename T = PARAMTYPE,
                              typename std::enable_if<
                                  NCPA::types::has_to_string<T>::value,
                                  int>::type = 0>
                     std::string _as_string( size_t n = 0 ) const {
-                        return to_string( this->value() );
+                        return to_string( this->get() );
                     }
 
                     template<typename T = PARAMTYPE,
@@ -193,31 +156,79 @@ namespace NCPA {
                             "No as_string() conversion defined!" );
                     }
             };
-        }  // namespace implementation
+        }  // namespace hidden
 
         // floating point
         template<typename PARAMTYPE>
         class ScalarParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
+
+                 ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
 
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
                     ::swap( *this, other );
                 }
+
+                virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
@@ -225,53 +236,110 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                // virtual bool as_bool( size_t n = 0 ) const override {
-                //     return ( this->value() != 0.0 );
-                // }
-
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return std::to_string( this->value() );
-                // }
-
-                virtual int as_int( size_t n = 0 ) const override {
-                    return static_cast<int>(
-                        this->value()
-                        + std::numeric_limits<PARAMTYPE>::epsilon() );
-                }
-
-                virtual long long as_long_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
-                        this->value()
+                        this->get()
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
                 }
 
-                // virtual size_t as_size_t( size_t n = 0 ) const override {
-                //     return static_cast<size_t>( this->as_long_int( n ) );
-                // }
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>(
+                        this->get()
+                        + std::numeric_limits<PARAMTYPE>::epsilon() );
+                }
 
-                // virtual double as_double( size_t n = 0 ) const override {
-                //     return static_cast<double>( this->value() );
-                // }
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return ( this->get() != 0 );
+                }
 
-                // virtual std::complex<double> as_complex( size_t n
-                //                                          = 0 ) const
-                //                                          override {
-                //     return std::complex<double>( this->as_double(), 0.0 );
-                // }
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return std::to_string( this->get() );
+                }
+
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get() );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double(), 0.0 );
+                }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->value() = static_cast<PARAMTYPE>( std::stod( x ) );
+                    this->get() = static_cast<PARAMTYPE>( std::stod( x ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
                 }
         };
 
@@ -282,97 +350,103 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return ( this->get() != 0 );
                 }
 
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return std::to_string( this->get() );
                 }
 
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get() );
                 }
 
-                // virtual bool as_bool( size_t n = 0 ) const override {
-                //     return ( this->value() != 0 );
-                // }
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
 
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return std::to_string( this->value() );
-                // }
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get() );
+                }
 
-                // virtual int as_int( size_t n = 0 ) const override {
-                //     return static_cast<int>( this->value() );
-                // }
-
-                // virtual long long as_long_int( size_t n = 0 ) const override
-                // {
-                //     return static_cast<long long>( this->value() );
-                // }
-
-                // virtual size_t as_size_t( size_t n = 0 ) const override {
-                //     return static_cast<size_t>( this->as_long_int( n ) );
-                // }
-
-                // virtual double as_double( size_t n = 0 ) const override {
-                //     return static_cast<double>( this->value() );
-                // }
-
-                // virtual std::complex<double> as_complex( size_t n
-                //                                          = 0 ) const
-                //                                          override {
-                //     return std::complex<double>( this->as_double(), 0.0 );
-                // }
-
-                // virtual void from_bool( bool x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double(), 0.0 );
+                }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->value() = static_cast<PARAMTYPE>( std::stol( x ) );
+                    this->get() = static_cast<PARAMTYPE>( std::stol( x ) );
                 }
 
-                // virtual void from_int( long long x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
+                virtual void from_bool( bool x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
 
-                // virtual void from_unsigned_int( size_t x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
+                virtual void from_int( long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
 
-                // virtual void from_double( double x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
 
-                // virtual void from_complex( std::complex<double> x ) override
-                // {
-                //     this->value() = static_cast<PARAMTYPE>( std::abs( x ) );
-                // }
+                virtual void from_double( double x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
         };
 
         // unsigned integer
@@ -382,175 +456,203 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
-
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
-
-                // virtual bool as_bool( size_t n = 0 ) const override {
-                //     return ( this->value() != 0 );
-                // }
-
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return std::to_string( this->value() );
-                // }
-
-                // virtual int as_int( size_t n = 0 ) const override {
-                //     return static_cast<int>( this->value() );
-                // }
-
-                // virtual long long as_long_int( size_t n = 0 ) const override
-                // {
-                //     return static_cast<long long>( this->value() );
-                // }
-
-                // virtual size_t as_size_t( size_t n = 0 ) const override {
-                //     return static_cast<size_t>( this->as_long_int( n ) );
-                // }
-
-                // virtual double as_double( size_t n = 0 ) const override {
-                //     return static_cast<double>( this->value() );
-                // }
-
-                // virtual std::complex<double> as_complex( size_t n
-                //                                          = 0 ) const
-                //                                          override {
-                //     return std::complex<double>( this->as_double(), 0.0 );
-                // }
-
-                // virtual void from_bool( bool x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
-
-                virtual void from_string( const std::string& x ) override {
-                    this->value() = static_cast<PARAMTYPE>( std::stoull( x ) );
-                }
-
-                // virtual void from_int( long long x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
-
-                // virtual void from_unsigned_int( size_t x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
-
-                // virtual void from_double( double x ) override {
-                //     this->value() = static_cast<PARAMTYPE>( x );
-                // }
-
-                // virtual void from_complex( std::complex<double> x ) override
-                // {
-                //     this->value() = static_cast<PARAMTYPE>( std::abs( x ) );
-                // }
-        };
-
-        // boolean
-        template<typename PARAMTYPE>
-        class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
-                                             PARAMTYPE, bool>::value>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
-            public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
-
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    return this->value();
+                    return ( this->get() != 0 );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
-                    return ( this->value() ? "true" : "false" );
+                    return std::to_string( this->get() );
                 }
 
-                // virtual int as_int( size_t n = 0 ) const override {
-                //     return static_cast<int>( this->value() );
-                // }
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get() );
+                }
 
-                // virtual long long as_long_int( size_t n = 0 ) const override
-                // {
-                //     return static_cast<long long>( this->value() );
-                // }
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
 
-                // virtual size_t as_size_t( size_t n = 0 ) const override {
-                //     return static_cast<size_t>( this->value() );
-                // }
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get() );
+                }
 
-                // virtual double as_double( size_t n = 0 ) const override {
-                //     return static_cast<double>( this->value() );
-                // }
-
-                // virtual std::complex<double> as_complex( size_t n
-                //                                          = 0 ) const
-                //                                          override {
-                //     return std::complex<double>( this->as_double(), 0.0 );
-                // }
-
-                virtual void from_bool( bool x ) override {
-                    this->value() = x;
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double(), 0.0 );
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->value() = ( NCPA::strings::to_lower( x ) == "true" );
+                    this->get() = static_cast<PARAMTYPE>( std::stoull( x ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // // boolean
+        template<typename PARAMTYPE>
+        class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
+                                             PARAMTYPE, bool>::value>::type>
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            public:
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+
+                virtual bool as_bool( size_t n = 0 ) const override {
+                    return this->get();
+                }
+
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    return ( this->get() ? "true" : "false" );
+                }
+
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( this->get() );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n = 0 ) const override {
+                    return static_cast<double>( this->get() );
+                }
+
+                virtual std::complex<double> as_complex( size_t n
+                                                         = 0 ) const override {
+                    return std::complex<double>( this->as_double(), 0.0 );
+                }
+
+                virtual void from_bool( bool x ) override { this->get() = x; }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->get() = ( x == "true" );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
                 }
 
                 //    private:
@@ -564,70 +666,36 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
-
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    std::string s = this->value();
+                    std::string s = this->get();
                     std::transform( s.begin(), s.end(), s.begin(),
                                     []( unsigned char c ) {
                                         return std::tolower( c );
                                     }  // correct
                     );
-                    return s == "true";
+                    return ( s == "true" );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
-                    std::string s = this->value();
+                    std::string s = this->get();
                     return s;
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
-                    return std::stoi( this->value() );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return std::stoll( this->get() );
                 }
 
-                virtual long long as_long_int( size_t n = 0 ) const override {
-                    return std::stoll( this->value() );
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return std::stoull( this->get() );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
-                    return std::stod( this->value() );
+                    return std::stod( this->get() );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
@@ -635,32 +703,81 @@ namespace NCPA {
                     return std::complex<double>( this->as_double(), 0.0 );
                 }
 
+                using hidden::_base_scalar_parameter<PARAMTYPE>::from_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::from_string;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::from_int;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::from_unsigned_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::from_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::from_complex;
+
                 virtual void from_bool( bool x ) override {
-                    this->value() = ( x ? "true" : "false" );
+                    this->get() = ( x ? "true" : "false" );
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->value() = x;
+                    this->get() = x;
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->value() = std::to_string( x );
+                    this->get() = std::to_string( x );
                 }
 
-                virtual void from_unsigned_int( size_t x ) override {
-                    this->value() = std::to_string( x );
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = std::to_string( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->value() = std::to_string( x );
+                    this->get() = std::to_string( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->value() = std::to_string( std::abs( x ) );
+                    this->get() = std::to_string( std::abs( x ) );
                 }
 
-                //    private:
-                //     PARAMTYPE _value;
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
         };
 
         // complex
@@ -670,73 +787,40 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
-
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( std::abs( this->value() ) != 0.0 );
+                    return ( std::abs( this->get() ) != 0.0 );
                 }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
                     std::ostringstream oss;
-                    oss << std::to_string( this->value().real() ) << " "
-                        << ( this->value().imag() < 0.0 ? "- " : "+ " )
-                        << std::to_string( this->value().imag() );
+                    oss << std::to_string( this->get().real() ) << " "
+                        << ( this->get().imag() < 0.0 ? "- " : "+ " )
+                        << std::to_string( this->get().imag() );
                     return oss.str();
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
-                    return static_cast<int>( std::abs( this->value() ) );
+                virtual long long as_int( size_t n = 0 ) const override {
+                    return static_cast<long long>( std::abs( this->get() ) );
                 }
 
-                virtual long long as_long_int( size_t n = 0 ) const override {
-                    return static_cast<long long>( std::abs( this->value() ) );
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
+                    return static_cast<unsigned long long>(
+                        std::abs( this->get() ) );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( std::abs( this->value() ) );
+                    return static_cast<double>( std::abs( this->get() ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
                                                          = 0 ) const override {
-                    return std::complex<double>( this->value().real(),
-                                                 this->value().imag() );
+                    return std::complex<double>( this->get().real(),
+                                                 this->get().imag() );
                 }
 
                 virtual void from_string( const std::string& x ) override {
@@ -746,8 +830,68 @@ namespace NCPA {
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->value()
-                        = std::complex<PARAMTYPE>( x.real(), x.imag() );
+                    this->get().real( x.real() );
+                    this->get().imag( x.imag() );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->get() = static_cast<PARAMTYPE>( x );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
                 }
         };
 
@@ -760,40 +904,9 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public implementation::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                ScalarParameter() :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {}
-
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    implementation::_base_scalar_parameter<PARAMTYPE>(
-                        defaultval ) {}
-
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    implementation::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
-                }
-
-                ScalarParameter<PARAMTYPE>& operator=(
-                    ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual ~_base_scalar_parameter() {}
-
-                friend void ::swap( ScalarParameter<PARAMTYPE>& a,
-                                    ScalarParameter<PARAMTYPE>& b ) noexcept;
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     throw std::out_of_range(
@@ -806,18 +919,15 @@ namespace NCPA {
                     return this->_as_string( n );
                 }
 
-                virtual int as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n = 0 ) const override {
                     throw std::out_of_range(
                         "No as_int() conversion defined!" );
                 }
 
-                virtual long long as_long_int( size_t n = 0 ) const override {
+                virtual unsigned long long as_unsigned_int(
+                    size_t n = 0 ) const override {
                     throw std::out_of_range(
-                        "No as_long_int() conversion defined!" );
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const override {
-                    return static_cast<size_t>( this->as_long_int( n ) );
+                        "No as_unsigned_int() conversion defined!" );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -846,7 +956,8 @@ namespace NCPA {
                         "No from_int() conversion defined!" );
                 }
 
-                virtual void from_unsigned_int( size_t x ) override {
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
                     throw std::out_of_range(
                         "No from_unsigned_int() conversion defined!" );
                 }
@@ -861,27 +972,54 @@ namespace NCPA {
                         "No from_complex() conversion defined!" );
                 }
 
-                //    private:
-                //     PARAMTYPE _value;
-        };
+                virtual void from_bool( const std::vector<bool>& x ) override {
+                    throw std::out_of_range(
+                        "No from_bool() conversion defined!" );
+                }
 
-        using DoubleParameter  = ScalarParameter<double>;
-        using IntegerParameter = ScalarParameter<int>;
-        using StringParameter  = ScalarParameter<std::string>;
-        using BooleanParameter = ScalarParameter<bool>;
-        // using UnitsParameter        =
-        // ScalarParameter<NCPA::units::units_ptr_t>;
+                virtual void from_string(
+                    const std::vector<std::string>& x ) override {
+                    throw std::out_of_range(
+                        "No from_string() conversion defined!" );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& x ) override {
+                    throw std::out_of_range(
+                        "No from_int() conversion defined!" );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& x ) override {
+                    throw std::out_of_range(
+                        "No from_unsigned_int() conversion defined!" );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& x ) override {
+                    throw std::out_of_range(
+                        "No from_double() conversion defined!" );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& x ) override {
+                    throw std::out_of_range(
+                        "No from_complex() conversion defined!" );
+                }
+
+            protected:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::_as_string;
+        };
 
     }  // namespace config
 }  // namespace NCPA
 
 template<typename T>
-void swap(
-    NCPA::config::implementation::_base_scalar_parameter<T>& a,
-    NCPA::config::implementation::_base_scalar_parameter<T>& b ) noexcept {
+void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
+           NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept {
     using std::swap;
-    swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-          static_cast<NCPE::config::TypedParameter<T>&>( b ) );
+    ::swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
+            static_cast<NCPA::config::TypedParameter<T>&>( b ) );
     swap( a._value, b._value );
 }
 
@@ -889,9 +1027,7 @@ template<typename T>
 void swap( NCPA::config::ScalarParameter<T>& a,
            NCPA::config::ScalarParameter<T>& b ) noexcept {
     using std::swap;
-    swap(
-        static_cast<NCPA::config::implementation::_base_scalar_parameter<T>&>(
-            a ),
-        static_cast<NCPE::config::implementation::_base_scalar_parameter<T>&>(
-            b ) );
+    ::swap(
+        static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( a ),
+        static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( b ) );
 }

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation.hpp"
+#include "NCPA/configuration/ValidationTest.hpp"
+#include "NCPA/configuration/ValidationTestSuite.hpp"
 #include "NCPA/units.hpp"
 
 #include <string>
@@ -14,15 +15,25 @@ namespace NCPA {
             public:
                 Parameter() {}
 
-                Parameter( const Parameter& other ) { _tests = other._tests; }
+                Parameter( const ValidationTest& newtest ) : Parameter() {
+                    this->append_test( newtest );
+                }
+
+                Parameter( const test_ptr_t& newtest ) : Parameter() {
+                    this->append_test( newtest );
+                }
+
+                Parameter( std::initializer_list<test_ptr_t> new_tests ) :
+                    Parameter() {
+                    this->append_tests( new_tests );
+                }
+
+                Parameter( const Parameter& other ) { 
+                    _tests = other._tests;
+                 }
 
                 Parameter( Parameter&& other ) noexcept : Parameter() {
                     ::swap( *this, other );
-                }
-
-                Parameter& operator=( Parameter other ) {
-                    ::swap( *this, other );
-                    return *this;
                 }
 
                 virtual ~Parameter() {}
@@ -109,392 +120,37 @@ namespace NCPA {
                     return _tests.status();
                 }
 
-                // template specializations, scalar form
-                // floating point
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_floating_point<PARAMTYPE>::value,
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    return static_cast<PARAMTYPE>( this->as_double() );
-                }
+                virtual bool was_set() const { return true; }
 
-                // signed integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_signed<PARAMTYPE>::value ),
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    return static_cast<PARAMTYPE>( this->as_int() );
-                }
-
-                // unsigned integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_unsigned<PARAMTYPE>::value ),
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    return static_cast<PARAMTYPE>( this->as_size_t() );
-                }
-
-                // boolean
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_same<PARAMTYPE, bool>::value, int>::type
-                         = 0>
-                PARAMTYPE as() const {
-                    return this->as_bool();
-                }
-
-                // string
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_arithmetic<PARAMTYPE>::value )
-                               && std::is_convertible<PARAMTYPE,
-                                                      std::string>::value ),
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    std::string s = this->as_string();
-                    return s;
-                }
-
-                // complex
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_scalar<PARAMTYPE>::value )
-                               && NCPA::types::is_complex<PARAMTYPE>::value ),
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    return PARAMTYPE( this->as_complex().real(),
-                                      this->as_complex().imag() );
-                }
-
-                // everything else
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_arithmetic<PARAMTYPE>::value
-                                  || std::is_convertible<PARAMTYPE,
-                                                         std::string>::value
-                                  || ( !( std::is_scalar<PARAMTYPE>::value )
-                                       && NCPA::types::is_complex<
-                                           PARAMTYPE>::value ) ) ),
-                             int>::type = 0>
-                PARAMTYPE as() const {
-                    return this->typed<PARAMTYPE>().get();
-                }
-
-                // template specializations, scalar form
-                // floating point
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_floating_point<PARAMTYPE>::value,
-                             int>::type = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ]
-                            = static_cast<PARAMTYPE>( this->as_double( i ) );
-                    }
-                    return newvec;
-                }
-
-                // signed integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_signed<PARAMTYPE>::value ),
-                             int>::type = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ]
-                            = static_cast<PARAMTYPE>( this->as_int( i ) );
-                    }
-                    return newvec;
-                }
-
-                // unsigned integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_unsigned<PARAMTYPE>::value ),
-                             int>::type = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ]
-                            = static_cast<PARAMTYPE>( this->as_size_t( i ) );
-                    }
-                    return newvec;
-                }
-
-                // boolean
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_same<PARAMTYPE, bool>::value, int>::type
-                         = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ] = this->as_bool( i );
-                    }
-                    return newvec;
-                }
-
-                // string
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_arithmetic<PARAMTYPE>::value )
-                               && std::is_convertible<PARAMTYPE,
-                                                      std::string>::value ),
-                             int>::type = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ] = this->as_string( i );
-                    }
-                    return newvec;
-                }
-
-                // complex
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_scalar<PARAMTYPE>::value )
-                               && NCPA::types::is_complex<PARAMTYPE>::value ),
-                             int>::type = 0>
-                std::vector<PARAMTYPE> as_vector() const {
-                    std::vector<PARAMTYPE> newvec( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newvec[ i ] = this->as_complex( i );
-                    }
-                    return newvec;
-                }
-
-                virtual size_t as_size_t( size_t n = 0 ) const {
-                    return static_cast<size_t>( this->as_long_int( n ) );
-                }
-
-                // template specializations, scalar form
-                // floating point
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_floating_point<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_double( static_cast<double>( input ) );
-                }
-
-                // signed integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_signed<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_int( static_cast<long long>( input ) );
-                }
-
-                // unsigned integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_unsigned<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_size_t( static_cast<size_t>( input ) );
-                }
-
-                // boolean
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_same<PARAMTYPE, bool>::value, int>::type
-                         = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_bool( input );
-                }
-
-                // string
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_arithmetic<PARAMTYPE>::value )
-                               && std::is_convertible<PARAMTYPE,
-                                                      std::string>::value ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_string( input );
-                }
-
-                // complex
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_scalar<PARAMTYPE>::value )
-                               && NCPA::types::is_complex<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->from_complex( std::complex<double>(
-                        static_cast<double>( input.real() ),
-                        static_cast<double>( input.imag() ) ) );
-                }
-
-                // everything else scalar
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( ( std::is_scalar<PARAMTYPE>::value
-                                 && !( std::is_arithmetic<PARAMTYPE>::value
-                                       || std::is_convertible<
-                                           PARAMTYPE, std::string>::value ) )
-                               || ( !( std::is_scalar<PARAMTYPE>::value )
-                                    && !( NCPA::types::is_complex<
-                                          PARAMTYPE>::value ) ) ),
-                             int>::type = 0>
-                void from( PARAMTYPE input ) const {
-                    this->scalar<PARAMTYPE>().set( input );
-                }
-
-                // template specializations, vector form
-                // floating point
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_floating_point<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    this->from_double( NCPA::arrays::cast_vector<PARAMTYPE,double>( input ) );
-                }
-
-                // signed integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_signed<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    this->from_int( NCPA::arrays::cast_vector<PARAMTYPE,long long>( input ) );
-                }
-
-                // unsigned integer
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( std::is_scalar<PARAMTYPE>::value
-                               && std::is_integral<PARAMTYPE>::value
-                               && !( std::is_same<PARAMTYPE, bool>::value )
-                               && std::is_unsigned<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    this->from_size_t( NCPA::arrays::cast_vector<PARAMTYPE,size_t>( input ) );
-                }
-
-                // boolean
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             std::is_same<PARAMTYPE, bool>::value, int>::type
-                         = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    this->from_bool( input);
-                }
-
-                // string
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_arithmetic<PARAMTYPE>::value )
-                               && std::is_convertible<PARAMTYPE,
-                                                      std::string>::value ),
-                             int>::type = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    std::vector<std::string> newvec(input.size());
-                    for (size_t i = 0; i < input.size(); ++i) {
-                        newvec[i] = input.at(i);
-                    }
-                    this->from_string( newvec );
-                }
-
-                // complex
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( !( std::is_scalar<PARAMTYPE>::value )
-                               && NCPA::types::is_complex<PARAMTYPE>::value ),
-                             int>::type = 0>
-                void from_vector( std::vector<PARAMTYPE> input ) const {
-                    std::vector<std::complex<double>> newvec(input.size());
-                    for (size_t i = 0; i < input.size(); ++i) {
-                        newvec[i].real( static_cast<double>( input.at(i).real() ) );
-                        newvec[i].imag( static_cast<double>( input.at(i).imag() ) );
-                    }
-                    this->from_complex( newvec );
-                }
-
-                // everything else vector
-                template<typename PARAMTYPE,
-                         typename std::enable_if<
-                             ( ( std::is_scalar<PARAMTYPE>::value
-                                 && !( std::is_arithmetic<PARAMTYPE>::value
-                                       || std::is_convertible<
-                                           PARAMTYPE, std::string>::value ) )
-                               || ( !( std::is_scalar<PARAMTYPE>::value )
-                                    && !( NCPA::types::is_complex<
-                                          PARAMTYPE>::value ) ) ),
-                             int>::type = 0>
-                void from_vector( const std::vector<PARAMTYPE>& input ) const {
-                    this->vector<PARAMTYPE>().set( input );
-                }
-
-
-                virtual parameter_form_t form() const               = 0;
-                virtual parameter_type_t type() const               = 0;
-                virtual size_t size() const                         = 0;
+                virtual parameter_form_t form() const                   = 0;
+                virtual parameter_type_t type() const                   = 0;
+                virtual size_t size() const                             = 0;
                 // virtual bool was_set() const                        = 0;
-                virtual param_ptr_t clone() const                   = 0;
-                virtual bool as_bool( size_t n = 0 ) const          = 0;
-                virtual std::string as_string( size_t n = 0 ) const = 0;
-                virtual int as_int( size_t n = 0 ) const            = 0;
-                virtual long long as_long_int( size_t n = 0 ) const = 0;
-                virtual double as_double( size_t n = 0 ) const      = 0;
+                virtual param_ptr_t clone() const                       = 0;
+                virtual bool as_bool( size_t n = 0 ) const              = 0;
+                virtual std::string as_string( size_t n = 0 ) const     = 0;
+                virtual long long as_int( size_t n = 0 ) const          = 0;
+                virtual unsigned long long as_unsigned_int( size_t n
+                                                            = 0 ) const = 0;
+                virtual double as_double( size_t n = 0 ) const          = 0;
                 virtual std::complex<double> as_complex( size_t n = 0 ) const
                     = 0;
 
-                virtual void from_bool( bool b )                     = 0;
-                virtual void from_string( const std::string& s )     = 0;
-                virtual void from_int( long long i )                 = 0;
-                virtual void from_unsigned_int( size_t n )           = 0;
-                virtual void from_double( double d )                 = 0;
-                virtual void from_complex( std::complex<double> c )  = 0;
-                virtual void from_bool( const std::vector<bool>& b ) = 0;
+                virtual void from_bool( bool b )                       = 0;
+                virtual void from_string( const std::string& s )       = 0;
+                virtual void from_int( long long i )                   = 0;
+                virtual void from_unsigned_int( unsigned long long n ) = 0;
+                virtual void from_double( double d )                   = 0;
+                virtual void from_complex( std::complex<double> c )    = 0;
+                virtual void from_bool( const std::vector<bool>& b )   = 0;
                 virtual void from_string( const std::vector<std::string>& s )
                     = 0;
                 virtual void from_int( const std::vector<long long>& i ) = 0;
-                virtual void from_unsigned_int( const std::vector<size_t>& n )
-                    = 0;
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& n )           = 0;
                 virtual void from_double( const std::vector<double>& d ) = 0;
                 virtual void from_complex(
                     const std::vector<std::complex<double>>& c ) = 0;
-
-                template<typename T>
-                TypedParameter<T>& typed() {
-                    return *dynamic_cast<TypedParameter<T> *>( this );
-                }
-
-                template<typename T>
-                ScalarParameter<T>& scalar() {
-                    return *dynamic_cast<ScalarParameter<T> *>( this );
-                }
-
-                template<typename T>
-                VectorParameter<T>& vector() {
-                    return *dynamic_cast<VectorParameter<T> *>( this );
-                }
 
                 bool is_scalar() const {
                     return ( this->form() == parameter_form_t::SCALAR );
@@ -504,12 +160,17 @@ namespace NCPA {
                     return ( this->form() == parameter_form_t::VECTOR );
                 }
 
+                virtual std::vector<double> as_double_vector() const {
+                    std::vector<double> v( this->size() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        v.at( i ) = this->as_double( i );
+                    }
+                    return v;
+                }
 
             protected:
                 ValidationTestSuite _tests;
 
-                // const parameter_form_t _form;
-                // const parameter_type_t _type;
         };
     }  // namespace config
 }  // namespace NCPA

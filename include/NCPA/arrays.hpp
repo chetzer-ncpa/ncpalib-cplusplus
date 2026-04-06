@@ -908,7 +908,7 @@ namespace NCPA {
             delete[] tempvec;
         }
 
-        template<typename FROMTYPE,typename TOTYPE>
+        template<typename TOTYPE, typename FROMTYPE>
         std::vector<TOTYPE> cast_vector( const std::vector<FROMTYPE>& vec ) {
             std::vector<TOTYPE> newvec( vec.size() );
             for (size_t i = 0; i < vec.size(); ++i) {

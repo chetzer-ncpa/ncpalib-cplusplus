@@ -1,8 +1,7 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/validation/declarations.hpp"
-#include "NCPA/configuration/validation/ValidationTest.hpp"
+#include "NCPA/configuration/ValidationTest.hpp"
 
 #include <vector>
 
@@ -152,4 +151,10 @@ namespace NCPA {
                 std::vector<std::unique_ptr<ValidationTest>> _tests;
         };
     }
+}
+
+inline void swap( NCPA::config::ValidationTestSuite& a,
+                  NCPA::config::ValidationTestSuite& b ) noexcept {
+    using std::swap;
+    swap( a._tests, b._tests );
 }
