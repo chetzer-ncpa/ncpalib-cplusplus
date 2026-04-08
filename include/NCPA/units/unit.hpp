@@ -213,6 +213,10 @@ namespace NCPA {
                     return output;
                 }
 
+                std::string to_string() const {
+                    return _name;
+                }
+
             private:
                 std::string _name;
                 std::vector<std::string> _aliases;

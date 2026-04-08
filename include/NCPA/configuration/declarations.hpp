@@ -78,6 +78,7 @@ namespace NCPA {
         typedef ScalarParameter<std::string> StringParameter;
         typedef ScalarParameter<bool> BooleanParameter;
         typedef ScalarParameter<std::complex<double>> ComplexParameter;
+        typedef VectorParameter<double> DoubleVectorParameter;
         typedef std::unique_ptr<ValidationTest> test_ptr_t;
 
         template<typename KEYTYPE>
@@ -105,7 +106,7 @@ template<typename T>
 void swap( NCPA::config::ConfigurationMap<T>& a,
            NCPA::config::ConfigurationMap<T>& b ) noexcept;
 
-template<typename DERIVEDTYPE, typename KEYTYPE>
+template<typename KEYTYPE>
 void swap( NCPA::config::Configurable<KEYTYPE>& a,
            NCPA::config::Configurable<KEYTYPE>& b ) noexcept;
 

@@ -5,6 +5,14 @@
 #include <stdexcept>
 #include <string>
 
+#define DECLARE_PURE_VIRTUAL_CLONE_METHOD( _CLASS_ ) \
+    virtual std::unique_ptr<_CLASS_> clone() const = 0;
+#define DECLARE_OVERRIDE_CLONE_METHOD( _SUPERCLASS_ ) \
+    virtual std::unique_ptr<_SUPERCLASS_> clone() const override;
+#define DEFINE_CLONE_METHOD( _CLASS_, _SUPERCLASS_ )                  \
+    std::unique_ptr<_SUPERCLASS_> _CLASS_::clone() const {            \
+        return std::unique_ptr<_SUPERCLASS_>( new _CLASS_( *this ) ); \
+    }
 
 /**
  * Convenience macros to define classes and templates in up to three namespaces
@@ -19,15 +27,15 @@
     class _CLASSNAME_;
 #define DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
     namespace _NAMESPACE1_ {                                  \
-        DECLARE_CLASS( _CLASSNAME_ )                         \
+        DECLARE_CLASS( _CLASSNAME_ )                          \
     }
 #define DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
     namespace _NAMESPACE1_ {                                     \
-        DECLARE_TEMPLATE( _CLASSNAME_ )                         \
+        DECLARE_TEMPLATE( _CLASSNAME_ )                          \
     }
 #define DECLARE_TYPELIMITED_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
     namespace _NAMESPACE1_ {                                                 \
-        DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )                         \
+        DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )                          \
     }
 #define DECLARE_CLASS_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
     namespace _NAMESPACE1_ {                                                \
@@ -52,14 +60,14 @@
 #define DECLARE_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_, \
                                      _NAMESPACE3_ )                           \
     namespace _NAMESPACE1_ {                                                  \
-        DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,                \
-                                     _NAMESPACE3_ )                          \
+        DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,               \
+                                     _NAMESPACE3_ )                           \
     }
 #define DECLARE_TYPELIMITED_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                                  _NAMESPACE2_, _NAMESPACE3_ ) \
     namespace _NAMESPACE1_ {                                                  \
-        DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,    \
-                                                 _NAMESPACE3_ )              \
+        DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE2_,   \
+                                                 _NAMESPACE3_ )               \
     }
 
 /**
@@ -82,8 +90,8 @@
 #define DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, \
                                           _NAMESPACE2_ )             \
     template<typename T>                                             \
-    DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_<T>,                   \
-                                      _NAMESPACE1_, _NAMESPACE2_ )
+    DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_<T>, _NAMESPACE1_,  \
+                                      _NAMESPACE2_ )
 #define DECLARE_SWAP_FUNCTION_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                           _NAMESPACE2_, _NAMESPACE3_ ) \
     DECLARE_SWAP_FUNCTION_1NAMESPACE(                                  \
@@ -91,73 +99,73 @@
 #define DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                           _NAMESPACE2_, _NAMESPACE3_ ) \
     template<typename T>                                               \
-    DECLARE_SWAP_FUNCTION_3NAMESPACE(                                  \
-        _CLASSNAME_<T>, _NAMESPACE1_,_NAMESPACE2_,_NAMESPACE3_ )
+    DECLARE_SWAP_FUNCTION_3NAMESPACE( _CLASSNAME_<T>, _NAMESPACE1_,    \
+                                      _NAMESPACE2_, _NAMESPACE3_ )
 
 /**
  * Convenience macros for declaring classes and swap functions together, in
  * namespaces up to three deep.
  */
 #define DECLARE_CLASS_AND_SWAP( _CLASSNAME_ ) \
-    DECLARE_CLASS( _CLASSNAME_ )             \
+    DECLARE_CLASS( _CLASSNAME_ )              \
     DECLARE_SWAP_FUNCTION( _CLASSNAME_ )
 
 #define DECLARE_TEMPLATE_AND_SWAP( _CLASSNAME_ ) \
-    DECLARE_TEMPLATE( _CLASSNAME_ )             \
+    DECLARE_TEMPLATE( _CLASSNAME_ )              \
     DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )
 
 #define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP( _CLASSNAME_ ) \
-    DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )             \
+    DECLARE_TYPELIMITED_TEMPLATE( _CLASSNAME_ )              \
     DECLARE_SWAP_TEMPLATE( _CLASSNAME_ )
 
 #define DECLARE_CLASS_AND_SWAP_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
-    DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )             \
+    DECLARE_CLASS_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )              \
     DECLARE_SWAP_FUNCTION_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
 
 #define DECLARE_TEMPLATE_AND_SWAP_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
-    DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )             \
+    DECLARE_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )              \
     DECLARE_SWAP_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
 
-#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_1NAMESPACE( _CLASSNAME_,    \
-                                                          _NAMESPACE1_ )  \
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_1NAMESPACE( _CLASSNAME_,   \
+                                                          _NAMESPACE1_ ) \
     DECLARE_TYPELIMITED_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ ) \
     DECLARE_SWAP_TEMPLATE_1NAMESPACE( _CLASSNAME_, _NAMESPACE1_ )
 
-#define DECLARE_CLASS_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
-                                           _NAMESPACE2_ )                \
+#define DECLARE_CLASS_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                           _NAMESPACE2_ )               \
     DECLARE_CLASS_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
     DECLARE_SWAP_FUNCTION_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
 
-#define DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
-                                              _NAMESPACE2_ )                \
+#define DECLARE_TEMPLATE_AND_SWAP_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
+                                              _NAMESPACE2_ )               \
     DECLARE_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ ) \
     DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
 
 #define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_2NAMESPACE(               \
     _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )                           \
     DECLARE_TYPELIMITED_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, \
-                                             _NAMESPACE2_ )            \
+                                             _NAMESPACE2_ )             \
     DECLARE_SWAP_TEMPLATE_2NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_ )
 
 #define DECLARE_CLASS_AND_SWAP_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                            _NAMESPACE2_, _NAMESPACE3_ ) \
     DECLARE_CLASS_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_,  \
-                              _NAMESPACE3_ )                           \
+                              _NAMESPACE3_ )                            \
     DECLARE_SWAP_FUNCTION_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,        \
                                       _NAMESPACE2_, _NAMESPACE3_ )
 
 #define DECLARE_TEMPLATE_AND_SWAP_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                               _NAMESPACE2_, _NAMESPACE3_ ) \
     DECLARE_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_,  \
-                                 _NAMESPACE3_ )                           \
+                                 _NAMESPACE3_ )                            \
     DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,           \
                                       _NAMESPACE2_, _NAMESPACE3_ )
 
-#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE(                  \
-    _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_, _NAMESPACE3_ )                \
-    DECLARE_TYPELIMITED_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,    \
+#define DECLARE_TYPELIMITED_TEMPLATE_AND_SWAP_3NAMESPACE(                 \
+    _CLASSNAME_, _NAMESPACE1_, _NAMESPACE2_, _NAMESPACE3_ )               \
+    DECLARE_TYPELIMITED_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,   \
                                              _NAMESPACE2_, _NAMESPACE3_ ) \
-    DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,           \
+    DECLARE_SWAP_TEMPLATE_3NAMESPACE( _CLASSNAME_, _NAMESPACE1_,          \
                                       _NAMESPACE2_, _NAMESPACE3_ )
 
 
@@ -179,89 +187,76 @@
 
 #define ENABLE_FUNCTION_IF_REAL( _TYPE_ )                                     \
     typename std::enable_if<std::is_floating_point<_TYPE_>::value, int>::type \
-        ENABLER                                                               \
-        = 0
+        ENABLER = 0
 
 #define ENABLE_METHOD_IF_REAL( _TYPE_ )                            \
     typename std::enable_if<std::is_floating_point<_TYPE_>::value, \
-                            std::nullptr_t>::type                  \
-        = nullptr
+                            std::nullptr_t>::type = nullptr
 
 #define ENABLE_IF_INTEGRAL( _TYPE_ ) \
     typename std::enable_if<std::is_integral<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_INTEGRAL( _TYPE_ )                           \
     typename std::enable_if<std::is_integral<_TYPE_>::value, int>::type \
-        ENABLER                                                         \
-        = 0
+        ENABLER = 0
 
 #define ENABLE_METHOD_IF_INTEGRAL( _TYPE_ )                  \
     typename std::enable_if<std::is_integral<_TYPE_>::value, \
-                            std::nullptr_t>::type            \
-        = nullptr
+                            std::nullptr_t>::type = nullptr
 
 #define ENABLE_IF_STRING( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_STRING( _TYPE_ )                            \
     typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value, \
-                            int>::type ENABLER                         \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_METHOD_IF_STRING( _TYPE_ )                              \
     typename std::enable_if<NCPA::types::is_std_string<_TYPE_>::value, \
-                            std::nullptr_t>::type                      \
-        = nullptr
+                            std::nullptr_t>::type = nullptr
 
 #define ENABLE_IF_NUMERIC( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_NUMERIC( _TYPE_ )                        \
     typename std::enable_if<NCPA::types::is_numeric<_TYPE_>::value, \
-                            int>::type ENABLER                      \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_FUNCTION_IF_NOT_NUMERIC( _TYPE_ )                     \
     typename std::enable_if<!NCPA::types::is_numeric<_TYPE_>::value, \
-                            int>::type ENABLER                       \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_IF_ARITHMETIC( _TYPE_ ) \
     typename std::enable_if<std::is_arithmetic<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_ARITHMETIC( _TYPE_ )                           \
     typename std::enable_if<std::is_arithmetic<_TYPE_>::value, int>::type \
-        ENABLER                                                           \
-        = 0
+        ENABLER = 0
 
 #define ENABLE_IF_COMPLEX( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_complex<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_COMPLEX( _TYPE_ )                        \
     typename std::enable_if<NCPA::types::is_complex<_TYPE_>::value, \
-                            int>::type ENABLER                      \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_IF_DELETEABLE( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_deleteable<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_DELETEABLE( _TYPE_ )                        \
     typename std::enable_if<NCPA::types::is_deleteable<_TYPE_>::value, \
-                            int>::type ENABLER                         \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_FUNCTION_IF_NOT_DELETEABLE( _TYPE_ )                     \
     typename std::enable_if<!NCPA::types::is_deleteable<_TYPE_>::value, \
-                            int>::type ENABLER                          \
-        = 0
+                            int>::type ENABLER = 0
 
 #define ENABLE_IF_ITERABLE( _TYPE_ ) \
     typename std::enable_if<NCPA::types::is_iterable<_TYPE_>::value>::type
 
 #define ENABLE_FUNCTION_IF_ITERABLE( _TYPE_ )                        \
     typename std::enable_if<NCPA::types::is_iterable<_TYPE_>::value, \
-                            int>::type ENABLER                       \
-        = 0
+                            int>::type ENABLER = 0
 
 #define DECLARE_GENERIC_TEMPLATE_NO_SUPERCLASS( _CLASSNAME_ ) \
     template<typename ELEMENTTYPE, typename = void>           \

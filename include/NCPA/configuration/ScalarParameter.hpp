@@ -139,19 +139,38 @@ namespace NCPA {
                         }
                     }
 
-                    template<typename T = PARAMTYPE,
-                             typename std::enable_if<
-                                 NCPA::types::has_to_string<T>::value,
-                                 int>::type = 0>
-                    std::string _as_string( size_t n = 0 ) const {
-                        return to_string( this->get() );
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<NCPA::types::has_to_string<T>::value,
+                                            std::string>::type
+                        _as_string( size_t n = 0 ) const {
+                        return this->get( n ).to_string();
                     }
 
-                    template<typename T = PARAMTYPE,
-                             typename std::enable_if<
-                                 !( NCPA::types::has_to_string<T>::value ),
-                                 int>::type = 0>
-                    std::string _as_string( size_t n = 0 ) const {
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<( !( NCPA::types::has_to_string<T>::value )
+                                              && NCPA::types::can_use_std_to_string<T>::value ),
+                                            std::string>::type
+                        _as_string( size_t n = 0 ) const {
+                        return std::to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( NCPA::types::can_use_std_to_string<T>::value
+                             || NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n = 0 ) const {
+                        return to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        !( NCPA::types::can_use_to_string<T>::value
+                           || NCPA::types::has_to_string<T>::value
+                           || NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n = 0 ) const {
                         throw std::out_of_range(
                             "No as_string() conversion defined!" );
                     }
@@ -165,8 +184,7 @@ namespace NCPA {
                            std::is_floating_point<PARAMTYPE>::value>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-
-                 ScalarParameter() :
+                ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
@@ -184,8 +202,6 @@ namespace NCPA {
                 ScalarParameter(
                     std::initializer_list<test_ptr_t> new_tests ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
-
-
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const ValidationTest& newtest ) :

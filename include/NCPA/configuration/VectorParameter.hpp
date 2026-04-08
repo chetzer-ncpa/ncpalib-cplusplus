@@ -137,17 +137,39 @@ namespace NCPA {
                     //     }
                     // }
 
-                    template<typename T                         = PARAMTYPE,
-                             typename std::enable_if<NCPA::types::has_to_string<T>::value,
-                                                     int>::type = 0>
-                    std::string _as_string( size_t n = 0 ) const {
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<NCPA::types::has_to_string<T>::value,
+                                            std::string>::type
+                        _as_string( size_t n = 0 ) const {
+                        return this->get( n ).to_string();
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n = 0 ) const {
+                        return std::to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( NCPA::types::can_use_std_to_string<T>::value
+                             || NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n = 0 ) const {
                         return to_string( this->get( n ) );
                     }
 
-                    template<typename T = PARAMTYPE,
-                             typename std::enable_if<
-                                 !( NCPA::types::has_to_string<T>::value ), int>::type = 0>
-                    std::string _as_string( size_t n = 0 ) const {
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        !( NCPA::types::can_use_to_string<T>::value
+                           || NCPA::types::has_to_string<T>::value
+                           || NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n = 0 ) const {
                         throw std::out_of_range(
                             "No as_string() conversion defined!" );
                     }
@@ -220,23 +242,28 @@ namespace NCPA {
 
                 virtual void from_bool(
                     const std::vector<bool>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
                 }
 
                 virtual void from_int(
                     const std::vector<long long>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, long long>(
+                            vec );
                 }
 
                 virtual void from_unsigned_int(
                     const std::vector<unsigned long long>& vec ) override {
                     this->_value
-                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                        = NCPA::arrays::cast_vector<PARAMTYPE,
+                                                    unsigned long long>( vec );
                 }
 
                 virtual void from_double(
                     const std::vector<double>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
                 }
 
                 virtual void from_complex(
@@ -322,23 +349,28 @@ namespace NCPA {
 
                 virtual void from_bool(
                     const std::vector<bool>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
                 }
 
                 virtual void from_int(
                     const std::vector<long long>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, long long>(
+                            vec );
                 }
 
                 virtual void from_unsigned_int(
                     const std::vector<unsigned long long>& vec ) override {
                     this->_value
-                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                        = NCPA::arrays::cast_vector<PARAMTYPE,
+                                                    unsigned long long>( vec );
                 }
 
                 virtual void from_double(
                     const std::vector<double>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
                 }
 
                 virtual void from_complex(
@@ -425,23 +457,28 @@ namespace NCPA {
 
                 virtual void from_bool(
                     const std::vector<bool>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, bool>( vec );
                 }
 
                 virtual void from_int(
                     const std::vector<long long>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, long long>(
+                            vec );
                 }
 
                 virtual void from_unsigned_int(
                     const std::vector<unsigned long long>& vec ) override {
                     this->_value
-                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                        = NCPA::arrays::cast_vector<PARAMTYPE,
+                                                    unsigned long long>( vec );
                 }
 
                 virtual void from_double(
                     const std::vector<double>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
                 }
 
                 virtual void from_complex(
@@ -529,18 +566,22 @@ namespace NCPA {
 
                 virtual void from_int(
                     const std::vector<long long>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, long long>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, long long>(
+                            vec );
                 }
 
                 virtual void from_unsigned_int(
                     const std::vector<unsigned long long>& vec ) override {
                     this->_value
-                        = NCPA::arrays::cast_vector<PARAMTYPE, unsigned long long>( vec );
+                        = NCPA::arrays::cast_vector<PARAMTYPE,
+                                                    unsigned long long>( vec );
                 }
 
                 virtual void from_double(
                     const std::vector<double>& vec ) override {
-                    this->_value = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
+                    this->_value
+                        = NCPA::arrays::cast_vector<PARAMTYPE, double>( vec );
                 }
 
                 virtual void from_complex(
@@ -557,7 +598,8 @@ namespace NCPA {
                     this->_value.resize( vec.size() );
                     for (size_t i = 0; i < vec.size(); ++i) {
                         this->_value.at( i )
-                            = ( NCPA::strings::to_lower( vec.at( i ) ) == "true" );
+                            = ( NCPA::strings::to_lower( vec.at( i ) )
+                                == "true" );
                     }
                 }
 

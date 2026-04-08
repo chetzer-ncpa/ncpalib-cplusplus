@@ -120,13 +120,55 @@
 #include <type_traits>
 #include <utility>
 
-#define DECLARE_HAS_FUNCTION_TRAIT( _FUNCTION_ )                \
-    template<typename T, typename = void>                       \
-    struct has_##_FUNCTION_ : std::false_type {};               \
-    template<typename T>                                        \
-    struct has_##_FUNCTION_<                                    \
-        T, void_t<decltype( _FUNCTION_( std::declval<T>() ) )>> \
-        : std::true_type {};
+// #define DECLARE_HAS_FUNCTION_TRAIT( _FUNCTION_ )                \
+//     template<typename T, typename = void>                       \
+//     struct has_##_FUNCTION_ : std::false_type {};               \
+//     template<typename T>                                        \
+//     struct has_##_FUNCTION_<                                    \
+//         T, void_t<decltype( _FUNCTION_( std::declval<T>() ) )>> \
+//         : std::true_type {};
+
+#define DECLARE_CAN_USE_FUNCTION( _FUNCTION_ )                             \
+    template<typename T>                                                   \
+    class can_use_##_FUNCTION_ {                                           \
+            template<typename U>                                           \
+            static auto test( int )                                        \
+                -> decltype( _FUNCTION_( std::declval<U>() ),              \
+                             std::true_type() );                           \
+            template<typename>                                             \
+            static std::false_type test( ... );                            \
+                                                                           \
+        public:                                                            \
+            static constexpr bool value = decltype( test<T>( 0 ) )::value; \
+    };
+
+#define DECLARE_CAN_USE_STD_FUNCTION( _FUNCTION_ )                         \
+    template<typename T>                                                   \
+    class can_use_std_##_FUNCTION_ {                                       \
+            template<typename U>                                           \
+            static auto test( int )                                        \
+                -> decltype( std::_FUNCTION_( std::declval<U>() ),         \
+                             std::true_type() );                           \
+            template<typename>                                             \
+            static std::false_type test( ... );                            \
+                                                                           \
+        public:                                                            \
+            static constexpr bool value = decltype( test<T>( 0 ) )::value; \
+    };
+
+#define DECLARE_HAS_METHOD( _METHOD_ )                                     \
+    template<typename T>                                                   \
+    class has_##_METHOD_ {                                                 \
+            template<typename U>                                           \
+            static auto test( int )                                        \
+                -> decltype( std::declval<U>()._METHOD_(),                 \
+                             std::true_type() );                           \
+            template<typename>                                             \
+            static std::false_type test( ... );                            \
+                                                                           \
+        public:                                                            \
+            static constexpr bool value = decltype( test<T>( 0 ) )::value; \
+    };
 
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
@@ -258,7 +300,9 @@ namespace NCPA {
                             U, typename T::value_type>::value );
         };
 
-        DECLARE_HAS_FUNCTION_TRAIT(to_string)
-
+        DECLARE_CAN_USE_FUNCTION( to_string )
+        DECLARE_CAN_USE_STD_FUNCTION( to_string )
+        DECLARE_HAS_METHOD( to_string )
+        
     }  // namespace types
 }  // namespace NCPA

@@ -7,6 +7,7 @@
 #include "NCPA/configuration/VectorParameter.hpp"
 #include "NCPA/units.hpp"
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -28,6 +29,9 @@ namespace NCPA {
 
                 virtual ~Configurable() {}
 
+                friend void swap<>( Configurable<KEYTYPE>& a,
+                                    Configurable<KEYTYPE>& b ) noexcept;
+
                 template<typename K = KEYTYPE,
                          typename std::enable_if<
                              std::is_convertible<K, std::string>::value,
@@ -40,30 +44,28 @@ namespace NCPA {
                         ->convert_to( this->parameter( key ).as_double(), *u );
                 }
 
-                Configurable<KEYTYPE>& convert_parameter( KEYTYPE key,
-                                        const NCPA::units::units_ptr_t ufrom,
-                                        const NCPA::units::units_ptr_t uto ) {
+                Configurable<KEYTYPE>& convert_parameter(
+                    KEYTYPE key, const NCPA::units::units_ptr_t ufrom,
+                    const NCPA::units::units_ptr_t uto ) {
                     if (this->parameter( key ).is_scalar()) {
                         this->parameter( key ).from_double( ufrom->convert_to(
                             this->parameter( key ).as_double(), uto ) );
                     } else {
-                        this->parameter( key ).from_double_vector(
-                            ufrom->convert_to(
-                                this->parameter( key ).as_double_vector(),
-                                uto ) );
+                        this->parameter( key ).from_double( ufrom->convert_to(
+                            this->parameter( key ).as_double_vector(), uto ) );
                     }
                     return *this;
                 }
 
                 // convert assuming units are stored as "<key>_units"
-                template<typename TOTYPE = double, typename K = KEYTYPE,
+                template<typename K = KEYTYPE,
                          typename std::enable_if<
                              std::is_convertible<K, std::string>::value,
                              int>::type = 0>
-                Configurable<KEYTYPE>& convert_parameter( KEYTYPE key,
-                                        const NCPA::units::units_ptr_t uto ) {
+                Configurable<KEYTYPE>& convert_parameter(
+                    KEYTYPE key, const NCPA::units::units_ptr_t uto ) {
                     std::string ukey = _make_units_key( key );
-                    return this->convert_parameter<TOTYPE>(
+                    return this->convert_parameter(
                         key, this->get<NCPA::units::units_ptr_t>( ukey ),
                         uto );
                 }
@@ -167,13 +169,13 @@ namespace NCPA {
                     return *( _parameters.at( key ).get() );
                 }
 
-                Configurable<KEYTYPE>& copy_parameter( const KEYTYPE& key,
-                                     const param_ptr_t& ptr ) {
+                Configurable<KEYTYPE>& copy_parameter(
+                    const KEYTYPE& key, const param_ptr_t& ptr ) {
                     return this->copy_parameter( key, *ptr );
                 }
 
                 Configurable<KEYTYPE>& copy_parameter( const KEYTYPE& key,
-                                     const Parameter& ptr ) {
+                                                       const Parameter& ptr ) {
                     _parameters[ key ] = ptr.clone();
                     return *this;
                 }
@@ -343,7 +345,8 @@ namespace NCPA {
                     // NCPA_DEBUG << "Vector size is " << n << std::endl;
                     std::vector<PARAMTYPE> vec( n );
                     for (size_t i = 0; i < n; ++i) {
-                        // NCPA_DEBUG << "Getting " << key << "[" << n << "]" << std::endl;
+                        // NCPA_DEBUG << "Getting " << key << "[" << n << "]"
+                        // << std::endl;
                         vec[ i ] = this->get<PARAMTYPE>( key, i );
                     }
                     return vec;
@@ -383,12 +386,10 @@ namespace NCPA {
                              int>::type = 0>
                 NCPA::units::VectorWithUnits<PARAMTYPE> get_vector_with_units(
                     KEYTYPE key ) const {
-                    return NCPA::units::VectorWithUnits<PARAMTYPE>(
-                        this->get_vector<PARAMTYPE>( key ),
-                        this->get<NCPA::units::units_ptr_t>( key
-                                                             + "_units" ) );
+                    return this->get_vector_with_units( key, key + "_units" );
                 }
 
+                // case 1: scalar or complex, not stringifyable
                 template<typename PARAMTYPE,
                          typename std::enable_if<
                              ( std::is_scalar<PARAMTYPE>::value
@@ -401,12 +402,29 @@ namespace NCPA {
                     return *this;
                 }
 
-                template<
-                    typename PARAMTYPE,
-                    typename std::enable_if<
-                        ( !( std::is_scalar<PARAMTYPE>::value
-                             || NCPA::types::is_complex<PARAMTYPE>::value ) ),
-                        int>::type = 0>
+                // case 2: not scalar, is a string
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             ( !( std::is_scalar<PARAMTYPE>::value )
+                               && std::is_convertible<PARAMTYPE,
+                                                      std::string>::value ),
+                             int>::type = 0>
+                Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
+                    this->add_parameter(
+                        key, param_ptr_t(
+                                 new ScalarParameter<std::string>( val ) ) );
+                    return *this;
+                }
+
+                // case 3 is neither scalar, complex, nor a string, therefore
+                // vector
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             ( !( std::is_scalar<PARAMTYPE>::value
+                                  || NCPA::types::is_complex<PARAMTYPE>::value
+                                  || std::is_convertible<
+                                      PARAMTYPE, std::string>::value ) ),
+                             int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
                         key, param_ptr_t( new VectorParameter<
@@ -420,19 +438,10 @@ namespace NCPA {
                              std::is_convertible<KEYTYPE, std::string>::value,
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
-                          NCPA::units::units_ptr_t units ) {
+                                            NCPA::units::units_ptr_t units ) {
                     this->set<PARAMTYPE>( key, val );
-                    // this->add_parameter<PARAMTYPE>(
-                    //     key,
-                    //     param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) )
-                    //     );
                     std::string units_key = key + "_units";
                     this->set<NCPA::units::units_ptr_t>( units_key, units );
-                    // this->add_parameter<units_ptr_t>(
-                    //     units_key,
-                    //     param_ptr_t(
-                    //         new ScalarParameter<NCPA::units::units_ptr_t>(
-                    //             units ) ) );
                     return *this;
                 }
 
@@ -440,8 +449,9 @@ namespace NCPA {
                     return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
-                Configurable<KEYTYPE>& copy_parameters_from( const Configurable<KEYTYPE>& other,
-                                           bool create_if_missing = true ) {
+                Configurable<KEYTYPE>& copy_parameters_from(
+                    const Configurable<KEYTYPE>& other,
+                    bool create_if_missing = true ) {
                     // this->init();
                     for (auto it = other.parameters().cbegin();
                          it != other.parameters().cend(); ++it) {
@@ -456,9 +466,9 @@ namespace NCPA {
                     return *this;
                 }
 
-                const Configurable<KEYTYPE>& copy_parameters_to( Configurable<KEYTYPE>& other,
-                                         bool create_if_missing
-                                         = true ) const {
+                const Configurable<KEYTYPE>& copy_parameters_to(
+                    Configurable<KEYTYPE>& other,
+                    bool create_if_missing = true ) const {
                     other.copy_parameters_from( *this, create_if_missing );
                     return *this;
                 }
@@ -470,6 +480,39 @@ namespace NCPA {
 
                 virtual const ConfigurationMap<KEYTYPE>& parameters() const {
                     return _parameters;
+                }
+
+                virtual std::vector<std::string> parameter_keys(
+                    bool sorted = false ) const {
+                    std::vector<std::string> keys;
+                    for (auto it = _parameters.cbegin();
+                         it != _parameters.cend(); ++it) {
+                        keys.push_back( it->first );
+                    }
+                    if (sorted) {
+                        std::sort( keys.begin(), keys.end() );
+                    }
+                    return keys;
+                }
+
+                virtual void print_configuration( std::ostream& os ) const {
+                    size_t longest = 0;
+                    std::vector<std::string> keys
+                        = this->parameter_keys( true );
+                    for (std::string key : keys) {
+                        longest = std::max( key.size(), longest );
+                    }
+                    for (std::string key : keys) {
+                        os.width( longest );
+                        os << key << " : ";
+                        os.width( 0 );
+                        try {
+                            os << parameter( key ).as_string();
+                        } catch (std::out_of_range& oor) {
+                            os << "<no string>";
+                        }
+                        os << std::endl;
+                    }
                 }
 
             private:
