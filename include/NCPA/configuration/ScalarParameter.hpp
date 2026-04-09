@@ -1,7 +1,8 @@
 #pragma once
+
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
 #include <regex>
@@ -27,7 +28,8 @@ namespace NCPA {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
-                    _base_scalar_parameter() : TypedParameter<PARAMTYPE>() {}
+                    _base_scalar_parameter() :
+                        _base_scalar_parameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
@@ -115,19 +117,23 @@ namespace NCPA {
 
                     virtual size_t size() const override { return 1; }
 
-                    virtual PARAMTYPE& get( size_t n = 0 ) override {
-                        return _value;
-                    }
-
-                    virtual const PARAMTYPE& get( size_t n
-                                                  = 0 ) const override {
-                        return _value;
+                    virtual PARAMTYPE get( size_t n = 0 ) const override {
+                        return this->_value;
                     }
 
                     virtual std::vector<PARAMTYPE> get_vector()
                         const override {
-                        return std::vector<PARAMTYPE> { _value };
+                        return std::vector<PARAMTYPE> { this->_value };
                     }
+
+                    // virtual PARAMTYPE& value( size_t n = 0 ) override {
+                    //     return _value();
+                    // }
+
+                    // virtual const PARAMTYPE& value( size_t n
+                    //                               = 0 ) const override {
+                    //     return _value;
+                    // }
 
                 protected:
                     PARAMTYPE _value;
@@ -140,16 +146,18 @@ namespace NCPA {
                     }
 
                     template<typename T = PARAMTYPE>
-                    typename std::enable_if<NCPA::types::has_to_string<T>::value,
-                                            std::string>::type
+                    typename std::enable_if<
+                        NCPA::types::has_to_string<T>::value,
+                        std::string>::type
                         _as_string( size_t n = 0 ) const {
                         return this->get( n ).to_string();
                     }
 
                     template<typename T = PARAMTYPE>
-                    typename std::enable_if<( !( NCPA::types::has_to_string<T>::value )
-                                              && NCPA::types::can_use_std_to_string<T>::value ),
-                                            std::string>::type
+                    typename std::enable_if<
+                        ( !( NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
                         _as_string( size_t n = 0 ) const {
                         return std::to_string( this->get( n ) );
                     }
@@ -185,7 +193,7 @@ namespace NCPA {
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( 0.0 ) {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
@@ -291,28 +299,28 @@ namespace NCPA {
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::stod( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::stod( x ) );
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -368,7 +376,81 @@ namespace NCPA {
                                   && std::is_signed<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return ( this->get() != 0 );
@@ -397,28 +479,28 @@ namespace NCPA {
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::stol( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::stol( x ) );
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -474,7 +556,81 @@ namespace NCPA {
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return ( this->get() != 0 );
@@ -503,28 +659,28 @@ namespace NCPA {
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::stoull( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::stoull( x ) );
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -577,7 +733,81 @@ namespace NCPA {
                                              PARAMTYPE, bool>::value>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( false ) {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return this->get();
@@ -605,27 +835,27 @@ namespace NCPA {
                     return std::complex<double>( this->as_double(), 0.0 );
                 }
 
-                virtual void from_bool( bool x ) override { this->get() = x; }
+                virtual void from_bool( bool x ) override { this->_value = x; }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get() = ( x == "true" );
+                    this->_value = ( x == "true" );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get() = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -684,7 +914,81 @@ namespace NCPA {
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( "" ) {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     std::string s = this->get();
@@ -728,28 +1032,28 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::from_complex;
 
                 virtual void from_bool( bool x ) override {
-                    this->get() = ( x ? "true" : "false" );
+                    this->_value = ( x ? "true" : "false" );
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get() = x;
+                    this->_value = x;
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = std::to_string( x );
+                    this->_value = std::to_string( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = std::to_string( x );
+                    this->_value = std::to_string( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = std::to_string( x );
+                    this->_value = std::to_string( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get() = std::to_string( std::abs( x ) );
+                    this->_value = std::to_string( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -805,7 +1109,81 @@ namespace NCPA {
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( PARAMTYPE{ 0, 0 } ) {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return ( std::abs( this->get() ) != 0.0 );
@@ -851,20 +1229,20 @@ namespace NCPA {
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get() = static_cast<PARAMTYPE>( x );
+                    this->_value = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_bool(
@@ -922,7 +1300,81 @@ namespace NCPA {
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE
+                ScalarParameter() :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {}
+
+                ScalarParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+
+                ScalarParameter( const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
+
+                ScalarParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                ScalarParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+
+                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
+                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     throw std::out_of_range(

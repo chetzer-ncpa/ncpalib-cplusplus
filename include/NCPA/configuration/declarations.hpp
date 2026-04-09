@@ -4,6 +4,7 @@
 #include "NCPA/types.hpp"
 
 #include <memory>
+#include <complex>
 
 namespace NCPA {
     namespace config {
@@ -26,7 +27,7 @@ namespace NCPA {
         class ValidationTest;
         class ValidationTestSuite;
         class NullaryValidationTest;
-        class Parameter;
+        class BaseParameter;
 
         template<typename T>
         class TypedParameter;
@@ -36,6 +37,15 @@ namespace NCPA {
 
         template<typename T, typename Enable = void>
         class VectorParameter;
+
+        template<typename T, typename Enable = void>
+        class ScalarParameterWithUnits;
+
+        template<typename T, typename Enable = void>
+        class VectorParameterWithUnits;
+
+        // builder class
+        class Parameter;
 
         template<typename T>
         class ConfigurationMap;
@@ -72,7 +82,7 @@ namespace NCPA {
         template<typename T, typename Enable = void>
         class IsLessThanOrEqualToTest;
 
-        typedef std::unique_ptr<Parameter> param_ptr_t;
+        typedef std::unique_ptr<BaseParameter> param_ptr_t;
         typedef ScalarParameter<double> DoubleParameter;
         typedef ScalarParameter<int> IntegerParameter;
         typedef ScalarParameter<std::string> StringParameter;
@@ -87,8 +97,8 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-inline void swap( NCPA::config::Parameter& a,
-                  NCPA::config::Parameter& b ) noexcept;
+inline void swap( NCPA::config::BaseParameter& a,
+                  NCPA::config::BaseParameter& b ) noexcept;
 
 template<typename T>
 void swap( NCPA::config::TypedParameter<T>& a,
@@ -98,9 +108,17 @@ template<typename T>
 void swap( NCPA::config::ScalarParameter<T>& a,
            NCPA::config::ScalarParameter<T>& b ) noexcept;
 
+           template<typename T>
+void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
+           NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
+
 template<typename T>
 void swap( NCPA::config::VectorParameter<T>& a,
            NCPA::config::VectorParameter<T>& b ) noexcept;
+
+           template<typename T>
+void swap( NCPA::config::VectorParameterWithUnits<T>& a,
+           NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
 
 template<typename T>
 void swap( NCPA::config::ConfigurationMap<T>& a,

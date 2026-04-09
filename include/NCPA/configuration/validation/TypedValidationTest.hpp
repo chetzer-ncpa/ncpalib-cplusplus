@@ -18,10 +18,10 @@ namespace NCPA {
                 friend void ::swap<>( TypedValidationTest<T>& a,
                                       TypedValidationTest<T>& b ) noexcept;
 
-                virtual const T& parameter_value(
-                    const Parameter *param ) const {
+                virtual const T parameter_value(
+                    const BaseParameter *param ) const {
                     return dynamic_cast<const TypedParameter<T> *>( param )
-                        ->value();
+                        ->get();
                 }
 
                 virtual T value( size_t n ) const = 0;

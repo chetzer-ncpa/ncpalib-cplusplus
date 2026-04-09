@@ -8,50 +8,50 @@
 #  undef NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 #endif
 
-#define NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE                 \
-    ScalarParameter() : hidden::_base_scalar_parameter<PARAMTYPE>() {}        \
-    ScalarParameter(PARAMTYPE defaultval)                                     \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval) {}            \
-    ScalarParameter(const std::vector<PARAMTYPE>& defaultval)                 \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval) {}            \
-    ScalarParameter(const ValidationTest& newtest)                            \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(newtest) {}               \
-    ScalarParameter(const test_ptr_t& newtest)                                \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(newtest) {}               \
-    ScalarParameter(std::initializer_list<test_ptr_t> new_tests)              \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(new_tests) {}             \
-    ScalarParameter(PARAMTYPE defaultval, const ValidationTest& newtest)      \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
-    ScalarParameter(PARAMTYPE defaultval, const test_ptr_t& newtest)          \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
-    ScalarParameter(PARAMTYPE defaultval,                                     \
-                    std::initializer_list<test_ptr_t> new_tests)              \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, new_tests) {} \
-    ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
-                    const ValidationTest& newtest)                            \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
-    ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
-                    const test_ptr_t& newtest)                                \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
-    ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
-                    std::initializer_list<test_ptr_t> new_tests)              \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, new_tests) {} \
-    ScalarParameter(const ScalarParameter<PARAMTYPE>& other)                  \
-        : hidden::_base_scalar_parameter<PARAMTYPE>(other) {}                 \
-    ScalarParameter(ScalarParameter<PARAMTYPE>&& other) noexcept              \
-        : hidden::_base_scalar_parameter<PARAMTYPE>() {                       \
-        ::swap(*this, other);                                                 \
-    }                                                                         \
-    virtual ~ScalarParameter() {}                                             \
-    ScalarParameter<PARAMTYPE>& operator=(ScalarParameter<PARAMTYPE> other) { \
-        ::swap(*this, other);                                                 \
-        return *this;                                                         \
-    }                                                                         \
-    friend void ::swap<>(ScalarParameter<PARAMTYPE> & a,                      \
-                         ScalarParameter<PARAMTYPE> & b) noexcept;            \
-    virtual param_ptr_t clone() const override {                              \
-        return param_ptr_t(new ScalarParameter<PARAMTYPE>(*this));            \
-    }
+// #define NCPA_CONFIGURATION_SCALARPARAMETER_PUBLIC_BOILERPLATE                 \
+//     ScalarParameter() : hidden::_base_scalar_parameter<PARAMTYPE>() {}        \
+//     ScalarParameter(PARAMTYPE defaultval)                                     \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval) {}            \
+//     ScalarParameter(const std::vector<PARAMTYPE>& defaultval)                 \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval) {}            \
+//     ScalarParameter(const ValidationTest& newtest)                            \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(newtest) {}               \
+//     ScalarParameter(const test_ptr_t& newtest)                                \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(newtest) {}               \
+//     ScalarParameter(std::initializer_list<test_ptr_t> new_tests)              \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(new_tests) {}             \
+//     ScalarParameter(PARAMTYPE defaultval, const ValidationTest& newtest)      \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
+//     ScalarParameter(PARAMTYPE defaultval, const test_ptr_t& newtest)          \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
+//     ScalarParameter(PARAMTYPE defaultval,                                     \
+//                     std::initializer_list<test_ptr_t> new_tests)              \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, new_tests) {} \
+//     ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
+//                     const ValidationTest& newtest)                            \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
+//     ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
+//                     const test_ptr_t& newtest)                                \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, newtest) {}   \
+//     ScalarParameter(const std::vector<PARAMTYPE>& defaultval,                 \
+//                     std::initializer_list<test_ptr_t> new_tests)              \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(defaultval, new_tests) {} \
+//     ScalarParameter(const ScalarParameter<PARAMTYPE>& other)                  \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>(other) {}                 \
+//     ScalarParameter(ScalarParameter<PARAMTYPE>&& other) noexcept              \
+//         : hidden::_base_scalar_parameter<PARAMTYPE>() {                       \
+//         ::swap(*this, other);                                                 \
+//     }                                                                         \
+//     virtual ~ScalarParameter() {}                                             \
+//     ScalarParameter<PARAMTYPE>& operator=(ScalarParameter<PARAMTYPE> other) { \
+//         ::swap(*this, other);                                                 \
+//         return *this;                                                         \
+//     }                                                                         \
+//     friend void ::swap<>(ScalarParameter<PARAMTYPE> & a,                      \
+//                          ScalarParameter<PARAMTYPE> & b) noexcept;            \
+//     virtual param_ptr_t clone() const override {                              \
+//         return param_ptr_t(new ScalarParameter<PARAMTYPE>(*this));            \
+//     }
 
 
 #define NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE                 \

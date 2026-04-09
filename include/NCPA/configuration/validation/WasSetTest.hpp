@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/validation/NullaryValidationTest.hpp"
 
 #include <memory>
@@ -28,7 +28,7 @@ namespace NCPA {
                 }
 
                 virtual ValidationTest& test(
-                    const Parameter *param ) override {
+                    const BaseParameter *param ) override {
                     if (param->was_set()) {
                         this->pass();
                     } else {
