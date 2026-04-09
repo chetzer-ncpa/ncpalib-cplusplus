@@ -1,7 +1,7 @@
 #pragma once
 
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/types.hpp"
 #include "NCPA/units.hpp"
 
@@ -12,25 +12,25 @@ namespace NCPA {
     namespace config {
 
         template<typename PARAMTYPE>
-        class TypedParameter : public Parameter {
+        class TypedParameter : public BaseParameter {
             public:
                 using value_type = PARAMTYPE;
 
-                TypedParameter() : Parameter() {}
+                TypedParameter() : BaseParameter() {}
 
                 TypedParameter( const ValidationTest& newtest ) :
-                    Parameter( newtest ) {}
+                    BaseParameter( newtest ) {}
 
                 TypedParameter( const test_ptr_t& newtest ) :
-                    Parameter( newtest ) {}
+                    BaseParameter( newtest ) {}
 
                 TypedParameter( std::initializer_list<test_ptr_t> new_tests ) :
-                    Parameter( new_tests ) {}
+                    BaseParameter( new_tests ) {}
 
                 virtual ~TypedParameter() {}
 
                 TypedParameter( const TypedParameter<PARAMTYPE>& other ) :
-                    Parameter( *this ) {}
+                    BaseParameter( *this ) {}
 
                 TypedParameter( TypedParameter<PARAMTYPE>&& other ) noexcept :
                     TypedParameter() {
@@ -50,17 +50,42 @@ namespace NCPA {
                     return parameter_type<PARAMTYPE>();
                 }
 
-                virtual PARAMTYPE& value( size_t n = 0 ) {
-                    return this->get( n );
+                // virtual PARAMTYPE& value( size_t n = 0 )             = 0;
+                // virtual const PARAMTYPE& value( size_t n = 0 ) const = 0;
+                virtual PARAMTYPE get( size_t n = 0 ) const = 0;
+
+                // virtual ScalarWithUnits<PARAMTYPE> get_with_units(
+                //     size_t n = 0 ) const {
+                //     throw std::logic_error( "Parameter has no units defined" );
+                // }
+
+                virtual std::vector<PARAMTYPE> get_vector() const = 0;
+
+                // virtual VectorWithUnits<PARAMTYPE> get_vector_with_units()
+                //     const {
+                //     throw std::logic_error( "Parameter has no units defined" );
+                // }
+
+                template<typename ASTYPE, typename std::enable_if<
+                    std::is_convertible<PARAMTYPE,ASTYPE>::value, int
+                >::type = 0>
+                ASTYPE as() const {
+                    return static_cast<ASTYPE>(this->get());
                 }
 
-                virtual const PARAMTYPE& value( size_t n = 0 ) const {
-                    return this->get( n );
+                template<typename ASTYPE, typename std::enable_if<
+                    std::is_convertible<PARAMTYPE,ASTYPE>::value, int
+                >::type = 0>
+                ScalarWithUnits<ASTYPE> as_with_units() const {
+                    return ScalarWithUnits<ASTYPE>( static_cast<ASTYPE>(this->get()), this->get_units() );
                 }
 
-                virtual PARAMTYPE& get( size_t n = 0 )             = 0;
-                virtual const PARAMTYPE& get( size_t n = 0 ) const = 0;
-                virtual std::vector<PARAMTYPE> get_vector() const  = 0;
+                template<typename ASTYPE, typename std::enable_if<
+                    (!(std::is_convertible<PARAMTYPE,ASTYPE>::value)), int
+                >::type = 0>
+                ScalarWithUnits<ASTYPE> as_with_units() const {
+                    return ScalarWithUnits<ASTYPE>( static_cast<ASTYPE>(this->as_double()), this->get_units() );
+                }
 
             protected:
                 template<typename T = PARAMTYPE,
@@ -87,6 +112,6 @@ template<typename T>
 void swap( NCPA::config::TypedParameter<T>& a,
            NCPA::config::TypedParameter<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NCPA::config::Parameter&>( a ),
-            static_cast<NCPA::config::Parameter&>( b ) );
+    ::swap( static_cast<NCPA::config::BaseParameter&>( a ),
+            static_cast<NCPA::config::BaseParameter&>( b ) );
 }

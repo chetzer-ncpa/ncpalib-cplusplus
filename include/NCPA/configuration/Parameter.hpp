@@ -1,181 +1,435 @@
 #pragma once
 
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/ValidationTest.hpp"
-#include "NCPA/configuration/ValidationTestSuite.hpp"
+#include "NCPA/configuration/ScalarParameter.hpp"
+#include "NCPA/configuration/ScalarParameterWithUnits.hpp"
+#include "NCPA/configuration/TypedParameter.hpp"
+#include "NCPA/configuration/VectorParameter.hpp"
 #include "NCPA/units.hpp"
 
-#include <string>
-#include <type_traits>
-#include <vector>
+#include <memory>
 
 namespace NCPA {
     namespace config {
         class Parameter {
             public:
-                Parameter() {}
-
-                Parameter( const ValidationTest& newtest ) : Parameter() {
-                    this->append_test( newtest );
-                }
-
-                Parameter( const test_ptr_t& newtest ) : Parameter() {
-                    this->append_test( newtest );
-                }
-
-                Parameter( std::initializer_list<test_ptr_t> new_tests ) :
-                    Parameter() {
-                    this->append_tests( new_tests );
-                }
-
-                Parameter( const Parameter& other ) { 
-                    _tests = other._tests;
-                 }
-
-                Parameter( Parameter&& other ) noexcept : Parameter() {
-                    ::swap( *this, other );
-                }
-
-                virtual ~Parameter() {}
-
-                friend void ::swap( Parameter& a, Parameter& b ) noexcept;
-
-                virtual Parameter& append_test(
-                    const ValidationTest& newtest ) {
-                    _tests.append( newtest );
-                    return *this;
-                }
-
-                virtual Parameter& append_test( const test_ptr_t& newtest ) {
-                    _tests.append( newtest );
-                    return *this;
-                }
-
-                virtual Parameter& append_tests(
-                    std::initializer_list<test_ptr_t> new_tests ) {
-                    for (auto it = new_tests.begin(); it != new_tests.end();
-                         ++it) {
-                        this->append_test( *it );
-                    }
-                    return *this;
-                }
-
-                virtual const ValidationTestSuite& tests() const {
-                    return _tests;
-                }
-
-                virtual std::vector<const ValidationTest *> failed_tests()
-                    const {
-                    return _tests.failed_tests();
-                }
-
-                virtual Parameter& prepend_test(
-                    const ValidationTest& newtest ) {
-                    _tests.prepend( newtest );
-                    return *this;
-                }
-
-                virtual std::ostream& validation_report(
-                    std::ostream& os, bool newline = true,
-                    const std::string& prepend = "" ) const {
-                    if (this->passed()) {
-                        os << prepend << "All tests passed";
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( NCPA::units::units_ptr_t ptr
+                                           = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t( new ScalarParameter<PARAMTYPE>() );
                     } else {
-                        auto f = this->failed_tests();
-                        for (auto it = f.begin(); it != f.end(); ++it) {
-                            if (it != f.begin()) {
-                                os << std::endl;
-                            }
-                            os << prepend
-                               << "Failed: " << ( *it )->description();
-                        }
+                        return param_ptr_t(
+                            new ScalarParameterWithUnits<PARAMTYPE>( 0.0,
+                                                                     ptr ) );
                     }
-                    if (newline) {
-                        os << std::endl;
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( const PARAMTYPE& defaultval,
+                                           NCPA::units::units_ptr_t ptr
+                                           = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t(
+                            new ScalarParameter<PARAMTYPE>( defaultval ) );
+                    } else {
+                        return param_ptr_t(
+                            new ScalarParameterWithUnits<PARAMTYPE>(
+                                defaultval, ptr ) );
                     }
-                    return os;
                 }
 
-                virtual Parameter& prepend_tests(
-                    std::initializer_list<ValidationTest> new_tests ) {
-                    for (auto it = new_tests.begin(); it != new_tests.end();
-                         ++it) {
-                        this->prepend_test( *it );
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t(
+                            new ScalarParameter<PARAMTYPE>( defaultval ) );
+                    } else {
+                        return param_ptr_t(
+                            new ScalarParameterWithUnits<PARAMTYPE>(
+                                defaultval, ptr ) );
                     }
-                    return *this;
                 }
 
-                virtual Parameter& validate( bool short_circuit = false ) {
-                    _tests.run_tests( this, short_circuit );
-                    return *this;
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( newtest ) );
                 }
 
-                virtual bool failed() const { return _tests.failed(); }
-
-                virtual bool passed() const { return _tests.passed(); }
-
-                virtual bool pending() const { return _tests.pending(); }
-
-                virtual test_status_t validation_status() const {
-                    return _tests.status();
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( newtest ) );
                 }
 
-                virtual bool was_set() const { return true; }
-
-                virtual parameter_form_t form() const                   = 0;
-                virtual parameter_type_t type() const                   = 0;
-                virtual size_t size() const                             = 0;
-                // virtual bool was_set() const                        = 0;
-                virtual param_ptr_t clone() const                       = 0;
-                virtual bool as_bool( size_t n = 0 ) const              = 0;
-                virtual std::string as_string( size_t n = 0 ) const     = 0;
-                virtual long long as_int( size_t n = 0 ) const          = 0;
-                virtual unsigned long long as_unsigned_int( size_t n
-                                                            = 0 ) const = 0;
-                virtual double as_double( size_t n = 0 ) const          = 0;
-                virtual std::complex<double> as_complex( size_t n = 0 ) const
-                    = 0;
-
-                virtual void from_bool( bool b )                       = 0;
-                virtual void from_string( const std::string& s )       = 0;
-                virtual void from_int( long long i )                   = 0;
-                virtual void from_unsigned_int( unsigned long long n ) = 0;
-                virtual void from_double( double d )                   = 0;
-                virtual void from_complex( std::complex<double> c )    = 0;
-                virtual void from_bool( const std::vector<bool>& b )   = 0;
-                virtual void from_string( const std::vector<std::string>& s )
-                    = 0;
-                virtual void from_int( const std::vector<long long>& i ) = 0;
-                virtual void from_unsigned_int(
-                    const std::vector<unsigned long long>& n )           = 0;
-                virtual void from_double( const std::vector<double>& d ) = 0;
-                virtual void from_complex(
-                    const std::vector<std::complex<double>>& c ) = 0;
-
-                bool is_scalar() const {
-                    return ( this->form() == parameter_form_t::SCALAR );
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( new_tests ) );
                 }
 
-                bool is_vector() const {
-                    return ( this->form() == parameter_form_t::VECTOR );
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( PARAMTYPE defaultval,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
                 }
 
-                virtual std::vector<double> as_double_vector() const {
-                    std::vector<double> v( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        v.at( i ) = this->as_double( i );
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( PARAMTYPE defaultval,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const ValidationTest& newtest ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const test_ptr_t& newtest ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>(
+                        defaultval, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( NCPA::units::units_ptr_t ptr,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( NCPA::units::units_ptr_t ptr,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( PARAMTYPE defaultval,
+                                           NCPA::units::units_ptr_t ptr,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar( PARAMTYPE defaultval,
+                                           NCPA::units::units_ptr_t ptr,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    PARAMTYPE defaultval, NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr,
+                    const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr, const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const ScalarParameter<PARAMTYPE>& other ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( other ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const ScalarParameter<PARAMTYPE>& other,
+                    NCPA::units::units_ptr_t u ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>( other.get(),
+                                                                 u ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t scalar(
+                    const ScalarParameterWithUnits<PARAMTYPE>& other ) {
+                    return param_ptr_t(
+                        new ScalarParameterWithUnits<PARAMTYPE>( other ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( NCPA::units::units_ptr_t ptr
+                                           = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t( new VectorParameter<PARAMTYPE>() );
+                    } else {
+                        return param_ptr_t(
+                            new VectorParameterWithUnits<PARAMTYPE>( ptr ) );
                     }
-                    return v;
                 }
 
-            protected:
-                ValidationTestSuite _tests;
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( const PARAMTYPE& defaultval,
+                                           NCPA::units::units_ptr_t ptr
+                                           = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t(
+                            new VectorParameter<PARAMTYPE>( defaultval ) );
+                    } else {
+                        return param_ptr_t(
+                            new VectorParameterWithUnits<PARAMTYPE>(
+                                defaultval, ptr ) );
+                    }
+                }
 
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr = nullptr ) {
+                    if (ptr == nullptr) {
+                        return param_ptr_t(
+                            new VectorParameter<PARAMTYPE>( defaultval ) );
+                    } else {
+                        return param_ptr_t(
+                            new VectorParameterWithUnits<PARAMTYPE>(
+                                defaultval, ptr ) );
+                    }
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( PARAMTYPE defaultval,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( PARAMTYPE defaultval,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const ValidationTest& newtest ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const test_ptr_t& newtest ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>(
+                        defaultval, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( NCPA::units::units_ptr_t ptr,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( NCPA::units::units_ptr_t ptr,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( ptr,
+                                                                 new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( PARAMTYPE defaultval,
+                                           NCPA::units::units_ptr_t ptr,
+                                           const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( PARAMTYPE defaultval,
+                                           NCPA::units::units_ptr_t ptr,
+                                           const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    PARAMTYPE defaultval, NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr,
+                    const ValidationTest& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr, const test_ptr_t& newtest ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, newtest ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    NCPA::units::units_ptr_t ptr,
+                    std::initializer_list<test_ptr_t> new_tests ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>(
+                            defaultval, ptr, new_tests ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const VectorParameter<PARAMTYPE>& other ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( other ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const VectorParameter<PARAMTYPE>& other,
+                    NCPA::units::units_ptr_t u ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( other.get(),
+                                                                 u ) );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector(
+                    const VectorParameterWithUnits<PARAMTYPE>& other ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( other ) );
+                }
         };
     }  // namespace config
 }  // namespace NCPA
-
-void swap( NCPA::config::Parameter& a, NCPA::config::Parameter& b ) noexcept {
-    using std::swap;
-    swap( a._tests, b._tests );
-}

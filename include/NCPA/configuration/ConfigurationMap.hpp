@@ -2,7 +2,7 @@
 
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
 #include <unordered_map>

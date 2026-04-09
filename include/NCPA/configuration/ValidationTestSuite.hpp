@@ -88,7 +88,7 @@ namespace NCPA {
                 }
 
                 virtual ValidationTestSuite& run_tests(
-                    const Parameter *param,
+                    const BaseParameter *param,
                     bool short_circuit = false ) {
                     // _status = test_status_t::PENDING;
                     bool pass = true;

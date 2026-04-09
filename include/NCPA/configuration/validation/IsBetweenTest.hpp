@@ -44,7 +44,7 @@ namespace NCPA {
                     }
 
                     virtual ValidationTest& test(
-                        const Parameter *param ) override {
+                        const BaseParameter *param ) override {
                         int val = param->as_int();
                         if (_inclusive) {
                             if (val >= this->value( 0 )
@@ -104,7 +104,7 @@ namespace NCPA {
                     }
 
                     virtual ValidationTest& test(
-                        const Parameter *param ) override {
+                        const BaseParameter *param ) override {
                         double val = param->as_double();
                         if (_inclusive) {
                             if (val >= this->value( 0 )

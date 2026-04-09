@@ -109,7 +109,7 @@ namespace NCPA {
                     swap( first._units, second._units );
                 }
 
-                virtual T get() const { return _value; }
+                virtual const T& get() const { return _value; }
 
                 virtual const Unit *get_units() const { return _units; }
 

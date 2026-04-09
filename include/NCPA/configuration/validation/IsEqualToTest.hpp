@@ -31,7 +31,7 @@ namespace NCPA {
                 }
 
                 virtual ValidationTest& test(
-                    const Parameter *param ) override {
+                    const BaseParameter *param ) override {
                     if (this->value() == this->parameter_value( param )) {
                         this->pass();
                     } else {

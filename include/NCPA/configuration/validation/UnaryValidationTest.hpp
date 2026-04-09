@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
+// #include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/validation/TypedValidationTest.hpp"
 
 #include <vector>

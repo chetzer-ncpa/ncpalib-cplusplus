@@ -71,13 +71,13 @@ namespace NCPA {
                 }
 
                 virtual ValidationTest& test(
-                    const std::unique_ptr<Parameter>& param ) {
+                    const std::unique_ptr<BaseParameter>& param ) {
                     return this->test( param.get() );
                 }
 
                 virtual std::string description() const = 0;
                 virtual ValidationTest& test(
-                    const Parameter *param )           = 0;
+                    const BaseParameter *param )           = 0;
                 virtual std::unique_ptr<ValidationTest> clone() const = 0;
 
             protected:

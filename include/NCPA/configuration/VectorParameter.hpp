@@ -1,7 +1,8 @@
 #pragma once
+
+#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
 #include <regex>
@@ -113,13 +114,9 @@ namespace NCPA {
                         return _value.size();
                     }
 
-                    virtual PARAMTYPE& get( size_t n = 0 ) override {
-                        return _value.at( n );
-                    }
-
-                    virtual const PARAMTYPE& get( size_t n
-                                                  = 0 ) const override {
-                        return _value.at( n );
+                    virtual PARAMTYPE get( size_t n = 0 ) const override {
+                        return ( _value.empty() ? this->_nullval()
+                                                : _value.at( n ) );
                     }
 
                     virtual std::vector<PARAMTYPE> get_vector()
@@ -130,16 +127,12 @@ namespace NCPA {
                 protected:
                     std::vector<PARAMTYPE> _value;
 
-                    // void _get_first_value_from_vector(
-                    //     const std::vector<PARAMTYPE>& defaultval) {
-                    //     if (defaultval.size() > 0) {
-                    //         _value = defaultval.at(0);
-                    //     }
-                    // }
+                    virtual PARAMTYPE _nullval() const = 0;
 
                     template<typename T = PARAMTYPE>
-                    typename std::enable_if<NCPA::types::has_to_string<T>::value,
-                                            std::string>::type
+                    typename std::enable_if<
+                        NCPA::types::has_to_string<T>::value,
+                        std::string>::type
                         _as_string( size_t n = 0 ) const {
                         return this->get( n ).to_string();
                     }
@@ -183,7 +176,81 @@ namespace NCPA {
                            std::is_floating_point<PARAMTYPE>::value>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                VectorParameter() :
+                    hidden::_base_vector_parameter<PARAMTYPE>() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}
+
+                VectorParameter( const ValidationTest& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( newtest ) {}
+
+                VectorParameter( const test_ptr_t& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( newtest ) {}
+
+                VectorParameter(
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( new_tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const ValidationTest& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const test_ptr_t& newtest ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               newtest ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<test_ptr_t> new_tests ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
+                                                               new_tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    hidden::_base_vector_parameter<PARAMTYPE>( other ) {}
+
+                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
+                    :
+                    hidden::_base_vector_parameter<PARAMTYPE>() {
+                    ::swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap<>( VectorParameter<PARAMTYPE>& a,
+                                      VectorParameter<PARAMTYPE>& b ) noexcept;
+
+                virtual param_ptr_t clone() const override {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( *this ) );
+                }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
@@ -216,28 +283,30 @@ namespace NCPA {
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::stod( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::stod( x ) );
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -283,6 +352,9 @@ namespace NCPA {
                             std::stod( vec.at( i ) ) );
                     }
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override { return 0.0; }
         };
 
         // signed integer
@@ -323,28 +395,30 @@ namespace NCPA {
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::stoll( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::stoll( x ) );
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -390,6 +464,9 @@ namespace NCPA {
                             std::stoll( vec.at( i ) ) );
                     }
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override { return 0; }
         };
 
         // unsigned integer
@@ -435,24 +512,25 @@ namespace NCPA {
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -498,6 +576,9 @@ namespace NCPA {
                             std::stoull( vec.at( i ) ) );
                     }
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override { return 0; }
         };
 
         // // boolean
@@ -535,28 +616,29 @@ namespace NCPA {
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get( 0 ) = x;
+                    this->_value[ 0 ] = x;
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get( 0 ) = ( x == "true" );
+                    this->_value[ 0 ] = ( x == "true" );
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( x );
+                    this->_value[ 0 ] = static_cast<PARAMTYPE>( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get( 0 ) = static_cast<PARAMTYPE>( std::abs( x ) );
+                    this->_value[ 0 ]
+                        = static_cast<PARAMTYPE>( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -602,6 +684,9 @@ namespace NCPA {
                                 == "true" );
                     }
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override { return false; }
 
                 //    private:
                 //     PARAMTYPE _value;
@@ -652,28 +737,28 @@ namespace NCPA {
                 }
 
                 virtual void from_bool( bool x ) override {
-                    this->get( 0 ) = ( x ? "true" : "false" );
+                    this->_value[ 0 ] = ( x ? "true" : "false" );
                 }
 
                 virtual void from_string( const std::string& x ) override {
-                    this->get( 0 ) = x;
+                    this->_value[ 0 ] = x;
                 }
 
                 virtual void from_int( long long x ) override {
-                    this->get( 0 ) = std::to_string( x );
+                    this->_value[ 0 ] = std::to_string( x );
                 }
 
                 virtual void from_unsigned_int(
                     unsigned long long x ) override {
-                    this->get( 0 ) = std::to_string( x );
+                    this->_value[ 0 ] = std::to_string( x );
                 }
 
                 virtual void from_double( double x ) override {
-                    this->get( 0 ) = std::to_string( x );
+                    this->_value[ 0 ] = std::to_string( x );
                 }
 
                 virtual void from_complex( std::complex<double> x ) override {
-                    this->get( 0 ) = std::to_string( std::abs( x ) );
+                    this->_value[ 0 ] = std::to_string( std::abs( x ) );
                 }
 
                 virtual void from_bool(
@@ -725,6 +810,9 @@ namespace NCPA {
                         this->_value.at( i ) = vec.at( i );
                     }
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override { return ""; }
         };
 
         // complex
@@ -851,6 +939,11 @@ namespace NCPA {
                         "from_string() not yet implemented for complex "
                         "numbers" );
                 }
+
+            protected:
+                virtual PARAMTYPE _nullval() const override {
+                    return PARAMTYPE { 0, 0 };
+                }
         };
 
         // everything else
@@ -967,6 +1060,11 @@ namespace NCPA {
 
             protected:
                 using hidden::_base_vector_parameter<PARAMTYPE>::_as_string;
+
+                virtual PARAMTYPE _nullval() const override {
+                    throw std::out_of_range( "Vector is empty and no null "
+                                             "value has been defined!" );
+                }
         };
 
     }  // namespace config
