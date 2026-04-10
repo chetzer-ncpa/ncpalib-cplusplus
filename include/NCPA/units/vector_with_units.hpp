@@ -38,9 +38,9 @@ namespace NCPA {
                 // constructors
                 VectorWithUnits( const Unit *units = nullptr) : std::vector<T>(), _units { units } {}
 
-                VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
-                    this->resize( n_points );
-                }
+                // VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
+                //     this->resize( n_points );
+                // }
 
                 VectorWithUnits( const std::vector<T>& values,
                                  const Unit *units = nullptr ) :

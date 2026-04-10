@@ -14,7 +14,7 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class ScalarParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
-                           std::is_arithmetic<PARAMTYPE>::value>::type>
+                           std::is_floating_point<PARAMTYPE>::value>::type>
             : public ScalarParameter<PARAMTYPE> {
             public:
                 ScalarParameterWithUnits() : ScalarParameter<PARAMTYPE>() {}
@@ -205,6 +205,15 @@ namespace NCPA {
                     ScalarParameterWithUnits<PARAMTYPE>& a,
                     ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept;
 
+                virtual std::string as_string( size_t n = 0 ) const override {
+                    if (this->has_units()) {
+                        return ScalarParameter<PARAMTYPE>::as_string( n ) + " "
+                             + this->get_units()->to_string();
+                    } else {
+                        return ScalarParameter<PARAMTYPE>::as_string( n );
+                    }
+                }
+
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
                         new ScalarParameterWithUnits<PARAMTYPE>( *this ) );
@@ -232,11 +241,11 @@ namespace NCPA {
                     return _uvalue.get();
                 }
 
-                template<typename T                         = PARAMTYPE,
-                         typename std::enable_if<std::is_arithmetic<T>::value,
-                                                 int>::type = 0>
-                ScalarWithUnits<PARAMTYPE> get_with_units(
-                    size_t n = 0 ) const {
+                template<typename T = PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<T>::value, int>::type = 0>
+                ScalarWithUnits<PARAMTYPE> get_with_units( size_t n
+                                                           = 0 ) const {
                     return _uvalue;
                 }
 
@@ -244,11 +253,10 @@ namespace NCPA {
                     return std::vector<PARAMTYPE> { _uvalue.get() };
                 }
 
-                template<typename T                         = PARAMTYPE,
-                         typename std::enable_if<std::is_arithmetic<T>::value,
-                                                 int>::type = 0>
-                VectorWithUnits<PARAMTYPE> get_vector_with_units()
-                    const {
+                template<typename T = PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<T>::value, int>::type = 0>
+                VectorWithUnits<PARAMTYPE> get_vector_with_units() const {
                     return VectorWithUnits<PARAMTYPE>( _uvalue );
                 }
 

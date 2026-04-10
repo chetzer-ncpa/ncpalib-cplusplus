@@ -18,7 +18,8 @@
 namespace NCPA {
     namespace config {
         using NCPA::units::units_ptr_t;
-        using UnitsParameter = ScalarParameter<units_ptr_t>;
+
+        // using UnitsParameter = ScalarParameter<units_ptr_t>;
 
         template<typename KEYTYPE>
         class Configurable {
@@ -80,7 +81,7 @@ namespace NCPA {
                 BaseParameter& convert_parameter(
                     KEYTYPE key, const NCPA::units::units_ptr_t uto ) {
                     this->parameter( key ).convert_units( uto );
-                    return this->parameter(key);
+                    return this->parameter( key );
                     // std::string ukey = _make_units_key( key );
                     // return this->convert_parameter(
                     //     key, this->get<NCPA::units::units_ptr_t>( ukey ),
@@ -140,7 +141,9 @@ namespace NCPA {
 
                 BaseParameter *add_parameter( KEYTYPE key,
                                               const param_ptr_t param ) {
+                    NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
                     _parameters[ key ] = param->clone();
+                    NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
                     return _parameters[ key ].get();
                 }
 
@@ -371,8 +374,8 @@ namespace NCPA {
 
                 template<typename PARAMTYPE = double,
                          typename std::enable_if<
-                             std::is_arithmetic<PARAMTYPE>::value, int>::type
-                         = 0>
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 NCPA::units::ScalarWithUnits<PARAMTYPE> get_with_units(
                     KEYTYPE key, size_t n = 0 ) const {
                     return ScalarWithUnits<PARAMTYPE>(
@@ -395,10 +398,10 @@ namespace NCPA {
 
                 template<typename PARAMTYPE = double,
                          typename std::enable_if<
-                             std::is_arithmetic<PARAMTYPE>::value, int>::type
-                         = 0>
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 NCPA::units::VectorWithUnits<PARAMTYPE> get_vector_with_units(
-                    KEYTYPE key, KEYTYPE units_key ) const {
+                    KEYTYPE key ) const {
                     return NCPA::units::VectorWithUnits<PARAMTYPE>(
                         this->get_vector<PARAMTYPE>( key ),
                         this->parameter( key ).get_units() );
@@ -411,9 +414,9 @@ namespace NCPA {
                                || NCPA::types::is_complex<PARAMTYPE>::value ),
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
-                    this->add_parameter(
-                        key,
-                        param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) ) );
+                    this->add_parameter( key,
+                                         Parameter::scalar<PARAMTYPE>( val ) );
+                    // param_ptr_t( new ScalarParameter<PARAMTYPE>( val ) ) );
                     return *this;
                 }
 
@@ -426,8 +429,9 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
-                        key, param_ptr_t(
-                                 new ScalarParameter<std::string>( val ) ) );
+                        key, Parameter::scalar<std::string>( val ) );
+                    // key, param_ptr_t(
+                    //          new ScalarParameter<std::string>( val ) ) );
                     return *this;
                 }
 
@@ -442,21 +446,43 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
-                        key, param_ptr_t( new VectorParameter<
-                                          typename PARAMTYPE::value_type>(
-                                 val ) ) );
+                        key, Parameter::vector<typename PARAMTYPE::value_type>(
+                                 val ) );
+                    // key, param_ptr_t( new VectorParameter<
+                    //                   typename PARAMTYPE::value_type>(
+                    //          val ) ) );
                     return *this;
                 }
 
                 template<typename PARAMTYPE,
                          typename std::enable_if<
-                             std::is_convertible<KEYTYPE, std::string>::value,
+                             std::is_floating_point<PARAMTYPE>::value,
+                             //  std::is_convertible<KEYTYPE,
+                             //  std::string>::value,
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
-                    this->set<PARAMTYPE>( key, val );
-                    std::string units_key = key + "_units";
-                    this->set<NCPA::units::units_ptr_t>( units_key, units );
+                    this->add_parameter(
+                        key, Parameter::scalar<PARAMTYPE>( val, units ) );
+                    return *this;
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+
+                             ( !( std::is_scalar<PARAMTYPE>::value
+                                  || NCPA::types::is_complex<PARAMTYPE>::value
+                                  || std::is_convertible<PARAMTYPE,
+                                                         std::string>::value )
+                               && std::is_floating_point<
+                                   typename PARAMTYPE::value_type>::value ),
+                             int>::type = 0>
+                Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
+                                            NCPA::units::units_ptr_t units ) {
+                    NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
+                    this->add_parameter(
+                        key, Parameter::vector<typename PARAMTYPE::value_type>(
+                                 val, units ) );
                     return *this;
                 }
 
@@ -533,14 +559,15 @@ namespace NCPA {
             private:
                 ConfigurationMap<KEYTYPE> _parameters;
 
-                template<typename K = KEYTYPE,
-                         typename std::enable_if<
-                             std::is_convertible<K, std::string>::value,
-                             int>::type = 0>
-                std::string _make_units_key( const std::string& key ) const {
-                    std::string ukey = key + "_units";
-                    return ukey;
-                }
+                // template<typename K = KEYTYPE,
+                //          typename std::enable_if<
+                //              std::is_convertible<K, std::string>::value,
+                //              int>::type = 0>
+                // std::string _make_units_key( const std::string& key ) const
+                // {
+                //     std::string ukey = key + "_units";
+                //     return ukey;
+                // }
         };
     }  // namespace config
 }  // namespace NCPA

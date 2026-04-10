@@ -106,6 +106,14 @@ namespace NCPA {
                         _base_vector_parameter<PARAMTYPE>& a,
                         _base_vector_parameter<PARAMTYPE>& b ) noexcept;
 
+                    virtual std::string as_string() const override {
+                        return this->_as_string();
+                    }
+
+                    virtual std::string as_string( size_t n ) const override {
+                        return this->_as_string( n );
+                    }
+
                     virtual parameter_form_t form() const override {
                         return parameter_form_t::VECTOR;
                     }
@@ -129,42 +137,168 @@ namespace NCPA {
 
                     virtual PARAMTYPE _nullval() const = 0;
 
+                    std::string _as_string() const {
+                        std::ostringstream oss;
+                        oss << "{ ";
+                        if (this->size() > 5) {
+                            size_t nmax = this->size() - 1;
+                            oss << this->as_string( 0 ) << ", "
+                                << this->as_string( 1 ) << ", ... , "
+                                << this->as_string( nmax - 1 ) << ", "
+                                << this->as_string( nmax ) << " }";
+                        } else {
+                            for (size_t i = 0; i < this->size(); ++i) {
+                                if (i > 0) {
+                                    oss << ", ";
+                                }
+                                oss << this->as_string( i );
+                            }
+                            oss << " }";
+                        }
+                        return oss.str();
+                    }
+
+                    // template<typename T = PARAMTYPE>
+                    // typename std::enable_if<
+                    //     NCPA::types::has_to_string<T>::value,
+                    //     std::string>::type
+                    //     _as_string() const {
+                    //     std::ostringstream oss;
+                    //     oss << "{ ";
+                    //     if (this->size() > 5) {
+                    //         size_t nmax = this->size() - 1;
+                    //         oss << this->get( 0 ).to_string() << ", "
+                    //             << this->get( 1 ).to_string() << ", ... , "
+                    //             << this->get( nmax - 1 ).to_string() << ", "
+                    //             << this->get( nmax ).to_string() << " }";
+                    //     } else {
+                    //         for (size_t i = 0; i < this->size(); ++i) {
+                    //             if (i > 0) {
+                    //                 oss << ", ";
+                    //             }
+                    //             oss << this->get( i ).to_string();
+                    //         }
+                    //         oss << " }";
+                    //     }
+                    //     return oss.str();
+                    // }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<std::is_same<T, bool>::value,
+                                            std::string>::type
+                        _as_string( size_t n ) const {
+                        return ( this->get( n ) ? "true" : false );
+                    }
+
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        NCPA::types::has_to_string<T>::value,
+                        std::is_convertible<T, std::string>::value,
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
+                        _as_string( size_t n ) const {
+                        std::string s = this->get( n );
+                        return s;
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( std::is_convertible<T, std::string>::value )
+                          && NCPA::types::has_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n ) const {
                         return this->get( n ).to_string();
                     }
 
-                    template<typename T = PARAMTYPE>
-                    typename std::enable_if<
-                        ( !( NCPA::types::has_to_string<T>::value )
-                          && NCPA::types::can_use_std_to_string<T>::value ),
-                        std::string>::type
-                        _as_string( size_t n = 0 ) const {
-                        return std::to_string( this->get( n ) );
-                    }
+                    // template<typename T = PARAMTYPE>
+                    // typename std::enable_if<
+                    //     ( !( NCPA::types::has_to_string<T>::value )
+                    //       && NCPA::types::can_use_std_to_string<T>::value ),
+                    //     std::string>::type
+                    //     _as_string() const {
+                    //     std::ostringstream oss;
+                    //     oss << "{ ";
+                    //     if (this->size() > 5) {
+                    //         size_t nmax = this->size() - 1;
+                    //         oss << std::to_string(this->get( 0 )) << ", "
+                    //             << std::to_string(this->get( 1 )) << ", ...
+                    //             , "
+                    //             << std::to_string(this->get( nmax - 1 )) <<
+                    //             ", "
+                    //             << std::to_string(this->get( nmax )) << "
+                    //             }";
+                    //     } else {
+                    //         for (size_t i = 0; i < this->size(); ++i) {
+                    //             if (i > 0) {
+                    //                 oss << ", ";
+                    //             }
+                    //             oss << std::to_string(this->get( i ));
+                    //         }
+                    //         oss << " }";
+                    //     }
+                    //     return oss.str();
+                    // }
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        ( !( NCPA::types::can_use_std_to_string<T>::value
-                             || NCPA::types::has_to_string<T>::value )
+                        ( !( std::is_same<T, bool>::value )
+                          && !( std::is_convertible<T, std::string>::value )
+                          && !( NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n ) const {
+                        return std::to_string( this->get( n ) );
+                    }
+
+                    // template<typename T = PARAMTYPE>
+                    // typename std::enable_if<
+                    //     ( !( NCPA::types::can_use_std_to_string<T>::value
+                    //          || NCPA::types::has_to_string<T>::value )
+                    //       && NCPA::types::can_use_to_string<T>::value ),
+                    //     std::string>::type
+                    //     _as_string() const {
+                    //     std::ostringstream oss;
+                    //     oss << "{ ";
+                    //     if (this->size() > 5) {
+                    //         size_t nmax = this->size() - 1;
+                    //         oss << to_string(this->get( 0 )) << ", "
+                    //             << to_string(this->get( 1 )) << ", ... , "
+                    //             << to_string(this->get( nmax - 1 )) << ", "
+                    //             << to_string(this->get( nmax )) << " }";
+                    //     } else {
+                    //         for (size_t i = 0; i < this->size(); ++i) {
+                    //             if (i > 0) {
+                    //                 oss << ", ";
+                    //             }
+                    //             oss << to_string(this->get( i ));
+                    //         }
+                    //         oss << " }";
+                    //     }
+                    //     return oss.str();
+                    // }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( std::is_same<T, bool>::value )
+                          && !( std::is_convertible<T, std::string>::value )
+                          && !( NCPA::types::can_use_std_to_string<T>::value
+                                || NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
+                        _as_string( size_t n ) const {
                         return to_string( this->get( n ) );
                     }
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        !( NCPA::types::can_use_to_string<T>::value
+                        !( std::is_same<T, bool>::value
+                           || NCPA::types::can_use_to_string<T>::value
+                           || std::is_convertible<T, std::string>::value
                            || NCPA::types::has_to_string<T>::value
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
                         _as_string( size_t n = 0 ) const {
-                        throw std::out_of_range(
-                            "No as_string() conversion defined!" );
+                            return "<no string conversion defined>";
+                        // throw std::out_of_range(
+                        //     "No as_string() conversion defined!" );
                     }
             };
         }  // namespace hidden
@@ -176,6 +310,14 @@ namespace NCPA {
                            std::is_floating_point<PARAMTYPE>::value>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 VectorParameter() :
                     hidden::_base_vector_parameter<PARAMTYPE>() {}
 
@@ -265,20 +407,26 @@ namespace NCPA {
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get( n ) );
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string( n );
+                }
+
+                virtual double as_double( size_t n ) const override {
                     return static_cast<double>( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
@@ -366,6 +514,13 @@ namespace NCPA {
                                   && std::is_signed<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -381,8 +536,19 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get( n ) );
+                // virtual std::string as_string( size_t n = 0 ) const override
+                // {
+                //     return std::to_string( this->get( n ) );
+                // }
+
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
+                }
+
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string( n );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -478,6 +644,13 @@ namespace NCPA {
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -493,8 +666,19 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get( n ) );
+                // virtual std::string as_string( size_t n = 0 ) const override
+                // {
+                //     return std::to_string( this->get( n ) );
+                // }
+
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
+                }
+
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string( n );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -587,14 +771,32 @@ namespace NCPA {
                                              PARAMTYPE, bool>::value>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return this->get( n );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return ( this->get( n ) ? "true" : "false" );
+                // virtual std::string as_string( size_t n = 0 ) const override
+                // {
+                //     return ( this->get( n ) ? "true" : "false" );
+                // }
+
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
+                }
+
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string( n );
                 }
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -701,6 +903,13 @@ namespace NCPA {
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
@@ -713,10 +922,21 @@ namespace NCPA {
                     return ( s == "true" );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    std::string s = this->get( n );
-                    return s;
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
                 }
+
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string( n );
+                }
+
+                // virtual std::string as_string( size_t n = 0 ) const override
+                // {
+                //     std::string s = this->get( n );
+                //     return s;
+                // }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return std::stoll( this->get( n ) );
@@ -824,13 +1044,25 @@ namespace NCPA {
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
+                }
+
+                virtual std::string as_string( size_t n ) const override {
                     std::ostringstream oss;
                     oss << std::to_string( this->get( n ).real() ) << " "
                         << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
@@ -957,6 +1189,13 @@ namespace NCPA {
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
@@ -964,9 +1203,13 @@ namespace NCPA {
                         "No as_bool() conversion defined!" );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    // throw std::out_of_range("No as_string() conversion
-                    // defined!");
+                virtual std::string as_string() const override {
+                    // return std::to_string( this->get( n ) );
+                    return this->_as_string();
+                }
+
+                virtual std::string as_string( size_t n ) const override {
+                    // return std::to_string( this->get( n ) );
                     return this->_as_string( n );
                 }
 

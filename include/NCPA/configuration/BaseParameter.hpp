@@ -70,18 +70,101 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual const ValidationTestSuite& tests() const {
-                    return _tests;
+                virtual bool as_bool() const { return this->as_bool( 0 ); }
+
+                virtual std::complex<double> as_complex() const {
+                    return this->as_complex( 0 );
                 }
+
+                virtual double as_double() const {
+                    return this->as_double( 0 );
+                }
+
+                virtual std::vector<double> as_double_vector() const {
+                    std::vector<double> v( this->size() );
+                    for (size_t i = 0; i < this->size(); ++i) {
+                        v.at( i ) = this->as_double( i );
+                    }
+                    return v;
+                }
+
+                virtual long long as_int() const { return this->as_int( 0 ); }
+
+                virtual std::string as_string() const {
+                    return this->as_string( 0 );
+                }
+
+                virtual unsigned long long as_unsigned_int() const {
+                    return this->as_unsigned_int( 0 );
+                }
+
+                virtual BaseParameter& convert_units( units_ptr_t u ) {
+                    this->_check_has_units();
+                    return *this;
+                }
+
+                virtual BaseParameter& convert_units( const std::string& s ) {
+                    return this->convert_units(
+                        NCPA::units::Units::from_string( s ) );
+                }
+
+                virtual double diff() const {
+                    return ( this->size() > 1
+                                 ? this->as_double( 1 ) - this->as_double( 0 )
+                                 : 0.0 );
+                }
+
+                virtual bool failed() const { return _tests.failed(); }
 
                 virtual std::vector<const ValidationTest *> failed_tests()
                     const {
                     return _tests.failed_tests();
                 }
 
+                virtual units_ptr_t get_units() const {
+                    this->_check_has_units();
+                    return nullptr;
+                }
+
+                virtual bool has_units() const { return false; }
+
+                bool is_scalar() const {
+                    return ( this->form() == parameter_form_t::SCALAR );
+                }
+
+                bool is_vector() const {
+                    return ( this->form() == parameter_form_t::VECTOR );
+                }
+
+                virtual bool passed() const { return _tests.passed(); }
+
+                virtual bool pending() const { return _tests.pending(); }
+
                 virtual BaseParameter& prepend_test(
                     const ValidationTest& newtest ) {
                     _tests.prepend( newtest );
+                    return *this;
+                }
+
+                virtual BaseParameter& prepend_tests(
+                    std::initializer_list<ValidationTest> new_tests ) {
+                    for (auto it = new_tests.begin(); it != new_tests.end();
+                         ++it) {
+                        this->prepend_test( *it );
+                    }
+                    return *this;
+                }
+
+                virtual void set_units( units_ptr_t u ) {
+                    this->_check_has_units();
+                }
+
+                virtual const ValidationTestSuite& tests() const {
+                    return _tests;
+                }
+
+                virtual BaseParameter& validate( bool short_circuit = false ) {
+                    _tests.run_tests( this, short_circuit );
                     return *this;
                 }
 
@@ -106,105 +189,20 @@ namespace NCPA {
                     return os;
                 }
 
-                virtual BaseParameter& prepend_tests(
-                    std::initializer_list<ValidationTest> new_tests ) {
-                    for (auto it = new_tests.begin(); it != new_tests.end();
-                         ++it) {
-                        this->prepend_test( *it );
-                    }
-                    return *this;
-                }
-
-                virtual BaseParameter& validate( bool short_circuit = false ) {
-                    _tests.run_tests( this, short_circuit );
-                    return *this;
-                }
-
-                virtual bool failed() const { return _tests.failed(); }
-
-                virtual bool passed() const { return _tests.passed(); }
-
-                virtual bool pending() const { return _tests.pending(); }
-
                 virtual test_status_t validation_status() const {
                     return _tests.status();
                 }
 
                 virtual bool was_set() const { return true; }
 
-                // virtual void add_units( units_ptr_t u ) = 0;
-
-                virtual bool has_units() const { return false; }
-
-                virtual void set_units( units_ptr_t u ) {
-                    this->_check_has_units();
-                }
-
-                virtual units_ptr_t get_units() const {
-                    this->_check_has_units();
-                    return nullptr;
-                }
-
-                virtual BaseParameter& convert_units( units_ptr_t u ) {
-                    this->_check_has_units();
-                    return *this;
-                }
-
-                virtual BaseParameter& convert_units( const std::string& s ) {
-                    return this->convert_units(
-                        NCPA::units::Units::from_string( s ) );
-                }
-
-                bool is_scalar() const {
-                    return ( this->form() == parameter_form_t::SCALAR );
-                }
-
-                bool is_vector() const {
-                    return ( this->form() == parameter_form_t::VECTOR );
-                }
-
-                virtual std::vector<double> as_double_vector() const {
-                    std::vector<double> v( this->size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        v.at( i ) = this->as_double( i );
-                    }
-                    return v;
-                }
-
-                // virtual VectorWithUnits<double> as_double_vector_with_units()
-                //     const {
-                //     _check_has_units();
-                //     return VectorWithUnits( this->as_double_vector(),
-                //                             this->get_units() );
-                // }
-
-                // virtual ScalarWithUnits<double> as_double_with_units(
-                //     size_t n = 0 ) const {
-                //     return ScalarWithUnits<double>( this->as_double( n ),
-                //                                     this->get_units() );
-                // }
-
-                // virtual ScalarWithUnits<long long> as_int_with_units(
-                //     size_t n = 0 ) const {
-                //     return ScalarWithUnits<long long>( this->as_int( n ),
-                //                                        this->get_units() );
-                // }
-
-                // virtual ScalarWithUnits<unsigned long long>
-                //     as_unsigned_int_with_units( size_t n = 0 ) const {
-                //     return ScalarWithUnits<unsigned long long>(
-                //         this->as_unsigned_int( n ), this->get_units() );
-                // }
-
                 // abstract API
-                virtual bool as_bool( size_t n = 0 ) const = 0;
-                virtual std::complex<double> as_complex( size_t n = 0 ) const
+                virtual bool as_bool( size_t n ) const                    = 0;
+                virtual std::complex<double> as_complex( size_t n ) const = 0;
+                virtual double as_double( size_t n ) const                = 0;
+                virtual long long as_int( size_t n ) const                = 0;
+                virtual std::string as_string( size_t n ) const           = 0;
+                virtual unsigned long long as_unsigned_int( size_t n ) const
                     = 0;
-                virtual double as_double( size_t n = 0 ) const = 0;
-                virtual long long as_int( size_t n = 0 ) const = 0;
-                virtual std::string as_string( size_t n = 0 ) const     = 0;
-                virtual unsigned long long as_unsigned_int( size_t n
-                                                            = 0 ) const = 0;
 
 
                 virtual param_ptr_t clone() const     = 0;
@@ -218,21 +216,11 @@ namespace NCPA {
                     const std::vector<std::complex<double>>& c ) = 0;
 
                 virtual void from_double( double d )                     = 0;
-                // virtual void from_double( double d, units_ptr_t u )      =
-                // 0;
                 virtual void from_double( const std::vector<double>& d ) = 0;
-                // virtual void from_double( const std::vector<double>& d,
-                //                           units_ptr_t u )                =
-                //                           0;
-
 
                 virtual void from_int( long long i ) = 0;
-                // virtual void from_int( long long i, units_ptr_t u ) = 0;
 
                 virtual void from_int( const std::vector<long long>& i ) = 0;
-                // virtual void from_int( const std::vector<long long>& i,
-                //                        units_ptr_t u )                   =
-                //                        0;
 
 
                 virtual void from_string( const std::string& s ) = 0;
@@ -240,13 +228,8 @@ namespace NCPA {
                     = 0;
 
                 virtual void from_unsigned_int( unsigned long long n ) = 0;
-                // virtual void from_unsigned_int( unsigned long long n,
-                //                                 units_ptr_t u )        = 0;
                 virtual void from_unsigned_int(
                     const std::vector<unsigned long long>& n ) = 0;
-                // virtual void from_unsigned_int(
-                //     const std::vector<unsigned long long>& n, units_ptr_t u
-                //     ) = 0;
 
                 virtual size_t size() const           = 0;
                 virtual parameter_type_t type() const = 0;

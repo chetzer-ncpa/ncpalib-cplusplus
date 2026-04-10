@@ -126,15 +126,6 @@ namespace NCPA {
                         return std::vector<PARAMTYPE> { this->_value };
                     }
 
-                    // virtual PARAMTYPE& value( size_t n = 0 ) override {
-                    //     return _value();
-                    // }
-
-                    // virtual const PARAMTYPE& value( size_t n
-                    //                               = 0 ) const override {
-                    //     return _value;
-                    // }
-
                 protected:
                     PARAMTYPE _value;
 
@@ -179,8 +170,9 @@ namespace NCPA {
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
                         _as_string( size_t n = 0 ) const {
-                        throw std::out_of_range(
-                            "No as_string() conversion defined!" );
+                            return "<no string conversion defined>";
+                        // throw std::out_of_range(
+                        //     "No as_string() conversion defined!" );
                     }
             };
         }  // namespace hidden
@@ -192,6 +184,14 @@ namespace NCPA {
                            std::is_floating_point<PARAMTYPE>::value>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>( 0.0 ) {}
 
@@ -268,34 +268,34 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n ) const override {
                     return static_cast<long long>(
-                        this->get()
+                        this->get( n )
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     return static_cast<unsigned long long>(
-                        this->get()
+                        this->get( n )
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( this->get() != 0 );
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get() );
+                virtual std::string as_string( size_t n ) const override {
+                    return std::to_string( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( this->get() );
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
-                    return std::complex<double>( this->as_double(), 0.0 );
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
                 virtual void from_string( const std::string& x ) override {
@@ -376,6 +376,14 @@ namespace NCPA {
                                   && std::is_signed<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
 
@@ -452,30 +460,30 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( this->get() != 0 );
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get() );
+                virtual std::string as_string( size_t n ) const override {
+                    return std::to_string( this->get( n ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
-                    return static_cast<long long>( this->get() );
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( this->get() );
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
-                    return std::complex<double>( this->as_double(), 0.0 );
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
                 virtual void from_string( const std::string& x ) override {
@@ -556,6 +564,14 @@ namespace NCPA {
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
 
@@ -632,29 +648,29 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( this->get() != 0 );
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return std::to_string( this->get() );
+                virtual std::string as_string( size_t n ) const override {
+                    return std::to_string( this->get( n ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
-                    return static_cast<long long>( this->get() );
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( this->get() );
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
                     return std::complex<double>( this->as_double(), 0.0 );
                 }
 
@@ -733,6 +749,14 @@ namespace NCPA {
                                              PARAMTYPE, bool>::value>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>( false ) {}
 
@@ -809,30 +833,30 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    return this->get();
+                virtual bool as_bool( size_t n ) const override {
+                    return this->get( n );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    return ( this->get() ? "true" : "false" );
+                virtual std::string as_string( size_t n ) const override {
+                    return ( this->get( n ) ? "true" : "false" );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
-                    return static_cast<long long>( this->get() );
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( this->get() );
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
-                    return std::complex<double>( this->as_double(), 0.0 );
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
                 virtual void from_bool( bool x ) override { this->_value = x; }
@@ -914,6 +938,14 @@ namespace NCPA {
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>( "" ) {}
 
@@ -990,8 +1022,8 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    std::string s = this->get();
+                virtual bool as_bool( size_t n ) const override {
+                    std::string s = this->get( n );
                     std::transform( s.begin(), s.end(), s.begin(),
                                     []( unsigned char c ) {
                                         return std::tolower( c );
@@ -1000,36 +1032,28 @@ namespace NCPA {
                     return ( s == "true" );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
-                    std::string s = this->get();
+                virtual std::string as_string( size_t n ) const override {
+                    std::string s = this->get( n );
                     return s;
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
-                    return std::stoll( this->get() );
+                virtual long long as_int( size_t n ) const override {
+                    return std::stoll( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
-                    return std::stoull( this->get() );
+                    size_t n ) const override {
+                    return std::stoull( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return std::stod( this->get() );
+                virtual double as_double( size_t n ) const override {
+                    return std::stod( this->get( n ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
-                    return std::complex<double>( this->as_double(), 0.0 );
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
                 }
-
-                using hidden::_base_scalar_parameter<PARAMTYPE>::from_bool;
-                using hidden::_base_scalar_parameter<PARAMTYPE>::from_string;
-                using hidden::_base_scalar_parameter<PARAMTYPE>::from_int;
-                using hidden::_base_scalar_parameter<
-                    PARAMTYPE>::from_unsigned_int;
-                using hidden::_base_scalar_parameter<PARAMTYPE>::from_double;
-                using hidden::_base_scalar_parameter<PARAMTYPE>::from_complex;
 
                 virtual void from_bool( bool x ) override {
                     this->_value = ( x ? "true" : "false" );
@@ -1109,8 +1133,17 @@ namespace NCPA {
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( PARAMTYPE{ 0, 0 } ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>(
+                        PARAMTYPE { 0, 0 } ) {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
@@ -1185,36 +1218,37 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
-                    return ( std::abs( this->get() ) != 0.0 );
+                virtual bool as_bool( size_t n ) const override {
+                    return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
+                virtual std::string as_string( size_t n ) const override {
                     std::ostringstream oss;
-                    oss << std::to_string( this->get().real() ) << " "
-                        << ( this->get().imag() < 0.0 ? "- " : "+ " )
-                        << std::to_string( this->get().imag() );
+                    oss << std::to_string( this->get( n ).real() ) << " "
+                        << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
+                        << std::to_string( this->get( n ).imag() );
                     return oss.str();
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
-                    return static_cast<long long>( std::abs( this->get() ) );
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>(
+                        std::abs( this->get( n ) ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     return static_cast<unsigned long long>(
-                        std::abs( this->get() ) );
+                        std::abs( this->get( n ) ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
-                    return static_cast<double>( std::abs( this->get() ) );
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( std::abs( this->get( n ) ) );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
-                    return std::complex<double>( this->get().real(),
-                                                 this->get().imag() );
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->get( n ).real(),
+                                                 this->get( n ).imag() );
                 }
 
                 virtual void from_string( const std::string& x ) override {
@@ -1300,6 +1334,14 @@ namespace NCPA {
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
             : public hidden::_base_scalar_parameter<PARAMTYPE> {
             public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
                 ScalarParameter() :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {}
 
@@ -1376,35 +1418,35 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( *this ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n ) const override {
                     throw std::out_of_range(
                         "No as_bool() conversion defined!" );
                 }
 
-                virtual std::string as_string( size_t n = 0 ) const override {
+                virtual std::string as_string( size_t n ) const override {
                     // throw std::out_of_range("No as_string() conversion
                     // defined!");
                     return this->_as_string( n );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n ) const override {
                     throw std::out_of_range(
                         "No as_int() conversion defined!" );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n ) const override {
                     throw std::out_of_range(
                         "No as_unsigned_int() conversion defined!" );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n ) const override {
                     throw std::out_of_range(
                         "No as_double() conversion defined!" );
                 }
 
-                virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
                     throw std::out_of_range(
                         "No as_complex() conversion defined!" );
                 }

@@ -15,8 +15,15 @@ namespace NCPA {
         class Parameter {
             public:
                 template<typename PARAMTYPE>
-                static param_ptr_t scalar( NCPA::units::units_ptr_t ptr
-                                           = nullptr ) {
+                static param_ptr_t scalar() {
+                    return param_ptr_t( new ScalarParameter<PARAMTYPE>() );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
+                static param_ptr_t scalar( NCPA::units::units_ptr_t ptr ) {
                     if (ptr == nullptr) {
                         return param_ptr_t( new ScalarParameter<PARAMTYPE>() );
                     } else {
@@ -27,9 +34,17 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
+                static param_ptr_t scalar( const PARAMTYPE& defaultval ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( defaultval ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar( const PARAMTYPE& defaultval,
-                                           NCPA::units::units_ptr_t ptr
-                                           = nullptr ) {
+                                           NCPA::units::units_ptr_t ptr ) {
                     if (ptr == nullptr) {
                         return param_ptr_t(
                             new ScalarParameter<PARAMTYPE>( defaultval ) );
@@ -42,8 +57,18 @@ namespace NCPA {
 
                 template<typename PARAMTYPE>
                 static param_ptr_t scalar(
+                    const std::vector<PARAMTYPE>& defaultval ) {
+                    return param_ptr_t(
+                        new ScalarParameter<PARAMTYPE>( defaultval ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
+                static param_ptr_t scalar(
                     const std::vector<PARAMTYPE>& defaultval,
-                    NCPA::units::units_ptr_t ptr = nullptr ) {
+                    NCPA::units::units_ptr_t ptr ) {
                     if (ptr == nullptr) {
                         return param_ptr_t(
                             new ScalarParameter<PARAMTYPE>( defaultval ) );
@@ -119,7 +144,10 @@ namespace NCPA {
                         defaultval, new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar( NCPA::units::units_ptr_t ptr,
                                            const ValidationTest& newtest ) {
                     return param_ptr_t(
@@ -127,7 +155,10 @@ namespace NCPA {
                                                                  newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar( NCPA::units::units_ptr_t ptr,
                                            const test_ptr_t& newtest ) {
                     return param_ptr_t(
@@ -135,7 +166,10 @@ namespace NCPA {
                                                                  newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     NCPA::units::units_ptr_t ptr,
                     std::initializer_list<test_ptr_t> new_tests ) {
@@ -144,7 +178,10 @@ namespace NCPA {
                                                                  new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar( PARAMTYPE defaultval,
                                            NCPA::units::units_ptr_t ptr,
                                            const ValidationTest& newtest ) {
@@ -153,7 +190,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar( PARAMTYPE defaultval,
                                            NCPA::units::units_ptr_t ptr,
                                            const test_ptr_t& newtest ) {
@@ -162,7 +202,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     PARAMTYPE defaultval, NCPA::units::units_ptr_t ptr,
                     std::initializer_list<test_ptr_t> new_tests ) {
@@ -171,7 +214,10 @@ namespace NCPA {
                             defaultval, ptr, new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr,
@@ -181,7 +227,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr, const test_ptr_t& newtest ) {
@@ -190,7 +239,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr,
@@ -207,7 +259,10 @@ namespace NCPA {
                         new ScalarParameter<PARAMTYPE>( other ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     const ScalarParameter<PARAMTYPE>& other,
                     NCPA::units::units_ptr_t u ) {
@@ -216,7 +271,10 @@ namespace NCPA {
                                                                  u ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t scalar(
                     const ScalarParameterWithUnits<PARAMTYPE>& other ) {
                     return param_ptr_t(
@@ -224,8 +282,21 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
-                static param_ptr_t vector( NCPA::units::units_ptr_t ptr
-                                           = nullptr ) {
+                static param_ptr_t vector() {
+                    return param_ptr_t( new VectorParameter<PARAMTYPE>() );
+                }
+
+                template<typename PARAMTYPE>
+                static param_ptr_t vector( const PARAMTYPE& defaultval ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( defaultval ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
+                static param_ptr_t vector( NCPA::units::units_ptr_t ptr ) {
                     if (ptr == nullptr) {
                         return param_ptr_t( new VectorParameter<PARAMTYPE>() );
                     } else {
@@ -234,10 +305,12 @@ namespace NCPA {
                     }
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector( const PARAMTYPE& defaultval,
-                                           NCPA::units::units_ptr_t ptr
-                                           = nullptr ) {
+                                           NCPA::units::units_ptr_t ptr ) {
                     if (ptr == nullptr) {
                         return param_ptr_t(
                             new VectorParameter<PARAMTYPE>( defaultval ) );
@@ -250,16 +323,31 @@ namespace NCPA {
 
                 template<typename PARAMTYPE>
                 static param_ptr_t vector(
+                    const std::vector<PARAMTYPE>& defaultval ) {
+                    return param_ptr_t(
+                        new VectorParameter<PARAMTYPE>( defaultval ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
+                static param_ptr_t vector(
                     const std::vector<PARAMTYPE>& defaultval,
-                    NCPA::units::units_ptr_t ptr = nullptr ) {
-                    if (ptr == nullptr) {
-                        return param_ptr_t(
-                            new VectorParameter<PARAMTYPE>( defaultval ) );
-                    } else {
-                        return param_ptr_t(
-                            new VectorParameterWithUnits<PARAMTYPE>(
-                                defaultval, ptr ) );
-                    }
+                    NCPA::units::units_ptr_t ptr ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( defaultval,
+                                                                 ptr ) );
+                }
+
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
+                static param_ptr_t vector(
+                    const NCPA::units::VectorWithUnits<PARAMTYPE>& defaultval ) {
+                    return param_ptr_t(
+                        new VectorParameterWithUnits<PARAMTYPE>( defaultval ) );
                 }
 
                 template<typename PARAMTYPE>
@@ -327,7 +415,10 @@ namespace NCPA {
                         defaultval, new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector( NCPA::units::units_ptr_t ptr,
                                            const ValidationTest& newtest ) {
                     return param_ptr_t(
@@ -335,7 +426,10 @@ namespace NCPA {
                                                                  newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector( NCPA::units::units_ptr_t ptr,
                                            const test_ptr_t& newtest ) {
                     return param_ptr_t(
@@ -343,7 +437,10 @@ namespace NCPA {
                                                                  newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     NCPA::units::units_ptr_t ptr,
                     std::initializer_list<test_ptr_t> new_tests ) {
@@ -352,7 +449,10 @@ namespace NCPA {
                                                                  new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector( PARAMTYPE defaultval,
                                            NCPA::units::units_ptr_t ptr,
                                            const ValidationTest& newtest ) {
@@ -361,7 +461,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector( PARAMTYPE defaultval,
                                            NCPA::units::units_ptr_t ptr,
                                            const test_ptr_t& newtest ) {
@@ -370,7 +473,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     PARAMTYPE defaultval, NCPA::units::units_ptr_t ptr,
                     std::initializer_list<test_ptr_t> new_tests ) {
@@ -379,7 +485,10 @@ namespace NCPA {
                             defaultval, ptr, new_tests ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr,
@@ -389,7 +498,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr, const test_ptr_t& newtest ) {
@@ -398,7 +510,10 @@ namespace NCPA {
                             defaultval, ptr, newtest ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     const std::vector<PARAMTYPE>& defaultval,
                     NCPA::units::units_ptr_t ptr,
@@ -415,7 +530,10 @@ namespace NCPA {
                         new VectorParameter<PARAMTYPE>( other ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     const VectorParameter<PARAMTYPE>& other,
                     NCPA::units::units_ptr_t u ) {
@@ -424,7 +542,10 @@ namespace NCPA {
                                                                  u ) );
                 }
 
-                template<typename PARAMTYPE>
+                template<typename PARAMTYPE,
+                         typename std::enable_if<
+                             std::is_floating_point<PARAMTYPE>::value,
+                             int>::type = 0>
                 static param_ptr_t vector(
                     const VectorParameterWithUnits<PARAMTYPE>& other ) {
                     return param_ptr_t(
