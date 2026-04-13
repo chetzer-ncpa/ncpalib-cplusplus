@@ -1,33 +1,51 @@
 #pragma once
 
 // #include "NCPA/defines.hpp"
+#include "NCPA/configuration/types/parameter_form_t.hpp"
+#include "NCPA/configuration/types/parameter_type_t.hpp"
+#include "NCPA/configuration/types/test_status_t.hpp"
+#include "NCPA/configuration/types/parse_result_t.hpp"
 #include "NCPA/types.hpp"
 
-#include <memory>
 #include <complex>
+#include <memory>
 
 namespace NCPA {
     namespace config {
-        enum class test_status_t { NONE, PENDING, FAILED, PASSED };
+        // enum class test_status_t { NONE, PENDING, FAILED, PASSED };
 
-        enum class parameter_form_t { UNDEF, SCALAR, VECTOR };
+        // enum class parameter_form_t { UNDEF, SCALAR, VECTOR };
 
-        enum class parameter_type_t {
-            UNDEF,
-            INTEGER,
-            UNSIGNED_INTEGER,
-            FLOAT,
-            STRING,
-            BOOLEAN,
-            ENUM,
-            COMPLEX,
-            OTHER
+        // enum class parameter_type_t {
+        //     UNDEF,
+        //     INTEGER,
+        //     UNSIGNED_INTEGER,
+        //     FLOAT,
+        //     STRING,
+        //     BOOLEAN,
+        //     ENUM,
+        //     COMPLEX,
+        //     OTHER
+        // };
+
+        struct HelpTextFormatterOptions {
+                bool newline_before_title  = true;
+                bool newline_after_title   = true;
+                std::string newline_marker = "<br>";
+                std::string word_regex     = "([^\\s]+)";
         };
 
         class ValidationTest;
         class ValidationTestSuite;
         class NullaryValidationTest;
         class BaseParameter;
+        class Argument;
+        class ArgumentSet;
+        class Parser;
+
+        class HelpTextSection;
+        class HelpTextParagraphSection;
+        class HelpTextOrganizerSection;
 
         template<typename T>
         class TypedParameter;
@@ -47,12 +65,19 @@ namespace NCPA {
         // builder class
         class Parameter;
 
-        template<typename T>
+        template<typename KEYTYPE = std::string>
         class ConfigurationMap;
 
-        template<typename KEYTYPE>
+        template<typename KEYTYPE = std::string>
         class Configurable;
 
+        template<typename T>
+        class TypedArgument;
+
+        template<typename INTYPE, typename KEYTYPE = std::string>
+        class Mapping;
+
+        
 
         template<typename T>
         class TypedValidationTest;
@@ -108,7 +133,7 @@ template<typename T>
 void swap( NCPA::config::ScalarParameter<T>& a,
            NCPA::config::ScalarParameter<T>& b ) noexcept;
 
-           template<typename T>
+template<typename T>
 void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
            NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
 
@@ -116,7 +141,7 @@ template<typename T>
 void swap( NCPA::config::VectorParameter<T>& a,
            NCPA::config::VectorParameter<T>& b ) noexcept;
 
-           template<typename T>
+template<typename T>
 void swap( NCPA::config::VectorParameterWithUnits<T>& a,
            NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
 

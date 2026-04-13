@@ -124,6 +124,11 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 #include "NCPA/configuration/Configurable.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/HelpTextSection.hpp"
+#include "NCPA/configuration/HelpTextParagraphSection.hpp"
+#include "NCPA/configuration/HelpTextOrganizerSection.hpp"
+#include "NCPA/configuration/Mapping.hpp"
+#include "NCPA/configuration/Parameter.hpp"
 #include "NCPA/configuration/ScalarParameter.hpp"
 #include "NCPA/configuration/ScalarParameterWithUnits.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
@@ -135,4 +140,3 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 
 // Make sure this is included last
 #include "NCPA/configuration/functions.hpp"
-#include "NCPA/configuration/Parameter.hpp"

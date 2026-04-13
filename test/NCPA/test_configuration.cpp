@@ -329,3 +329,12 @@ TEST_F( _TEST_TITLE_, ConfigurableClassHandlesVectorUnits) {
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "length" ), -5.0 );
     EXPECT_DOUBLE_EQ( cvec1.convert_parameter( "length", &METERS ).as_double(), -5000.0 );
 }
+
+TEST_F( _TEST_TITLE_, MappingWorksCorrectly ) {
+    cvec1.add_parameter( "par1",
+                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
+    Mapping<double>* mapping = new ConfigurationMapping<double,double>( "par1", 
+        [](double d){ return d; }, cvec1 );
+    mapping->apply( 4.2 );
+    EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 4.2 );
+}
