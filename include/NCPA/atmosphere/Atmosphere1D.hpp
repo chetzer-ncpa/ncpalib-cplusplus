@@ -464,7 +464,7 @@ namespace NCPA {
 
                 virtual size_t size() const {
                     check_pointer();
-                    return _ptr->get_axis_vector().size(); 
+                    return _ptr->get_axis_vector().size();
                 }
 
                 virtual vector_u_t get_axis_vector() {
