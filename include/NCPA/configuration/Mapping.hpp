@@ -1,82 +1,38 @@
 /*
 Mapping.hpp: Defines classes that take a value (presumably from an Argument),
 turn it into something else, and then send the converted value to the set()
-method of a Configurable.  You can make your own Mapping subclasses in a few
-different ways.
-
-Easiest:
-Use the DECLARE_MAPPING_TYPE macro.  This is used as:
-
-DECLARE_MAPPING_TYPE( SUBCLASS, INTYPE, OUTTYPE, KEYTYPE, LAMBDA )
-
-where:
-    * SUBCLASS is the name of the new class derived from mapping,
-    * INTYPE is the input type (e.g. provided by the Argument),
-    * OUTTYPE is the type expected by the Configurable,
-    * KEYTYPE is the type that the Configurable uses as a key (usually
-std::string), and
-    * LAMBDA is the conversion function, which must be provided inside
-parentheses.
-
-For example, to declare a Mapping that takes a boolean value and
-outputs its integer equivalent, you would use
-
-DECLARE_MAPPING_TYPE( BoolToIntMapping, bool, int, std::string,
-    ( [](bool b){ return (int)b; } ) )
-
-This can also be used to declare other templated mappings, as in
-
-template<typename T, typename KEYTYPE = std::string>
-DECLARE_MAPPING_TYPE( DirectMapping, T, T, KEYTYPE,
-                            ( []( T d ) { return d; } ) )
-
-which declares a Mapping template that just passes its value directly, and can
-be instantiated as
-
-DirectMapping<double> direct;
-
-
-More flexible:
-Derive from Mapping directly.  This will allow you to use conversions that may
-not be easily defined as a lambda.  You need to provide a default constructor,
-a full constructor, and a virtual destructor.  To define the above
-DirectMapping in this way, use:
-
-template<typename T, typename KEYTYPE = std::string>
-class DirectMapping : public Mapping<T, T, KEYTYPE> {
-    public:
-        DirectMapping() : Mapping<T,T,KEYTYPE>() {}
-        DirectMapping( KEYTYPE key ) :
-            Mapping<T, T, KEYTYPE>( key, []( T t ) { return t; } )
-                    {}
-        virtual ~DirectMapping() {}
-};
-
+method of a Configurable.
 */
 #pragma once
 
 #include "NCPA/configuration/Configurable.hpp"
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/pointers.hpp"
 
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
-#define DECLARE_MAPPING_TYPE( _SUBCLASS_, _INTYPE_, _OUTTYPE_, _KEYTYPE_,   \
-                              _LAMBDA_ )                                    \
-    class _SUBCLASS_ : public Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_> {     \
-        public:                                                             \
-            _SUBCLASS_() : Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>() {}     \
-            _SUBCLASS_( _KEYTYPE_ key ) :                                   \
-                Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>( key, _LAMBDA_ ) {} \
-            virtual ~_SUBCLASS_() {}                                        \
-    };
+// #define DECLARE_MAPPING_TYPE( _SUBCLASS_, _INTYPE_, _OUTTYPE_, _KEYTYPE_,   \
+//                               _LAMBDA_ )                                    \
+//     class _SUBCLASS_ : public Mapping<_INTYPE_, _KEYTYPE_> {                \
+//         public:                                                             \
+//             typedef Mapping<_INTYPE_, _KEYTYPE_> parent_t;                  \
+//                                                                             \
+//             _SUBCLASS_() : Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>() {}     \
+//             _SUBCLASS_( _KEYTYPE_ key ) :                                   \
+//                 Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>( key, _LAMBDA_ ) {} \
+//             virtual ~_SUBCLASS_() {}                                        \
+//     };
 
 namespace NCPA {
     namespace config {
 
+        using namespace NCPA::pointers;
+
         template<typename INTYPE, typename KEYTYPE>
-        class Mapping {
+        class Mapping : public Cloneable<Mapping<INTYPE, KEYTYPE>> {
             public:
                 Mapping() {}
 
@@ -91,6 +47,10 @@ namespace NCPA {
 
                 virtual const KEYTYPE& key() const { return _target_key; }
 
+                virtual void set_key( const std::string& newkey ) {
+                    _target_key = newkey;
+                }
+
             protected:
                 KEYTYPE _target_key;
         };
@@ -99,15 +59,27 @@ namespace NCPA {
                  typename KEYTYPE = std::string>
         class ConfigurationMapping : public Mapping<INTYPE, KEYTYPE> {
             public:
-                ConfigurationMapping() : Mapping<INTYPE, KEYTYPE>() {}
+                typedef Mapping<INTYPE, KEYTYPE> parent_t;
+                typedef ConfigurationMapping<INTYPE, OUTTYPE, KEYTYPE> this_t;
+
+                ConfigurationMapping() : parent_t() {}
 
                 ConfigurationMapping(
                     const KEYTYPE& key,
-                    std::function<OUTTYPE( INTYPE )> converter, Configurable<KEYTYPE> &target ) :
-                    Mapping<INTYPE, KEYTYPE>( key ),
-                    _converter { converter }, _target{ &target } {}
+                    std::function<OUTTYPE( INTYPE )> converter,
+                    Configurable<KEYTYPE>& target ) :
+                    parent_t( key ),
+                    _converter { converter },
+                    _target { &target } {}
+
+                ConfigurationMapping( const this_t& other ) :
+                    parent_t( other ),
+                    _converter { other._converter },
+                    _target { other._target } {}
 
                 virtual ~ConfigurationMapping() {}
+
+                NCPA_CLONE_METHOD( this_t, parent_t )
 
                 virtual void apply( const INTYPE& in ) override {
                     std::cout << "Applying value of " << this->convert( in )
@@ -122,6 +94,14 @@ namespace NCPA {
                         throw std::logic_error(
                             "No conversion function provided!" );
                     }
+                }
+
+                virtual void set_target( Configurable<KEYTYPE>& newtarget ) {
+                    _target = &newtarget;
+                }
+
+                virtual void set_converter( std::function<OUTTYPE( INTYPE )> converter ) {
+                    _converter = converter;
                 }
 
             protected:

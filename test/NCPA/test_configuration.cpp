@@ -338,3 +338,13 @@ TEST_F( _TEST_TITLE_, MappingWorksCorrectly ) {
     mapping->apply( 4.2 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 4.2 );
 }
+
+TEST_F( _TEST_TITLE_, MappingCloneWorksCorrectly ) {
+    cvec1.add_parameter( "par1",
+                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
+    Mapping<double>* mapping = new ConfigurationMapping<double,double>( "par1", 
+        [](double d){ return d * 2.0; }, cvec1 );
+    mapping_ptr_t<double> ptr( mapping->clone() );
+    mapping->apply( 4.2 );
+    EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 8.4 );
+}

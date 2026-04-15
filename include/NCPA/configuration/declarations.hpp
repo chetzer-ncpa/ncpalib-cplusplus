@@ -39,7 +39,6 @@ namespace NCPA {
         class ValidationTestSuite;
         class NullaryValidationTest;
         class BaseParameter;
-        class Argument;
         class ArgumentSet;
         class Parser;
 
@@ -71,13 +70,16 @@ namespace NCPA {
         template<typename KEYTYPE = std::string>
         class Configurable;
 
+        class Argument;
+
         template<typename T>
         class TypedArgument;
 
         template<typename INTYPE, typename KEYTYPE = std::string>
         class Mapping;
 
-        
+        template<typename INTYPE, typename KEYTYPE = std::string>
+        using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE,KEYTYPE>>;
 
         template<typename T>
         class TypedValidationTest;

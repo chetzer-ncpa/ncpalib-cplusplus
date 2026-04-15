@@ -9,6 +9,7 @@
 #include "NCPA/linearalgebra.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/ndvector.hpp"
+#include "NCPA/pointers.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/types.hpp"
 #include "NCPA/units.hpp"

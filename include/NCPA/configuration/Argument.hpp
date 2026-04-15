@@ -2,11 +2,13 @@
 
 #include "NCPA/configuration/declarations.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace NCPA {
     namespace config {
+
         class Argument {
             public:
                 Argument() : Argument( "", "" ) {}
@@ -34,10 +36,40 @@ namespace NCPA {
                 virtual bool expects_value() const = 0;
                 virtual parse_status_t parse( std::vector<std::string>& args )
                     = 0;
+                virtual void apply() = 0;
 
             protected:
                 std::string _tag;
                 std::string _help_text;
+        };
+
+        template<typename INTYPE>
+        class TypedArgument : public Argument {
+            public:
+                TypedArgument() : Argument() {}
+
+                TypedArgument( const std::string& tag ) : Argument( tag ) {}
+
+                TypedArgument( const std::string& tag,
+                               const mapping_ptr_t& mapping ) :
+                    TypedArgument<INTYPE>( tag, *mapping ) {}
+
+                TypedArgument( const std::string& tag,
+                               const Mapping<INTYPE,std::string>& mapping ) :
+                    Argument( tag ) {
+                    _mappings.push_back( mapping.clone() );
+                }
+
+                virtual void apply() override {
+                    for (auto ptr : _mappings) {
+                        ptr->apply(_value);
+                    }
+                }
+
+                
+            protected:
+                std::vector<mapping_ptr_t<INTYPE, std::string>> _mappings;
+                INTYPE _value;
         };
     }  // namespace config
 }  // namespace NCPA
