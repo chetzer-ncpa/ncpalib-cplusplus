@@ -266,7 +266,7 @@ namespace NCPA {
                             }
                         }
                     }
-                    NCPA_DEBUG << "LU decomposition complete" << std::endl;
+                    // NCPA_DEBUG << "LU decomposition complete" << std::endl;
                     return *this;
                     // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
                 }

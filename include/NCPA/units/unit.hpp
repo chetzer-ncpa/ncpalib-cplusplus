@@ -213,6 +213,10 @@ namespace NCPA {
                     return output;
                 }
 
+                std::string to_string() const {
+                    return _name;
+                }
+
             private:
                 std::string _name;
                 std::vector<std::string> _aliases;
@@ -260,6 +264,7 @@ namespace NCPA {
                                       1000.0 );
         const static Unit MILLIMETERS( "mm", { "millimeters" }, &METERS,
                                        0.001 );
+        const static Unit CENTIMETERS( "cm", { "centimeters" }, &METERS, 0.01 );
         const static Unit CELSIUS( "C", { "Celsius", "degrees C", "degC" },
                                    &KELVIN, 1.0, 273.15 );
         const static Unit FAHRENHEIT( "F",
@@ -319,6 +324,7 @@ namespace NCPA {
                             // register_unit( HERTZ);
 
                             register_unit( KILOMETERS );
+                            register_unit( CENTIMETERS );
                             register_unit( MILLIMETERS );
                             register_unit( CELSIUS );
                             register_unit( FAHRENHEIT );

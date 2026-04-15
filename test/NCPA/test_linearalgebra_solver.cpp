@@ -379,37 +379,82 @@ TEST_F( _TEST_TITLE_, BlockTridiagonalSolverWorks ) {
     }
 }
 
-TEST_F( _TEST_TITLE_, BlockOutriggerSolverWorks ) {
-    size_t m = 4;
-    size_t n = 2;
+TEST_F( _TEST_TITLE_, BlockOutriggerSolverWorksForKnownMatrix ) {
+    size_t m = 5;
+    size_t n = 3;
 
     Solver<double> bsolver = SolverFactory<double>::build(
         solver_t::BLOCK_OUTRIGGER, matrix_t::BAND_DIAGONAL );
-    Solver<double> testsolver = SolverFactory<double>::build(
-        solver_t::BAND_DIAGONAL );
+    Solver<double> testsolver
+        = SolverFactory<double>::build( solver_t::BAND_DIAGONAL );
 
     BlockMatrix<double> BM( matrix_t::BAND_DIAGONAL );
     BM.resize( m, m, n, n );
+    Matrix<double> eye
+        = MatrixFactory<double>::build( matrix_t::BAND_DIAGONAL, n, n );
+    eye.identity();
+    Matrix<double> series
+        = MatrixFactory<double>::build( matrix_t::BAND_DIAGONAL, n, n );
+    for (size_t i = 0; i < n; ++i) {
+        series.set( i, i, i + 1 );
+    }
     for (size_t r = 0; r < m; ++r) {
-        size_t cmin = ( r == 0 ? 0 : r - 1 );
-        size_t cmax = ( r == ( m - 1 ) ? r : r + 1 );
-        for (size_t c = cmin; c <= cmax; ++c) {
-            double factor = ( r == c ? 2.0 : 0.5 );
-            BM.get_block( r, c ).set_diagonal(
-                NCPA::math::random_numbers<double>( n, -factor, factor ) );
+        BM.set_block( r, r, series );
+        if (r > 0) {
+            BM.set_block( r, r - 1, -eye );
+        }
+        if (r < m - 1) {
+            BM.set_block( r, r + 1, -eye );
+        }
+        series += n;
+    }
+    BM.set_block( 0, m - 1, -eye ).set_block( m - 1, 0, -eye );
+
+    Vector<double> f = VectorFactory<double>::build( vector_t::DENSE, m*n );
+    f[0] = 0;
+    for (size_t i = 1; i < m*n; ++i) {
+        f[i] = f[i-1] + 0.25;
+    }
+    
+    Vector<double> soln     = bsolver.set_system_matrix( BM ).solve( f );
+    Vector<double> testsoln = soln;
+    testsoln.set( { 0.773757149142103, 0.440588698562709, 0.364374301891153,
+             0.461284645842499, 0.347558574522544, 0.317085852944575,
+             0.321381434227893, 0.297204174050010, 0.288140815776297,
+             0.288385393752750, 0.280074817877535, 0.276181489042098,
+             0.312472503299604, 0.283618822602875, 0.276037052728883 } );
+    for (size_t i = 0; i < m * n; ++i) {
+        EXPECT_NEAR( soln[ i ], testsoln[ i ], 1e-12 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, BlockOutriggerSolverWorksForRandomMatrices) {
+    BlockMatrix<double> BM = BlockMatrix<double>( matrix_t::BAND_DIAGONAL );
+    Solver<double> bsolver = SolverFactory<double>::build(
+        solver_t::BLOCK_OUTRIGGER, matrix_t::BAND_DIAGONAL );
+    Solver<double> testsolver
+        = SolverFactory<double>::build( solver_t::BAND_DIAGONAL );
+    
+    size_t m = 6, n = 7;
+    BM.resize( m, m, n, n );
+    Vector<double> d = VectorFactory<double>::build( vector_t::DENSE, m*n );
+    d.set( NCPA::math::random_numbers<double>( m*n, -2.0, 2.0 ) );
+    for (size_t i = 0; i < m; ++i) {
+        BM.get_block(i,i).set_diagonal( NCPA::math::random_numbers<double>( n, -3.0, 3.0 ), 0 );
+        if (i == 0) {
+            BM.get_block(0,m-1).set_diagonal( NCPA::math::random_numbers<double>( n, -1.0, 1.0 ), 0 );
+        } else {
+            BM.get_block(i,i-1).set_diagonal( NCPA::math::random_numbers<double>( n, -1.0, 1.0 ), 0 );
+        }
+        if (i == m-1) {
+            BM.get_block(m-1,0).set_diagonal( NCPA::math::random_numbers<double>( n, -1.0, 1.0 ), 0 );
+        } else {
+            BM.get_block(i,i+1).set_diagonal( NCPA::math::random_numbers<double>( n, -1.0, 1.0 ), 0 );
         }
     }
-    BM.get_block( m - 1, 0 )
-        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
-    BM.get_block( 0, m - 1 )
-        .set_diagonal( NCPA::math::random_numbers<double>( n, -0.5, 0.5 ) );
-
-    Vector<double> f = VectorFactory<double>::build( vector_t::DENSE );
-    f.set( NCPA::math::random_numbers<double>( m*n, -0.5, 0.5 ) );
-
-    Vector<double> soln = bsolver.set_system_matrix( BM ).solve( f );
-    Vector<double> testsoln = testsolver.set_system_matrix( BM ).solve( f );
-    for (size_t i = 0; i < m*n; ++i) {
-        EXPECT_NEAR( soln[i], testsoln[i], 1e-12 );
+    Vector<double> soln = bsolver.set_system_matrix( BM ).solve( d );
+    Vector<double> testsoln = testsolver.set_system_matrix( BM ).solve( d );
+    for (size_t i = 0; i < m * n; ++i) {
+        EXPECT_NEAR( soln[ i ], testsoln[ i ], 1e-12 );
     }
 }

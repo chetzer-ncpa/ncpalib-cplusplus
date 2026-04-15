@@ -33,10 +33,36 @@ namespace NCPA {
                     C.clear().identity( NQ, NQ );
                     for (auto i = 1; i < _denominator_coefficients.size();
                          i++) {
+                        // NCPA_DEBUG << "Computing Q[" << i-1 << "] * " << 
+                        //     _denominator_coefficients[ i ] << std::endl
+                        //     << "First 5 diagonals of Q matrix:" << std::endl;
+                        // for (auto j = 0; j < 5; ++j) {
+                        //     NCPA_DEBUG << Q[i-1].get(j,j) << ", "; 
+                        // }
+                        // NCPA_DEBUG << std::endl;
                         C += Q[ i - 1 ] * _denominator_coefficients[ i ];
+                        // NCPA_DEBUG << "First 5 diagonals of matrix sum C:"
+                        //     << std::endl;
+                        // for (auto j = 0; j < 5; ++j) {
+                        //     NCPA_DEBUG << C.get(j,j) << ", "; 
+                        // }
+                        // NCPA_DEBUG << std::endl;
                     }
                     for (auto i = 1; i < _numerator_coefficients.size(); i++) {
+                        // NCPA_DEBUG << "Computing Q[" << i << "] * " << 
+                        //     _numerator_coefficients[ i ] << std::endl
+                        //     << "First 5 diagonals of Q matrix:" << std::endl;
+                        // for (auto j = 0; j < 5; ++j) {
+                        //     NCPA_DEBUG << Q[i-1].get(j,j) << ", "; 
+                        // }
+                        // NCPA_DEBUG << std::endl;
                         B += Q[ i - 1 ] * _numerator_coefficients[ i ];
+                        // NCPA_DEBUG << "First 5 diagonals of matrix sum B:"
+                        //     << std::endl;
+                        // for (auto j = 0; j < 5; ++j) {
+                        //     NCPA_DEBUG << B.get(j,j) << ", "; 
+                        // }
+                        // NCPA_DEBUG << std::endl;
                     }
                     return *this;
                 }

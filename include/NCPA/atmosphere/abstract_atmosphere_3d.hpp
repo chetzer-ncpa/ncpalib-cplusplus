@@ -166,6 +166,7 @@ namespace NCPA {
                 virtual bool same( double x1_1, double x2_1, double x1_2,
                                    double x2_2 ) const
                     = 0;
+                virtual bool is_stratified() const = 0;
 
 
                 virtual void print( std::ostream& os ) = 0;

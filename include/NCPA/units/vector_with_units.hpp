@@ -36,19 +36,24 @@ namespace NCPA {
         class VectorWithUnits : public std::vector<T> {
             public:
                 // constructors
-                VectorWithUnits() : std::vector<T>(), _units { nullptr } {}
+                VectorWithUnits( const Unit *units = nullptr) : std::vector<T>(), _units { units } {}
 
-                VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
-                    this->resize( n_points );
-                }
+                // VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
+                //     this->resize( n_points );
+                // }
 
                 VectorWithUnits( const std::vector<T>& values,
-                                 const Unit *units ) :
+                                 const Unit *units = nullptr ) :
                     VectorWithUnits<T>() {
                     set( values, units );
                 }
 
-                VectorWithUnits( size_t n_points, const Unit *units ) :
+                VectorWithUnits( const ScalarWithUnits<T>& value ) :
+                    VectorWithUnits<T>( std::vector<T>( 1, value.get() ),
+                                        value.get_units() ) {}
+
+                VectorWithUnits( size_t n_points,
+                                 const Unit *units = nullptr ) :
                     VectorWithUnits<T>( std::vector<T>( n_points ), units ) {}
 
                 VectorWithUnits( size_t n_points, const char *units ) :
@@ -64,7 +69,7 @@ namespace NCPA {
                     VectorWithUnits<T>( values, &units ) {}
 
                 VectorWithUnits( size_t n_points, const T *property_values,
-                                 const Unit *property_units ) :
+                                 const Unit *property_units = nullptr ) :
                     VectorWithUnits<T>(
                         std::vector<T>( property_values,
                                         property_values + n_points ),
@@ -185,6 +190,7 @@ namespace NCPA {
                     // will throw invalid_conversion and leave original units
                     // unchanged if there's an error.  If there's no change in
                     // units, don't bother with the calculation
+                    _check_units_pointer();
                     const Unit *oldunits = this->get_units();
                     if (!new_units.equals( *oldunits )) {
                         VectorWithUnits<T> buffer
@@ -194,6 +200,15 @@ namespace NCPA {
                         std::swap( *this, buffer );
                         // *this = buffer;
                     }
+                }
+
+                virtual void convert_units( const Unit *new_units ) {
+                    _check_units_pointer();
+                    if (new_units == nullptr) {
+                        throw std::logic_error(
+                            "Passed null pointer for new units" );
+                    }
+                    this->convert_units( *new_units );
                 }
 
                 virtual void convert_units( const std::string& new_units ) {
@@ -260,6 +275,10 @@ namespace NCPA {
                 }
 
                 virtual VectorWithUnits<T> as( const Unit *units ) const {
+                    if (units == nullptr) {
+                        throw std::logic_error(
+                            "Passed null pointer for new units" );
+                    }
                     return this->as( *units );
                 }
 
@@ -276,7 +295,7 @@ namespace NCPA {
                 VectorWithUnits<U> as() const {
                     VectorWithUnits<U> newv( this->size(), this->get_units() );
                     for (size_t i = 0; i < this->size(); ++i) {
-                        newv[i] = (U)this->get(i);
+                        newv[ i ] = (U)this->get( i );
                     }
                     return newv;
                 }
@@ -353,6 +372,10 @@ namespace NCPA {
                     this->set( values, Units::from_string( units ) );
                 }
 
+                virtual void set_units( const Unit *new_units ) {
+                    _units = new_units;
+                }
+
                 virtual void set_units( const Unit& new_units ) {
                     _units = &new_units;
                 }
@@ -363,6 +386,14 @@ namespace NCPA {
 
                 virtual void set_units( const char *new_units ) {
                     _units = Units::from_string( new_units );
+                }
+
+                virtual std::vector<T>& std() {
+                    return static_cast<std::vector<T>&>( *this );
+                }
+
+                virtual const std::vector<T>& std() const {
+                    return static_cast<const std::vector<T>&>( *this );
                 }
 
                 explicit operator bool() const { return !this->empty(); }
@@ -398,8 +429,7 @@ namespace NCPA {
                 }
 
                 template<typename U>
-                VectorWithUnits operator+(
-                    U second ) const {
+                VectorWithUnits operator+( U second ) const {
                     VectorWithUnits<T> temp1( *this );
                     temp1 += (T)second;
                     return temp1;
@@ -407,6 +437,12 @@ namespace NCPA {
 
             protected:
                 const Unit *_units = nullptr;
+
+                void _check_units_pointer() const {
+                    if (_units == nullptr) {
+                        throw std::logic_error( "No units have been set!" );
+                    }
+                }
         };
     }  // namespace units
 }  // namespace NCPA

@@ -286,12 +286,6 @@ namespace NCPA {
                     static_cast<const NCPA::arrays::ndvector<3, double>&>( d ),
                     d.get_units(), units_out ),
                 units_out );
-            // NCPA::arrays::ndvector<3, double> c = pd2c(
-            //     static_cast<const NCPA::arrays::ndvector<3, double>&>( p ),
-            //     p.get_units(),
-            //     static_cast<const NCPA::arrays::ndvector<3, double>&>( d ),
-            //     d.get_units(), units_out );
-            // return vector3d_u_t( c, units_out );
         }
 
         // U & V winds to wind speed

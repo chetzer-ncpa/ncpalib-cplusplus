@@ -30,7 +30,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         void SetUp() override {  // define stuff here
             AtmosphereReader1D reader
                 = AtmosphereFactory::build( reader_1d_t::NCPAPROP );
-            test_atmos                  = reader.read( filename );
+            test_atmos                  = reader.read( filename1d );
             AtmosphereReader2D reader2d = AtmosphereFactory::build(
                 reader_2d_t::NCPAPROP_PIECEWISE_STRATIFIED );
             test_2datmos = reader2d.read( filename2d );
@@ -71,7 +71,7 @@ class _TEST_TITLE_ : public ::testing::Test {
         Atmosphere3D test_3datmos;
         const test_t zero      = NCPA::math::zero<test_t>(),
                      one       = NCPA::math::one<test_t>();
-        std::string filename   = "testdata/test_atmosphere_1d.ncpaprop";
+        std::string filename1d = "testdata/test_atmosphere_1d.ncpaprop";
         std::string filename2d = "testdata/test_atmosphere_2d.ncpaprop";
         std::string filename3d = "testdata/test_atmosphere_3d.ncpaprop";
         map<string, vector<double>> first5;
@@ -371,14 +371,22 @@ TEST_F( _TEST_TITLE_, MultidimensionalWindVectorsToComponentIsCorrect ) {
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 4; ++j) {
             for (size_t k = 0; k < 5; ++k) {
-                EXPECT_DOUBLE_EQ( wc3_000[ i ][ j ][ k ], wcv_000[ i ][ j ][ k ] );
-                EXPECT_DOUBLE_EQ( wc3_045[ i ][ j ][ k ], wcv_045[ i ][ j ][ k ] );
-                EXPECT_DOUBLE_EQ( wc3_090[ i ][ j ][ k ], wcv_090[ i ][ j ][ k ] );
-                EXPECT_NEAR( wc3_135[ i ][ j ][ k ], wcv_135[ i ][ j ][ k ], 1e-12 );
-                EXPECT_DOUBLE_EQ( wc3_180[ i ][ j ][ k ], wcv_180[ i ][ j ][ k ] );
-                EXPECT_DOUBLE_EQ( wc3_225[ i ][ j ][ k ], wcv_225[ i ][ j ][ k ] );
-                EXPECT_DOUBLE_EQ( wc3_270[ i ][ j ][ k ], wcv_270[ i ][ j ][ k ] );
-                EXPECT_NEAR( wc3_315[ i ][ j ][ k ], wcv_315[ i ][ j ][ k ], 1e-12 );
+                EXPECT_DOUBLE_EQ( wc3_000[ i ][ j ][ k ],
+                                  wcv_000[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_045[ i ][ j ][ k ],
+                                  wcv_045[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_090[ i ][ j ][ k ],
+                                  wcv_090[ i ][ j ][ k ] );
+                EXPECT_NEAR( wc3_135[ i ][ j ][ k ], wcv_135[ i ][ j ][ k ],
+                             1e-12 );
+                EXPECT_DOUBLE_EQ( wc3_180[ i ][ j ][ k ],
+                                  wcv_180[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_225[ i ][ j ][ k ],
+                                  wcv_225[ i ][ j ][ k ] );
+                EXPECT_DOUBLE_EQ( wc3_270[ i ][ j ][ k ],
+                                  wcv_270[ i ][ j ][ k ] );
+                EXPECT_NEAR( wc3_315[ i ][ j ][ k ], wcv_315[ i ][ j ][ k ],
+                             1e-12 );
             }
         }
     }
@@ -527,4 +535,13 @@ TEST_F( _TEST_TITLE_, Atmosphere3DReadsProperly ) {
 
     EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 0.0, 0.0, 2.1 ), 8.808512e-04 );
     // EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 400.0, 0.2, 52.2 ), 40.99138 );
+}
+
+TEST_F( _TEST_TITLE_, StratifiedAtmosphere3DReadsProperly ) {
+    AtmosphereReader3D reader3d = AtmosphereFactory::build( reader_3d_t::NCPAPROP_STRATIFIED );
+    test_3datmos = reader3d.read( filename1d );
+    EXPECT_TRUE( test_3datmos.same( 100.0, -0.1, 300.0, 0.1 ) );
+
+    EXPECT_DOUBLE_EQ( test_3datmos.get( "U", 100.0, 0.0, 2.1 ),
+                      test_atmos.get( "U", 2.1 ) );
 }
