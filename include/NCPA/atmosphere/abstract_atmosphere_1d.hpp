@@ -285,6 +285,3 @@
  
  static void swap( NCPA::atmos::abstract_atmosphere_1d& a,
                    NCPA::atmos::abstract_atmosphere_1d& b ) noexcept {}
- 
-static void swap( NCPA::atmos::abstract_atmosphere_1d& a,
-                  NCPA::atmos::abstract_atmosphere_1d& b ) noexcept {}

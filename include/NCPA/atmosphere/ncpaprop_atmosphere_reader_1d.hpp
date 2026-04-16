@@ -8,11 +8,10 @@
 #  endif
 #endif
 
+#include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
-// #include "NCPA/atmosphere/builders.hpp"
-#include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/files.hpp"
 
@@ -36,8 +35,29 @@ namespace NCPA {
                     const ncpaprop_atmosphere_reader_1d& other ) :
                     ncpaprop_atmosphere_reader_1d() {}
 
-                DECLARE_BOILERPLATE_METHODS( ncpaprop_atmosphere_reader_1d,
-                                             _abstract_atmosphere_reader_1d )
+                ncpaprop_atmosphere_reader_1d(
+                    ncpaprop_atmosphere_reader_1d&& source ) noexcept :
+                    ncpaprop_atmosphere_reader_1d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~ncpaprop_atmosphere_reader_1d() {}
+
+                ncpaprop_atmosphere_reader_1d& operator=(
+                    ncpaprop_atmosphere_reader_1d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap(
+                    ncpaprop_atmosphere_reader_1d& a,
+                    ncpaprop_atmosphere_reader_1d& b ) noexcept;
+
+                virtual std::unique_ptr<_abstract_atmosphere_reader_1d> clone()
+                    const override {
+                    return std::unique_ptr<_abstract_atmosphere_reader_1d>(
+                        new ncpaprop_atmosphere_reader_1d( *this ) );
+                }
 
                 virtual Atmosphere1D read(
                     const std::string& filename ) override {
@@ -123,15 +143,11 @@ namespace NCPA {
                         // lines will either be comments (# ), field
                         // descriptions (#% ), or field contents
                         line = NCPA::strings::deblank( line );
-                        // std::cout << "Line is '" << line << "'" <<
-                        // std::endl;
                         if (line[ 0 ] == '#') {
                             // check second character
                             if (header_in == nullptr && line.size() > 1
                                 && line[ 1 ] == '%') {
                                 headerlines.push_back( line.substr( 2 ) );
-                                // std::cout << "Added '" << line << "' to
-                                // headerlines" << std::endl;
                             }
                             // otherwise it's a regular comment and can be
                             // ignored
@@ -144,11 +160,6 @@ namespace NCPA {
 
                         std::getline( *in, line );
                     }
-                    // std::cout << "Found " << headerlines.size()
-                    //           << " header lines " << std::endl;
-                    // std::cout << " Found " << atmlines.size() << " data
-                    // lines "
-                    //           << std::endl;
 
                     // parse them out
                     size_t nfields = headerlines.size();
