@@ -374,7 +374,7 @@ TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperAsStdReturnsCorrectVector ) {
 TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperClearWorks ) {
     wrapper1.clear();
     EXPECT_EQ( wrapper1.size(), 0 );
-    EXPECT_THROW( { wrapper1[ vecsize ] = 2.0; }, std::logic_error );
+    EXPECT_THROW( { wrapper1[ vecsize ] = 2.0; }, std::out_of_range );
 }
 
 TEST_F( NCPALinearAlgebraSparseVectorTest, WrapperResizeWorks ) {

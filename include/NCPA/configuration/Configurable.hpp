@@ -141,9 +141,9 @@ namespace NCPA {
 
                 BaseParameter *add_parameter( KEYTYPE key,
                                               const param_ptr_t param ) {
-                    NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
+                    // NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
                     _parameters[ key ] = param->clone();
-                    NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
+                    // NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
                     return _parameters[ key ].get();
                 }
 
@@ -479,7 +479,7 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
-                    NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
+                    // NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
                     this->add_parameter(
                         key, Parameter::vector<typename PARAMTYPE::value_type>(
                                  val, units ) );
