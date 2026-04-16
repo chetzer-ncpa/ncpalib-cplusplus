@@ -874,10 +874,6 @@ namespace NCPA {
                     } else {
                         return diagonal_index_status_t::VALID;
                     }
-                    // return ( ind1 >= 0
-                    //          && ind1 < (int)( this->contents().size() )
-                    //          && row < this->rows() && col < this->columns()
-                    //          );
                 }
 
                 virtual size_t rows() const override { return _nrows; }
