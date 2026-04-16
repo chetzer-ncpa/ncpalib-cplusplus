@@ -5,6 +5,7 @@ test_types.cpp \
 test_arrays.cpp \
 test_ndvector.cpp \
 test_math.cpp \
+test_geographic.cpp \
 test_units.cpp \
 test_strings.cpp \
 test_configuration.cpp \
