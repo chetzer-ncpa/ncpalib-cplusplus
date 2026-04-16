@@ -17,8 +17,8 @@ namespace NCPA {
     }  // namespace atmos
 }  // namespace NCPA
 
-#define RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D \
-    return static_cast<abstract_atmosphere_2d&>( *this );
+// #define RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D \
+//     return static_cast<abstract_atmosphere_2d&>( *this );
 
 static void swap( NCPA::atmos::abstract_atmosphere_2d&,
                   NCPA::atmos::abstract_atmosphere_2d& ) noexcept;
@@ -85,13 +85,6 @@ namespace NCPA {
 
                 virtual std::unique_ptr<abstract_atmosphere_2d> clone() const
                     = 0;
-
-                // virtual AtmosphericProperty2D& get_property(
-                //     const std::string& key )
-                //     = 0;
-                // virtual const AtmosphericProperty2D& get_property(
-                //     const std::string& key ) const
-                //     = 0;
 
                 virtual std::unique_ptr<abstract_atmosphere_1d> extract(
                     double range )
