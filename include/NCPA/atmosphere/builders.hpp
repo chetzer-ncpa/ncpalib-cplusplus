@@ -15,6 +15,11 @@
 #include "NCPA/atmosphere/readers.hpp"
 #include "NCPA/atmosphere/stratified_atmosphere_2d.hpp"
 #include "NCPA/atmosphere/stratified_atmosphere_3d.hpp"
+#include "NCPA/atmosphere/abstract_atmospheric_property_1d.hpp"
+#include "NCPA/atmosphere/abstract_atmospheric_property_2d.hpp"
+#include "NCPA/atmosphere/abstract_atmospheric_property_3d.hpp"
+#include "NCPA/atmosphere/stratified_atmospheric_property_2d.hpp"
+#include "NCPA/atmosphere/stratified_atmospheric_property_3d.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/units.hpp"
 

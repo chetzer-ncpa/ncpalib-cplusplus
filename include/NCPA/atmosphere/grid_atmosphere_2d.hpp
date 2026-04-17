@@ -5,6 +5,7 @@
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/AtmosphericProperty2D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/grid_atmospheric_property_2d.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
@@ -33,8 +34,26 @@ namespace NCPA {
                     _internals         = other._internals;
                 }
 
-                DECLARE_BOILERPLATE_METHODS( grid_atmosphere_2d,
-                                             abstract_atmosphere_2d )
+                grid_atmosphere_2d( grid_atmosphere_2d&& source ) noexcept :
+                    grid_atmosphere_2d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~grid_atmosphere_2d() {}
+
+                grid_atmosphere_2d& operator=( grid_atmosphere_2d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap( grid_atmosphere_2d& a,
+                                    grid_atmosphere_2d& b ) noexcept;
+
+                virtual std::unique_ptr<abstract_atmosphere_2d> clone()
+                    const override {
+                    return std::unique_ptr<abstract_atmosphere_2d>(
+                        new grid_atmosphere_2d( *this ) );
+                }
 
                 virtual std::unique_ptr<abstract_atmosphere_1d> extract(
                     double range ) override {

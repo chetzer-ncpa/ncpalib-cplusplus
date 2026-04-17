@@ -5,6 +5,7 @@
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/AtmosphericProperty2D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/tuple_atmospheric_property_1d.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
@@ -33,8 +34,28 @@ namespace NCPA {
                     _build_scalar_splines();
                 }
 
-                DECLARE_BOILERPLATE_METHODS( stratified_atmosphere_2d,
-                                             abstract_atmosphere_2d )
+                stratified_atmosphere_2d(
+                    stratified_atmosphere_2d&& source ) noexcept :
+                    stratified_atmosphere_2d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~stratified_atmosphere_2d() {}
+
+                stratified_atmosphere_2d& operator=(
+                    stratified_atmosphere_2d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap( stratified_atmosphere_2d& a,
+                                    stratified_atmosphere_2d& b ) noexcept;
+
+                virtual std::unique_ptr<abstract_atmosphere_2d> clone()
+                    const override {
+                    return std::unique_ptr<abstract_atmosphere_2d>(
+                        new stratified_atmosphere_2d( *this ) );
+                }
 
                 virtual bool is_stratified() const override { return true; }
 
@@ -528,8 +549,8 @@ namespace NCPA {
                     _1d_interpolator_type
                     = NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR;
         };
-    }
-}
+    }  // namespace atmos
+}  // namespace NCPA
 
 static void swap( NCPA::atmos::stratified_atmosphere_2d& a,
                   NCPA::atmos::stratified_atmosphere_2d& b ) noexcept {

@@ -4,6 +4,7 @@
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/grid_atmospheric_property_3d.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
@@ -35,10 +36,9 @@ namespace NCPA {
                     _build_scalar_splines();
                 }
 
-                DECLARE_BOILERPLATE_METHODS( grid_atmosphere_3d,
-                                             abstract_atmosphere_3d )
+                grid_atmosphere_3d( grid_atmosphere_3d&& source ) noexcept : grid_atmosphere_3d() { ::swap( *this, source ); } virtual ~grid_atmosphere_3d() {} grid_atmosphere_3d& operator=( grid_atmosphere_3d other ) { ::swap( *this, other ); return *this; } friend void ::swap( grid_atmosphere_3d& a, grid_atmosphere_3d& b ) noexcept; virtual std::unique_ptr<abstract_atmosphere_3d> clone() const override { return std::unique_ptr<abstract_atmosphere_3d>( new grid_atmosphere_3d( *this ) ); }
 
-                virtual abstract_atmosphere_3d& set(
+                virtual grid_atmosphere_3d& set(
                     const vector_u_t& ax1, const vector_u_t& ax2,
                     NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
                         components ) override {
@@ -47,7 +47,7 @@ namespace NCPA {
                     return this->set( components );
                 }
 
-                virtual abstract_atmosphere_3d& set(
+                virtual grid_atmosphere_3d& set(
                     NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
                         components ) override {
                     auto dims = components.shape();
@@ -107,7 +107,7 @@ namespace NCPA {
                     }
                     this->set_interpolator( _interpolator_type );
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
                 virtual size_t size( size_t dim ) const override {
@@ -116,7 +116,7 @@ namespace NCPA {
                 }
 
                 // set all horizontal points to the same 1-D atmosphere
-                virtual abstract_atmosphere_3d& set(
+                virtual grid_atmosphere_3d& set(
                     abstract_atmosphere_1d& atmos1d ) override {
                     auto keys = atmos1d.get_vector_keys();
                     _properties.clear();
@@ -146,10 +146,10 @@ namespace NCPA {
                     }
                     this->set_interpolator( _interpolator_type );
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& set_interpolator(
+                virtual grid_atmosphere_3d& set_interpolator(
                     NCPA::interpolation::interpolator_3d_type_t interp_type )
                     override {
                     _interpolator_type = interp_type;
@@ -157,25 +157,25 @@ namespace NCPA {
                          it != _properties.end(); ++it) {
                         it->second.set_interpolator( interp_type );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& set_interpolator(
+                virtual grid_atmosphere_3d& set_interpolator(
                     NCPA::interpolation::interpolator_2d_type_t interp_type )
                     override {
                     _2d_interpolator_type = interp_type;
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& set_interpolator(
+                virtual grid_atmosphere_3d& set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type )
                     override {
                     throw NCPA::NotImplementedError(
                         "Cannot set a 1-D interpolator on a 3-D atmosphere" );
                 }
 
-                virtual abstract_atmosphere_3d& set_axis(
+                virtual grid_atmosphere_3d& set_axis(
                     size_t axis, vector_u_t vals ) override {
                     this->validate_axis( axis );
                     for (auto it = _properties.begin();
@@ -183,10 +183,10 @@ namespace NCPA {
                         it->second.resample( axis, vals );
                     }
                     _axes[ axis ] = vals;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& add_property(
+                virtual grid_atmosphere_3d& add_property(
                     const std::string& key,
                     const AtmosphericProperty3D& property ) override {
                     _assert_does_not_contain( key );
@@ -202,10 +202,10 @@ namespace NCPA {
                         }
                     }
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& add_property(
+                virtual grid_atmosphere_3d& add_property(
                     const std::string& key,
                     const vector3d_u_t& property ) override {
                     _assert_does_not_contain( key );
@@ -224,10 +224,10 @@ namespace NCPA {
                     _properties[ key ].set( _axes[ 0 ], _axes[ 1 ], _axes[ 2 ],
                                             property );
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& add_property(
+                virtual grid_atmosphere_3d& add_property(
                     const std::string& key,
                     const vector2d_u_t& property ) override {
                     _assert_does_not_contain( key );
@@ -244,10 +244,10 @@ namespace NCPA {
                     }
                     _scalar_properties[ key ] = property;
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& add_property(
+                virtual grid_atmosphere_3d& add_property(
                     const std::string& key,
                     const scalar_u_t& property ) override {
                     _assert_does_not_contain( key );
@@ -259,18 +259,18 @@ namespace NCPA {
                         key, vector2d_u_t( _axes[ 0 ].size(),
                                            _axes[ 1 ].size(), property ) ) );
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& remove_property(
+                virtual grid_atmosphere_3d& remove_property(
                     const std::string& key ) override {
                     _properties.erase( key );
                     _scalar_properties.erase( key );
                     _scalar_splines.erase( key );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& copy_property(
+                virtual grid_atmosphere_3d& copy_property(
                     const std::string& old_key,
                     const std::string& new_key ) override {
                     _assert_does_not_contain( new_key );
@@ -285,7 +285,7 @@ namespace NCPA {
                             "Key " + old_key
                             + " does not exist in atmosphere!" );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
                 virtual vector_u_t get_axis_vector( size_t n ) override {
@@ -421,7 +421,7 @@ namespace NCPA {
                     return maxax;
                 }
 
-                virtual abstract_atmosphere_3d& convert_axis_units(
+                virtual grid_atmosphere_3d& convert_axis_units(
                     size_t n, units_ptr_t new_units ) override {
                     this->validate_axis( n );
                     for (auto it = _properties.begin();
@@ -430,10 +430,10 @@ namespace NCPA {
                     }
                     _axes[ n ].convert_units( *new_units );
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& convert_units(
+                virtual grid_atmosphere_3d& convert_units(
                     const std::string& key, units_ptr_t new_units ) override {
                     if (this->contains_vector( key )) {
                         _properties[ key ].convert_units( *new_units );
@@ -442,10 +442,10 @@ namespace NCPA {
                     } else {
                         throw std::range_error( "Unknown key: " + key );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& resample(
+                virtual grid_atmosphere_3d& resample(
                     size_t axis, double new_d ) override {
                     this->validate_axis( axis );
                     vector_u_t new_x;
@@ -458,7 +458,7 @@ namespace NCPA {
                     return this->resample( axis, new_x );
                 }
 
-                virtual abstract_atmosphere_3d& resample(
+                virtual grid_atmosphere_3d& resample(
                     size_t axis, vector_u_t new_z ) override {
                     this->validate_axis( axis );
                     for (auto it = _properties.begin();
@@ -493,10 +493,10 @@ namespace NCPA {
                     if (axis <= 1) {
                         _build_scalar_splines();
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_3d& resample(
+                virtual grid_atmosphere_3d& resample(
                     vector_u_t new_ax1, vector_u_t new_ax2,
                     vector_u_t new_ax3 ) override {
                     for (auto it = _properties.begin();
@@ -524,7 +524,7 @@ namespace NCPA {
                     _scalar_properties = scalar_copy;
                     _axes              = { new_ax1, new_ax2, new_ax3 };
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_3D;
+                    return *this;;
                 }
 
                 virtual std::vector<std::string> get_keys() const override {

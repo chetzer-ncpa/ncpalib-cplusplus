@@ -5,6 +5,7 @@
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/AtmosphericProperty2D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/tuple_atmospheric_property_1d.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
@@ -38,9 +39,29 @@ namespace NCPA {
                     _build_scalar_splines();
                 }
 
-                DECLARE_BOILERPLATE_METHODS(
-                    piecewise_stratified_atmosphere_2d,
-                    abstract_atmosphere_2d )
+                piecewise_stratified_atmosphere_2d(
+                    piecewise_stratified_atmosphere_2d&& source ) noexcept :
+                    piecewise_stratified_atmosphere_2d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~piecewise_stratified_atmosphere_2d() {}
+
+                piecewise_stratified_atmosphere_2d& operator=(
+                    piecewise_stratified_atmosphere_2d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap(
+                    piecewise_stratified_atmosphere_2d& a,
+                    piecewise_stratified_atmosphere_2d& b ) noexcept;
+
+                virtual std::unique_ptr<abstract_atmosphere_2d> clone()
+                    const override {
+                    return std::unique_ptr<abstract_atmosphere_2d>(
+                        new piecewise_stratified_atmosphere_2d( *this ) );
+                }
 
                 virtual size_t size( size_t dim ) const override {
                     this->validate_axis( dim );
