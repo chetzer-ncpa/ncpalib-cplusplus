@@ -16,6 +16,10 @@ namespace NCPA {
 
         typedef std::chrono::time_point<std::chrono::system_clock> time_point_t;
         typedef std::chrono::seconds duration_t;
+        typedef struct {
+            time_point_t time;
+            duration_t duration = duration_t::zero();
+        } time_interval_t;
 
         enum class input_id_t {
             INVALID,
