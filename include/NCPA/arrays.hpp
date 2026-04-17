@@ -1922,7 +1922,8 @@ namespace NCPA {
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
 
-                    this->redimension( newdims );
+                    // this->redimension( newdims );
+                    this->_dimensions = newdims;
                 }
 
                 ArrayView( const ArrayLike<T, N + 1> *parent, size_t const_dim,
@@ -1942,7 +1943,8 @@ namespace NCPA {
                         }
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
-                    this->redimension( newdims );
+                    // this->redimension( newdims );
+                    this->_dimensions = newdims;
                 }
 
                 virtual ~ArrayView() {}
@@ -2049,7 +2051,8 @@ namespace NCPA {
                         }
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
-                    this->redimension( newdims );
+                    // this->redimension( newdims );
+                    this->_dimensions = newdims;
                 }
 
                 ArrayView( const ArrayLike<T, 2> *parent, size_t const_dim,
@@ -2069,7 +2072,8 @@ namespace NCPA {
                         }
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
-                    this->redimension( newdims );
+                    // this->redimension( newdims );
+                    this->_dimensions = newdims;
                 }
 
                 virtual ~ArrayView() {}
@@ -2297,6 +2301,7 @@ namespace NCPA {
                 NDimensionalArray( const std::array<size_t, N>& dims ) :
                     ArrayLike<T, N>( dims ) {
                     this->redimension( dims );
+                    // this->_dimensions = dims;
                 }
 
                 virtual ~NDimensionalArray() {}
