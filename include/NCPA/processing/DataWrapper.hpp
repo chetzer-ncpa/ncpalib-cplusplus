@@ -14,7 +14,9 @@ namespace NCPA {
             : public AbstractDataWrapper,
               public std::enable_shared_from_this<DataWrapper<T>> {
             public:
-                DataWrapper() { _internal = std::make_shared<T>(); }
+                DataWrapper() { 
+                    // _internal = std::make_shared<T>();
+                 }
 
                 DataWrapper( const T in ) {
                     _internal = std::make_shared<T>( in );

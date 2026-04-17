@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <vector>
 #include <unordered_map>
@@ -12,6 +13,9 @@
 
 namespace NCPA {
     namespace processing {
+
+        typedef std::chrono::time_point<std::chrono::system_clock> time_point_t;
+        typedef std::chrono::seconds duration_t;
 
         enum class input_id_t {
             INVALID,

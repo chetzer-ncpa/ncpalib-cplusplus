@@ -192,12 +192,11 @@ namespace NCPA::processing {
             // }
 
             virtual ProcessingChain<intype, outtype>& from_json(
-                nlohmann::json& json )
-                = 0;
+                nlohmann::json& json ) = 0;
 #else
-            virtual std::string as_json( bool pretty               = false,
-                                         const std::string& indent = "",
-                                         const std::string tab     = "\t" ) {
+            virtual std::string as_json( bool pretty            = false,
+                                         size_t indent          = 1,
+                                         char tab = '\t' ) {
                 if (pretty) {
                     return this->as_json_str_pretty( indent, tab );
                 } else {
@@ -205,20 +204,31 @@ namespace NCPA::processing {
                 }
             }
 
-            virtual std::string as_json_str_pretty( int n_indent = 1,
+            virtual std::string as_json_str_pretty( size_t n_indent = 0,
                                                     char tab = '\t' ) const {
                 std::ostringstream json;
-                int indentstep = ( tab == '\t' ? 1 : 4 );
-                json << indent << "{ " << std::endl;
+                std::string tabstr;
+                if (tab == '\t') {
+                    tabstr = "\t";
+                } else {
+                    tabstr = "    ";
+                }
+                std::ostringstream indentstr;
+                for (size_t i = 0; i < n_indent; ++i) {
+                    indentstr << tabstr;
+                }
+                std::string baseindent = indentstr.str();
+
+                // n_indent = ( tab == '\t' ? 1 : 4 );
+                json << baseindent << "{ " << std::endl;
                 for (auto it = this->parameters().begin();
                      it != this->parameters().end(); ++it) {
                     if (it != this->parameters().begin()) {
-                        json << "," << std::endl;
+                        json << ",\n";
                     }
-                    json << ( *it )->as_json( true, n_indent + indentstep,
-                                              tab );
+                    json << ( *it )->as_json( true, n_indent + 1, tab );
                 }
-                json << std::endl << "}";
+                json << "\n" << baseindent << "}";
                 return json.str();
             }
 
@@ -237,8 +247,7 @@ namespace NCPA::processing {
             }
 
             virtual ProcessingChain<intype, outtype>& from_json(
-                const std::string& json )
-                = 0;
+                const std::string& json ) = 0;
 #endif
 
 

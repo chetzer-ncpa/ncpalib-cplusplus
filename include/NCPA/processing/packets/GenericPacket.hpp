@@ -13,21 +13,25 @@ namespace NCPA::processing {
     template<typename T>
     class GenericPacket : public InputPacket {
         public:
-            GenericPacket() { _internal = std::make_unique<T>(); }
+            GenericPacket() {}
 
-            GenericPacket( const T in ) { _internal = std::make_unique<T>( in ); }
+            GenericPacket( const T in ) {}
 
-            GenericPacket( const GenericPacket<T>& input ) : GenericPacket<T>() {
-                _internal = std::make_unique<T>( input.get() );
+            GenericPacket( const GenericPacket<T>& input ) :
+                GenericPacket<T>() {
+                _internal = std::unique_ptr<T>( input.get() );
+                // _internal = std::make_unique<T>( input.get() );
             }
 
-            GenericPacket( GenericPacket<T>&& input ) noexcept : GenericPacket<T>() {
+            GenericPacket( GenericPacket<T>&& input ) noexcept :
+                GenericPacket<T>() {
                 ::swap( *this, input );
             }
 
             virtual ~GenericPacket() {}
 
-            friend void swap<>( GenericPacket<T>& a, GenericPacket<T>& b ) noexcept;
+            friend void swap<>( GenericPacket<T>& a,
+                                GenericPacket<T>& b ) noexcept;
 
             GenericPacket<T>& operator=( GenericPacket<T> other ) {
                 ::swap( *this, other );
@@ -35,7 +39,8 @@ namespace NCPA::processing {
             }
 
             GenericPacket<T>& set( const T& input ) {
-                _internal = std::make_unique<T>( input );
+                // _internal = std::make_unique<T>( input );
+                _internal = std::unique_ptr<T>( input );
                 return *this;
             }
 
@@ -59,19 +64,16 @@ namespace NCPA::processing {
 
             T *ptr() { return _internal.get(); }
 
-            static std::unique_ptr<InputPacket> build() {
-                return std::unique_ptr<InputPacket>(
-                    new GenericPacket<T>() );
+            static input_ptr_t build() {
+                return input_ptr_t( new GenericPacket<T>() );
             }
 
-            static std::unique_ptr<InputPacket> build(const T in) {
-                return std::unique_ptr<InputPacket>(
-                    new GenericPacket<T>(in) );
+            static input_ptr_t build( const T in ) {
+                return input_ptr_t( new GenericPacket<T>( in ) );
             }
 
-            static std::unique_ptr<InputPacket> build( const GenericPacket<T>& input ) {
-                return std::unique_ptr<InputPacket>(
-                    new GenericPacket<T>(input) );
+            static input_ptr_t build( const GenericPacket<T>& input ) {
+                return input_ptr_t( new GenericPacket<T>( input ) );
             }
 
         private:
@@ -84,6 +86,6 @@ void ::swap( NCPA::processing::GenericPacket<T>& a,
              NCPA::processing::GenericPacket<T>& b ) noexcept {
     using std::swap;
     ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-          dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
     swap( a._internal, b._internal );
 }
