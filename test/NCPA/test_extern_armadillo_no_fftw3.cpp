@@ -1,6 +1,6 @@
 // only run this test if armadillo is actually available
 #if __has_include( "armadillo" )
-#  include "NCPA/extern/armadillo.hpp"
+#  include "NCPA/extern/armadillo_no_fftw3.hpp"
 #  include "NCPA/geographic.hpp"
 #  include "NCPA/gtest.hpp"
 
@@ -9,8 +9,8 @@
 
 using namespace std;
 
-TEST( NCPAExternLibraryArmadilloTest,
-      ArmadilloIncludedCorrectlyWithoutFFTW3 ) {
+TEST( NCPAExternLibraryArmadilloWithoutFFTW3Test,
+      ArmadilloIncludedCorrectly ) {
 #  ifdef ARMA_INCLUDES
     bool armadillo_included = true;
 #  else
@@ -18,4 +18,16 @@ TEST( NCPAExternLibraryArmadilloTest,
 #  endif
     EXPECT_TRUE( armadillo_included );
 }
+
+TEST( NCPAExternLibraryArmadilloWithoutFFTW3Test,
+      ArmaUseFFTW3UnsetCorrectly ) {
+#  ifdef ARMA_USE_FFTW3
+    bool use_fftw3_set = true;
+#  else
+    bool use_fftw3_set = false;
+#  endif
+    EXPECT_FALSE( use_fftw3_set );
+}
+
+
 #endif

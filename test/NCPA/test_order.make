@@ -30,5 +30,5 @@ test_linearalgebra_basic_tridiagonal_solver.cpp \
 test_linearalgebra_basic_band_diagonal_solver.cpp \
 test_linearalgebra_solver.cpp \
 test_processing.cpp \
-test_extern_armadillo.cpp \
+test_extern_armadillo_no_fftw3.cpp \
 test_extern_armadillo_fftw3.cpp
