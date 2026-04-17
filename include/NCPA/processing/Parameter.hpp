@@ -4,6 +4,7 @@
 
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -60,7 +61,9 @@ namespace NCPA::processing {
 
             virtual const std::string& key() const { return _key; }
 
-            virtual const std::string& description() const { return _description; }
+            virtual const std::string& description() const {
+                return _description;
+            }
 
             virtual size_t asSizeT() const {
                 int val = this->asInt();
@@ -164,8 +167,9 @@ namespace NCPA::processing {
 
             virtual void add_value_to_json( nlohmann::json& json ) const = 0;
 #else
-            virtual std::string as_json( bool pretty = false, int indent = 1,
-                                         char space = ' ' ) const {
+            virtual std::string as_json( bool pretty                  = false,
+                                         int indent = 1,
+                                         char space = '\t' ) const {
                 if (pretty) {
                     return this->as_json_str_pretty( indent, space );
                 } else {
@@ -183,28 +187,39 @@ namespace NCPA::processing {
                 return json.str();
             }
 
-            virtual std::string as_json_str_pretty( int n_indent = 1,
-                                                    char space = ' ' ) const {
+            virtual std::string as_json_str_pretty( int indent = 1,
+                                                    char space = '\t' ) const {
                 std::ostringstream json;
-                std::string indent = "";
-                if (n_indent > 0) {
-                    std::ostringstream indentstr;
-                    for (int i = 0; i < n_indent; ++i) {
-                        indentstr << space;
-                    }
-                    indent = indentstr.str();
+                // std::string indent = "";
+                // if (n_indent > 0) {
+                //     std::ostringstream indentstr;
+                //     for (int i = 0; i < n_indent; ++i) {
+                //         indentstr << space;
+                //     }
+                //     indent = indentstr.str();
+                // }
+                int n_indent = ( space == '\t' ? 1 : 4 );
+                std::ostringstream oss;
+                for (int i = 0; i < n_indent; ++i) {
+                    oss << space;
                 }
+                std::string indentstr = oss.str();
+                oss.str( "" );
+                for (int i = 0; i < indent; ++i) {
+                    oss << indentstr;
+                }
+                std::string baseindent = oss.str();
 
-                json << indent << "\"" << this->key() << "\": {"
-                     << ( n_indent >= 0 ? std::endl : "" ) << indent << indent
-                     << "\"comment\": \"" << this->description() << "\","
-                     << ( n_indent >= 0 ? std::endl : "" ) << indent << indent
-                     << "\"form\": \"" << this->data_form_str() << "\","
-                     << ( n_indent >= 0 ? std::endl : "" ) << indent << indent
-                     << "\"type\": \"" << this->data_type_str() << "\","
-                     << ( n_indent >= 0 ? std::endl : "" ) << indent << indent
-                     << "\"value\": " << this->json_value_str()
-                     << ( n_indent >= 0 ? std::endl : "" ) << "}";
+                json << baseindent << "\"" << this->key() << "\": {\n"
+                     << baseindent << indentstr << "\"comment\": \""
+                     << this->description() << "\",\n"
+                     << baseindent << indentstr << "\"form\": \""
+                     << this->data_form_str() << "\",\n"
+                     << baseindent << indentstr << "\"type\": \""
+                     << this->data_type_str() << "\",\n"
+                     << baseindent << indentstr
+                     << "\"value\": " << this->json_value_str() << "\n"
+                     << baseindent << "}";
                 return json.str();
             }
 #endif
@@ -951,7 +966,9 @@ namespace NCPA::processing {
             }
     };
 
-    template<typename T, typename std::enable_if_t<std::is_scalar<T>::value>>
+    template<typename T,
+             typename
+             = typename std::enable_if<std::is_scalar<T>::value>::type>
     static std::unique_ptr<Parameter> make_parameter( const std::string& key,
                                                       const T& val ) {
         return std::unique_ptr<Parameter>(
