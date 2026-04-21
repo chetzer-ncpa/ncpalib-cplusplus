@@ -7,49 +7,6 @@
 
 namespace NCPA {
     namespace config {
-        // inline std::string to_string( parameter_form_t t ) {
-        //     switch (t) {
-        //         case parameter_form_t::SCALAR:
-        //             return "scalar";
-        //             break;
-        //         case parameter_form_t::VECTOR:
-        //             return "vector";
-        //             break;
-        //         default:
-        //             return "undefined";
-        //     }
-        // }
-
-        // inline std::string to_string( parameter_type_t t ) {
-        //     switch (t) {
-        //         case parameter_type_t::FLOAT:
-        //             return "float";
-        //             break;
-        //         case parameter_type_t::INTEGER:
-        //             return "signed integer";
-        //             break;
-        //         case parameter_type_t::UNSIGNED_INTEGER:
-        //             return "unsigned integer";
-        //             break;
-        //         case parameter_type_t::STRING:
-        //             return "string";
-        //             break;
-        //         case parameter_type_t::BOOLEAN:
-        //             return "boolean";
-        //             break;
-        //         case parameter_type_t::COMPLEX:
-        //             return "complex";
-        //             break;
-        //         case parameter_type_t::ENUM:
-        //             return "enum";
-        //             break;
-        //         case parameter_type_t::OTHER:
-        //             return "other";
-        //             break;
-        //         default:
-        //             return "undefined";
-        //     }
-        // }
 
         template<typename PARAMTYPE>
         TypedParameter<PARAMTYPE> *make_typed( Parameter& p ) {

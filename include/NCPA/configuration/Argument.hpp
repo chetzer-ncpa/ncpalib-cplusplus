@@ -19,7 +19,26 @@ namespace NCPA {
                           const std::string helptext ) :
                     _tag { tag }, _help_text { helptext } {}
 
+                virtual ~Argument() {}
+
                 virtual std::string help_text() const { return _help_text; }
+
+                virtual parse_status_t parse( size_t nargs, char **args ) {
+                    std::vector<std::string> vargs( nargs );
+                    for (size_t i = 0; i < nargs; ++i) {
+                        vargs[ i ] = args[ i ];
+                    }
+                    return this->parse( vargs );
+                }
+
+                virtual bool& required() { return _required; }
+
+                virtual const bool& required() const { return _required; }
+
+                virtual Argument& required( bool tf ) {
+                    _required = tf;
+                    return *this;
+                }
 
                 virtual Argument& set_help_text( const std::string& text ) {
                     _help_text = text;
@@ -33,43 +52,16 @@ namespace NCPA {
 
                 virtual std::string tag() const { return _tag; }
 
+                virtual void apply()               = 0;
                 virtual bool expects_value() const = 0;
                 virtual parse_status_t parse( std::vector<std::string>& args )
                     = 0;
-                virtual void apply() = 0;
+                virtual bool was_set() const = 0;
 
             protected:
                 std::string _tag;
                 std::string _help_text;
-        };
-
-        template<typename INTYPE>
-        class TypedArgument : public Argument {
-            public:
-                TypedArgument() : Argument() {}
-
-                TypedArgument( const std::string& tag ) : Argument( tag ) {}
-
-                TypedArgument( const std::string& tag,
-                               const mapping_ptr_t& mapping ) :
-                    TypedArgument<INTYPE>( tag, *mapping ) {}
-
-                TypedArgument( const std::string& tag,
-                               const Mapping<INTYPE,std::string>& mapping ) :
-                    Argument( tag ) {
-                    _mappings.push_back( mapping.clone() );
-                }
-
-                virtual void apply() override {
-                    for (auto ptr : _mappings) {
-                        ptr->apply(_value);
-                    }
-                }
-
-                
-            protected:
-                std::vector<mapping_ptr_t<INTYPE, std::string>> _mappings;
-                INTYPE _value;
+                bool _required;
         };
     }  // namespace config
 }  // namespace NCPA

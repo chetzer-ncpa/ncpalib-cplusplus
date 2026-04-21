@@ -3,8 +3,8 @@
 // #include "NCPA/defines.hpp"
 #include "NCPA/configuration/types/parameter_form_t.hpp"
 #include "NCPA/configuration/types/parameter_type_t.hpp"
-#include "NCPA/configuration/types/test_status_t.hpp"
 #include "NCPA/configuration/types/parse_result_t.hpp"
+#include "NCPA/configuration/types/test_status_t.hpp"
 #include "NCPA/types.hpp"
 
 #include <complex>
@@ -12,22 +12,6 @@
 
 namespace NCPA {
     namespace config {
-        // enum class test_status_t { NONE, PENDING, FAILED, PASSED };
-
-        // enum class parameter_form_t { UNDEF, SCALAR, VECTOR };
-
-        // enum class parameter_type_t {
-        //     UNDEF,
-        //     INTEGER,
-        //     UNSIGNED_INTEGER,
-        //     FLOAT,
-        //     STRING,
-        //     BOOLEAN,
-        //     ENUM,
-        //     COMPLEX,
-        //     OTHER
-        // };
-
         struct HelpTextFormatterOptions {
                 bool newline_before_title  = true;
                 bool newline_after_title   = true;
@@ -79,7 +63,7 @@ namespace NCPA {
         class Mapping;
 
         template<typename INTYPE, typename KEYTYPE = std::string>
-        using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE,KEYTYPE>>;
+        using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE, KEYTYPE>>;
 
         template<typename T>
         class TypedValidationTest;
@@ -302,6 +286,72 @@ namespace NCPA {
                 int>::type = 0>
         parameter_type_t parameter_type() {
             return parameter_type_t::OTHER;
+        }
+
+        template<typename T>
+        class can_use_from_string {
+                template<typename U>
+                static auto test( int )
+                    -> decltype( from_string(
+                                     std::declval<const std::string&>(),
+                                     std::declval<U&>() ),
+                                 std::true_type() );
+                template<typename>
+                static std::false_type test( ... );
+
+            public:
+                static constexpr bool value = decltype( test<T>( 0 ) )::value;
+        };
+
+        template<typename T>
+        typename std::enable_if<( std::is_integral<T>::value
+                                  && !( std::is_enum<T>::value
+                                        || std::is_same<T, bool>::value ) ),
+                                void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = static_cast<T>( std::stoi( str ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<std::is_floating_point<T>::value, void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = static_cast<T>( std::stod( str ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<( std::is_same<T, bool>::value ), void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = ( str.size() > 0 && ( str[ 0 ] == 't' || str[ 0 ] == 'T' ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value )
+              && std::is_convertible<std::string, T>::value ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = str;
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value
+                 || std::is_convertible<std::string, T>::value )
+              && can_use_from_string<T>::value ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            from_string( str, val );
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value
+                 || std::is_convertible<std::string, T>::value
+                 || can_use_from_string<T>::value ) ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            static_assert(
+                false, "No from_string() function defined for this type!" );
         }
     }  // namespace config
 }  // namespace NCPA
