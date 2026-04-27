@@ -6,6 +6,10 @@
 #    undef ARMA_USE_FFTW3
 #  endif
 
+#  ifndef ARMA_DONT_USE_FFTW3
+#    define ARMA_DONT_USE_FFTW3
+#  endif
+
 #  define NCPA_ARMADILLO_INCLUDED
 #  include <armadillo>
 

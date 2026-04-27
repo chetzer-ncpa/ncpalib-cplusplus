@@ -55,9 +55,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( input_id_t::DATA ),
-                _data_time { start_time },
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in );
             }
 
@@ -65,9 +65,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( input_id_t::DATA ),
-                _data_time { start_time },
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in );
             }
 
@@ -75,9 +75,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( input_id_t::DATA ),
-                _data_time { start_time },
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in.ptr() );
             }
 
@@ -86,9 +86,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( input_id_t::DATA, tag ),
-                _data_time { start_time },
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in );
             }
 
@@ -97,9 +97,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( in, tag ),
-                _data_time { start_time },
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in );
             }
 
@@ -108,9 +108,9 @@ namespace NCPA::processing {
                         std::chrono::nanoseconds duration
                         = duration_t::zero() ) :
                 InputPacket( in, tag ),
-                _duration { std::chrono::duration_cast<std::chrono::seconds>(
-                    duration ) },
-                _data_time { start_time } {
+                _data_time { start_time,
+                             std::chrono::duration_cast<std::chrono::seconds>(
+                                 duration ) } {
                 _internal.set( in.ptr() );
             }
 
@@ -121,7 +121,7 @@ namespace NCPA::processing {
             DataPacket( const DataPacket<T>& other ) : InputPacket( other ) {
                 _internal  = other._internal;
                 _data_time = other._data_time;
-                _duration  = other._duration;
+                // _duration  = other._duration;
             }
 
             DataPacket( DataPacket<T>&& input ) noexcept : DataPacket<T>() {
@@ -137,7 +137,9 @@ namespace NCPA::processing {
                 return *this;
             }
 
-            const duration_t& duration() const { return _duration; }
+            const duration_t& duration() const { return _data_time.duration; }
+
+            const time_interval_t& interval() const { return _data_time; }
 
             DataPacket<T>& set( const T& input ) {
                 // _internal = std::make_unique<T>( input );
@@ -171,7 +173,7 @@ namespace NCPA::processing {
 
             std::shared_ptr<T> ptr() { return _internal.ptr(); }
 
-            const time_point_t& time() const { return _data_time; }
+            const time_point_t& time() const { return _data_time.time; }
 
             static std::unique_ptr<InputPacket> build() {
                 return std::unique_ptr<InputPacket>( new DataPacket<T>() );
@@ -196,8 +198,9 @@ namespace NCPA::processing {
         private:
             // std::shared_ptr<T> _internal;
             DataWrapper<T> _internal;
-            duration_t _duration = duration_t::zero();
-            time_point_t _data_time;
+            time_interval_t _data_time;
+            // duration_t _duration = duration_t::zero();
+            // time_point_t _data_time;
     };
 }  // namespace NCPA::processing
 
@@ -209,5 +212,5 @@ void ::swap( NCPA::processing::DataPacket<T>& a,
             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
     swap( a._internal, b._internal );
     swap( a._data_time, b._data_time );
-    swap( a._duration, b._duration );
+    // swap( a._duration, b._duration );
 }

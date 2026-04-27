@@ -97,6 +97,23 @@ namespace NCPA {
                     return apply_configuration( msg );
                 }
 
+                 virtual bool apply_parameter(
+                    const NCPA::processing::Parameter &param ) {
+                    if (this->parameters().empty()) {
+                        this->_define_parameters();
+                    }
+                    
+                    for (auto it = this->parameters().begin();
+                         it != this->parameters().end(); ++it) {
+                        if (( *it )->key() == param.key()) {
+                            *it = param.clone();
+                            _configuration_changed = true;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
                 virtual bool has_next() const {
                     return ( this->next() != nullptr );
                 }
@@ -401,6 +418,8 @@ namespace NCPA {
 
                 virtual std::string tag() const { return _tag; }
 
+
+
                 // implemented in ProcessingStep
                 virtual AbstractDataWrapper& product() = 0;
                 // virtual AbstractDataWrapper& end_product() = 0;
@@ -433,6 +452,8 @@ namespace NCPA {
                         return packet_processing_result_t::FAILURE;
                     }
                 }
+
+               
 
                 virtual packet_processing_result_t
                     _process_data_request_packet(
