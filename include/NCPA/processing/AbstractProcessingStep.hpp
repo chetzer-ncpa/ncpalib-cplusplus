@@ -41,14 +41,31 @@ void swap( NCPA::processing::AbstractProcessingStep& a,
 namespace NCPA {
     namespace processing {
 
-        class AbstractProcessingStepState : public _step_state {};
+        class AbstractProcessingStepState : public _step_state {
+            public:
+                AbstractProcessingStepState() : _step_state() {}
+                virtual ~AbstractProcessingStepState() {}
+                AbstractProcessingStepState( const AbstractProcessingStepState& other ) : _step_state( other ),
+                    _parameters{other._parameters},
+                    _tag{ other._tag },
+                    _next{ other._next },
+                    _configuration_changed{ other._configuration_changed } {}
+                
+            
+            
+                std::vector<parameter_ptr_t> _parameters;
+                std::string _tag;
+                AbstractProcessingStep *_next = nullptr;
+                bool _configuration_changed   = true;
+        };
 
         class AbstractProcessingStep {
             public:
                 // must be implemented
                 virtual bool apply_configuration( std::string& message ) = 0;
+
                 virtual const _step_state& state() const { return _state; }
-                
+
 
             protected:
                 virtual _step_state& state() { return _state; }
@@ -619,10 +636,10 @@ namespace NCPA {
                 virtual packet_processing_result_t _process_data_packet(
                     InputPacket& packet, std::string& message ) = 0;
 
-                std::vector<parameter_ptr_t> _parameters;
-                std::string _tag;
-                AbstractProcessingStep *_next = nullptr;
-                bool _configuration_changed   = true;
+                // std::vector<parameter_ptr_t> _parameters;
+                // std::string _tag;
+                // AbstractProcessingStep *_next = nullptr;
+                // bool _configuration_changed   = true;
         };
     }  // namespace processing
 }  // namespace NCPA
