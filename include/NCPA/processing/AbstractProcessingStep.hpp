@@ -97,16 +97,16 @@ namespace NCPA {
                     return apply_configuration( msg );
                 }
 
-                 virtual bool apply_parameter(
-                    const NCPA::processing::Parameter &param ) {
+                virtual bool apply_parameter(
+                    const NCPA::processing::Parameter& param ) {
                     if (this->parameters().empty()) {
                         this->_define_parameters();
                     }
-                    
+
                     for (auto it = this->parameters().begin();
                          it != this->parameters().end(); ++it) {
                         if (( *it )->key() == param.key()) {
-                            *it = param.clone();
+                            *it                    = param.clone();
                             _configuration_changed = true;
                             return true;
                         }
@@ -318,8 +318,13 @@ namespace NCPA {
                     switch (this->_process_data_request_packet(
                         _cast_packet<DataRequestPacket>( packet ), msg )) {
                         case packet_processing_result_t::SUCCESS:
-                        case packet_processing_result_t::NOT_APPLICABLE:
                             return this->_build_product_packet();
+                            break;
+                        case packet_processing_result_t::NOT_APPLICABLE:
+                            return this->pass_on(
+                                packet,
+                                "Data request packet reached last step "
+                                "without being handled!" );
                             break;
                         case packet_processing_result_t::INVALID_PACKET:
                             return response_ptr_t( new ResponsePacket(
@@ -352,7 +357,7 @@ namespace NCPA {
                             break;
                         case packet_processing_result_t::NOT_APPLICABLE:
                             return this->pass_on(
-                                packet, "Generic packet reached last step "
+                                packet, "Data packet reached last step "
                                         "without being handled!" );
                             break;
                             // return this->has_next()
@@ -395,6 +400,11 @@ namespace NCPA {
                             return response_ptr_t( new ResponsePacket(
                                 response_id_t::ERROR, msg ) );
                             break;
+                        case packet_processing_result_t::NOT_APPLICABLE:
+                            return this->pass_on(
+                                packet, "Other packet reached last step "
+                                        "without being handled!" );
+                            break;
                         default:
                             return this->has_next()
                                      ? this->next()->process( packet )
@@ -417,8 +427,6 @@ namespace NCPA {
                 }
 
                 virtual std::string tag() const { return _tag; }
-
-
 
                 // implemented in ProcessingStep
                 virtual AbstractDataWrapper& product() = 0;
@@ -453,8 +461,6 @@ namespace NCPA {
                     }
                 }
 
-               
-
                 virtual packet_processing_result_t
                     _process_data_request_packet(
                         const DataRequestPacket *packet_ptr,
@@ -463,7 +469,11 @@ namespace NCPA {
                     // if (packet_ptr == nullptr) {
                     //     return packet_processing_result_t::INVALID_PACKET;
                     // }
-                    return packet_processing_result_t::SUCCESS;
+                    if (packet_ptr->tag() == this->tag()) {
+                        return packet_processing_result_t::SUCCESS;
+                    } else {
+                        return packet_processing_result_t::NOT_APPLICABLE;
+                    }
                 }
 
                 // virtual packet_processing_result_t

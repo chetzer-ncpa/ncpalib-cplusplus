@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+#include "NCPA/processing/packets/declarations.hpp"
 
 #if __has_include( "nlohmann/json.hpp" )
 #  define HAVE_NLOHMANN_JSON_HPP 1
@@ -68,24 +69,24 @@ namespace NCPA {
 
         enum class parameter_form_t { SCALAR, ARRAY };
 
-        class Packet;
-        class InputPacket;
-        class ConfigurationPacket;
-        class ConfigurationCompletePacket;
-        class ConfigurationQueryPacket;
-        class ResponsePacket;
-        class DummyConfigurationPacket;
-        class DataRequestPacket;
+        // class Packet;
+        // class InputPacket;
+        // class ConfigurationPacket;
+        // class ConfigurationCompletePacket;
+        // class ConfigurationQueryPacket;
+        // class ResponsePacket;
+        // class DummyConfigurationPacket;
+        // class DataRequestPacket;
 
-        template<typename T>
-        class DataPacket;
-        template<typename T>
-        class ProductPacket;
-        template<typename T>
-        class GenericPacket;
+        // template<typename T>
+        // class DataPacket;
+        // template<typename T>
+        // class ProductPacket;
+        // template<typename T>
+        // class GenericPacket;
 
-        typedef std::unique_ptr<InputPacket> input_ptr_t;
-        typedef std::unique_ptr<ResponsePacket> response_ptr_t;
+        // typedef std::unique_ptr<InputPacket> input_ptr_t;
+        // typedef std::unique_ptr<ResponsePacket> response_ptr_t;
 
         class Parameter;
         template<typename T>
