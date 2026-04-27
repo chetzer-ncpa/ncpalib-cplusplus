@@ -1,33 +1,62 @@
 #pragma once
 
 // #include "NCPA/defines.hpp"
+#include "NCPA/configuration/types/parameter_form_t.hpp"
+#include "NCPA/configuration/types/parameter_type_t.hpp"
+#include "NCPA/configuration/types/parse_result_t.hpp"
+#include "NCPA/configuration/types/test_status_t.hpp"
 #include "NCPA/types.hpp"
+#include "NCPA/exceptions.hpp"
 
-#include <memory>
 #include <complex>
+#include <memory>
+#include <string>
+
+#ifndef NCPA_CONFIG_DEFAULT_NEWLINE_MARKER
+#  define NCPA_CONFIG_DEFAULT_NEWLINE_MARKER "<br>"
+#endif
 
 namespace NCPA {
     namespace config {
-        enum class test_status_t { NONE, PENDING, FAILED, PASSED };
-
-        enum class parameter_form_t { UNDEF, SCALAR, VECTOR };
-
-        enum class parameter_type_t {
-            UNDEF,
-            INTEGER,
-            UNSIGNED_INTEGER,
-            FLOAT,
-            STRING,
-            BOOLEAN,
-            ENUM,
-            COMPLEX,
-            OTHER
+        struct help_text_formatter_options_t {
+                size_t indent_spaces   = 4;
+                size_t max_width       = 80;
+                // std::string newline_marker = "<br>";
+                std::string word_regex = "([^\\s]+)";
         };
+
+        struct help_text_section_formatter_options_t {
+                size_t first_line_indent        = 0;
+                size_t hanging_indent           = 0;
+                size_t title_indent             = 0;
+                bool indent_subsections         = true;
+                bool reset_indent_after_newline = false;
+                bool newline_before_title       = true;
+                bool newline_after_title        = false;
+        };
+
+        // static help_text_formatter_options_t HELP_TEXT_FORMATTER_OPTIONS;
+        static std::string NEWLINE_MARKER = NCPA_CONFIG_DEFAULT_NEWLINE_MARKER;
+
+        // struct HelpTextSectionFormattingOptions {
+        //         size_t first_line_indent = 0;
+        //         size_t hanging_indent    = 0;
+        //         size_t title_indent      = 0;
+        //         bool indent_subsections  = true;
+        // };
 
         class ValidationTest;
         class ValidationTestSuite;
         class NullaryValidationTest;
         class BaseParameter;
+        class ArgumentSet;
+        class Parser;
+
+        class HelpTextSection;
+        class HelpTextParagraphSection;
+        class HelpTextOrganizerSection;
+        class HelpTextArgumentSection;
+        class HelpTextFormatter;
 
         template<typename T>
         class TypedParameter;
@@ -47,12 +76,22 @@ namespace NCPA {
         // builder class
         class Parameter;
 
-        template<typename T>
+        template<typename KEYTYPE = std::string>
         class ConfigurationMap;
 
-        template<typename KEYTYPE>
+        template<typename KEYTYPE = std::string>
         class Configurable;
 
+        class Argument;
+
+        template<typename T>
+        class TypedArgument;
+
+        template<typename INTYPE, typename KEYTYPE = std::string>
+        class Mapping;
+
+        template<typename INTYPE, typename KEYTYPE = std::string>
+        using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE, KEYTYPE>>;
 
         template<typename T>
         class TypedValidationTest;
@@ -108,7 +147,7 @@ template<typename T>
 void swap( NCPA::config::ScalarParameter<T>& a,
            NCPA::config::ScalarParameter<T>& b ) noexcept;
 
-           template<typename T>
+template<typename T>
 void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
            NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
 
@@ -116,7 +155,7 @@ template<typename T>
 void swap( NCPA::config::VectorParameter<T>& a,
            NCPA::config::VectorParameter<T>& b ) noexcept;
 
-           template<typename T>
+template<typename T>
 void swap( NCPA::config::VectorParameterWithUnits<T>& a,
            NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
 
@@ -275,6 +314,71 @@ namespace NCPA {
                 int>::type = 0>
         parameter_type_t parameter_type() {
             return parameter_type_t::OTHER;
+        }
+
+        template<typename T>
+        class can_use_from_string {
+                template<typename U>
+                static auto test( int )
+                    -> decltype( from_string(
+                                     std::declval<const std::string&>(),
+                                     std::declval<U&>() ),
+                                 std::true_type() );
+                template<typename>
+                static std::false_type test( ... );
+
+            public:
+                static constexpr bool value = decltype( test<T>( 0 ) )::value;
+        };
+
+        template<typename T>
+        typename std::enable_if<( std::is_integral<T>::value
+                                  && !( std::is_enum<T>::value
+                                        || std::is_same<T, bool>::value ) ),
+                                void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = static_cast<T>( std::stoi( str ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<std::is_floating_point<T>::value, void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = static_cast<T>( std::stod( str ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<( std::is_same<T, bool>::value ), void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = ( str.size() > 0 && ( str[ 0 ] == 't' || str[ 0 ] == 'T' ) );
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value )
+              && std::is_convertible<std::string, T>::value ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            val = str;
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value
+                 || std::is_convertible<std::string, T>::value )
+              && can_use_from_string<T>::value ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            from_string( str, val );
+        }
+
+        template<typename T>
+        typename std::enable_if<
+            ( !( std::is_arithmetic<T>::value
+                 || std::is_convertible<std::string, T>::value
+                 || can_use_from_string<T>::value ) ),
+            void>::type
+            parse_string( const std::string& str, T& val ) {
+            throw NCPA::NotImplementedError( "parse_string() not implemented for this type!" );
         }
     }  // namespace config
 }  // namespace NCPA
