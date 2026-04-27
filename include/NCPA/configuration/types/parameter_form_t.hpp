@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NCPA/strings.hpp"
+
 #include <string>
 
 namespace NCPA {
@@ -20,3 +22,15 @@ namespace NCPA {
         }
     }  // namespace config
 }  // namespace NCPA
+
+inline void from_string( const std::string& s,
+                         NCPA::config::parameter_form_t& t ) {
+    std::string lcs = NCPA::strings::to_lower( s );
+    if (lcs == "scalar") {
+        t = NCPA::config::parameter_form_t::SCALAR;
+    } else if (lcs == "vector") {
+        t = NCPA::config::parameter_form_t::VECTOR;
+    } else {
+        t = NCPA::config::parameter_form_t::UNDEF;
+    }
+}

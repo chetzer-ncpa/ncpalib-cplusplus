@@ -137,6 +137,10 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 #include "NCPA/configuration/ValidationTestSuite.hpp"
 #include "NCPA/configuration/VectorParameter.hpp"
 #include "NCPA/configuration/VectorParameterWithUnits.hpp"
+#include "NCPA/configuration/HelpTextFormatter.hpp"
+#include "NCPA/configuration/Argument.hpp"
+#include "NCPA/configuration/FlagArgument.hpp"
+#include "NCPA/configuration/HelpTextArgumentSection.hpp"
 
 // Make sure this is included last
 #include "NCPA/configuration/functions.hpp"

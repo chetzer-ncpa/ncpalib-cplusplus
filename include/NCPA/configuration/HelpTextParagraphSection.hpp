@@ -10,10 +10,20 @@ namespace NCPA {
     namespace config {
         class HelpTextParagraphSection : public HelpTextSection {
             public:
-                HelpTextParagraphSection() : HelpTextSection() {}
+                HelpTextParagraphSection() : HelpTextSection() {
+                    _set_options();
+                }
 
                 HelpTextParagraphSection( const std::string& title ) :
-                    HelpTextSection( title ) {}
+                    HelpTextSection( title ) {
+                    _set_options();
+                }
+
+                HelpTextParagraphSection( const std::string& title, const std::string& text ) :
+                    HelpTextSection( title ) {
+                    _set_options();
+                    _text = text;
+                }
 
                 HelpTextParagraphSection(
                     const HelpTextParagraphSection& other ) :
@@ -42,20 +52,27 @@ namespace NCPA {
                         new HelpTextParagraphSection( *this ) );
                 }
 
-                virtual std::string text() const override { return _text; }
-
                 virtual HelpTextParagraphSection& set_text(
                     const std::string& text ) override {
                     _text = text;
                     return *this;
                 }
 
+                virtual std::string text() const override { return _text; }
+
             protected:
+                void _set_options() {
+                    this->options().first_line_indent = 0;
+                    this->options().hanging_indent    = 0;
+                    this->options().title_indent      = 0;
+                }
+
+            private:
                 std::string _text;
         };
 
         inline void swap( HelpTextParagraphSection& a,
-                   HelpTextParagraphSection& b ) noexcept {
+                          HelpTextParagraphSection& b ) noexcept {
             using std::swap;
             swap( static_cast<HelpTextSection&>( a ),
                   static_cast<HelpTextSection&>( b ) );

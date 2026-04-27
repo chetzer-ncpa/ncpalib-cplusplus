@@ -10,53 +10,105 @@
 
 namespace NCPA {
     namespace config {
+        template<typename INTYPE>
+        void swap( TypedArgument<INTYPE>& a,
+                   TypedArgument<INTYPE>& b ) noexcept;
 
         template<typename INTYPE>
         class TypedArgument : public Argument {
             public:
                 TypedArgument() : Argument() {}
 
-                TypedArgument( const std::string& tag ) : Argument( tag ) {}
+                // TypedArgument( const std::string& tag ) : Argument( tag ) {}
 
                 TypedArgument( const std::string& tag,
+                               const std::string& help_text ) :
+                    Argument( tag, help_text ) {}
+
+                // TypedArgument( const std::string& tag,
+                //                const INTYPE& defaultval ) :
+                //     Argument( tag ),
+                //     _default { defaultval },
+                //     _value { defaultval } {}
+
+                TypedArgument( const std::string& tag,
+                               const std::string& help_text,
                                const INTYPE& defaultval ) :
-                    Argument( tag ),
+                    Argument( tag, help_text ),
                     _default { defaultval },
-                    _value { defaultval } {}
+                    _value { defaultval }, _has_default{true} {}
 
                 TypedArgument(
-                    const std::string& tag,
+                    const std::string& tag, const std::string& help_text,
                     const mapping_ptr_t<INTYPE, std::string>& mapping ) :
-                    TypedArgument<INTYPE>( tag, *mapping ) {}
-
-                TypedArgument(
-                    const std::string& tag, const INTYPE& defaultval,
-                    const mapping_ptr_t<INTYPE, std::string>& mapping ) :
-                    TypedArgument<INTYPE>( tag, *mapping ),
-                    _default { defaultval },
-                    _value { defaultval } {}
-
-                TypedArgument( const std::string& tag,
-                               const Mapping<INTYPE, std::string>& mapping ) :
-                    Argument( tag ) {
+                    Argument( tag, help_text ) {
                     _mappings.push_back( mapping.clone() );
                 }
 
-                TypedArgument( const std::string& tag,
-                               const INTYPE& defaultval,
-                               const Mapping<INTYPE, std::string>& mapping ) :
-                    Argument( tag ),
+                TypedArgument(
+                    const std::string& tag, const std::string& help_text,
+                    const INTYPE& defaultval,
+                    const mapping_ptr_t<INTYPE, std::string>& mapping ) :
+                    Argument( tag, help_text ),
                     _default { defaultval },
-                    _value { defaultval } {
+                    _value { defaultval }, _has_default{true} {
                     _mappings.push_back( mapping.clone() );
+                }
+
+                TypedArgument( const std::string& tag,const std::string& help_text,
+                               const Mapping<INTYPE, std::string>& mapping )
+                               :
+                    Argument( tag, help_text ) {
+                    _mappings.push_back( mapping.clone() );
+                }
+
+                TypedArgument( const std::string& tag,const std::string& help_text,
+                               const INTYPE& defaultval,
+                               const Mapping<INTYPE, std::string>& mapping )
+                               :
+                    Argument( tag, help_text ),
+                    _default { defaultval },
+                    _value { defaultval }, _has_default{true} {
+                    _mappings.push_back( mapping.clone() );
+                }
+
+                TypedArgument( const TypedArgument<INTYPE>& other ) :
+                    Argument( other ),
+                    _default { other._default },
+                    _value { other._value }, _has_default{true},
+                    _was_set { other._was_set } {
+                    _mappings.reserve( other._mappings.size() );
+                    for (auto it = other._mappings.begin();
+                         it != other._mappings.end(); ++it) {
+                        _mappings.push_back( ( *it )->clone() );
+                    }
+                }
+
+                TypedArgument( TypedArgument<INTYPE>&& other ) noexcept {
+                    swap( *this, other );
                 }
 
                 virtual ~TypedArgument() {}
 
+                TypedArgument<INTYPE>& operator=(
+                    TypedArgument<INTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap<>( TypedArgument<INTYPE>& a,
+                                    TypedArgument<INTYPE>& b ) noexcept;
+
                 virtual void apply() override {
-                    for (auto ptr : _mappings) {
-                        ptr->apply( _value );
+                    for (auto it = _mappings.begin(); it != _mappings.end();
+                         ++it) {
+                        ( *it )->apply( _value );
                     }
+                }
+
+                virtual std::unique_ptr<Argument> clone() const override {
+                    return std::unique_ptr<Argument>(
+                        new TypedArgument<INTYPE>( *this ) );
                 }
 
                 virtual parse_status_t parse(
@@ -96,7 +148,7 @@ namespace NCPA {
                     }
                 }
 
-                virtual static INTYPE parse_value( const std::string& input ) {
+                static INTYPE parse_value( const std::string& input ) {
                     INTYPE val;
                     parse_string( input, val );
                     return val;
@@ -116,12 +168,35 @@ namespace NCPA {
 
                 virtual bool was_set() const override { return _was_set; }
 
+                virtual bool has_default() const override { return _has_default; }
+
+                virtual bool expects_value() const override { return true; }
+
+                virtual std::string default_string() const override {
+                    using std::to_string;
+                    return to_string( _default );
+                }
+
             protected:
                 std::vector<mapping_ptr_t<INTYPE, std::string>> _mappings;
                 INTYPE _default;
                 INTYPE _value;
+                bool _has_default = false;
 
                 bool _was_set = false;
+                
         };
+
+        template<typename INTYPE>
+        void swap( TypedArgument<INTYPE>& a,
+                   TypedArgument<INTYPE>& b ) noexcept {
+            using std::swap;
+            swap( static_cast<Argument&>( a ), static_cast<Argument&>( b ) );
+            swap( a._mappings, b._mappings );
+            swap( a._default, b._default );
+            swap( a._value, b._value );
+            swap( a._was_set, b._was_set );
+            swap( a._has_default, b._has_default );
+        }
     }  // namespace config
 }  // namespace NCPA

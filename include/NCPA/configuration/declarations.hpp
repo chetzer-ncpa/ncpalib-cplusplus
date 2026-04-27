@@ -6,18 +6,44 @@
 #include "NCPA/configuration/types/parse_result_t.hpp"
 #include "NCPA/configuration/types/test_status_t.hpp"
 #include "NCPA/types.hpp"
+#include "NCPA/exceptions.hpp"
 
 #include <complex>
 #include <memory>
+#include <string>
+
+#ifndef NCPA_CONFIG_DEFAULT_NEWLINE_MARKER
+#  define NCPA_CONFIG_DEFAULT_NEWLINE_MARKER "<br>"
+#endif
 
 namespace NCPA {
     namespace config {
-        struct HelpTextFormatterOptions {
-                bool newline_before_title  = true;
-                bool newline_after_title   = true;
-                std::string newline_marker = "<br>";
-                std::string word_regex     = "([^\\s]+)";
+        struct help_text_formatter_options_t {
+                size_t indent_spaces   = 4;
+                size_t max_width       = 80;
+                // std::string newline_marker = "<br>";
+                std::string word_regex = "([^\\s]+)";
         };
+
+        struct help_text_section_formatter_options_t {
+                size_t first_line_indent        = 0;
+                size_t hanging_indent           = 0;
+                size_t title_indent             = 0;
+                bool indent_subsections         = true;
+                bool reset_indent_after_newline = false;
+                bool newline_before_title       = true;
+                bool newline_after_title        = false;
+        };
+
+        // static help_text_formatter_options_t HELP_TEXT_FORMATTER_OPTIONS;
+        static std::string NEWLINE_MARKER = NCPA_CONFIG_DEFAULT_NEWLINE_MARKER;
+
+        // struct HelpTextSectionFormattingOptions {
+        //         size_t first_line_indent = 0;
+        //         size_t hanging_indent    = 0;
+        //         size_t title_indent      = 0;
+        //         bool indent_subsections  = true;
+        // };
 
         class ValidationTest;
         class ValidationTestSuite;
@@ -29,6 +55,8 @@ namespace NCPA {
         class HelpTextSection;
         class HelpTextParagraphSection;
         class HelpTextOrganizerSection;
+        class HelpTextArgumentSection;
+        class HelpTextFormatter;
 
         template<typename T>
         class TypedParameter;
@@ -350,8 +378,7 @@ namespace NCPA {
                  || can_use_from_string<T>::value ) ),
             void>::type
             parse_string( const std::string& str, T& val ) {
-            static_assert(
-                false, "No from_string() function defined for this type!" );
+            throw NCPA::NotImplementedError( "parse_string() not implemented for this type!" );
         }
     }  // namespace config
 }  // namespace NCPA
