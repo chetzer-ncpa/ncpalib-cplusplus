@@ -11,6 +11,7 @@ DataPacket
 ...
 */
 
+#include "NCPA/processing/_step_state.hpp"
 #include "NCPA/processing/AbstractDataWrapper.hpp"
 #include "NCPA/processing/DataWrapper.hpp"
 #include "NCPA/processing/declarations.hpp"
@@ -39,14 +40,20 @@ void swap( NCPA::processing::AbstractProcessingStep& a,
 
 namespace NCPA {
     namespace processing {
+
+        class AbstractProcessingStepState : public _step_state {};
+
         class AbstractProcessingStep {
             public:
                 // must be implemented
                 virtual bool apply_configuration( std::string& message ) = 0;
+                virtual const _step_state& state() const { return _state; }
+                
 
             protected:
-                // must be implemented
+                virtual _step_state& state() { return _state; }
 
+                // must be implemented
                 /*
                 Example:
                 IntegerParameter dft_points( "dft_points", 0,
@@ -55,6 +62,9 @@ namespace NCPA {
                 */
                 virtual void _define_parameters()                   = 0;
                 virtual packet_processing_result_t _process_input() = 0;
+
+            private:
+                AbstractProcessingStepState _state;
 
             public:
                 AbstractProcessingStep() : AbstractProcessingStep( "" ) {}
@@ -430,7 +440,6 @@ namespace NCPA {
 
                 // implemented in ProcessingStep
                 virtual AbstractDataWrapper& product() = 0;
-                // virtual AbstractDataWrapper& end_product() = 0;
 
             protected:
                 template<typename T>
@@ -610,10 +619,7 @@ namespace NCPA {
                 virtual packet_processing_result_t _process_data_packet(
                     InputPacket& packet, std::string& message ) = 0;
 
-                // std::unordered_map<std::string, parameter_ptr_t>
-                // _parameters;
                 std::vector<parameter_ptr_t> _parameters;
-                // std::unordered_map<std::string, Parameter&> _parameters;
                 std::string _tag;
                 AbstractProcessingStep *_next = nullptr;
                 bool _configuration_changed   = true;

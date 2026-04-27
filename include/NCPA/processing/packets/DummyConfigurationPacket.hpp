@@ -9,63 +9,76 @@
 #include <unordered_map>
 #include <vector>
 
-void swap( NCPA::processing::DummyConfigurationPacket& a,
-           NCPA::processing::DummyConfigurationPacket& b ) noexcept;
+// void swap( NCPA::processing::DummyConfigurationPacket& a,
+//            NCPA::processing::DummyConfigurationPacket& b ) noexcept;
 
-namespace NCPA::processing {
-    class DummyConfigurationPacket : public ResponsePacket {
-        public:
-            DummyConfigurationPacket() :
-                ResponsePacket( response_id_t::DUMMY_CONFIGURATION ) {}
+namespace NCPA {
+    namespace processing {
+        class DummyConfigurationPacket : public ResponsePacket {
+            public:
+                DummyConfigurationPacket() :
+                    ResponsePacket( response_id_t::DUMMY_CONFIGURATION ) {}
 
-            DummyConfigurationPacket(
-                const ConfigurationQueryPacket& packet ) :
-                ResponsePacket( response_id_t::DUMMY_CONFIGURATION ),
-                _parameters { packet.parameters() } {}
+                DummyConfigurationPacket(
+                    const ConfigurationQueryPacket& packet ) :
+                    ResponsePacket( response_id_t::DUMMY_CONFIGURATION ),
+                    _parameters { packet.parameters() } {}
 
-            DummyConfigurationPacket( const InputPacket& packet ) :
-                ResponsePacket( response_id_t::DUMMY_CONFIGURATION ) {
-                if (auto packet_ptr
-                    = dynamic_cast<const ConfigurationQueryPacket *>(
-                        &packet )) {
-                    _parameters = packet_ptr->parameters();
-                } else {
-                    throw std::runtime_error(
-                        "Can't initialize DummyConfigurationPacket with "
-                        "InputPacket that is not a "
-                        "ConfigurationQueryPacket!" );
+                DummyConfigurationPacket( const InputPacket& packet ) :
+                    ResponsePacket( response_id_t::DUMMY_CONFIGURATION ) {
+                    if (auto packet_ptr
+                        = dynamic_cast<const ConfigurationQueryPacket *>(
+                            &packet )) {
+                        _parameters = packet_ptr->parameters();
+                    } else {
+                        throw std::runtime_error(
+                            "Can't initialize DummyConfigurationPacket with "
+                            "InputPacket that is not a "
+                            "ConfigurationQueryPacket!" );
+                    }
                 }
-            }
 
-            DummyConfigurationPacket( const ParameterTree& params ) :
-                ResponsePacket( response_id_t::DUMMY_CONFIGURATION ),
-                _parameters { params } {}
+                DummyConfigurationPacket(
+                    DummyConfigurationPacket&& other ) noexcept : DummyConfigurationPacket() {
+                    swap( *this, other );
+                }
 
-            virtual ~DummyConfigurationPacket() {}
+                DummyConfigurationPacket& operator=(
+                    DummyConfigurationPacket other ) {
+                    swap( *this, other );
+                    return *this;
+                }
 
-            friend void ::swap( DummyConfigurationPacket& a,
-                                DummyConfigurationPacket& b ) noexcept;
+                DummyConfigurationPacket( const ParameterTree& params ) :
+                    ResponsePacket( response_id_t::DUMMY_CONFIGURATION ),
+                    _parameters { params } {}
 
-            const ParameterTree& parameters() const { return _parameters; }
+                virtual ~DummyConfigurationPacket() {}
 
-            ParameterTree& parameters() { return _parameters; }
+                friend void swap( DummyConfigurationPacket& a,
+                                  DummyConfigurationPacket& b ) noexcept;
 
-            DummyConfigurationPacket& add_parameter(
-                const std::string& tag,
-                const std::unique_ptr<Parameter>& param ) {
-                _parameters.add( tag, param );
-                return *this;
-            }
+                const ParameterTree& parameters() const { return _parameters; }
 
-        private:
-            ParameterTree _parameters;
-    };
-}  // namespace NCPA::processing
+                ParameterTree& parameters() { return _parameters; }
 
-void swap( NCPA::processing::DummyConfigurationPacket& a,
-           NCPA::processing::DummyConfigurationPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
-            dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
-    swap( a._parameters, b._parameters );
-}
+                DummyConfigurationPacket& add_parameter(
+                    const std::string& tag,
+                    const std::unique_ptr<Parameter>& param ) {
+                    _parameters.add( tag, param );
+                    return *this;
+                }
+
+            private:
+                ParameterTree _parameters;
+        };
+
+        void swap( NCPA::processing::DummyConfigurationPacket& a,
+                   NCPA::processing::DummyConfigurationPacket& b ) noexcept {
+            using std::swap;
+            swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
+                  dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
+            swap( a._parameters, b._parameters );
+        }
+    }  // namespace processing
+}  // namespace NCPA

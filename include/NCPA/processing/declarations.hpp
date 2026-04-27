@@ -1,12 +1,13 @@
 #pragma once
 
+#include "NCPA/processing/packets/declarations.hpp"
+
 #include <chrono>
 #include <memory>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include "NCPA/processing/packets/declarations.hpp"
 
 #if __has_include( "nlohmann/json.hpp" )
 #  define HAVE_NLOHMANN_JSON_HPP 1
@@ -25,33 +26,6 @@ namespace NCPA {
                 time_point_t time;
                 duration_t duration = duration_t::zero();
         } time_interval_t;
-
-        enum class input_id_t {
-            INVALID,
-            OTHER,
-            DATA,
-            CONFIGURATION,
-            CONFIGURATION_COMPLETE,
-            CONFIGURATION_QUERY,
-            COMMAND,
-            DATA_REQUEST
-        };
-
-        enum class response_id_t {
-            OTHER,
-            NO_PRODUCT,
-            PRODUCT,
-            EARLY_PRODUCT,
-            WARNING,
-            ERROR,
-            ERROR_STOP,
-            RECONFIGURATION_REQUESTED,
-            DUMMY_CONFIGURATION,
-            CONFIGURATION_SUCCESS,
-            CONFIGURATION_FAILURE,
-            UNRECOGNIZED_REQUEST
-        };
-
 
         enum class packet_processing_result_t {
             NOT_APPLICABLE,
@@ -114,8 +88,12 @@ namespace NCPA {
         class DataWrapper;
 
         class AbstractProcessingStep;
+
         template<typename intype, typename outtype>
         class ProcessingStep;
+
+        class _step_state;
+
         template<typename intype, typename outtype>
         class ProcessingChain;
 
