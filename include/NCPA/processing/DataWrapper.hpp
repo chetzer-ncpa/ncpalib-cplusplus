@@ -3,6 +3,8 @@
 #include "NCPA/processing/AbstractDataWrapper.hpp"
 #include "NCPA/processing/declarations.hpp"
 
+#include <stdexcept>
+
 template<typename T>
 void swap( NCPA::processing::DataWrapper<T>& a,
            NCPA::processing::DataWrapper<T>& b ) noexcept;
@@ -14,9 +16,9 @@ namespace NCPA {
             : public AbstractDataWrapper,
               public std::enable_shared_from_this<DataWrapper<T>> {
             public:
-                DataWrapper() { 
+                DataWrapper() {
                     // _internal = std::make_shared<T>();
-                 }
+                }
 
                 DataWrapper( const T in ) {
                     _internal = std::make_shared<T>( in );
@@ -55,23 +57,21 @@ namespace NCPA {
                 }
 
                 T& get() {
-                    if (_internal) {
-                        return *_internal;
-                    } else {
+                    if (!_internal) {
                         throw std::logic_error(
                             "DataWrapper: Nothing has been "
                             "assigned to internal pointer" );
                     }
+                    return *_internal;
                 }
 
                 const T& get() const {
-                    if (_internal) {
-                        return *_internal;
-                    } else {
+                    if (!_internal) {
                         throw std::logic_error(
                             "DataWrapper: Nothing has been "
                             "assigned to internal pointer" );
                     }
+                    return *_internal;
                 }
 
                 std::shared_ptr<T> ptr() {

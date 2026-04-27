@@ -90,6 +90,23 @@ namespace NCPA {
                     return apply_configuration( msg );
                 }
 
+                 virtual bool apply_parameter(
+                    const NCPA::processing::Parameter &param ) {
+                    if (this->parameters().empty()) {
+                        this->_define_parameters();
+                    }
+                    
+                    for (auto it = this->parameters().begin();
+                         it != this->parameters().end(); ++it) {
+                        if (( *it )->key() == param.key()) {
+                            *it = param.clone();
+                            _configuration_changed = true;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
                 virtual bool has_next() const {
                     return ( this->next() != nullptr );
                 }
@@ -341,6 +358,8 @@ namespace NCPA {
 
                 virtual std::string tag() const { return _tag; }
 
+
+
                 // implemented in ProcessingStep
                 virtual AbstractDataWrapper& product() = 0;
                 // virtual AbstractDataWrapper& end_product() = 0;
@@ -375,6 +394,8 @@ namespace NCPA {
                     }
                 }
 
+               
+
                 virtual packet_processing_result_t
                     _process_configuration_packet( const InputPacket& packet,
                                                    std::string& message ) {
@@ -384,15 +405,19 @@ namespace NCPA {
                         if (packet_ptr->tag() != this->tag()) {
                             return packet_processing_result_t::NOT_APPLICABLE;
                         }
-                        for (auto it = this->parameters().begin();
-                             it != this->parameters().end(); ++it) {
-                            if (( *it )->key()
-                                == packet_ptr->parameter().key()) {
-                                *it = packet_ptr->parameter().clone();
-                                _configuration_changed = true;
-                                return packet_processing_result_t::SUCCESS;
-                            }
+                        if (this->apply_parameter( packet_ptr->parameter() )) {
+                            return packet_processing_result_t::SUCCESS;
                         }
+                        // for (auto it = this->parameters().begin();
+                        //      it != this->parameters().end(); ++it) {
+                            
+                        //     if (( *it )->key()
+                        //         == packet_ptr->parameter().key()) {
+                        //         *it = packet_ptr->parameter().clone();
+                        //         _configuration_changed = true;
+                        //         return packet_processing_result_t::SUCCESS;
+                        //     }
+                        // }
 
                         // no matching parameter found, return error
                         std::ostringstream oss;
