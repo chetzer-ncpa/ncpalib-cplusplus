@@ -102,6 +102,16 @@ namespace NCPA::processing {
             // std::shared_ptr<T> _internal;
             DataWrapper<T> _internal;
     };
+
+    template<typename T>
+    const T& get_product( const ResponsePacket& packet ) {
+        auto packet_ptr = dynamic_cast<const ProductPacket<T>*>( &packet );
+        if (packet_ptr) {
+            return packet_ptr->get();
+        } else {
+            throw std::invalid_argument( "Packet is not a ProductPacket!" );
+        }
+    }
 }  // namespace NCPA::processing
 
 template<typename T>

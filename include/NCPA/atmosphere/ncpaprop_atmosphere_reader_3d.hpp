@@ -42,8 +42,29 @@ namespace NCPA {
                     _axis_units = other._axis_units;
                 }
 
-                DECLARE_BOILERPLATE_METHODS( ncpaprop_atmosphere_reader_3d,
-                                             _abstract_atmosphere_reader_3d )
+                ncpaprop_atmosphere_reader_3d(
+                    ncpaprop_atmosphere_reader_3d&& source ) noexcept :
+                    ncpaprop_atmosphere_reader_3d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~ncpaprop_atmosphere_reader_3d() {}
+
+                ncpaprop_atmosphere_reader_3d& operator=(
+                    ncpaprop_atmosphere_reader_3d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap(
+                    ncpaprop_atmosphere_reader_3d& a,
+                    ncpaprop_atmosphere_reader_3d& b ) noexcept;
+
+                virtual std::unique_ptr<_abstract_atmosphere_reader_3d> clone()
+                    const override {
+                    return std::unique_ptr<_abstract_atmosphere_reader_3d>(
+                        new ncpaprop_atmosphere_reader_3d( *this ) );
+                }
 
                 virtual bool stratified() const { return false; }
 

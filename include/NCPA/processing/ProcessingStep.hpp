@@ -112,6 +112,7 @@ namespace NCPA {
                     if (auto packet_ptr
                         = dynamic_cast<DataPacket<intype> *>( &packet )) {
                         _input.set( packet_ptr->ptr() );
+                        _input_data_time = packet_ptr->interval();
                         if (this->_configuration_changed) {
                             if (!this->apply_configuration()) {}
                             this->_configuration_changed = false;
@@ -126,6 +127,7 @@ namespace NCPA {
                 DataWrapper<intype> _input;
                 DataWrapper<outtype> _product;
                 parameter_tree_t _parameters;
+                time_interval_t _input_data_time;
         };
     }  // namespace processing
 }  // namespace NCPA

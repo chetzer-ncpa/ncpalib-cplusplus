@@ -408,7 +408,7 @@ TEST_F( NCPALinearAlgebraComplexSparseVectorTest,
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, WrapperClearWorks ) {
     wrapper1.clear();
     EXPECT_EQ( wrapper1.size(), 0 );
-    EXPECT_THROW( { wrapper1[ vecsize ] = 2.0; }, std::logic_error );
+    EXPECT_THROW( { wrapper1[ vecsize ] = 2.0; }, std::out_of_range );
 }
 
 TEST_F( NCPALinearAlgebraComplexSparseVectorTest, WrapperResizeWorks ) {

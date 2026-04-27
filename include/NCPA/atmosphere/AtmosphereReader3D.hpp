@@ -42,7 +42,20 @@ namespace NCPA {
                     _ptr = std::move( other._ptr->clone() );
                 }
 
-                DECLARE_WRAPPER_BOILERPLATE_METHODS( AtmosphereReader3D )
+                AtmosphereReader3D( AtmosphereReader3D&& source ) noexcept :
+                    AtmosphereReader3D() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~AtmosphereReader3D() {}
+
+                AtmosphereReader3D& operator=( AtmosphereReader3D other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap( AtmosphereReader3D& a,
+                                    AtmosphereReader3D& b ) noexcept;
 
                 virtual Atmosphere3D read( const std::string& filename,
                                            bool stratified = false ) {

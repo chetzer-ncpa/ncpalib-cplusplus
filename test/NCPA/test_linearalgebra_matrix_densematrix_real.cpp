@@ -506,7 +506,7 @@ TEST_F( _TEST_TITLE_, IdentityWorks ) {
 
 TEST_F( _TEST_TITLE_, IdentityDoesNotWorkForNonSquareMatrix ) {
     wrapper1.resize( 2, 4 );
-    EXPECT_THROW( { wrapper1.identity(); }, std::invalid_argument );
+    EXPECT_THROW( { wrapper1.identity(); }, std::logic_error );
 }
 
 TEST_F( _TEST_TITLE_, RightMultiplyWorks ) {

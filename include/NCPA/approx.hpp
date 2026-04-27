@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @file
+ * @brief 
+ */
+
 #include "NCPA/linearalgebra.hpp"
 // #include "NCPA/types.hpp"
 
@@ -10,11 +15,25 @@
 namespace NCPA {
     namespace approx {
 
+        /**
+         * @brief 
+         * @tparam T 
+         */
         template<typename T = std::complex<double>>
         class PadeApproximator {
             public:
+                /**
+                 * @brief 
+                 */
                 PadeApproximator() {}
 
+                /**
+                 * @brief 
+                 * @param taylor_coefficients 
+                 * @param n_numerator 
+                 * @param n_denominator 
+                 * @return PadeApproximator& 
+                 */
                 PadeApproximator& calculate(
                     const std::vector<T>& taylor_coefficients,
                     size_t n_numerator, size_t n_denominator ) {
@@ -24,6 +43,13 @@ namespace NCPA {
                     return *this;
                 }
 
+                /**
+                 * @brief 
+                 * @param Q 
+                 * @param B 
+                 * @param C 
+                 * @return PadeApproximator& 
+                 */
                 PadeApproximator& apply(
                     const NCPA::linear::MatrixPolynomial<T>& Q,
                     NCPA::linear::Matrix<T>& B, NCPA::linear::Matrix<T>& C ) {
@@ -33,40 +59,23 @@ namespace NCPA {
                     C.clear().identity( NQ, NQ );
                     for (auto i = 1; i < _denominator_coefficients.size();
                          i++) {
-                        // NCPA_DEBUG << "Computing Q[" << i-1 << "] * " << 
-                        //     _denominator_coefficients[ i ] << std::endl
-                        //     << "First 5 diagonals of Q matrix:" << std::endl;
-                        // for (auto j = 0; j < 5; ++j) {
-                        //     NCPA_DEBUG << Q[i-1].get(j,j) << ", "; 
-                        // }
-                        // NCPA_DEBUG << std::endl;
                         C += Q[ i - 1 ] * _denominator_coefficients[ i ];
-                        // NCPA_DEBUG << "First 5 diagonals of matrix sum C:"
-                        //     << std::endl;
-                        // for (auto j = 0; j < 5; ++j) {
-                        //     NCPA_DEBUG << C.get(j,j) << ", "; 
-                        // }
-                        // NCPA_DEBUG << std::endl;
                     }
                     for (auto i = 1; i < _numerator_coefficients.size(); i++) {
-                        // NCPA_DEBUG << "Computing Q[" << i << "] * " << 
-                        //     _numerator_coefficients[ i ] << std::endl
-                        //     << "First 5 diagonals of Q matrix:" << std::endl;
-                        // for (auto j = 0; j < 5; ++j) {
-                        //     NCPA_DEBUG << Q[i-1].get(j,j) << ", "; 
-                        // }
-                        // NCPA_DEBUG << std::endl;
                         B += Q[ i - 1 ] * _numerator_coefficients[ i ];
-                        // NCPA_DEBUG << "First 5 diagonals of matrix sum B:"
-                        //     << std::endl;
-                        // for (auto j = 0; j < 5; ++j) {
-                        //     NCPA_DEBUG << B.get(j,j) << ", "; 
-                        // }
-                        // NCPA_DEBUG << std::endl;
                     }
                     return *this;
                 }
 
+                /**
+                 * @brief 
+                 * @param taylor_coefficients 
+                 * @param n_numerator 
+                 * @param n_denominator 
+                 * @param numerator_coefficients 
+                 * @param denominator_coefficients 
+                 * @throws std::invalid_argument 
+                 */
                 static void calculate(
                     const std::vector<T>& taylor_coefficients,
                     size_t n_numerator, size_t n_denominator,
@@ -131,6 +140,12 @@ namespace NCPA {
                     }
                 }
 
+                /**
+                 * @brief 
+                 * @param n_numerator 
+                 * @param n_denominator 
+                 * @return PadeApproximator& 
+                 */
                 PadeApproximator& calculate_exponential(
                     size_t n_numerator, size_t n_denominator ) {
                     PadeApproximator<T>::calculate_exponential(
@@ -139,6 +154,13 @@ namespace NCPA {
                     return *this;
                 }
 
+                /**
+                 * @brief 
+                 * @param n_numerator 
+                 * @param n_denominator 
+                 * @param numerator_coefficients 
+                 * @param denominator_coefficients 
+                 */
                 static void calculate_exponential(
                     size_t n_numerator, size_t n_denominator,
                     std::vector<T>& numerator_coefficients,
@@ -150,14 +172,29 @@ namespace NCPA {
                         numerator_coefficients, denominator_coefficients );
                 }
 
+                /**
+                 * @brief 
+                 * @return std::vector<T> 
+                 */
                 std::vector<T> numerator() const {
                     return _numerator_coefficients;
                 }
 
+                /**
+                 * @brief 
+                 * @return std::vector<T> 
+                 */
                 std::vector<T> denominator() const {
                     return _denominator_coefficients;
                 }
 
+                /**
+                 * @brief 
+                 * @param num_order 
+                 * @param den_order 
+                 * @return std::vector<std::complex<double>> 
+                 * @throws std::range_error 
+                 */
                 std::vector<std::complex<double>>
                     exponential_denominator_roots( size_t num_order,
                                                    size_t den_order ) const {
@@ -223,9 +260,20 @@ namespace NCPA {
 
 
             protected:
+                /**
+                 * @brief 
+                 */
                 std::vector<T> _numerator_coefficients,
                     _denominator_coefficients;
 
+                /**
+                 * @brief 
+                 * @param n_order 
+                 * @param d_order 
+                 * @param num 
+                 * @param den 
+                 * @throws std::range_error 
+                 */
                 static void _exponential_coefficients( size_t n_order,
                                                        size_t d_order,
                                                        std::vector<T>& num,

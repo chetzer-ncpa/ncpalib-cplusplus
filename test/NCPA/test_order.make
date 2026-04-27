@@ -5,6 +5,7 @@ test_types.cpp \
 test_arrays.cpp \
 test_ndvector.cpp \
 test_math.cpp \
+test_geographic.cpp \
 test_units.cpp \
 test_strings.cpp \
 test_configuration.cpp \
@@ -27,4 +28,7 @@ test_linearalgebra_lu.cpp \
 test_linearalgebra_basic_solver.cpp \
 test_linearalgebra_basic_tridiagonal_solver.cpp \
 test_linearalgebra_basic_band_diagonal_solver.cpp \
-test_linearalgebra_solver.cpp 
+test_linearalgebra_solver.cpp \
+test_processing.cpp \
+test_extern_armadillo_no_fftw3.cpp \
+test_extern_armadillo_fftw3.cpp

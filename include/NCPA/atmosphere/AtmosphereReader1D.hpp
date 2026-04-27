@@ -8,11 +8,10 @@
 #  endif
 #endif
 
+#include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
-// #include "NCPA/atmosphere/builders.hpp"
-#include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/files.hpp"
 
@@ -42,7 +41,20 @@ namespace NCPA {
                     _ptr = std::move( other._ptr->clone() );
                 }
 
-                DECLARE_WRAPPER_BOILERPLATE_METHODS( AtmosphereReader1D )
+                AtmosphereReader1D( AtmosphereReader1D&& source ) noexcept :
+                    AtmosphereReader1D() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~AtmosphereReader1D() {}
+
+                AtmosphereReader1D& operator=( AtmosphereReader1D other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap( AtmosphereReader1D& a,
+                                    AtmosphereReader1D& b ) noexcept;
 
                 virtual Atmosphere1D read( std::istream& in1 ) {
                     _check_pointer();
