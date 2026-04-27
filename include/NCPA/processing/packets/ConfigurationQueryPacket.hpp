@@ -10,54 +10,69 @@
 #include <unordered_map>
 #include <vector>
 
-void swap( NCPA::processing::ConfigurationQueryPacket& a,
-           NCPA::processing::ConfigurationQueryPacket& b ) noexcept;
+// void swap( NCPA::processing::ConfigurationQueryPacket& a,
+//            NCPA::processing::ConfigurationQueryPacket& b ) noexcept;
 
-namespace NCPA::processing {
-    class ConfigurationQueryPacket : public InputPacket {
-        public:
-            ConfigurationQueryPacket() :
-                InputPacket( input_id_t::CONFIGURATION_QUERY ) {}
+namespace NCPA {
+    namespace processing {
+        class ConfigurationQueryPacket : public InputPacket {
+            public:
+                ConfigurationQueryPacket() :
+                    InputPacket( input_id_t::CONFIGURATION_QUERY ) {}
 
-            ConfigurationQueryPacket( const ConfigurationQueryPacket& other ) :
-                InputPacket( other ), _parameters { other._parameters } {}
+                ConfigurationQueryPacket(
+                    const ConfigurationQueryPacket& other ) :
+                    InputPacket( other ), _parameters { other._parameters } {}
 
-            virtual ~ConfigurationQueryPacket() {}
+                ConfigurationQueryPacket(
+                    ConfigurationQueryPacket&& other ) noexcept {
+                    swap( *this, other );
+                }
 
-            friend void ::swap( ConfigurationQueryPacket& a,
-                                ConfigurationQueryPacket& b ) noexcept;
+                ConfigurationQueryPacket& operator=(
+                    ConfigurationQueryPacket other ) {
+                    swap( *this, other );
+                    return *this;
+                }
 
-            virtual ParameterTree& parameters() { return _parameters; }
+                virtual ~ConfigurationQueryPacket() {}
 
-            virtual const ParameterTree& parameters() const {
-                return _parameters;
-            }
+                friend void swap( ConfigurationQueryPacket& a,
+                                  ConfigurationQueryPacket& b ) noexcept;
 
-            virtual void add_parameter( const std::string& tag,
-                                        const Parameter& param ) {
-                _parameters.add( tag, param );
-            }
+                virtual ParameterTree& parameters() { return _parameters; }
 
-            static std::unique_ptr<InputPacket> build() {
-                return std::unique_ptr<InputPacket>(
-                    new ConfigurationQueryPacket() );
-            }
+                virtual const ParameterTree& parameters() const {
+                    return _parameters;
+                }
 
-            static std::unique_ptr<InputPacket> build(
-                const ConfigurationQueryPacket& other ) {
-                return std::unique_ptr<InputPacket>(
-                    new ConfigurationQueryPacket( other ) );
-            }
+                virtual void add_parameter( const std::string& tag,
+                                            const Parameter& param ) {
+                    _parameters.add( tag, param );
+                }
 
-        private:
-            ParameterTree _parameters;
-    };
-}  // namespace NCPA::processing
+                static std::unique_ptr<InputPacket> build() {
+                    return std::unique_ptr<InputPacket>(
+                        new ConfigurationQueryPacket() );
+                }
 
-void swap( NCPA::processing::ConfigurationQueryPacket& a,
-           NCPA::processing::ConfigurationQueryPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-    swap( a._parameters, b._parameters );
-}
+                static std::unique_ptr<InputPacket> build(
+                    const ConfigurationQueryPacket& other ) {
+                    return std::unique_ptr<InputPacket>(
+                        new ConfigurationQueryPacket( other ) );
+                }
+
+            private:
+                ParameterTree _parameters;
+        };
+
+        void swap( ConfigurationQueryPacket& a,
+                   ConfigurationQueryPacket& b ) noexcept {
+            using std::swap;
+            swap( dynamic_cast<InputPacket&>( a ),
+                  dynamic_cast<InputPacket&>( b ) );
+            swap( a._parameters, b._parameters );
+        }
+
+    }  // namespace processing
+}  // namespace NCPA
