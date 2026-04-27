@@ -52,6 +52,41 @@ void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
 
 namespace NCPA {
     namespace processing {
+
+
+        // class ProcessingStepState : public AbstractProcessingStepState {
+        //     public:
+        //         ProcessingStepState() : AbstractProcessingStepState() {}
+
+        //         virtual ~ProcessingStepState() {}
+
+        //         ProcessingStepState(
+        //             const ProcessingStepState& other ) :
+        //             AbstractProcessingStepState( other ),
+        //             // _parameters{other._parameters},
+        //             tag { other.tag },
+        //             next { other.next },
+        //             configuration_changed { other.configuration_changed } {}
+
+        //         bool_short_circuit;
+        //         DataWrapper<intype> _input;
+        //         DataWrapper<outtype> _product;
+        //         parameter_tree_t _parameters;
+        //         time_interval_t _input_data_time;
+
+        //         virtual void copy_to( _step_state& other ) const override {
+        //             if (auto other_ptr
+        //                 = dynamic_cast<ProcessingStepState *>(
+        //                     &other )) {
+        //                 other_ptr->tag  = this->tag;
+        //                 other_ptr->next = this->next;
+        //                 other_ptr->configuration_changed
+        //                     = this->configuration_changed;
+        //             }
+        //         }
+        // };
+
+
         template<typename intype, typename outtype>
         class ProcessingStep : public AbstractProcessingStep {
             public:
@@ -90,7 +125,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual AbstractDataWrapper& product() override {
+                virtual DataWrapper<outtype>& product() override {
                     return _product;
                 }
 
