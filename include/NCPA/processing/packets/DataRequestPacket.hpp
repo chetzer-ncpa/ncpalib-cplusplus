@@ -4,29 +4,27 @@
 #include "NCPA/processing/packets/Packet.hpp"
 #include "NCPA/processing/Parameter.hpp"
 
+#include <iostream>
+
 void swap( NCPA::processing::DataRequestPacket& a,
            NCPA::processing::DataRequestPacket& b ) noexcept;
 
 namespace NCPA::processing {
     class DataRequestPacket : public InputPacket {
         public:
-            DataRequestPacket() :
-                InputPacket( input_id_t::DATA_REQUEST ) {}
+            DataRequestPacket() : InputPacket( input_id_t::DATA_REQUEST ) {}
 
             DataRequestPacket( const std::string& tag ) :
                 InputPacket( input_id_t::DATA_REQUEST, tag ) {}
 
-            DataRequestPacket(
-                const DataRequestPacket& other ) :
+            DataRequestPacket( const DataRequestPacket& other ) :
                 InputPacket( other ) {}
 
-            DataRequestPacket(
-                DataRequestPacket&& other ) noexcept {
+            DataRequestPacket( DataRequestPacket&& other ) noexcept {
                 ::swap( *this, other );
             }
 
-            DataRequestPacket& operator=(
-                DataRequestPacket other ) {
+            DataRequestPacket& operator=( DataRequestPacket other ) {
                 ::swap( *this, other );
                 return *this;
             }
@@ -37,8 +35,7 @@ namespace NCPA::processing {
                                 DataRequestPacket& b ) noexcept;
 
             static std::unique_ptr<InputPacket> build() {
-                return std::unique_ptr<InputPacket>(
-                    new DataRequestPacket() );
+                return std::unique_ptr<InputPacket>( new DataRequestPacket() );
             }
 
             static std::unique_ptr<InputPacket> build(

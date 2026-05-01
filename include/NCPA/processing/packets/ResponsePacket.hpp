@@ -10,7 +10,7 @@ void swap( NCPA::processing::ResponsePacket& a,
            NCPA::processing::ResponsePacket& b ) noexcept;
 
 namespace NCPA::processing {
-    class ResponsePacket : virtual public Packet {
+    class ResponsePacket : public Packet {
         public:
             ResponsePacket( response_id_t id ) : Packet(), _ID { id } {}
 

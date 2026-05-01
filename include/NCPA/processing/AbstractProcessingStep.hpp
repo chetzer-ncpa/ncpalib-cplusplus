@@ -207,6 +207,9 @@ namespace NCPA {
                             return this->process_configuration_complete_packet(
                                 input );
                             break;
+                        case input_id_t::DATA_REQUEST:
+                            return this->process_data_request_packet( input );
+                            break;
                         default:
                             return this->process_other_packet( input );
                     }
@@ -249,12 +252,11 @@ namespace NCPA {
                         case packet_processing_result_t::FAILURE_CONTINUE:
                         case packet_processing_result_t::SUCCESS_CONTINUE:
                             return this->pass_to_next( packet );
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_packet() returns "
-                                "unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_packet() returns "
+                        "unsupported result code." );
                 }
 
                 virtual void throw_packet_invalid(
@@ -284,12 +286,11 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_configuration_complete_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_packet() returns "
-                                "unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_packet() returns "
+                        "unsupported result code." );
                 }
 
                 virtual response_ptr_t process_configuration_query_packet(
@@ -314,20 +315,21 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_configuration_query_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_query_packet() "
-                                "returns unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_query_packet() "
+                        "returns unsupported result code." );
                 }
 
                 virtual response_ptr_t process_data_request_packet(
                     InputPacket& packet ) {
                     std::string msg;
-                    switch (this->_process_data_request_packet(
-                        _cast_packet<DataRequestPacket>( packet ), msg )) {
-                        case packet_processing_result_t::SUCCESS_RETURN:
+                    packet_processing_result_t result
+                        = this->_process_data_request_packet(
+                            _cast_packet<DataRequestPacket>( packet ), msg );
+                    switch (result) {
+                        case packet_processing_result_t::SUCCESS_RETURN_PRODUCT:
                             return this->_build_product_packet();
                             break;
                         case packet_processing_result_t::FAILURE_RETURN:
@@ -343,12 +345,36 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_data_request_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_data_request_packet() "
-                                "returns unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_data_request_packet() "
+                        "returns unsupported result code." );
+                }
+
+                virtual response_ptr_t process_state_request_packet(
+                    InputPacket& packet ) {
+                    std::string msg;
+                    switch (this->_process_state_request_packet(
+                        _cast_packet<StateRequestPacket>( packet ), msg )) {
+                        case packet_processing_result_t::SUCCESS_RETURN:
+                            return this->_build_state_packet();
+                            break;
+                        case packet_processing_result_t::PACKET_NOT_APPLICABLE:
+                            return this->pass_to_next(
+                                packet,
+                                "State request packet reached last step "
+                                "without being handled!" );
+                            break;
+                        case packet_processing_result_t::PACKET_INVALID:
+                            throw_packet_invalid(
+                                "process_state_request_packet" );
+                            break;
+                    }
+                    return this->response( response_id_t::ERROR,
+                                           "_process_state_request_packet() "
+                                           "returns "
+                                           "unsupported result code." );
                 }
 
                 // DataPacket is type-specific so we don't define the
@@ -476,6 +502,38 @@ namespace NCPA {
                 }
 
                 virtual packet_processing_result_t
+                    _process_state_request_packet(
+                        const StateRequestPacket *packet_ptr,
+                        std::string& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        return packet_processing_result_t::SUCCESS_RETURN;
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
+                }
+
+                // virtual packet_processing_result_t
+                //     _process_configuration_complete_packet(
+                //         const InputPacket& packet, std::string& message ) {
+                //     if (auto packet_ptr
+                //         = _cast_packet<ConfigurationCompletePacket>(
+                //             packet )) {
+                //         if (this->apply_configuration()) {
+                //             return packet_processing_result_t::SUCCESS;
+                //         } else {
+                //             std::ostringstream oss;
+                //             oss << "Configuration failure in " <<
+                //             this->tag(); message = oss.str(); return
+                //             packet_processing_result_t::FAILURE;
+                //         }
+                //     } else {
+                //         return packet_processing_result_t::INVALID_PACKET;
+                //     }
+                // }
+
+                virtual packet_processing_result_t
                     _process_configuration_packet(
                         const ConfigurationPacket *packet_ptr,
                         std::string& message ) {
@@ -522,6 +580,34 @@ namespace NCPA {
                     return packet_processing_result_t::SUCCESS_CONTINUE;
                 }
 
+                // virtual packet_processing_result_t
+                //     _process_configuration_query_packet(
+                //         InputPacket& packet, std::string& message ) {
+                //     if (auto packet_ptr
+                //         = dynamic_cast<ConfigurationQueryPacket *>(
+                //             &packet )) {
+                //         ParameterTree tree = packet_ptr->parameters();
+                //         std::vector<parameter_ptr_t> paramset;
+                //         if (!this->parameters().empty()) {
+                //             // tree[ this->tag() ] = std::vector<
+                //             //     NCPA::processing::parameter_ptr_t>();
+                //             for (auto it = this->parameters().begin();
+                //                  it != this->parameters().end(); ++it) {
+                //                 tree.add( this->tag(), *it );
+                //                 // tree[ this->tag() ].push_back(
+                //                 //     ( *it )->clone() );
+                //             }
+                //         }
+                //         return packet_processing_result_t::SUCCESS;
+                //     } else {
+                //         return packet_processing_result_t::INVALID_PACKET;
+                //     }
+                // }
+
+                virtual response_ptr_t _build_state_packet() const {
+                    return response_ptr_t( new StatePacket( this ) );
+                }
+
                 // implemented in ProcessingStep
                 virtual response_ptr_t _build_product_packet() const = 0;
                 virtual input_ptr_t _build_next_input_packet() const = 0;
@@ -532,6 +618,7 @@ namespace NCPA {
                 std::string _tag;
                 AbstractProcessingStep *_next = nullptr;
                 bool _configuration_changed   = true;
+                bool _treat_as_last           = false;
         };
     }  // namespace processing
 }  // namespace NCPA
@@ -543,6 +630,7 @@ void swap( NCPA::processing::AbstractProcessingStep& a,
     swap( a._parameters, b._parameters );
     swap( a._tag, b._tag );
     swap( a._configuration_changed, b._configuration_changed );
+    swap( a._treat_as_last, b._treat_as_last );
 }
 
 #pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )

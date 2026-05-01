@@ -46,7 +46,8 @@ namespace NCPA {
             CONFIGURATION_COMPLETE,
             CONFIGURATION_QUERY,
             COMMAND,
-            DATA_REQUEST
+            DATA_REQUEST,
+            STATE_REQUEST
         };
 
         enum class response_id_t {
@@ -60,7 +61,8 @@ namespace NCPA {
             RECONFIGURATION_REQUESTED,
             DUMMY_CONFIGURATION,
             CONFIGURATION_SUCCESS,
-            CONFIGURATION_FAILURE
+            CONFIGURATION_FAILURE,
+            STATE
         };
 
 
