@@ -21,10 +21,22 @@ namespace NCPA {
             time_point_t;
         typedef std::chrono::seconds duration_t;
 
-        typedef struct {
+        class TimeInterval {
+            public:
+                TimeInterval() {}
+                TimeInterval(time_point_t t, duration_t d) : time{t}, duration{d} {}
+                virtual ~TimeInterval() {}
+
                 time_point_t time;
                 duration_t duration = duration_t::zero();
-        } time_interval_t;
+        };
+
+        typedef TimeInterval time_interval_t;
+
+        // typedef struct {
+        //         time_point_t time;
+        //         duration_t duration = duration_t::zero();
+        // } time_interval_t;
 
         enum class input_id_t {
             INVALID,
@@ -39,31 +51,42 @@ namespace NCPA {
 
         enum class response_id_t {
             OTHER,
-            NO_PRODUCT,
-            PRODUCT,
-            EARLY_PRODUCT,
+            NO_RESPONSE,
+            SUCCESS_NO_PRODUCT,
+            SUCCESS_PRODUCT,
             WARNING,
             ERROR,
             ERROR_STOP,
             RECONFIGURATION_REQUESTED,
             DUMMY_CONFIGURATION,
             CONFIGURATION_SUCCESS,
-            CONFIGURATION_FAILURE,
-            UNRECOGNIZED_REQUEST
+            CONFIGURATION_FAILURE
         };
 
 
         enum class packet_processing_result_t {
-            NOT_APPLICABLE,
-            PRODUCT,
-            NO_PRODUCT,
-            PASS,
-            SUCCESS,
-            FAILURE,
-            NOT_FOUND,
-            INVALID_PACKET,
-            ERROR
+            ERROR,
+            PACKET_INVALID,
+            PACKET_NOT_APPLICABLE,
+            SUCCESS_CONTINUE,
+            SUCCESS_RETURN,
+            SUCCESS_RETURN_PRODUCT,
+            FAILURE_CONTINUE,
+            FAILURE_RETURN
         };
+
+
+        // enum class packet_processing_result_t {
+        //     NOT_APPLICABLE,
+        //     PRODUCT,
+        //     NO_PRODUCT,
+        //     PASS,
+        //     SUCCESS,
+        //     FAILURE,
+        //     NOT_FOUND,
+        //     INVALID_PACKET,
+        //     ERROR
+        // };
 
         enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM };
 
@@ -124,14 +147,11 @@ namespace NCPA {
                 case response_id_t::OTHER:
                     return "OTHER";
                     break;
-                case response_id_t::NO_PRODUCT:
-                    return "NO_PRODUCT";
+                case response_id_t::SUCCESS_NO_PRODUCT:
+                    return "SUCCESS_NO_PRODUCT";
                     break;
-                case response_id_t::PRODUCT:
-                    return "PRODUCT";
-                    break;
-                case response_id_t::EARLY_PRODUCT:
-                    return "EARLY_PRODUCT";
+                case response_id_t::SUCCESS_PRODUCT:
+                    return "SUCCESS_PRODUCT";
                     break;
                 case response_id_t::WARNING:
                     return "WARNING";
@@ -153,9 +173,6 @@ namespace NCPA {
                     break;
                 case response_id_t::CONFIGURATION_FAILURE:
                     return "CONFIGURATION_FAILURE";
-                    break;
-                case response_id_t::UNRECOGNIZED_REQUEST:
-                    return "UNRECOGNIZED_REQUEST";
                     break;
                 default:
                     throw std::out_of_range(

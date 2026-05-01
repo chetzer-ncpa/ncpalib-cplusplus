@@ -68,10 +68,11 @@ namespace NCPA {
                 ProcessingStep(
                     const ProcessingStep<intype, outtype>& other ) :
                     ProcessingStep<intype, outtype>() {
-                    _short_circuit = other._short_circuit;
-                    _input         = other._input;
-                    _product       = other._product;
-                    _parameters    = other._parameters;
+                    _short_circuit   = other._short_circuit;
+                    _input           = other._input;
+                    _product         = other._product;
+                    _parameters      = other._parameters;
+                    _input_data_time = other._input_data_time;
                 }
 
                 ProcessingStep(
@@ -94,6 +95,9 @@ namespace NCPA {
                     return _product;
                 }
 
+                virtual bool product_available() const override {
+                    return ( _product );
+                }
 
 
             protected:
@@ -119,7 +123,7 @@ namespace NCPA {
                         }
                         return this->_process_input();
                     } else {
-                        return packet_processing_result_t::INVALID_PACKET;
+                        return packet_processing_result_t::PACKET_INVALID;
                     }
                 }
 
@@ -142,4 +146,5 @@ void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
     swap( a._input, b._input );
     swap( a._product, b._product );
     swap( a._parameters, b._parameters );
+    swap( a._input_data_time, b._input_data_time );
 }
