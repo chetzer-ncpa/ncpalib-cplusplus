@@ -11,9 +11,6 @@ void swap( NCPA::processing::DataPacket<T>& a,
 
 namespace NCPA::processing {
 
-
-    // typedef std::chrono::duration<double, std::ratio<1>> duration_t;
-
     template<typename T>
     class DataPacket : public InputPacket,
                        public std::enable_shared_from_this<DataPacket<T>> {
