@@ -94,6 +94,16 @@ namespace NCPA {
                     return _product;
                 }
 
+                virtual response_ptr_t pass_on( InputPacket& packet,
+                                                const std::string& error_msg
+                                                = "" ) override {
+                    return this->has_next()
+                             ? this->next()->process( packet )
+                             : this->_build_product_packet();
+                            //  : response_ptr_t( new ResponsePacket(
+                            //        response_id_t::ERROR, error_msg ) );
+                }
+
 
 
             protected:

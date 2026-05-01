@@ -152,12 +152,13 @@ namespace NCPA {
 
                 virtual response_ptr_t pass_on( InputPacket& packet,
                                                 const std::string& error_msg
-                                                = "" ) {
-                    return this->has_next()
-                             ? this->next()->process( packet )
-                             : response_ptr_t( new ResponsePacket(
-                                   response_id_t::ERROR, error_msg ) );
-                }
+                                                = "" ) = 0;
+                //                                  {
+                //     return this->has_next()
+                //              ? this->next()->process( packet )
+                //              : response_ptr_t( new ResponsePacket(
+                //                    response_id_t::ERROR, error_msg ) );
+                // }
 
                 virtual response_ptr_t process( InputPacket& input ) {
                     std::string error_msg;
@@ -341,6 +342,35 @@ namespace NCPA {
                     }
                 }
 
+                virtual response_ptr_t process_state_request_packet(
+                    InputPacket& packet ) {
+                    std::string msg;
+                    switch (this->_process_state_request_packet(
+                        _cast_packet<StateRequestPacket>( packet ), msg )) {
+                        case packet_processing_result_t::SUCCESS:
+                            return this->_build_state_packet();
+                            break;
+                        case packet_processing_result_t::NOT_APPLICABLE:
+                            return this->pass_on(
+                                packet,
+                                "State request packet reached last step "
+                                "without being handled!" );
+                            break;
+                        case packet_processing_result_t::INVALID_PACKET:
+                            return response_ptr_t( new ResponsePacket(
+                                response_id_t::ERROR,
+                                "Wrong kind of packet passed to "
+                                "process_state_request_packet()!" ) );
+                            break;
+                        default:
+                            return response_ptr_t( new ResponsePacket(
+                                response_id_t::ERROR,
+                                "_process_state_request_packet() "
+                                "returns "
+                                "unsupported result code." ) );
+                    }
+                }
+
                 // DataPacket is type-specific so we don't define the
                 // processing here, but it should call _process_data_packet()
                 // and return
@@ -466,15 +496,27 @@ namespace NCPA {
                         const DataRequestPacket *packet_ptr,
                         std::string& message ) {
                     CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
-                    // if (packet_ptr == nullptr) {
-                    //     return packet_processing_result_t::INVALID_PACKET;
-                    // }
                     if (packet_ptr->tag() == this->tag()) {
                         return packet_processing_result_t::SUCCESS;
                     } else {
                         return packet_processing_result_t::NOT_APPLICABLE;
                     }
                 }
+
+                virtual packet_processing_result_t
+                    _process_state_request_packet(
+                        const StateRequestPacket *packet_ptr,
+                        std::string& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        return packet_processing_result_t::SUCCESS;
+                    } else {
+                        return packet_processing_result_t::NOT_APPLICABLE;
+                    }
+                }
+
+
+
 
                 // virtual packet_processing_result_t
                 //     _process_configuration_complete_packet(
@@ -604,6 +646,11 @@ namespace NCPA {
                 //     }
                 // }
 
+                virtual response_ptr_t _build_state_packet() const {
+                    return response_ptr_t(
+                        new StatePacket( this ) );
+                }
+
                 // implemented in ProcessingStep
                 virtual response_ptr_t _build_product_packet() const = 0;
                 virtual input_ptr_t _build_next_input_packet() const = 0;
@@ -617,6 +664,7 @@ namespace NCPA {
                 std::string _tag;
                 AbstractProcessingStep *_next = nullptr;
                 bool _configuration_changed   = true;
+                bool _treat_as_last = false;
         };
     }  // namespace processing
 }  // namespace NCPA
@@ -628,6 +676,7 @@ void swap( NCPA::processing::AbstractProcessingStep& a,
     swap( a._parameters, b._parameters );
     swap( a._tag, b._tag );
     swap( a._configuration_changed, b._configuration_changed );
+    swap( a._treat_as_last, b._treat_as_last );
 }
 
 #pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )
