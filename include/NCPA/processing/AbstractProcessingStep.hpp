@@ -207,6 +207,9 @@ namespace NCPA {
                             return this->process_configuration_complete_packet(
                                 input );
                             break;
+                        case input_id_t::DATA_REQUEST:
+                            return this->process_data_request_packet( input );
+                            break;
                         default:
                             return this->process_other_packet( input );
                     }
@@ -249,12 +252,11 @@ namespace NCPA {
                         case packet_processing_result_t::FAILURE_CONTINUE:
                         case packet_processing_result_t::SUCCESS_CONTINUE:
                             return this->pass_to_next( packet );
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_packet() returns "
-                                "unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_packet() returns "
+                        "unsupported result code." );
                 }
 
                 virtual void throw_packet_invalid(
@@ -284,12 +286,11 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_configuration_complete_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_packet() returns "
-                                "unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_packet() returns "
+                        "unsupported result code." );
                 }
 
                 virtual response_ptr_t process_configuration_query_packet(
@@ -314,20 +315,21 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_configuration_query_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_configuration_query_packet() "
-                                "returns unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_configuration_query_packet() "
+                        "returns unsupported result code." );
                 }
 
                 virtual response_ptr_t process_data_request_packet(
                     InputPacket& packet ) {
                     std::string msg;
-                    switch (this->_process_data_request_packet(
-                        _cast_packet<DataRequestPacket>( packet ), msg )) {
-                        case packet_processing_result_t::SUCCESS_RETURN:
+                    packet_processing_result_t result
+                        = this->_process_data_request_packet(
+                            _cast_packet<DataRequestPacket>( packet ), msg );
+                    switch (result) {
+                        case packet_processing_result_t::SUCCESS_RETURN_PRODUCT:
                             return this->_build_product_packet();
                             break;
                         case packet_processing_result_t::FAILURE_RETURN:
@@ -343,12 +345,11 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_data_request_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_data_request_packet() "
-                                "returns unsupported result code." );
                     }
+                    return this->response(
+                        response_id_t::ERROR,
+                        "_process_data_request_packet() "
+                        "returns unsupported result code." );
                 }
 
                 virtual response_ptr_t process_state_request_packet(
@@ -369,13 +370,11 @@ namespace NCPA {
                             throw_packet_invalid(
                                 "process_state_request_packet" );
                             break;
-                        default:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "_process_state_request_packet() "
-                                "returns "
-                                "unsupported result code." );
                     }
+                    return this->response( response_id_t::ERROR,
+                                           "_process_state_request_packet() "
+                                           "returns "
+                                           "unsupported result code." );
                 }
 
                 // DataPacket is type-specific so we don't define the

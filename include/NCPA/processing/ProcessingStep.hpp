@@ -55,6 +55,10 @@ namespace NCPA {
         template<typename intype, typename outtype>
         class ProcessingStep : public AbstractProcessingStep {
             public:
+                using input_type   = intype;
+                using output_type  = outtype;
+                using product_type = outtype;
+
                 ProcessingStep( const std::string& tag,
                                 bool shortcircuit = false ) :
                     AbstractProcessingStep( tag ),
@@ -113,7 +117,7 @@ namespace NCPA {
                 // }
 
                 virtual bool product_available() const override {
-                    return ( _product );
+                    return (bool)_product;
                 }
 
 
