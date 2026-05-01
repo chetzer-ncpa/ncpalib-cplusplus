@@ -76,16 +76,10 @@ namespace NCPA {
 
                 std::shared_ptr<T> ptr() {
                     return _internal;
-                    // return _internal.get();
-                    // return std::shared_ptr<T>( this->shared_from_this(),
-                    //                            _internal.get() );
                 }
 
                 const std::shared_ptr<T> ptr() const {
                     return _internal;
-                    // return _internal.get();
-                    // return std::shared_ptr<T>( this->shared_from_this(),
-                    //                            _internal.get() );
                 }
 
                 explicit operator bool() const { return (bool)_internal; }

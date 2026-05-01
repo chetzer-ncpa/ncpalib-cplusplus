@@ -68,10 +68,11 @@ namespace NCPA {
                 ProcessingStep(
                     const ProcessingStep<intype, outtype>& other ) :
                     ProcessingStep<intype, outtype>() {
-                    _short_circuit = other._short_circuit;
-                    _input         = other._input;
-                    _product       = other._product;
-                    _parameters    = other._parameters;
+                    _short_circuit   = other._short_circuit;
+                    _input           = other._input;
+                    _product         = other._product;
+                    _parameters      = other._parameters;
+                    _input_data_time = other._input_data_time;
                 }
 
                 ProcessingStep(
@@ -94,16 +95,26 @@ namespace NCPA {
                     return _product;
                 }
 
-                virtual response_ptr_t pass_on( InputPacket& packet,
-                                                const std::string& error_msg
-                                                = "" ) override {
-                    return this->has_next()
-                             ? this->next()->process( packet )
-                             : this->_build_product_packet();
-                            //  : response_ptr_t( new ResponsePacket(
-                            //        response_id_t::ERROR, error_msg ) );
-                }
+                // virtual response_ptr_t pass_to_next(
+                //     InputPacket& packet,
+                //     response_id_t response_type_if_no_next,
+                //     const std::string& error_msg_if_no_next ) override {
+                //     return this->has_next()
+                //              ? this->next()->process( packet )
+                //              : this->_build_product_packet();
+                // }
 
+                // virtual response_ptr_t pass_on( InputPacket& packet,
+                //                                 const std::string& error_msg
+                //                                 = "" ) override {
+                //     return this->has_next()
+                //              ? this->next()->process( packet )
+                //              : this->_build_product_packet();
+                // }
+
+                virtual bool product_available() const override {
+                    return ( _product );
+                }
 
 
             protected:
@@ -129,7 +140,7 @@ namespace NCPA {
                         }
                         return this->_process_input();
                     } else {
-                        return packet_processing_result_t::INVALID_PACKET;
+                        return packet_processing_result_t::PACKET_INVALID;
                     }
                 }
 
@@ -152,4 +163,5 @@ void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
     swap( a._input, b._input );
     swap( a._product, b._product );
     swap( a._parameters, b._parameters );
+    swap( a._input_data_time, b._input_data_time );
 }

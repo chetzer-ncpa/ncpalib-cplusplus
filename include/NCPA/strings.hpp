@@ -15,8 +15,8 @@ namespace NCPA {
         std::string to_string( const std::vector<T>& v,
                                const std::string& sep = ", " ) {
             std::ostringstream oss;
-            for ( size_t i = 0; i < v.size(); ++i ) {
-                if ( i > 0 ) {
+            for (size_t i = 0; i < v.size(); ++i) {
+                if (i > 0) {
                     oss << sep;
                 }
                 oss << v[ i ];
@@ -27,8 +27,8 @@ namespace NCPA {
         template<typename T>
         std::string to_string_indexed( const std::vector<T>& v ) {
             std::ostringstream oss;
-            for ( size_t i = 0; i < v.size(); ++i ) {
-                oss << i << ": " << v[i] << std::endl;
+            for (size_t i = 0; i < v.size(); ++i) {
+                oss << i << ": " << v[ i ] << std::endl;
             }
             oss << std::endl;
             return oss.str();
@@ -48,7 +48,7 @@ namespace NCPA {
                                            const std::string& whitespace
                                            = " \t\n\r" ) {
             const size_t strBegin = str.find_first_not_of( whitespace );
-            if ( strBegin == std::string::npos ) {
+            if (strBegin == std::string::npos) {
                 return "";
             }
 
@@ -74,7 +74,7 @@ namespace NCPA {
             size_t firstind, lastind;
             firstind = input.find_first_not_of( delimiters );
             lastind  = input.find_first_of( delimiters, firstind );
-            while ( firstind != std::string::npos ) {
+            while (firstind != std::string::npos) {
                 tokens.push_back(
                     input.substr( firstind, lastind - firstind ) );
                 firstind = input.find_first_not_of( delimiters, lastind );
@@ -124,58 +124,15 @@ namespace NCPA {
             return s;
         }
 
-        //	/**
-        //	Converts the supplied string to lower case.
-        //	@brief Converts to lower case.
-        //	@param in The string to convert.
-        //	@returns The input string converted into all lower case.
-        //	*/
-        //	void toLowerCase( char *in ) {
-        //		unsigned int len = std::strlen(in);
-        //		for (unsigned int i = 0; i < len; i++) {
-        //			in[ i ] = (char)std::tolower( in[ i ] );
-        //		}
-        //	}
-        //
-        //	/**
-        //	Converts the supplied string to lower case.
-        //	@brief Converts to lower case.
-        //	@param in The string to convert.
-        //	@returns The input string converted into all lower case.
-        //	*/
-        //	std::string toLowerCase( const std::string in ) {
-        //		std::ostringstream oss("");
-        //		for (unsigned int i = 0; i < in.length(); i++) {
-        //			oss << (char)std::tolower( in[ i ] );
-        //		}
-        //		return oss.str();
-        //	}
-        //
-        //	/**
-        //	Converts the supplied string to upper case.
-        //	@brief Converts to upper case.
-        //	@param in The string to convert.
-        //	@returns The input string converted into all upper case.
-        //	*/
-        //	void toUpperCase( char *in ) {
-        //		unsigned int len = std::strlen(in);
-        //		for (unsigned int i = 0; i < len; i++) {
-        //			in[ i ] = (char)std::toupper( in[ i ] );
-        //		}
-        //	}
-        //
-        //	/**
-        //	Converts the supplied string to upper case.
-        //	@brief Converts to upper case.
-        //	@param in The string to convert.
-        //	@returns The input string converted into all upper case.
-        //	*/
-        //	std::string toUpperCase( const std::string in ) {
-        //		std::ostringstream oss("");
-        //		for (unsigned int i = 0; i < in.length(); i++) {
-        //			oss << (char)std::toupper( in[ i ] );
-        //		}
-        //		return oss.str();
-        //	}
+        static inline bool equals_up_to( const std::string& s1,
+                                         const std::string& s2, size_t n ) {
+            if (s1.size() < n || s2.size() < n) {
+                return false;
+            }
+            if (s1.substr( n ) == s2.substr( n )) {
+                return true;
+            }
+            return false;
+        }
     }  // namespace strings
 }  // namespace NCPA

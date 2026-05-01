@@ -4,6 +4,10 @@
 
 #include <memory>
 
+#ifndef RESPONSEPACKET_DEFAULT_RESPONSE_TYPE
+#define RESPONSEPACKET_DEFAULT_RESPONSE_TYPE response_id_t::SUCCESS_PRODUCT
+#endif
+
 template<typename T>
 void swap( NCPA::processing::ProductPacket<T>& a,
            NCPA::processing::ProductPacket<T>& b ) noexcept;
@@ -15,30 +19,30 @@ namespace NCPA::processing {
         : public ResponsePacket,
           public std::enable_shared_from_this<ProductPacket<T>> {
         public:
-            ProductPacket() : ResponsePacket( response_id_t::PRODUCT ) {
+            ProductPacket() : ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE ) {
                 // _internal = std::make_shared<T>();
             }
 
             ProductPacket( const T in ) :
-                ResponsePacket( response_id_t::PRODUCT ) {
+                ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE ) {
                 // _internal = std::make_shared<T>( in );
                 _internal.set( in );
             }
 
             ProductPacket( const T in, const std::string& tag ) :
-                ResponsePacket( response_id_t::PRODUCT, tag ) {
+                ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE, tag ) {
                 // _internal = std::make_shared<T>( in );
                 _internal.set( in );
             }
 
             ProductPacket( std::shared_ptr<T> in ) :
-                ResponsePacket( response_id_t::PRODUCT ) {
+                ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE ) {
                 // _internal = in;
                 _internal.set( in );
             }
 
             ProductPacket( std::shared_ptr<T> in, const std::string& tag ) :
-                ResponsePacket( response_id_t::PRODUCT, tag ) {
+                ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE, tag ) {
                 // _internal = in;
                 _internal.set( in );
             }
