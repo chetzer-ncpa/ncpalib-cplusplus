@@ -8,6 +8,7 @@
 #include "NCPA/interpolation.hpp"
 #include "NCPA/linearalgebra.hpp"
 #include "NCPA/math.hpp"
+#include "NCPA/dsp.hpp"
 #include "NCPA/ndvector.hpp"
 #include "NCPA/pointers.hpp"
 #include "NCPA/strings.hpp"
