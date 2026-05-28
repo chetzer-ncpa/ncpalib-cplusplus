@@ -953,7 +953,7 @@ namespace NCPA {
          * https://www.hvks.com/Numerical/Downloads/HVE%20Practical%20Implementation%20of%20Polynomial%20root%20finders%20vs%207.pdf.
          *
          * Used under the following license:
-         * ermission to use, copy, and distribute this software, and It’s
+         * Permission to use, copy, and distribute this software, and It’s
          * documentation for any non-commercial purpose is hereby granted
          * without fee, provided: THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT
          * WARRANTY OF ANY KIND, EXPRESS, IMPLIED OR OTHERWISE, INCLUDING
