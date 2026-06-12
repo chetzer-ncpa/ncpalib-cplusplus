@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 namespace NCPA {
     namespace processing {
@@ -22,9 +23,12 @@ namespace NCPA {
         class StatePacket;
         template<typename T>
         class ProductPacket;
+        class WarningPacket;
+        class ErrorPacket;
 
 
         typedef std::unique_ptr<InputPacket> input_ptr_t;
         typedef std::unique_ptr<ResponsePacket> response_ptr_t;
+        typedef std::vector<response_ptr_t> response_packet_set_t;
     }  // namespace processing
 }  // namespace NCPA
