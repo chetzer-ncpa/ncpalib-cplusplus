@@ -77,41 +77,9 @@ namespace NCPA {
             FAILURE_RETURN
         };
 
-
-        // enum class packet_processing_result_t {
-        //     NOT_APPLICABLE,
-        //     PRODUCT,
-        //     NO_PRODUCT,
-        //     PASS,
-        //     SUCCESS,
-        //     FAILURE,
-        //     NOT_FOUND,
-        //     INVALID_PACKET,
-        //     ERROR
-        // };
-
         enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM };
 
         enum class parameter_form_t { SCALAR, ARRAY };
-
-        // class Packet;
-        // class InputPacket;
-        // class ConfigurationPacket;
-        // class ConfigurationCompletePacket;
-        // class ConfigurationQueryPacket;
-        // class ResponsePacket;
-        // class DummyConfigurationPacket;
-        // class DataRequestPacket;
-
-        // template<typename T>
-        // class DataPacket;
-        // template<typename T>
-        // class ProductPacket;
-        // template<typename T>
-        // class GenericPacket;
-
-        // typedef std::unique_ptr<InputPacket> input_ptr_t;
-        // typedef std::unique_ptr<ResponsePacket> response_ptr_t;
 
         class Parameter;
         template<typename T>

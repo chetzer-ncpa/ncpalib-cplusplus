@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/processing/declarations.hpp"
-// #include "NCPA/processing/AbstractProcessingStep.hpp"
 #include "NCPA/processing/packets.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
 
