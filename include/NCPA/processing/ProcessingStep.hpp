@@ -99,23 +99,6 @@ namespace NCPA {
                     return _product;
                 }
 
-                // virtual response_ptr_t pass_to_next(
-                //     InputPacket& packet,
-                //     response_id_t response_type_if_no_next,
-                //     const std::string& error_msg_if_no_next ) override {
-                //     return this->has_next()
-                //              ? this->next()->process( packet )
-                //              : this->_build_product_packet();
-                // }
-
-                // virtual response_ptr_t pass_on( InputPacket& packet,
-                //                                 const std::string& error_msg
-                //                                 = "" ) override {
-                //     return this->has_next()
-                //              ? this->next()->process( packet )
-                //              : this->_build_product_packet();
-                // }
-
                 virtual bool product_available() const override {
                     return (bool)_product;
                 }

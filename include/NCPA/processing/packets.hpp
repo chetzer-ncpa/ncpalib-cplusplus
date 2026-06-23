@@ -6,6 +6,7 @@
 #include "NCPA/processing/packets/DataPacket.hpp"
 #include "NCPA/processing/packets/DataRequestPacket.hpp"
 #include "NCPA/processing/packets/DummyConfigurationPacket.hpp"
+#include "NCPA/processing/packets/ErrorPacket.hpp"
 #include "NCPA/processing/packets/GenericPacket.hpp"
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"

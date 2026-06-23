@@ -29,6 +29,5 @@ namespace NCPA {
 
         typedef std::unique_ptr<InputPacket> input_ptr_t;
         typedef std::unique_ptr<ResponsePacket> response_ptr_t;
-        typedef std::vector<response_ptr_t> response_packet_set_t;
     }  // namespace processing
 }  // namespace NCPA
