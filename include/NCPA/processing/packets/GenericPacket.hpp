@@ -30,7 +30,7 @@ namespace NCPA::processing {
 
             virtual ~GenericPacket() {}
 
-            friend void swap<>( GenericPacket<T>& a,
+            friend void ::swap<>( GenericPacket<T>& a,
                                 GenericPacket<T>& b ) noexcept;
 
             GenericPacket<T>& operator=( GenericPacket<T> other ) {

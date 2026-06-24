@@ -54,40 +54,120 @@ namespace NCPA::processing {
                 return this->add_link( &link, tag );
             }
 
-            response_ptr_t process( intype& input ) {
-                // _input.set( input );
-                DataPacket<intype> packet( input );
-                return this->process( packet );
+            // ProcessingChain& add_link( AbstractProcessingStep& link,
+            //                            const std::string_view& str ) {
+            //     return this->add_link( &link, std::string( str ) );
+            // }
+
+            // virtual std::string as_json_str( bool pretty  = false,
+            //                                  int n_indent = 1,
+            //                                  char tab     = '\t' ) {
+            //     if (pretty) {
+            //         return this->as_json_str_pretty( n_indent, tab );
+            //     } else {
+            //         return this->as_json_str_plain();
+            //     }
+            // }
+
+            virtual std::string as_json( bool pretty   = false,
+                                         size_t indent = 1, char tab = '\t' ) {
+                if (pretty) {
+                    return this->as_json_str_pretty( indent, tab );
+                } else {
+                    return this->as_json_str_plain();
+                }
             }
 
-            virtual response_ptr_t process( InputPacket& packet ) {
-                return _firstlink->process( packet );
+
+#if HAVE_NLOHMANN_JSON_HPP
+
+
+            virtual std::string as_json_str_pretty( int n_indent = 1,
+                                                    char tab = '\t' ) const {
+                return this->build_json().dump( n_indent, tab, true );
             }
 
-            template<typename T>
-            response_ptr_t generic( T& input ) {
-                GenericPacket<T> packet( input );
-                return this->process( packet );
+            virtual std::string as_json_str_plain() const {
+                return this->build_json().dump( -1, 0, true );
             }
+
+            virtual nlohmann::json build_json() const {
+                nlohmann::json out;
+                for (auto it = this->parameters().begin();
+                     it != this->parameters().end(); ++it) {
+                    out[ ( *it )->key() ] = ( *it )->as_json();
+                }
+                return out;
+            }
+
+            virtual ProcessingChain<intype, outtype>& from_json(
+                nlohmann::json& json ) {
+                return this->from_json( json.dump( -1, 0, true ) );
+            }
+#else
+            // virtual std::string as_json( bool pretty   = false,
+            //                              size_t indent = 1, char tab = '\t'
+            //                              ) {
+            //     if (pretty) {
+            //         return this->as_json_str_pretty( indent, tab );
+            //     } else {
+            //         return this->as_json_str_plain();
+            //     }
+            // }
+
+            virtual std::string as_json_str_pretty( size_t n_indent = 0,
+                                                    char tab = '\t' ) const {
+                std::ostringstream json;
+                std::string tabstr;
+                if (tab == '\t') {
+                    tabstr = "\t";
+                } else {
+                    tabstr = "    ";
+                }
+                std::ostringstream indentstr;
+                for (size_t i = 0; i < n_indent; ++i) {
+                    indentstr << tabstr;
+                }
+                std::string baseindent = indentstr.str();
+
+                // n_indent = ( tab == '\t' ? 1 : 4 );
+                json << baseindent << "{ " << std::endl;
+                for (auto it = this->parameters().begin();
+                     it != this->parameters().end(); ++it) {
+                    if (it != this->parameters().begin()) {
+                        json << ",\n";
+                    }
+                    json << ( *it )->as_json( true, n_indent + 1, tab );
+                }
+                json << "\n" << baseindent << "}";
+                return json.str();
+            }
+
+            virtual std::string as_json_str_plain() const {
+                std::ostringstream json;
+                json << "{ ";
+                for (auto it = this->parameters().begin();
+                     it != this->parameters().end(); ++it) {
+                    if (it != this->parameters().begin()) {
+                        json << ", ";
+                    }
+                    json << ( *it )->as_json( false );
+                }
+                json << " }";
+                return json.str();
+            }
+#endif
+
 
             response_id_t finalize_configuration() {
                 return this->process( *ConfigurationCompletePacket::build() )
                     ->ID();
             }
 
-            response_id_t send_configuration( const std::string& tag,
-                                              const parameter_ptr_t& param,
-                                              bool throw_on_error = false ) {
-                response_id_t id = this->process( *ConfigurationPacket::build(
-                                                      tag, param ) )
-                                       ->ID();
-                if (throw_on_error
-                    && id != response_id_t::CONFIGURATION_SUCCESS) {
-                    throw std::runtime_error( "Configuration error for " + tag
-                                              + ":" + param->key() );
-                } else {
-                    return id;
-                }
+            template<typename T>
+            response_ptr_t generic( T& input ) {
+                GenericPacket<T> packet( input );
+                return this->process( packet );
             }
 
             virtual Parameter *parameter( const std::string& key,
@@ -131,124 +211,45 @@ namespace NCPA::processing {
                 return _parameters;
             }
 
-            virtual std::string as_json_str( bool pretty  = false,
-                                             int n_indent = 1,
-                                             char tab     = '\t' ) {
-                if (pretty) {
-                    return this->as_json_str_pretty( n_indent, tab );
+            response_ptr_t process( intype& input ) {
+                DataPacket<intype> packet( input );
+                return this->process( packet );
+            }
+
+            virtual response_ptr_t process( InputPacket& packet ) {
+                return _firstlink->process( packet );
+            }
+
+            virtual response_id_t reset() {
+                return this->process( *ResetPacket::build() )->ID();
+            }
+
+            response_id_t send_configuration( const std::string& tag,
+                                              const parameter_ptr_t& param,
+                                              bool throw_on_error = false ) {
+                response_id_t id = this->process( *ConfigurationPacket::build(
+                                                      tag, param ) )
+                                       ->ID();
+                if (throw_on_error
+                    && id != response_id_t::CONFIGURATION_SUCCESS) {
+                    throw std::runtime_error( "Configuration error for " + tag
+                                              + ":" + param->key() );
                 } else {
-                    return this->as_json_str_plain();
+                    return id;
                 }
             }
 
-            virtual outtype& product()                                    = 0;
             virtual ProcessingChain<intype, outtype>& define_parameters() = 0;
 #if HAVE_NLOHMANN_JSON_HPP
-            virtual nlohmann::json as_json() const {
-                nlohmann::json out;
-                for (auto it = this->parameters().begin();
-                     it != this->parameters().end(); ++it) {
-                    out[ ( *it )->key() ] = ( *it )->as_json();
-                }
-                return out;
-            }
-
-            virtual std::string as_json_str_pretty( int n_indent = 1,
-                                                    char tab = '\t' ) const {
-                return this->as_json().dump( n_indent, tab, true );
-            }
-
-            virtual std::string as_json_str_plain() const {
-                return this->as_json().dump( -1, 0, true );
-            }
-
-            // template<typename T>
-            // void set_from_json( nlohmann::json& json, const std::string&
-            // key,
-            //                     bool is_vector = false ) {
-            //     set_from_json<T>( json, key, key, is_vector );
-            // }
-
-            // template<typename T>
-            // void set_from_json( nlohmann::json& json,
-            //                     const std::string& jsonkey,
-            //                     const std::string& paramkey,
-            //                     bool is_vector = false ) {
-            //     if (json.at( jsonkey ).is_null()
-            //         || json.at( jsonkey ).at( "value" ).is_null()) {
-            //         throw std::out_of_range(
-            //             "Parameter " + jsonkey
-            //             + " not found or badly structured in JSON!" );
-            //     }
-            //     if (is_vector) {
-            //         this->parameter( paramkey )
-            //             ->as_vector<T>()
-            //             .set( json.at( jsonkey ).at( "value" ).get<T>() );
-            //     } else {
-            //         this->parameter( paramkey )
-            //             ->as_scalar<T>()
-            //             .set( json.at( jsonkey ).at( "value" ).get<T>() );
-            //     }
-            // }
-
             virtual ProcessingChain<intype, outtype>& from_json(
-                nlohmann::json& json ) = 0;
+                const std::string& json ) {
+                return from_json( nlohmann::json::parse( json ) );
+            }
 #else
-            virtual std::string as_json( bool pretty            = false,
-                                         size_t indent          = 1,
-                                         char tab = '\t' ) {
-                if (pretty) {
-                    return this->as_json_str_pretty( indent, tab );
-                } else {
-                    return this->as_json_str_plain();
-                }
-            }
-
-            virtual std::string as_json_str_pretty( size_t n_indent = 0,
-                                                    char tab = '\t' ) const {
-                std::ostringstream json;
-                std::string tabstr;
-                if (tab == '\t') {
-                    tabstr = "\t";
-                } else {
-                    tabstr = "    ";
-                }
-                std::ostringstream indentstr;
-                for (size_t i = 0; i < n_indent; ++i) {
-                    indentstr << tabstr;
-                }
-                std::string baseindent = indentstr.str();
-
-                // n_indent = ( tab == '\t' ? 1 : 4 );
-                json << baseindent << "{ " << std::endl;
-                for (auto it = this->parameters().begin();
-                     it != this->parameters().end(); ++it) {
-                    if (it != this->parameters().begin()) {
-                        json << ",\n";
-                    }
-                    json << ( *it )->as_json( true, n_indent + 1, tab );
-                }
-                json << "\n" << baseindent << "}";
-                return json.str();
-            }
-
-            virtual std::string as_json_str_plain() const {
-                std::ostringstream json;
-                json << "{ ";
-                for (auto it = this->parameters().begin();
-                     it != this->parameters().end(); ++it) {
-                    if (it != this->parameters().begin()) {
-                        json << ", ";
-                    }
-                    json << ( *it )->as_json( false );
-                }
-                json << " }";
-                return json.str();
-            }
-
             virtual ProcessingChain<intype, outtype>& from_json(
                 const std::string& json ) = 0;
 #endif
+            virtual outtype& product() = 0;
 
 
         private:

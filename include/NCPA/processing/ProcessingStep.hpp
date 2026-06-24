@@ -55,9 +55,9 @@ namespace NCPA {
         template<typename intype, typename outtype>
         class ProcessingStep : public AbstractProcessingStep {
             public:
-                using input_type   = intype;
-                using output_type  = outtype;
-                using product_type = outtype;
+                using input_t   = intype;
+                using output_t  = outtype;
+                using product_t = outtype;
 
                 ProcessingStep( const std::string& tag,
                                 bool shortcircuit = false ) :
@@ -99,25 +99,13 @@ namespace NCPA {
                     return _product;
                 }
 
-                // virtual response_ptr_t pass_to_next(
-                //     InputPacket& packet,
-                //     response_id_t response_type_if_no_next,
-                //     const std::string& error_msg_if_no_next ) override {
-                //     return this->has_next()
-                //              ? this->next()->process( packet )
-                //              : this->_build_product_packet();
-                // }
-
-                // virtual response_ptr_t pass_on( InputPacket& packet,
-                //                                 const std::string& error_msg
-                //                                 = "" ) override {
-                //     return this->has_next()
-                //              ? this->next()->process( packet )
-                //              : this->_build_product_packet();
-                // }
-
                 virtual bool product_available() const override {
                     return (bool)_product;
+                }
+
+                // using AbstractProcessingStep::reset;
+                virtual ProcessingStep<intype, outtype>& reset() override {
+                    return *this;
                 }
 
 

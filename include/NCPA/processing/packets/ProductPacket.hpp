@@ -59,7 +59,7 @@ namespace NCPA::processing {
 
             virtual ~ProductPacket() {}
 
-            friend void swap<>( ProductPacket<T>& a,
+            friend void ::swap<>( ProductPacket<T>& a,
                                 ProductPacket<T>& b ) noexcept;
 
             // ProductPacket<T>& operator=( ProductPacket<T> other ) {
