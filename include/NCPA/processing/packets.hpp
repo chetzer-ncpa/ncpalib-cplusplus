@@ -11,6 +11,7 @@
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
 #include "NCPA/processing/packets/ProductPacket.hpp"
+#include "NCPA/processing/packets/ResetPacket.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
 #include "NCPA/processing/packets/StatePacket.hpp"
 #include "NCPA/processing/packets/StateRequestPacket.hpp"

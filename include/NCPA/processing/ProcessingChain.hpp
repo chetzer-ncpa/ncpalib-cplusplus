@@ -54,6 +54,11 @@ namespace NCPA::processing {
                 return this->add_link( &link, tag );
             }
 
+            // ProcessingChain& add_link( AbstractProcessingStep& link,
+            //                            const std::string_view& str ) {
+            //     return this->add_link( &link, std::string( str ) );
+            // }
+
             // virtual std::string as_json_str( bool pretty  = false,
             //                                  int n_indent = 1,
             //                                  char tab     = '\t' ) {
@@ -101,7 +106,8 @@ namespace NCPA::processing {
             }
 #else
             // virtual std::string as_json( bool pretty   = false,
-            //                              size_t indent = 1, char tab = '\t' ) {
+            //                              size_t indent = 1, char tab = '\t'
+            //                              ) {
             //     if (pretty) {
             //         return this->as_json_str_pretty( indent, tab );
             //     } else {
@@ -214,6 +220,10 @@ namespace NCPA::processing {
                 return _firstlink->process( packet );
             }
 
+            virtual response_id_t reset() {
+                return this->process( *ResetPacket::build() )->ID();
+            }
+
             response_id_t send_configuration( const std::string& tag,
                                               const parameter_ptr_t& param,
                                               bool throw_on_error = false ) {
@@ -230,9 +240,16 @@ namespace NCPA::processing {
             }
 
             virtual ProcessingChain<intype, outtype>& define_parameters() = 0;
+#if HAVE_NLOHMANN_JSON_HPP
+            virtual ProcessingChain<intype, outtype>& from_json(
+                const std::string& json ) {
+                return from_json( nlohmann::json::parse( json ) );
+            }
+#else
             virtual ProcessingChain<intype, outtype>& from_json(
                 const std::string& json ) = 0;
-            virtual outtype& product()    = 0;
+#endif
+            virtual outtype& product() = 0;
 
 
         private:

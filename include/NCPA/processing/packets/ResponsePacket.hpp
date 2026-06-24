@@ -35,7 +35,15 @@ namespace NCPA::processing {
 
             response_id_t ID() const { return _ID; }
 
-            std::string message() const { return _message; }
+            std::string message() const {
+                std::ostringstream oss;
+                oss << _message << "\n" << "Flags:" << "\n";
+                for (auto f : _flags) {
+                    oss << f << std::endl;
+                }
+
+                return oss.str();
+            }
 
             ResponsePacket& append_flag( const std::string& message ) {
                 _flags.push_back( message );

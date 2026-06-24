@@ -47,12 +47,14 @@ namespace NCPA {
             CONFIGURATION_QUERY,
             COMMAND,
             DATA_REQUEST,
-            STATE_REQUEST
+            STATE_REQUEST,
+            RESET
         };
 
         enum class response_id_t {
             OTHER,
             NO_RESPONSE,
+            ACKNOWLEDGE,
             SUCCESS_NO_PRODUCT,
             SUCCESS_PRODUCT,
             WARNING,
@@ -69,8 +71,10 @@ namespace NCPA {
             ERROR,
             PACKET_INVALID,
             PACKET_NOT_APPLICABLE,
+            SUCCESS,
             SUCCESS_PRODUCT,        // success, product generated, continue if possible
             SUCCESS_NO_PRODUCT,     // success, no product generated, return
+            FAILURE,
             FAILURE_PRODUCT,        // failure, product generated anyway, continue if possible
             FAILURE_NO_PRODUCT      // failure, no product generated, return
         };

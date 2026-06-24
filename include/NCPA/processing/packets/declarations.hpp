@@ -12,6 +12,7 @@ namespace NCPA {
         class ConfigurationCompletePacket;
         class ConfigurationQueryPacket;
         class DataRequestPacket;
+        class ResetPacket;
         class StateRequestPacket;
         template<typename T>
         class DataPacket;

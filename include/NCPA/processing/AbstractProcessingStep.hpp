@@ -76,12 +76,6 @@ namespace NCPA {
                     }
                 }
 
-                virtual AbstractProcessingStep& add_flag(
-                    const std::string& flag ) {
-                    _flags.push_back( flag );
-                    return *this;
-                }
-
                 AbstractProcessingStep(
                     AbstractProcessingStep&& other ) noexcept :
                     AbstractProcessingStep() {
@@ -90,6 +84,12 @@ namespace NCPA {
 
                 friend void ::swap( AbstractProcessingStep& a,
                                     AbstractProcessingStep& b ) noexcept;
+
+                virtual AbstractProcessingStep& add_flag(
+                    const std::string& flag ) {
+                    _flags.push_back( flag );
+                    return *this;
+                }
 
                 virtual AbstractProcessingStep& add_parameter(
                     Parameter& param ) {
@@ -190,6 +190,9 @@ namespace NCPA {
                             break;
                         case input_id_t::DATA_REQUEST:
                             resp = this->process_data_request_packet( input );
+                            break;
+                        case input_id_t::RESET:
+                            resp = this->process_reset_packet( input );
                             break;
                         default:
                             resp = this->process_other_packet( input );
@@ -315,6 +318,24 @@ namespace NCPA {
                         response_id_t::ERROR,
                         "_process_configuration_packet() returns "
                         "unsupported result code." );
+                }
+
+                virtual response_ptr_t process_reset_packet(
+                    InputPacket& packet ) {
+                    std::string msg;
+                    switch (this->_process_reset_packet(
+                        _cast_packet<ResetPacket>( packet ), msg )) {
+                        case packet_processing_result_t::ERROR:
+                            return this->response(
+                                response_id_t::ERROR,
+                                "Error processing reset packet" );
+                            break;
+                        case packet_processing_result_t::PACKET_INVALID:
+                            return packet_invalid( "process_reset_packet" );
+                            break;
+                    }
+                    return this->pass_to_next(
+                        packet, this->response( response_id_t::ACKNOWLEDGE ) );
                 }
 
                 virtual response_ptr_t process_configuration_query_packet(
@@ -494,8 +515,8 @@ namespace NCPA {
                 virtual std::string tag() const { return _tag; }
 
                 // implemented in ProcessingStep
-                virtual AbstractDataWrapper& product() = 0;
-                // virtual AbstractDataWrapper& end_product() = 0;
+                virtual AbstractDataWrapper& product()  = 0;
+                virtual AbstractProcessingStep& reset() = 0;
 
             protected:
                 virtual void _add_flags_to_packet(
@@ -590,6 +611,19 @@ namespace NCPA {
                 virtual packet_processing_result_t _process_other_packet(
                     InputPacket& packet, std::string& message ) {
                     return packet_processing_result_t::PACKET_NOT_APPLICABLE;
+                }
+
+                virtual packet_processing_result_t _process_reset_packet(
+                    const ResetPacket *packet_ptr, std::string& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr );
+                    if (packet_ptr->tag() == ""
+                        || packet_ptr->tag() == this->tag()) {
+                        this->reset();
+                        return packet_processing_result_t::SUCCESS;
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
                 }
 
                 virtual packet_processing_result_t
