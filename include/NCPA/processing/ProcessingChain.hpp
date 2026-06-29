@@ -12,6 +12,10 @@ namespace NCPA::processing {
     template<typename intype, typename outtype>
     class ProcessingChain {
         public:
+            using input_t   = intype;
+            using output_t  = outtype;
+            using product_t = outtype;
+
             ProcessingChain() {}
 
             ~ProcessingChain() {}
@@ -31,10 +35,10 @@ namespace NCPA::processing {
                 ProcessingChain<intype, outtype>& a,
                 ProcessingChain<intype, outtype>& b ) noexcept;
 
-            ProcessingChain& operator=( ProcessingChain other ) {
-                ::swap( *this, other );
-                return *this;
-            }
+            // ProcessingChain& operator=( ProcessingChain other ) {
+            //     ::swap( *this, other );
+            //     return *this;
+            // }
 
             ProcessingChain& add_link( AbstractProcessingStep *link,
                                        const std::string& tag = "" ) {

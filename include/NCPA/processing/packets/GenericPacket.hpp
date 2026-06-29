@@ -82,10 +82,10 @@ namespace NCPA::processing {
 }  // namespace NCPA::processing
 
 template<typename T>
-void ::swap( NCPA::processing::GenericPacket<T>& a,
+void swap( NCPA::processing::GenericPacket<T>& a,
              NCPA::processing::GenericPacket<T>& b ) noexcept {
     using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+    swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
     swap( a._internal, b._internal );
 }
