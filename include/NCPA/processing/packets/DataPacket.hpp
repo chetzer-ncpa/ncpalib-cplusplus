@@ -127,7 +127,7 @@ namespace NCPA::processing {
 
             virtual ~DataPacket() {}
 
-            friend void swap<>( DataPacket<T>& a, DataPacket<T>& b ) noexcept;
+            friend void ::swap<>( DataPacket<T>& a, DataPacket<T>& b ) noexcept;
 
             DataPacket<T>& operator=( DataPacket<T> other ) {
                 ::swap( *this, other );
@@ -205,7 +205,7 @@ template<typename T>
 void swap( NCPA::processing::DataPacket<T>& a,
              NCPA::processing::DataPacket<T>& b ) noexcept {
     using std::swap;
-    swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
     swap( a._internal, b._internal );
     swap( a._data_time, b._data_time );
