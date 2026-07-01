@@ -84,8 +84,6 @@ namespace NCPA::processing {
 
 
 #if HAVE_NLOHMANN_JSON_HPP
-
-
             virtual std::string as_json_str_pretty( int n_indent = 1,
                                                     char tab = '\t' ) const {
                 return this->build_json().dump( n_indent, tab, true );
@@ -109,16 +107,6 @@ namespace NCPA::processing {
                 return this->from_json( json.dump( -1, 0, true ) );
             }
 #else
-            // virtual std::string as_json( bool pretty   = false,
-            //                              size_t indent = 1, char tab = '\t'
-            //                              ) {
-            //     if (pretty) {
-            //         return this->as_json_str_pretty( indent, tab );
-            //     } else {
-            //         return this->as_json_str_plain();
-            //     }
-            // }
-
             virtual std::string as_json_str_pretty( size_t n_indent = 0,
                                                     char tab = '\t' ) const {
                 std::ostringstream json;

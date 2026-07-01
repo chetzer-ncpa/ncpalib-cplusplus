@@ -18,6 +18,7 @@ namespace NCPA {
             public:
                 DataWrapper() {
                     // _internal = std::make_shared<T>();
+                    _internal = std::shared_ptr<T>( new T{} );
                 }
 
                 DataWrapper( const T in ) {
