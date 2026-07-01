@@ -36,8 +36,8 @@ DataPacket
         return packet_processing_result_t::PACKET_INVALID; \
     }
 
-void swap( NCPA::processing::AbstractProcessingStep& a,
-           NCPA::processing::AbstractProcessingStep& b ) noexcept;
+// void swap( NCPA::processing::AbstractProcessingStep& a,
+//            NCPA::processing::AbstractProcessingStep& b ) noexcept;
 
 namespace NCPA {
     namespace processing {
@@ -85,11 +85,19 @@ namespace NCPA {
                 AbstractProcessingStep(
                     AbstractProcessingStep&& other ) noexcept :
                     AbstractProcessingStep() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
-                friend void ::swap( AbstractProcessingStep& a,
-                                    AbstractProcessingStep& b ) noexcept;
+                friend void swap( AbstractProcessingStep& a,
+                                  AbstractProcessingStep& b ) noexcept {
+                    using std::swap;
+                    swap( a._next, b._next );
+                    swap( a._parameters, b._parameters );
+                    swap( a._tag, b._tag );
+                    swap( a._configuration_changed, b._configuration_changed );
+                    swap( a._treat_as_last, b._treat_as_last );
+                    swap( a._flags, b._flags );
+                }
 
                 virtual AbstractProcessingStep& add_flag(
                     const std::string& flag ) {
@@ -750,15 +758,15 @@ namespace NCPA {
     }  // namespace processing
 }  // namespace NCPA
 
-void swap( NCPA::processing::AbstractProcessingStep& a,
-           NCPA::processing::AbstractProcessingStep& b ) noexcept {
-    using std::swap;
-    swap( a._next, b._next );
-    swap( a._parameters, b._parameters );
-    swap( a._tag, b._tag );
-    swap( a._configuration_changed, b._configuration_changed );
-    swap( a._treat_as_last, b._treat_as_last );
-    swap( a._flags, b._flags );
-}
+// void swap( NCPA::processing::AbstractProcessingStep& a,
+//            NCPA::processing::AbstractProcessingStep& b ) noexcept {
+//     using std::swap;
+//     swap( a._next, b._next );
+//     swap( a._parameters, b._parameters );
+//     swap( a._tag, b._tag );
+//     swap( a._configuration_changed, b._configuration_changed );
+//     swap( a._treat_as_last, b._treat_as_last );
+//     swap( a._flags, b._flags );
+// }
 
 #pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )

@@ -46,9 +46,9 @@
 
 #include <unordered_map>
 
-template<typename intype, typename outtype>
-void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
-           NCPA::processing::ProcessingStep<intype, outtype>& b ) noexcept;
+// template<typename intype, typename outtype>
+// void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
+//            NCPA::processing::ProcessingStep<intype, outtype>& b ) noexcept;
 
 namespace NCPA {
     namespace processing {
@@ -82,16 +82,28 @@ namespace NCPA {
                 ProcessingStep(
                     ProcessingStep<intype, outtype>&& other ) noexcept :
                     ProcessingStep<intype, outtype>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
-                friend void ::swap<>(
+                friend void swap(
                     ProcessingStep<intype, outtype>& a,
-                    ProcessingStep<intype, outtype>& b ) noexcept;
+                    ProcessingStep<intype, outtype>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<NCPA::processing::AbstractProcessingStep&>(
+                            a ),
+                        static_cast<NCPA::processing::AbstractProcessingStep&>(
+                            b ) );
+                    swap( a._short_circuit, b._short_circuit );
+                    swap( a._input, b._input );
+                    swap( a._product, b._product );
+                    swap( a._parameters, b._parameters );
+                    swap( a._input_data_time, b._input_data_time );
+                }
 
                 ProcessingStep& operator=(
                     ProcessingStep<intype, outtype> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -145,15 +157,15 @@ namespace NCPA {
     }  // namespace processing
 }  // namespace NCPA
 
-template<typename intype, typename outtype>
-void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
-           NCPA::processing::ProcessingStep<intype, outtype>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::processing::AbstractProcessingStep&>( a ),
-            static_cast<NCPA::processing::AbstractProcessingStep&>( b ) );
-    swap( a._short_circuit, b._short_circuit );
-    swap( a._input, b._input );
-    swap( a._product, b._product );
-    swap( a._parameters, b._parameters );
-    swap( a._input_data_time, b._input_data_time );
-}
+// template<typename intype, typename outtype>
+// void swap( NCPA::processing::ProcessingStep<intype, outtype>& a,
+//            NCPA::processing::ProcessingStep<intype, outtype>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::processing::AbstractProcessingStep&>( a ),
+//             static_cast<NCPA::processing::AbstractProcessingStep&>( b ) );
+//     swap( a._short_circuit, b._short_circuit );
+//     swap( a._input, b._input );
+//     swap( a._product, b._product );
+//     swap( a._parameters, b._parameters );
+//     swap( a._input_data_time, b._input_data_time );
+// }

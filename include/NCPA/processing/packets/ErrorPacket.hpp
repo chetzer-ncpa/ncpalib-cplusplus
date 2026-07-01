@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/processing/declarations.hpp"
-#include "NCPA/processing/packets.hpp"
+// #include "NCPA/processing/packets.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
 
 #include <memory>
@@ -29,7 +29,11 @@ namespace NCPA {
 
                 virtual ~ErrorPacket() {}
 
-                friend void swap( ErrorPacket& a, ErrorPacket& b ) noexcept;
+                friend void swap( ErrorPacket& a, ErrorPacket& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<ResponsePacket&>( a ),
+                          dynamic_cast<ResponsePacket&>( b ) );
+                }
 
                 ErrorPacket& operator=( ErrorPacket other ) {
                     swap( *this, other );
@@ -40,10 +44,10 @@ namespace NCPA {
                 const AbstractProcessingStep *_ptr;
         };
 
-        void swap( ErrorPacket& a, ErrorPacket& b ) noexcept {
-            using std::swap;
-            ::swap( dynamic_cast<ResponsePacket&>( a ),
-                    dynamic_cast<ResponsePacket&>( b ) );
-        }
+        // void swap( ErrorPacket& a, ErrorPacket& b ) noexcept {
+        //     using std::swap;
+        //     swap( dynamic_cast<ResponsePacket&>( a ),
+        //             dynamic_cast<ResponsePacket&>( b ) );
+        // }
     }  // namespace processing
 }  // namespace NCPA

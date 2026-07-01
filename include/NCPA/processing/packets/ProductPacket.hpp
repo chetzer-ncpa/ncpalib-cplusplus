@@ -5,7 +5,7 @@
 #include <memory>
 
 #ifndef RESPONSEPACKET_DEFAULT_RESPONSE_TYPE
-#define RESPONSEPACKET_DEFAULT_RESPONSE_TYPE response_id_t::SUCCESS_PRODUCT
+#  define RESPONSEPACKET_DEFAULT_RESPONSE_TYPE response_id_t::SUCCESS_PRODUCT
 #endif
 
 template<typename T>
@@ -19,7 +19,8 @@ namespace NCPA::processing {
         : public ResponsePacket,
           public std::enable_shared_from_this<ProductPacket<T>> {
         public:
-            ProductPacket() : ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE ) {
+            ProductPacket() :
+                ResponsePacket( RESPONSEPACKET_DEFAULT_RESPONSE_TYPE ) {
                 // _internal = std::make_shared<T>();
             }
 
@@ -54,16 +55,21 @@ namespace NCPA::processing {
 
             ProductPacket( ProductPacket<T>&& input ) noexcept :
                 ProductPacket<T>() {
-                ::swap( *this, input );
+                swap( *this, input );
             }
 
             virtual ~ProductPacket() {}
 
-            friend void ::swap<>( ProductPacket<T>& a,
-                                ProductPacket<T>& b ) noexcept;
+            friend void swap( ProductPacket<T>& a,
+                              ProductPacket<T>& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
+                      dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
+                swap( a._internal, b._internal );
+            }
 
             // ProductPacket<T>& operator=( ProductPacket<T> other ) {
-            //     ::swap( *this, other );
+            //     swap( *this, other );
             //     return *this;
             // }
 
@@ -109,7 +115,7 @@ namespace NCPA::processing {
 
     template<typename T>
     const T& get_product( const ResponsePacket& packet ) {
-        auto packet_ptr = dynamic_cast<const ProductPacket<T>*>( &packet );
+        auto packet_ptr = dynamic_cast<const ProductPacket<T> *>( &packet );
         if (packet_ptr) {
             return packet_ptr->get();
         } else {
@@ -118,11 +124,11 @@ namespace NCPA::processing {
     }
 }  // namespace NCPA::processing
 
-template<typename T>
-void swap( NCPA::processing::ProductPacket<T>& a,
-             NCPA::processing::ProductPacket<T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
-            dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
-    swap( a._internal, b._internal );
-}
+// template<typename T>
+// void swap( NCPA::processing::ProductPacket<T>& a,
+//              NCPA::processing::ProductPacket<T>& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
+//             dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
+//     swap( a._internal, b._internal );
+// }

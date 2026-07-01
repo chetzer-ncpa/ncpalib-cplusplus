@@ -5,6 +5,36 @@
 
 namespace NCPA {
     namespace processing {
+
+        enum class input_id_t {
+            INVALID,
+            OTHER,
+            DATA,
+            CONFIGURATION,
+            CONFIGURATION_COMPLETE,
+            CONFIGURATION_QUERY,
+            COMMAND,
+            DATA_REQUEST,
+            STATE_REQUEST,
+            RESET
+        };
+
+         enum class response_id_t {
+            OTHER,
+            NO_RESPONSE,
+            ACKNOWLEDGE,
+            SUCCESS_NO_PRODUCT,
+            SUCCESS_PRODUCT,
+            WARNING,
+            ERROR,
+            ERROR_STOP,
+            RECONFIGURATION_REQUESTED,
+            DUMMY_CONFIGURATION,
+            CONFIGURATION_SUCCESS,
+            CONFIGURATION_FAILURE,
+            STATE
+        };
+
         class Packet;
 
         class InputPacket;

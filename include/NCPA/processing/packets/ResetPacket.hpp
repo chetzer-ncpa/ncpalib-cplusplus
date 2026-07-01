@@ -2,15 +2,13 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-#include "NCPA/processing/Parameter.hpp"
-
+// #include "NCPA/processing/Parameter.hpp"
 
 namespace NCPA {
     namespace processing {
         class ResetPacket : public InputPacket {
             public:
-                ResetPacket() :
-                    InputPacket( input_id_t::RESET ) {}
+                ResetPacket() : InputPacket( input_id_t::RESET ) {}
 
                 ResetPacket( const std::string& tag ) :
                     InputPacket( input_id_t::RESET, tag ) {}
@@ -29,12 +27,14 @@ namespace NCPA {
 
                 virtual ~ResetPacket() {}
 
-                friend void swap( ResetPacket& a,
-                                  ResetPacket& b ) noexcept;
+                friend void swap( ResetPacket& a, ResetPacket& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+                          dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                }
 
                 static std::unique_ptr<InputPacket> build() {
-                    return std::unique_ptr<InputPacket>(
-                        new ResetPacket() );
+                    return std::unique_ptr<InputPacket>( new ResetPacket() );
                 }
 
                 static std::unique_ptr<InputPacket> build(
@@ -50,12 +50,12 @@ namespace NCPA {
                 }
         };
 
-        void swap( NCPA::processing::ResetPacket& a,
-                   NCPA::processing::ResetPacket& b ) noexcept {
-            using std::swap;
-            ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-                    dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-        }
+        // void swap( NCPA::processing::ResetPacket& a,
+        //            NCPA::processing::ResetPacket& b ) noexcept {
+        //     using std::swap;
+        //     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+        //             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+        // }
 
     }  // namespace processing
 }  // namespace NCPA

@@ -2,15 +2,15 @@
 
 #include "NCPA/processing/declarations.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
-#include "NCPA/processing/Parameter.hpp"
-#include "NCPA/processing/ParameterTree.hpp"
+#include "NCPA/processing/packets/ConfigurationQueryPacket.hpp"
+#include "NCPA/processing/parameters.hpp"
 
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-void swap( NCPA::processing::DummyConfigurationPacket& a,
-           NCPA::processing::DummyConfigurationPacket& b ) noexcept;
+// void swap( NCPA::processing::DummyConfigurationPacket& a,
+//            NCPA::processing::DummyConfigurationPacket& b ) noexcept;
 
 namespace NCPA::processing {
     class DummyConfigurationPacket : public ResponsePacket {
@@ -43,8 +43,13 @@ namespace NCPA::processing {
 
             virtual ~DummyConfigurationPacket() {}
 
-            friend void ::swap( DummyConfigurationPacket& a,
-                                DummyConfigurationPacket& b ) noexcept;
+            friend void swap( DummyConfigurationPacket& a,
+                              DummyConfigurationPacket& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
+                      dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
+                swap( a._parameters, b._parameters );
+            }
 
             const ParameterTree& parameters() const { return _parameters; }
 
@@ -62,10 +67,10 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-void swap( NCPA::processing::DummyConfigurationPacket& a,
-           NCPA::processing::DummyConfigurationPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
-            dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
-    swap( a._parameters, b._parameters );
-}
+// void swap( NCPA::processing::DummyConfigurationPacket& a,
+//            NCPA::processing::DummyConfigurationPacket& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
+//             dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
+//     swap( a._parameters, b._parameters );
+// }

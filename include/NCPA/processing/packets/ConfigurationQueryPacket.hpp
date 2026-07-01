@@ -2,16 +2,15 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-#include "NCPA/processing/Parameter.hpp"
-#include "NCPA/processing/ParameterTree.hpp"
+#include "NCPA/processing/parameters.hpp"
 
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-void swap( NCPA::processing::ConfigurationQueryPacket& a,
-           NCPA::processing::ConfigurationQueryPacket& b ) noexcept;
+// void swap( NCPA::processing::ConfigurationQueryPacket& a,
+//            NCPA::processing::ConfigurationQueryPacket& b ) noexcept;
 
 namespace NCPA::processing {
     class ConfigurationQueryPacket : public InputPacket {
@@ -24,8 +23,13 @@ namespace NCPA::processing {
 
             virtual ~ConfigurationQueryPacket() {}
 
-            friend void ::swap( ConfigurationQueryPacket& a,
-                                ConfigurationQueryPacket& b ) noexcept;
+            friend void swap( ConfigurationQueryPacket& a,
+                              ConfigurationQueryPacket& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<InputPacket&>( a ),
+                      dynamic_cast<InputPacket&>( b ) );
+                swap( a._parameters, b._parameters );
+            }
 
             virtual ParameterTree& parameters() { return _parameters; }
 
@@ -54,10 +58,10 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-void swap( NCPA::processing::ConfigurationQueryPacket& a,
-           NCPA::processing::ConfigurationQueryPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-    swap( a._parameters, b._parameters );
-}
+// void swap( NCPA::processing::ConfigurationQueryPacket& a,
+//            NCPA::processing::ConfigurationQueryPacket& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+//     swap( a._parameters, b._parameters );
+// }

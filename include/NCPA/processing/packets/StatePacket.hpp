@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/processing/declarations.hpp"
-#include "NCPA/processing/packets.hpp"
+// #include "NCPA/processing/packets.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
 
 #include <memory>
@@ -31,7 +31,12 @@ namespace NCPA {
 
                 virtual ~StatePacket() {}
 
-                friend void swap( StatePacket& a, StatePacket& b ) noexcept;
+                friend void swap( StatePacket& a, StatePacket& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<ResponsePacket&>( a ),
+                          dynamic_cast<ResponsePacket&>( b ) );
+                    swap( a._ptr, b._ptr );
+                }
 
                 StatePacket& operator=( StatePacket other ) {
                     swap( *this, other );
@@ -75,18 +80,19 @@ namespace NCPA {
 
         template<class T>
         const T& get_state_pointer_as( const ResponsePacket& packet ) {
-            T* ptr = dynamic_cast<const T*>( &get_state_pointer( packet ) );
+            T *ptr = dynamic_cast<const T *>( &get_state_pointer( packet ) );
             if (ptr == nullptr) {
-                throw std::invalid_argument("Can't cast step pointer to requested type!");
+                throw std::invalid_argument(
+                    "Can't cast step pointer to requested type!" );
             }
             return *ptr;
         }
 
-        void swap( StatePacket& a, StatePacket& b ) noexcept {
-            using std::swap;
-            ::swap( dynamic_cast<ResponsePacket&>( a ),
-                    dynamic_cast<ResponsePacket&>( b ) );
-            swap( a._ptr, b._ptr );
-        }
+        // void swap( StatePacket& a, StatePacket& b ) noexcept {
+        //     using std::swap;
+        //     swap( dynamic_cast<ResponsePacket&>( a ),
+        //             dynamic_cast<ResponsePacket&>( b ) );
+        //     swap( a._ptr, b._ptr );
+        // }
     }  // namespace processing
 }  // namespace NCPA

@@ -2,10 +2,10 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-#include "NCPA/processing/Parameter.hpp"
+#include "NCPA/processing/parameters.hpp"
 
-void swap( NCPA::processing::ConfigurationPacket& a,
-           NCPA::processing::ConfigurationPacket& b ) noexcept;
+// void swap( NCPA::processing::ConfigurationPacket& a,
+//            NCPA::processing::ConfigurationPacket& b ) noexcept;
 
 namespace NCPA::processing {
     class ConfigurationPacket : public InputPacket {
@@ -16,7 +16,8 @@ namespace NCPA::processing {
                 InputPacket( input_id_t::CONFIGURATION ),
                 _parameter { param.clone() } {}
 
-            ConfigurationPacket( const std::string& tag, const Parameter& param ) :
+            ConfigurationPacket( const std::string& tag,
+                                 const Parameter& param ) :
                 InputPacket( input_id_t::CONFIGURATION, tag ),
                 _parameter { param.clone() } {}
 
@@ -34,12 +35,17 @@ namespace NCPA::processing {
             virtual ~ConfigurationPacket() {}
 
             ConfigurationPacket& operator=( ConfigurationPacket other ) {
-                ::swap( *this, other );
+                swap( *this, other );
                 return *this;
             }
 
-            friend void ::swap( ConfigurationPacket& a,
-                                ConfigurationPacket& b ) noexcept;
+            friend void swap( ConfigurationPacket& a,
+                              ConfigurationPacket& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+                        dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                swap( a._parameter, b._parameter );
+                              }
 
             virtual const Parameter& parameter() const { return *_parameter; }
 
@@ -49,13 +55,14 @@ namespace NCPA::processing {
                     new ConfigurationPacket() );
             }
 
-            static std::unique_ptr<InputPacket> build( const Parameter& param ) {
+            static std::unique_ptr<InputPacket> build(
+                const Parameter& param ) {
                 return std::unique_ptr<InputPacket>(
                     new ConfigurationPacket( param ) );
             }
 
-            static std::unique_ptr<InputPacket> build( const std::string& tag,
-                                                       const Parameter& param ) {
+            static std::unique_ptr<InputPacket> build(
+                const std::string& tag, const Parameter& param ) {
                 return std::unique_ptr<InputPacket>(
                     new ConfigurationPacket( tag, param ) );
             }
@@ -84,10 +91,10 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-void swap( NCPA::processing::ConfigurationPacket& a,
-           NCPA::processing::ConfigurationPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-    swap( a._parameter, b._parameter );
-}
+// void swap( NCPA::processing::ConfigurationPacket& a,
+//            NCPA::processing::ConfigurationPacket& b ) noexcept {
+//     using std::swap;
+//     ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+//     swap( a._parameter, b._parameter );
+// }

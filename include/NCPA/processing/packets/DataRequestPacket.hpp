@@ -2,12 +2,12 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-#include "NCPA/processing/Parameter.hpp"
+// #include "NCPA/processing/Parameter.hpp"
 
 #include <iostream>
 
-void swap( NCPA::processing::DataRequestPacket& a,
-           NCPA::processing::DataRequestPacket& b ) noexcept;
+// void swap( NCPA::processing::DataRequestPacket& a,
+//            NCPA::processing::DataRequestPacket& b ) noexcept;
 
 namespace NCPA::processing {
     class DataRequestPacket : public InputPacket {
@@ -21,18 +21,22 @@ namespace NCPA::processing {
                 InputPacket( other ) {}
 
             DataRequestPacket( DataRequestPacket&& other ) noexcept {
-                ::swap( *this, other );
+                swap( *this, other );
             }
 
             DataRequestPacket& operator=( DataRequestPacket other ) {
-                ::swap( *this, other );
+                swap( *this, other );
                 return *this;
             }
 
             virtual ~DataRequestPacket() {}
 
-            friend void ::swap( DataRequestPacket& a,
-                                DataRequestPacket& b ) noexcept;
+            friend void swap( DataRequestPacket& a,
+                              DataRequestPacket& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<InputPacket&>( a ),
+                      dynamic_cast<InputPacket&>( b ) );
+            }
 
             static std::unique_ptr<InputPacket> build() {
                 return std::unique_ptr<InputPacket>( new DataRequestPacket() );
@@ -52,9 +56,9 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-void swap( NCPA::processing::DataRequestPacket& a,
-           NCPA::processing::DataRequestPacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-}
+// void swap( NCPA::processing::DataRequestPacket& a,
+//            NCPA::processing::DataRequestPacket& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+// }

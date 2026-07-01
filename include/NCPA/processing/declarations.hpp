@@ -1,5 +1,11 @@
 #pragma once
 
+#if __has_include( "nlohmann/json.hpp" )
+#  define HAVE_NLOHMANN_JSON_HPP 1
+#else
+#  define HAVE_NLOHMANN_JSON_HPP 0
+#endif
+
 #include <chrono>
 #include <memory>
 #include <string>
@@ -7,12 +13,9 @@
 #include <unordered_map>
 #include <vector>
 #include "NCPA/processing/packets/declarations.hpp"
+#include "NCPA/processing/parameters/declarations.hpp"
 
-#if __has_include( "nlohmann/json.hpp" )
-#  define HAVE_NLOHMANN_JSON_HPP 1
-#else
-#  define HAVE_NLOHMANN_JSON_HPP 0
-#endif
+
 
 namespace NCPA {
     namespace processing {
@@ -33,39 +36,34 @@ namespace NCPA {
 
         typedef TimeInterval time_interval_t;
 
-        // typedef struct {
-        //         time_point_t time;
-        //         duration_t duration = duration_t::zero();
-        // } time_interval_t;
+        // enum class input_id_t {
+        //     INVALID,
+        //     OTHER,
+        //     DATA,
+        //     CONFIGURATION,
+        //     CONFIGURATION_COMPLETE,
+        //     CONFIGURATION_QUERY,
+        //     COMMAND,
+        //     DATA_REQUEST,
+        //     STATE_REQUEST,
+        //     RESET
+        // };
 
-        enum class input_id_t {
-            INVALID,
-            OTHER,
-            DATA,
-            CONFIGURATION,
-            CONFIGURATION_COMPLETE,
-            CONFIGURATION_QUERY,
-            COMMAND,
-            DATA_REQUEST,
-            STATE_REQUEST,
-            RESET
-        };
-
-        enum class response_id_t {
-            OTHER,
-            NO_RESPONSE,
-            ACKNOWLEDGE,
-            SUCCESS_NO_PRODUCT,
-            SUCCESS_PRODUCT,
-            WARNING,
-            ERROR,
-            ERROR_STOP,
-            RECONFIGURATION_REQUESTED,
-            DUMMY_CONFIGURATION,
-            CONFIGURATION_SUCCESS,
-            CONFIGURATION_FAILURE,
-            STATE
-        };
+        // enum class response_id_t {
+        //     OTHER,
+        //     NO_RESPONSE,
+        //     ACKNOWLEDGE,
+        //     SUCCESS_NO_PRODUCT,
+        //     SUCCESS_PRODUCT,
+        //     WARNING,
+        //     ERROR,
+        //     ERROR_STOP,
+        //     RECONFIGURATION_REQUESTED,
+        //     DUMMY_CONFIGURATION,
+        //     CONFIGURATION_SUCCESS,
+        //     CONFIGURATION_FAILURE,
+        //     STATE
+        // };
 
         enum class packet_processing_result_t {
             ERROR,
@@ -79,30 +77,30 @@ namespace NCPA {
             FAILURE_NO_PRODUCT      // failure, no product generated, return
         };
 
-        enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM };
+        // enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM };
 
-        enum class parameter_form_t { SCALAR, ARRAY };
+        // enum class parameter_form_t { SCALAR, ARRAY };
 
-        class Parameter;
-        template<typename T>
-        class ScalarParameter;
-        template<typename T>
-        class VectorParameter;
+        // class Parameter;
+        // template<typename T>
+        // class ScalarParameter;
+        // template<typename T>
+        // class VectorParameter;
 
-        class IntegerParameter;
-        class DoubleParameter;
-        class StringParameter;
-        class BooleanParameter;
-        class IntegerVectorParameter;
-        class DoubleVectorParameter;
-        class StringVectorParameter;
-        class BooleanVectorParameter;
+        // class IntegerParameter;
+        // class DoubleParameter;
+        // class StringParameter;
+        // class BooleanParameter;
+        // class IntegerVectorParameter;
+        // class DoubleVectorParameter;
+        // class StringVectorParameter;
+        // class BooleanVectorParameter;
 
-        class ParameterTree;
+        // class ParameterTree;
 
-        typedef std::unique_ptr<Parameter> parameter_ptr_t;
-        typedef std::unordered_map<std::string, std::vector<parameter_ptr_t>>
-            parameter_tree_t;
+        // typedef std::unique_ptr<Parameter> parameter_ptr_t;
+        // typedef std::unordered_map<std::string, std::vector<parameter_ptr_t>>
+        //     parameter_tree_t;
 
         class AbstractDataWrapper;
         template<typename T>

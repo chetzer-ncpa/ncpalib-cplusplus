@@ -5,9 +5,9 @@
 
 #include <stdexcept>
 
-template<typename T>
-void swap( NCPA::processing::DataWrapper<T>& a,
-           NCPA::processing::DataWrapper<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::processing::DataWrapper<T>& a,
+//            NCPA::processing::DataWrapper<T>& b ) noexcept;
 
 namespace NCPA {
     namespace processing {
@@ -18,7 +18,7 @@ namespace NCPA {
             public:
                 DataWrapper() {
                     // _internal = std::make_shared<T>();
-                    _internal = std::shared_ptr<T>( new T{} );
+                    _internal = std::shared_ptr<T>( new T {} );
                 }
 
                 DataWrapper( const T in ) {
@@ -34,16 +34,23 @@ namespace NCPA {
 
                 DataWrapper( DataWrapper<T>&& input ) noexcept :
                     DataWrapper<T>() {
-                    ::swap( *this, input );
+                    swap( *this, input );
                 }
 
                 virtual ~DataWrapper() {}
 
-                friend void swap<>( DataWrapper<T>& a,
-                                    DataWrapper<T>& b ) noexcept;
+                friend void swap( DataWrapper<T>& a,
+                                  DataWrapper<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::processing::AbstractDataWrapper&>(
+                              a ),
+                          static_cast<NCPA::processing::AbstractDataWrapper&>(
+                              b ) );
+                    swap( a._internal, b._internal );
+                }
 
                 DataWrapper<T>& operator=( DataWrapper<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -75,13 +82,9 @@ namespace NCPA {
                     return *_internal;
                 }
 
-                std::shared_ptr<T> ptr() {
-                    return _internal;
-                }
+                std::shared_ptr<T> ptr() { return _internal; }
 
-                const std::shared_ptr<T> ptr() const {
-                    return _internal;
-                }
+                const std::shared_ptr<T> ptr() const { return _internal; }
 
                 explicit operator bool() const { return (bool)_internal; }
 
@@ -92,11 +95,11 @@ namespace NCPA {
     }  // namespace processing
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::processing::DataWrapper<T>& a,
-           NCPA::processing::DataWrapper<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::processing::AbstractDataWrapper&>( a ),
-          static_cast<NCPA::processing::AbstractDataWrapper&>( b ) );
-    swap( a._internal, b._internal );
-}
+// template<typename T>
+// void swap( NCPA::processing::DataWrapper<T>& a,
+//            NCPA::processing::DataWrapper<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::processing::AbstractDataWrapper&>( a ),
+//           static_cast<NCPA::processing::AbstractDataWrapper&>( b ) );
+//     swap( a._internal, b._internal );
+// }

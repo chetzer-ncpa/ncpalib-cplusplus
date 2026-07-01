@@ -2,9 +2,8 @@
 
 #include "NCPA/processing/declarations.hpp"
 
-
-void swap( NCPA::processing::AbstractDataWrapper& a,
-           NCPA::processing::AbstractDataWrapper& b ) noexcept;
+// void swap( NCPA::processing::AbstractDataWrapper& a,
+//            NCPA::processing::AbstractDataWrapper& b ) noexcept;
 
 namespace NCPA {
     namespace processing {
@@ -14,9 +13,12 @@ namespace NCPA {
 
                 virtual ~AbstractDataWrapper() {}
 
+                friend void swap(
+                    NCPA::processing::AbstractDataWrapper& a,
+                    NCPA::processing::AbstractDataWrapper& b ) noexcept {}
         };
     }  // namespace processing
 }  // namespace NCPA
 
-void swap( NCPA::processing::AbstractDataWrapper& a,
-           NCPA::processing::AbstractDataWrapper& b ) noexcept {}
+// void swap( NCPA::processing::AbstractDataWrapper& a,
+//            NCPA::processing::AbstractDataWrapper& b ) noexcept {}

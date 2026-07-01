@@ -5,9 +5,9 @@
 #include <chrono>
 #include <memory>
 
-template<typename T>
-void swap( NCPA::processing::DataPacket<T>& a,
-           NCPA::processing::DataPacket<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::processing::DataPacket<T>& a,
+//            NCPA::processing::DataPacket<T>& b ) noexcept;
 
 namespace NCPA::processing {
 
@@ -122,15 +122,22 @@ namespace NCPA::processing {
             }
 
             DataPacket( DataPacket<T>&& input ) noexcept : DataPacket<T>() {
-                ::swap( *this, input );
+                swap( *this, input );
             }
 
             virtual ~DataPacket() {}
 
-            friend void ::swap<>( DataPacket<T>& a, DataPacket<T>& b ) noexcept;
+            friend void swap( DataPacket<T>& a, DataPacket<T>& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+                      dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                swap( a._internal, b._internal );
+                swap( a._data_time, b._data_time );
+                // swap( a._duration, b._duration );
+            }
 
             DataPacket<T>& operator=( DataPacket<T> other ) {
-                ::swap( *this, other );
+                swap( *this, other );
                 return *this;
             }
 
@@ -201,13 +208,13 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-template<typename T>
-void swap( NCPA::processing::DataPacket<T>& a,
-             NCPA::processing::DataPacket<T>& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-    swap( a._internal, b._internal );
-    swap( a._data_time, b._data_time );
-    // swap( a._duration, b._duration );
-}
+// template<typename T>
+// void swap( NCPA::processing::DataPacket<T>& a,
+//              NCPA::processing::DataPacket<T>& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+//     swap( a._internal, b._internal );
+//     swap( a._data_time, b._data_time );
+//     // swap( a._duration, b._duration );
+// }

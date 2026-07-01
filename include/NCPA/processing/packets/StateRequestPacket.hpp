@@ -2,7 +2,7 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-#include "NCPA/processing/Parameter.hpp"
+// #include "NCPA/processing/Parameter.hpp"
 
 // void swap( NCPA::processing::StateRequestPacket& a,
 //            NCPA::processing::StateRequestPacket& b ) noexcept;
@@ -32,7 +32,11 @@ namespace NCPA {
                 virtual ~StateRequestPacket() {}
 
                 friend void swap( StateRequestPacket& a,
-                                  StateRequestPacket& b ) noexcept;
+                                  StateRequestPacket& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+                          dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                }
 
                 static std::unique_ptr<InputPacket> build() {
                     return std::unique_ptr<InputPacket>(
@@ -52,12 +56,12 @@ namespace NCPA {
                 }
         };
 
-        void swap( NCPA::processing::StateRequestPacket& a,
-                   NCPA::processing::StateRequestPacket& b ) noexcept {
-            using std::swap;
-            ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-                    dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-        }
+        // void swap( NCPA::processing::StateRequestPacket& a,
+        //            NCPA::processing::StateRequestPacket& b ) noexcept {
+        //     using std::swap;
+        //     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+        //             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+        // }
 
     }  // namespace processing
 }  // namespace NCPA

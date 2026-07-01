@@ -30,7 +30,11 @@ namespace NCPA {
                 virtual ~WarningPacket() {}
 
                 friend void swap( WarningPacket& a,
-                                  WarningPacket& b ) noexcept;
+                                  WarningPacket& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<ResponsePacket&>( a ),
+                          dynamic_cast<ResponsePacket&>( b ) );
+                }
 
                 WarningPacket& operator=( WarningPacket other ) {
                     swap( *this, other );
@@ -41,10 +45,10 @@ namespace NCPA {
                 const AbstractProcessingStep *_ptr;
         };
 
-        void swap( WarningPacket& a, WarningPacket& b ) noexcept {
-            using std::swap;
-            ::swap( dynamic_cast<ResponsePacket&>( a ),
-                    dynamic_cast<ResponsePacket&>( b ) );
-        }
+        // void swap( WarningPacket& a, WarningPacket& b ) noexcept {
+        //     using std::swap;
+        //     swap( dynamic_cast<ResponsePacket&>( a ),
+        //             dynamic_cast<ResponsePacket&>( b ) );
+        // }
     }  // namespace processing
 }  // namespace NCPA

@@ -4,9 +4,9 @@
 
 #include <memory>
 
-template<typename T>
-void swap( NCPA::processing::GenericPacket<T>& a,
-           NCPA::processing::GenericPacket<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::processing::GenericPacket<T>& a,
+//            NCPA::processing::GenericPacket<T>& b ) noexcept;
 
 namespace NCPA::processing {
 
@@ -25,16 +25,21 @@ namespace NCPA::processing {
 
             GenericPacket( GenericPacket<T>&& input ) noexcept :
                 GenericPacket<T>() {
-                ::swap( *this, input );
+                swap( *this, input );
             }
 
             virtual ~GenericPacket() {}
 
-            friend void ::swap<>( GenericPacket<T>& a,
-                                GenericPacket<T>& b ) noexcept;
+            friend void swap( GenericPacket<T>& a,
+                                GenericPacket<T>& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+                      dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                swap( a._internal, b._internal );
+            }
 
             GenericPacket<T>& operator=( GenericPacket<T> other ) {
-                ::swap( *this, other );
+                swap( *this, other );
                 return *this;
             }
 
@@ -81,11 +86,11 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-template<typename T>
-void swap( NCPA::processing::GenericPacket<T>& a,
-             NCPA::processing::GenericPacket<T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-            dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-    swap( a._internal, b._internal );
-}
+// template<typename T>
+// void swap( NCPA::processing::GenericPacket<T>& a,
+//              NCPA::processing::GenericPacket<T>& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
+//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+//     swap( a._internal, b._internal );
+// }

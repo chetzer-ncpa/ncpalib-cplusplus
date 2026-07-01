@@ -7,8 +7,8 @@
 #include <memory>
 #include <vector>
 
-void swap( NCPA::processing::ResponsePacket& a,
-           NCPA::processing::ResponsePacket& b ) noexcept;
+// void swap( NCPA::processing::ResponsePacket& a,
+//            NCPA::processing::ResponsePacket& b ) noexcept;
 
 namespace NCPA::processing {
     class ResponsePacket : public Packet {
@@ -30,8 +30,14 @@ namespace NCPA::processing {
 
             virtual ~ResponsePacket() {}
 
-            friend void ::swap( ResponsePacket& a,
-                                ResponsePacket& b ) noexcept;
+            friend void swap( ResponsePacket& a, ResponsePacket& b ) noexcept {
+                using std::swap;
+                swap( dynamic_cast<NCPA::processing::Packet&>( a ),
+                        dynamic_cast<NCPA::processing::Packet&>( b ) );
+                swap( a._ID, b._ID );
+                swap( a._message, b._message );
+                swap( a._flags, b._flags );
+            }
 
             response_id_t ID() const { return _ID; }
 
@@ -71,12 +77,12 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-inline void swap( NCPA::processing::ResponsePacket& a,
-                  NCPA::processing::ResponsePacket& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::processing::Packet&>( a ),
-            dynamic_cast<NCPA::processing::Packet&>( b ) );
-    swap( a._ID, b._ID );
-    swap( a._message, b._message );
-    swap( a._flags, b._flags );
-}
+// inline void swap( NCPA::processing::ResponsePacket& a,
+//                   NCPA::processing::ResponsePacket& b ) noexcept {
+//     using std::swap;
+//     swap( dynamic_cast<NCPA::processing::Packet&>( a ),
+//             dynamic_cast<NCPA::processing::Packet&>( b ) );
+//     swap( a._ID, b._ID );
+//     swap( a._message, b._message );
+//     swap( a._flags, b._flags );
+// }

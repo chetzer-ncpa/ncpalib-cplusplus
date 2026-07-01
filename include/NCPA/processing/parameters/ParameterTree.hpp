@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/processing/declarations.hpp"
-#include "NCPA/processing/Parameter.hpp"
+#include "NCPA/processing/parameters/Parameter.hpp"
 
 #include <memory>
 #include <string>

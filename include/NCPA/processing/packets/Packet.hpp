@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-void swap( NCPA::processing::Packet& a, NCPA::processing::Packet& b ) noexcept;
+// void swap( NCPA::processing::Packet& a, NCPA::processing::Packet& b ) noexcept;
 
 namespace NCPA::processing {
     class Packet {
@@ -24,11 +24,15 @@ namespace NCPA::processing {
                 _tag { other._tag },
                 _packet_time { std::chrono::system_clock::now() } {}
 
-            Packet( Packet&& other ) noexcept { ::swap( *this, other ); }
+            Packet( Packet&& other ) noexcept { swap( *this, other ); }
 
             virtual ~Packet() {}
 
-            friend void ::swap( Packet& a, Packet& b ) noexcept;
+            friend void swap( Packet& a, Packet& b ) noexcept {
+                using std::swap;
+                swap( a._tag, b._tag );
+                swap( a._packet_time, b._packet_time );
+            }
 
             virtual time_point_t packet_time() const { return _packet_time; }
 
@@ -45,9 +49,9 @@ namespace NCPA::processing {
     };
 }  // namespace NCPA::processing
 
-void swap( NCPA::processing::Packet& a,
-           NCPA::processing::Packet& b ) noexcept {
-    using std::swap;
-    swap( a._tag, b._tag );
-    swap( a._packet_time, b._packet_time );
-}
+// void swap( NCPA::processing::Packet& a,
+//            NCPA::processing::Packet& b ) noexcept {
+//     using std::swap;
+//     swap( a._tag, b._tag );
+//     swap( a._packet_time, b._packet_time );
+// }
