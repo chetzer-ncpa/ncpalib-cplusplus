@@ -43,21 +43,35 @@ namespace NCPA {
                     _axis_units = other._axis_units;
                 }
 
-                DECLARE_BOILERPLATE_METHODS( ncpaprop_atmosphere_reader_2d,
-                                             _abstract_atmosphere_reader_2d )
+                ncpaprop_atmosphere_reader_2d(
+                    ncpaprop_atmosphere_reader_2d&& source ) noexcept :
+                    ncpaprop_atmosphere_reader_2d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~ncpaprop_atmosphere_reader_2d() {}
+
+                ncpaprop_atmosphere_reader_2d& operator=(
+                    ncpaprop_atmosphere_reader_2d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap(
+                    ncpaprop_atmosphere_reader_2d& a,
+                    ncpaprop_atmosphere_reader_2d& b ) noexcept;
+
+                virtual std::unique_ptr<_abstract_atmosphere_reader_2d> clone()
+                    const override {
+                    return std::unique_ptr<_abstract_atmosphere_reader_2d>(
+                        new ncpaprop_atmosphere_reader_2d( *this ) );
+                }
 
                 virtual bool stratified() const { return false; }
 
                 virtual Atmosphere2D read(
                     const std::string& filename ) override {
-                    // auto const pos = filename.find_last_of(
-                    // NCPA::files::filesep() );
                     std::string basedir = NCPA::files::pathname( filename );
-                    // if (pos == filename.npos) {
-                    //     basedir = ".";
-                    // } else {
-                    //     basedir = filename.substr( 0, pos );
-                    // }
                     std::ifstream summary( filename, std::ios_base::in );
                     vector_u_t ranges( 0, "km" );
                     std::vector<std::string> fns;

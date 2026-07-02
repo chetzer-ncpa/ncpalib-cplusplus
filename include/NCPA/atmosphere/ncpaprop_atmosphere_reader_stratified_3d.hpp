@@ -8,11 +8,10 @@
 #  endif
 #endif
 
+#include "NCPA/atmosphere/abstract_atmosphere_reader_3d.hpp"
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
-// #include "NCPA/atmosphere/builders.hpp"
-#include "NCPA/atmosphere/abstract_atmosphere_reader_3d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/atmosphere/ncpaprop_atmosphere_reader_3d.hpp"
 #include "NCPA/files.hpp"
@@ -39,9 +38,31 @@ namespace NCPA {
                     const ncpaprop_atmosphere_reader_stratified_3d& other ) :
                     ncpaprop_atmosphere_reader_stratified_3d() {}
 
-                DECLARE_BOILERPLATE_METHODS(
-                    ncpaprop_atmosphere_reader_stratified_3d,
-                    _abstract_atmosphere_reader_3d )
+                ncpaprop_atmosphere_reader_stratified_3d(
+                    ncpaprop_atmosphere_reader_stratified_3d&&
+                        source ) noexcept :
+                    ncpaprop_atmosphere_reader_stratified_3d() {
+                    ::swap( *this, source );
+                }
+
+                virtual ~ncpaprop_atmosphere_reader_stratified_3d() {}
+
+                ncpaprop_atmosphere_reader_stratified_3d& operator=(
+                    ncpaprop_atmosphere_reader_stratified_3d other ) {
+                    ::swap( *this, other );
+                    return *this;
+                }
+
+                friend void ::swap(
+                    ncpaprop_atmosphere_reader_stratified_3d& a,
+                    ncpaprop_atmosphere_reader_stratified_3d& b ) noexcept;
+
+                virtual std::unique_ptr<_abstract_atmosphere_reader_3d> clone()
+                    const override {
+                    return std::unique_ptr<_abstract_atmosphere_reader_3d>(
+                        new ncpaprop_atmosphere_reader_stratified_3d(
+                            *this ) );
+                }
 
                 virtual Atmosphere3D read(
                     const std::string& filename ) override {

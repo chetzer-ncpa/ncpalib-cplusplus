@@ -480,7 +480,7 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
-                    NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
+                    // NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
                     this->add_parameter(
                         key, Parameter::vector<typename PARAMTYPE::value_type>(
                                  val, units ) );

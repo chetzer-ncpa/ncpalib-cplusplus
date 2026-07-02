@@ -20,17 +20,17 @@
 #endif
 
 #ifndef NCPA_ATMOSPHERE_DEFAULT_2D_INTERPOLATOR
-#define NCPA_ATMOSPHERE_DEFAULT_2D_INTERPOLATOR \
-    NCPA::interpolation::interpolator_2d_type_t::LANL_BICUBIC
+#  define NCPA_ATMOSPHERE_DEFAULT_2D_INTERPOLATOR \
+      NCPA::interpolation::interpolator_2d_type_t::LANL_BICUBIC
 #endif
 
 #ifndef NCPA_ATMOSPHERE_DEFAULT_3D_INTERPOLATOR
-#define NCPA_ATMOSPHERE_DEFAULT_3D_INTERPOLATOR \
-    NCPA::interpolation::interpolator_3d_type_t::LANL_HYBRID
+#  define NCPA_ATMOSPHERE_DEFAULT_3D_INTERPOLATOR \
+      NCPA::interpolation::interpolator_3d_type_t::LANL_HYBRID
 #endif
 
 #ifndef NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS
-#define NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS NCPA::units::KILOMETERS
+#  define NCPA_ATMOSPHERE_DEFAULT_DISTANCE_UNITS NCPA::units::KILOMETERS
 #endif
 
 namespace NCPA {
@@ -38,6 +38,7 @@ namespace NCPA {
         class constants {
             public:
                 constexpr static double GAMMA() { return 1.4; }
+
                 constexpr static double R() { return 287.0; }
         };
 
@@ -48,16 +49,17 @@ namespace NCPA {
             PIECEWISE_STRATIFIED,
             GRID
         };
-        enum class atmospheric_property_3d_t {
-            STRATIFIED,
-            GRID
-        };
+        enum class atmospheric_property_3d_t { STRATIFIED, GRID };
         enum class atmosphere_1d_t { TUPLE };
         enum class atmosphere_2d_t { GRID, STRATIFIED, PIECEWISE_STRATIFIED };
         enum class atmosphere_3d_t { GRID, STRATIFIED };
 
         enum class reader_1d_t { NCPAPROP };
-        enum class reader_2d_t { NCPAPROP, NCPAPROP_STRATIFIED, NCPAPROP_PIECEWISE_STRATIFIED };
+        enum class reader_2d_t {
+            NCPAPROP,
+            NCPAPROP_STRATIFIED,
+            NCPAPROP_PIECEWISE_STRATIFIED
+        };
         enum class reader_3d_t { NCPAPROP, NCPAPROP_STRATIFIED };
         // enum class extrapolation_t { ZERO, CONSTANT, LINEAR };
 
@@ -80,10 +82,7 @@ namespace NCPA {
         typedef NCPA::units::VectorWithUnits<double> vector_u_t;
         typedef NCPA::units::Vector2DWithUnits<double> vector2d_u_t;
         typedef NCPA::units::Vector3DWithUnits<double> vector3d_u_t;
-        // typedef const NCPA::units::Unit *units_ptr_t;
         typedef NCPA::units::units_ptr_t units_ptr_t;
-
-        class abstract_atmospheric_property;
 
         // atmospheres
         class abstract_atmosphere_1d;
@@ -105,10 +104,25 @@ namespace NCPA {
         class _abstract_atmosphere_reader_3d;
         class ncpaprop_atmosphere_reader_3d;
         class ncpaprop_atmosphere_reader_stratified_3d;
-        
-        
-        
 
-        
+        // atmospheric properties
+        class abstract_atmospheric_property;
+        class abstract_atmospheric_property_1d;
+        class tuple_atmospheric_property_1d;
+        class abstract_atmospheric_property_2d;
+        class grid_atmospheric_property_2d;
+        class stratified_atmospheric_property_2d;
+        class piecewise_stratified_atmospheric_property_2d;
+        class abstract_atmospheric_property_3d;
+        class grid_atmospheric_property_3d;
+        class stratified_atmospheric_property_3d;
+
+        typedef std::unique_ptr<abstract_atmospheric_property> _atm_prop_ptr_t;
+        typedef std::unique_ptr<abstract_atmospheric_property_1d>
+            _atm_prop_1d_ptr_t;
+        typedef std::unique_ptr<abstract_atmospheric_property_2d>
+            _atm_prop_2d_ptr_t;
+        typedef std::unique_ptr<abstract_atmospheric_property_3d>
+            _atm_prop_3d_ptr_t;
     }  // namespace atmos
 }  // namespace NCPA

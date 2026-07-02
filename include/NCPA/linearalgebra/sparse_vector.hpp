@@ -483,7 +483,7 @@ namespace NCPA {
                         oss << "Index " << n
                             << " exceeds range for vector of size "
                             << _capacity;
-                        throw std::range_error( oss.str() );
+                        throw std::out_of_range( oss.str() );
                     }
                 }
 

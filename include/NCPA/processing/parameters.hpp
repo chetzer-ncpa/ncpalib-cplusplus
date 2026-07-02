@@ -1,0 +1,15 @@
+#pragma once
+
+#include "NCPA/processing/parameters/BooleanParameter.hpp"
+#include "NCPA/processing/parameters/BooleanVectorParameter.hpp"
+#include "NCPA/processing/parameters/declarations.hpp"
+#include "NCPA/processing/parameters/DoubleParameter.hpp"
+#include "NCPA/processing/parameters/DoubleVectorParameter.hpp"
+#include "NCPA/processing/parameters/IntegerParameter.hpp"
+#include "NCPA/processing/parameters/IntegerVectorParameter.hpp"
+#include "NCPA/processing/parameters/Parameter.hpp"
+#include "NCPA/processing/parameters/ParameterTree.hpp"
+#include "NCPA/processing/parameters/ScalarParameter.hpp"
+#include "NCPA/processing/parameters/StringParameter.hpp"
+#include "NCPA/processing/parameters/StringVectorParameter.hpp"
+#include "NCPA/processing/parameters/VectorParameter.hpp"

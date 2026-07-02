@@ -49,7 +49,7 @@ namespace NCPA {
 
                 virtual size_t size() const override { return _z.size(); }
 
-                virtual abstract_atmosphere_1d& set_interpolator(
+                virtual tuple_atmosphere_1d& set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type )
                     override {
                     _interpolator_type = interp_type;
@@ -57,16 +57,16 @@ namespace NCPA {
                          it != _properties.end(); ++it) {
                         it->second.set_interpolator( _interpolator_type );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_1d& set_axis(
+                virtual tuple_atmosphere_1d& set_axis(
                     vector_u_t z ) override {
                     _z = z;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_1d& add_property(
+                virtual tuple_atmosphere_1d& add_property(
                     const std::string& key,
                     const AtmosphericProperty1D& property ) override {
                     _assert_does_not_contain( key );
@@ -77,25 +77,25 @@ namespace NCPA {
                     } else {
                         _properties[ key ].resample( _z );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_1d& add_property(
+                virtual tuple_atmosphere_1d& add_property(
                     const std::string& key,
                     const scalar_u_t& property ) override {
                     _assert_does_not_contain( key );
                     _scalar_properties[ key ] = property;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_1d& remove_property(
+                virtual tuple_atmosphere_1d& remove_property(
                     const std::string& key ) override {
                     _properties.erase( key );
                     _scalar_properties.erase( key );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_1d& copy_property(
+                virtual tuple_atmosphere_1d& copy_property(
                     const std::string& old_key,
                     const std::string& new_key ) override {
                     _assert_does_not_contain( new_key );
@@ -109,7 +109,7 @@ namespace NCPA {
                             "Key " + old_key
                             + " does not exist in atmosphere!" );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
                 virtual AtmosphericProperty1D& get_property(
@@ -180,37 +180,37 @@ namespace NCPA {
                     return _z.back();
                 }
 
-                virtual abstract_atmosphere_1d& convert_axis_units(
+                virtual tuple_atmosphere_1d& convert_axis_units(
                     units_ptr_t new_units ) override {
                     _z.convert_units( *new_units );
                     for (auto it = _properties.begin();
                          it != _properties.end(); ++it) {
                         it->second.convert_axis_units( *new_units );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_1d& convert_units(
+                virtual tuple_atmosphere_1d& convert_units(
                     const std::string& key, units_ptr_t new_units ) override {
                     if (contains_vector( key )) {
                         get_property( key ).convert_units( *new_units );
                     } else if (contains_scalar( key )) {
                         _scalar_properties[ key ].convert_units( *new_units );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_1d& resample(
+                virtual tuple_atmosphere_1d& resample(
                     vector_u_t new_z ) override {
                     for (auto it = _properties.begin();
                          it != _properties.end(); ++it) {
                         it->second.resample( new_z );
                     }
                     _z = new_z;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D;
+                    return *this;;
                 }
 
-                virtual abstract_atmosphere_1d& resample(
+                virtual tuple_atmosphere_1d& resample(
                     double new_dz ) override {
                     vector_u_t new_z;
                     new_z.set_units( *_z.get_units() );

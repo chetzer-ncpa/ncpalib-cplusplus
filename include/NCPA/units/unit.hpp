@@ -402,6 +402,10 @@ namespace NCPA {
                         N, values, *( Units::from_string( to ) ), converted );
                 }
 
+                static void register_unit( const Unit& u ) {
+                    NCPA::units::details::_units_map.register_unit( u );
+                }
+
                 // static void register_unit( const Unit& u ) {
                 //     _add_unit_to_map( u.name(), &u );
                 //     for (auto it = u.aliases().cbegin();

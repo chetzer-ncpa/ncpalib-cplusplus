@@ -536,11 +536,46 @@ TEST_F( _TEST_TITLE_, MultiplyWorks ) {
     Matrix<test_t> mat2 = mat1, mat3 = mat1;
     mat2.resize( 3, 5 ).set( 1.0 );
     mat3.resize( 5, 3 ).set( 1.0 );
+    ASSERT_EQ( mat2.rows(), 3 );
+    ASSERT_EQ( mat2.columns(), 5 );
+    ASSERT_EQ( mat3.rows(), 5 );
+    ASSERT_EQ( mat3.columns(), 3 );
+    for (size_t i = 0; i < 5; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            ASSERT_DOUBLE_EQ( mat2.get( j, i ).real(), 1.0 );
+            ASSERT_DOUBLE_EQ( mat2.get( j, i ).imag(), 0.0 );
+            ASSERT_DOUBLE_EQ( mat3.get( i, j ).real(), 1.0 );
+            ASSERT_DOUBLE_EQ( mat3.get( i, j ).imag(), 0.0 );
+        }
+    }
+
     product.resize( 5, 5 ).set( 3.0 );
-    EXPECT_TRUE( mat3.multiply( mat2 ) == product );
-    mat2.resize( 3, 5 ).set( 1.0 );
-    mat3.resize( 5, 2 ).set( 1.0 );
-    product.resize( 3, 2 ).set( 5.0 );
+    ASSERT_EQ( product.rows(), 5 );
+    ASSERT_EQ( product.columns(), 5 );
+    for (size_t i = 0; i < 5; ++i) {
+        for (size_t j = 0; j < 5; ++j) {
+            ASSERT_DOUBLE_EQ( product.get( i, j ).real(), 3.0 );
+            ASSERT_DOUBLE_EQ( product.get( i, j ).imag(), 0.0 );
+        }
+    }
+
+    mat3.multiply( mat2 );
+    ASSERT_EQ( mat3.rows(), 5 );
+    ASSERT_EQ( mat3.columns(), 5 );
+    // cout << mat3 << endl;
+    for (size_t i = 0; i < 5; ++i) {
+        for (size_t j = 0; j < 5; ++j) {
+            EXPECT_DOUBLE_EQ( mat3.get( i, j ).real(),
+                              product.get( i, j ).real() );
+            EXPECT_DOUBLE_EQ( mat3.get( i, j ).imag(),
+                              product.get( i, j ).imag() );
+        }
+    }
+    // cout << "mat3:" << endl << mat3 << endl;
+    // cout << "mat2:" << endl << mat2 << endl;
+    // EXPECT_TRUE( mat3.multiply( mat2 ) == product );
+    mat3.resize( 5, 3 ).set( 1.0 );
+    product.resize( 3, 3 ).set( 5.0 );
     EXPECT_TRUE( mat2.multiply( mat3 ) == product );
 }
 
@@ -572,7 +607,7 @@ TEST_F( _TEST_TITLE_, OtherBinaryOperatorsWork ) {
 TEST_F( _TEST_TITLE_, InverseWorks ) {
     wrapper1.zero( 0, 2 ).zero( 1, 1 ).zero( 2, 0 );
     wrapper2 = wrapper1.inverse();
-    wrapper2.multiply(wrapper1).clean( 1e-15 );
+    wrapper2.multiply( wrapper1 ).clean( 1e-15 );
     // cout << "Product:" << endl << wrapper2 << endl;
     for (size_t i = 0; i < wrapper2.rows(); ++i) {
         for (size_t j = 0; j < wrapper2.columns(); ++j) {

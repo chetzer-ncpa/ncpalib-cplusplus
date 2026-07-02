@@ -26,10 +26,6 @@ namespace NCPA {
     }  // namespace logging
 }  // namespace NCPA
 
-// template<typename T>
-// NCPA::logging::Logger& operator<<(NCPA::logging::Logger& log, T const &
-// msg);
-
 namespace NCPA {
     namespace logging {
         namespace details {
@@ -256,6 +252,19 @@ namespace NCPA {
         }
 
         static Logger logger = Logger::logger();
+
+        struct NullBuffer : std::streambuf {
+            int overflow(int c) override {
+                return c;
+            }
+        };
+
+        class NullStream : public std::ostream {
+            public:
+                NullStream() : std::ostream(&m_buf) {}
+            private:
+                NullBuffer m_buf;
+        };
 
     }  // namespace logging
 }  // namespace NCPA
