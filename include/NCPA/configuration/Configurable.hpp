@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/logging.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
@@ -141,9 +142,9 @@ namespace NCPA {
 
                 BaseParameter *add_parameter( KEYTYPE key,
                                               const param_ptr_t param ) {
-                    NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
+                    // NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
                     _parameters[ key ] = param->clone();
-                    NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
+                    // NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
                     return _parameters[ key ].get();
                 }
 

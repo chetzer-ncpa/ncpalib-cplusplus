@@ -45,15 +45,17 @@ namespace NCPA {
                 friend void ::swap<T>( MatrixPolynomial<T>& a,
                                        MatrixPolynomial<T>& b ) noexcept;
 
-                virtual int order() const { return this->size() - 1; }
+                // contents: this->at(0) = Q, this->at(1) = Q^2, etc.
+                // So order() = this->size(), 
+                virtual int order() const { return this->size(); }
 
                 virtual MatrixPolynomial<T>& compute( size_t order ) {
                     if (this->empty()) {
                         throw std::logic_error( "MatrixPolynomial.compute(): "
                                                 "No base matrix set!" );
                     }
-                    size_t n_mats = order + 1;
-                    while (this->size() < n_mats) {
+                    // size_t n_mats = order + 1;
+                    while (this->size() < order) {
                         this->_compute_next_power();
                     }
                     return *this;
@@ -65,9 +67,32 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<T>& get( size_t power ) {
-                    this->compute( power );
-                    return this->at( power - 1 );
+                virtual Matrix<T>& power( size_t pow ) {
+                    this->compute( pow );
+                    return this->at( pow - 1 );
+                }
+
+                virtual Matrix<T> scale_and_sum(
+                    const std::vector<T>& coeffs ) {
+                    // if (coeffs.size() != this->size()) {
+                    //     std::ostringstream oss;
+                    //     oss << "Matrix polynomial order " << this->size()
+                    //         << " and coefficient vector size " << coeffs.size()
+                    //         << " do not match!";
+                    //     throw std::out_of_range( oss.str() );
+                    // }
+                    Matrix<T> sum = this->front();
+                    sum.identity().scale( coeffs[ 0 ] );
+
+                    for (size_t i = 1; i < coeffs.size(); ++i) {
+                        sum += this->power( i ) * coeffs[ i ];
+                    }
+                    return sum;
+                }
+
+                virtual Matrix<T> scale_and_sum(
+                    const Vector<T>& coeffs ) {
+                    return this->scale_and_sum( coeffs.as_std() );
                 }
 
             protected:

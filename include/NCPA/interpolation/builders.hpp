@@ -50,19 +50,6 @@ namespace NCPA {
                         case interpolator_2d_type_t::NEAREST_NEIGHBOR:
                         case interpolator_2d_type_t::LANL_NATURAL:
                         case interpolator_2d_type_t::LANL_BICUBIC:
-                            // case interpolator_2d_type_t::LANL_LINEAR_X:
-                            // case interpolator_2d_type_t::LANL_LINEAR_Y:
-                            // case interpolator_2d_type_t::LANL_CUBIC_X:
-                            // case interpolator_2d_type_t::LANL_CUBIC_Y:
-                            // #ifdef
-                            // NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-                            // case interpolator_2d_type_t::GSL_LINEAR_X:
-                            // case interpolator_2d_type_t::GSL_LINEAR_Y:
-                            // #  if GSL_MAJOR_VERSION >= 2
-                            // case interpolator_2d_type_t::GSL_STEFFEN_X:
-                            // case interpolator_2d_type_t::GSL_STEFFEN_Y:
-                            // #  endif
-                            // #endif
                             return true;
                             break;
                         default:

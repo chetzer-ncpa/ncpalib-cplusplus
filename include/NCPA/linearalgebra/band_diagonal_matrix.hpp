@@ -727,6 +727,9 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& other )
                     const override {
                     if (!is_this_subclass( other )) {
+                        NCPA_DEBUG << "Matrix subclasses do not match, using "
+                                      "generic multiplication"
+                                   << std::endl;
                         return abstract_matrix<ELEMENTTYPE>::multiply( other );
                     }
                     const band_diagonal_matrix<ELEMENTTYPE> *b
@@ -1323,10 +1326,15 @@ namespace NCPA {
                                                  product.get( r, c )
                                                      + a.get( r, k )
                                                            * b.get( k, c ) );
+                                    ++counter;
                                 }
                             }
                         }
                     }
+                    NCPA_DEBUG << "Product of " << a.rows() << "x"
+                               << a.columns() << " and " << b.rows() << "x"
+                               << b.columns() << " matrices took " << counter
+                               << " operations." << std::endl;
                     return;
                 }
 
