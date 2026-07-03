@@ -28,7 +28,12 @@ namespace NCPA {
 
                 virtual ~Argument() {}
 
-                friend void swap( Argument& a, Argument& b ) noexcept;
+                friend void swap( Argument& a, Argument& b ) noexcept {
+                    using std::swap;
+                    swap( a._tag, b._tag );
+                    swap( a._help_text, b._help_text );
+                    swap( a._required, b._required );
+                }
 
                 virtual std::string help_text() const { return _help_text; }
 
@@ -66,8 +71,8 @@ namespace NCPA {
                 virtual bool expects_value() const              = 0;
                 virtual parse_status_t parse( std::vector<std::string>& args )
                     = 0;
-                virtual bool was_set() const = 0;
-                virtual bool has_default() const = 0;
+                virtual bool was_set() const               = 0;
+                virtual bool has_default() const           = 0;
                 virtual std::string default_string() const = 0;
 
             protected:
@@ -76,11 +81,11 @@ namespace NCPA {
                 bool _required;
         };
 
-        void swap( Argument& a, Argument& b ) noexcept {
-            using std::swap;
-            swap( a._tag, b._tag );
-            swap( a._help_text, b._help_text );
-            swap( a._required, b._required );
-        }
+        // void swap( Argument& a, Argument& b ) noexcept {
+        //     using std::swap;
+        //     swap( a._tag, b._tag );
+        //     swap( a._help_text, b._help_text );
+        //     swap( a._required, b._required );
+        // }
     }  // namespace config
 }  // namespace NCPA

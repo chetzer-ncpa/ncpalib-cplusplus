@@ -19,7 +19,8 @@ namespace NCPA {
                     _set_options();
                 }
 
-                HelpTextParagraphSection( const std::string& title, const std::string& text ) :
+                HelpTextParagraphSection( const std::string& title,
+                                          const std::string& text ) :
                     HelpTextSection( title ) {
                     _set_options();
                     _text = text;
@@ -45,7 +46,12 @@ namespace NCPA {
                 }
 
                 friend void swap( HelpTextParagraphSection& a,
-                                  HelpTextParagraphSection& b ) noexcept;
+                                  HelpTextParagraphSection& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<HelpTextSection&>( a ),
+                          static_cast<HelpTextSection&>( b ) );
+                    swap( a._text, b._text );
+                }
 
                 virtual std::unique_ptr<HelpTextSection> clone() const {
                     return std::unique_ptr<HelpTextSection>(
@@ -71,12 +77,12 @@ namespace NCPA {
                 std::string _text;
         };
 
-        inline void swap( HelpTextParagraphSection& a,
-                          HelpTextParagraphSection& b ) noexcept {
-            using std::swap;
-            swap( static_cast<HelpTextSection&>( a ),
-                  static_cast<HelpTextSection&>( b ) );
-            swap( a._text, b._text );
-        }
+        // inline void swap( HelpTextParagraphSection& a,
+        //                   HelpTextParagraphSection& b ) noexcept {
+        //     using std::swap;
+        //     swap( static_cast<HelpTextSection&>( a ),
+        //           static_cast<HelpTextSection&>( b ) );
+        //     swap( a._text, b._text );
+        // }
     }  // namespace config
 }  // namespace NCPA

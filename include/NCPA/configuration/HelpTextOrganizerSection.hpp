@@ -33,7 +33,11 @@ namespace NCPA {
                 }
 
                 friend void swap( HelpTextOrganizerSection& a,
-                                  HelpTextOrganizerSection& b ) noexcept;
+                                  HelpTextOrganizerSection& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<HelpTextSection&>( a ),
+                          static_cast<HelpTextSection&>( b ) );
+                }
 
                 virtual std::unique_ptr<HelpTextSection> clone() const {
                     return std::unique_ptr<HelpTextSection>(
@@ -48,11 +52,11 @@ namespace NCPA {
                 }
         };
 
-        inline void swap( HelpTextOrganizerSection& a,
-                          HelpTextOrganizerSection& b ) noexcept {
-            using std::swap;
-            swap( static_cast<HelpTextSection&>( a ),
-                  static_cast<HelpTextSection&>( b ) );
-        }
+        // inline void swap( HelpTextOrganizerSection& a,
+        //                   HelpTextOrganizerSection& b ) noexcept {
+        //     using std::swap;
+        //     swap( static_cast<HelpTextSection&>( a ),
+        //           static_cast<HelpTextSection&>( b ) );
+        // }
     }  // namespace config
 }  // namespace NCPA

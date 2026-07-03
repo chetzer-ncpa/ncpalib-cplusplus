@@ -44,7 +44,15 @@ namespace NCPA {
                 }
 
                 friend void swap( HelpTextFormatter& a,
-                                  HelpTextFormatter& b ) noexcept;
+                                  HelpTextFormatter& b ) noexcept {
+                    using std::swap;
+                    swap( a._buffer, b._buffer );
+                    swap( a._section, b._section );
+                    swap( a._linepos, b._linepos );
+                    swap( a._first_line, b._first_line );
+                    swap( a._title_active, b._title_active );
+                    swap( a._options, b._options );
+                }
 
                 virtual void insert_indent( size_t n ) {
                     for (size_t i = 0; i < n; ++i) {
@@ -362,14 +370,14 @@ namespace NCPA {
                 // help_text_section_formatter_options_t _section_options;
         };
 
-        void swap( HelpTextFormatter& a, HelpTextFormatter& b ) noexcept {
-            using std::swap;
-            swap( a._buffer, b._buffer );
-            swap( a._section, b._section );
-            swap( a._linepos, b._linepos );
-            swap( a._first_line, b._first_line );
-            swap( a._title_active, b._title_active );
-            swap( a._options, b._options );
-        }
+        // void swap( HelpTextFormatter& a, HelpTextFormatter& b ) noexcept {
+        //     using std::swap;
+        //     swap( a._buffer, b._buffer );
+        //     swap( a._section, b._section );
+        //     swap( a._linepos, b._linepos );
+        //     swap( a._first_line, b._first_line );
+        //     swap( a._title_active, b._title_active );
+        //     swap( a._options, b._options );
+        // }
     }  // namespace config
 }  // namespace NCPA

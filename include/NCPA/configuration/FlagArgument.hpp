@@ -14,7 +14,8 @@ namespace NCPA {
             public:
                 FlagArgument() : TypedArgument<bool>() {}
 
-                FlagArgument( const std::string& tag, const std::string& help_text ) :
+                FlagArgument( const std::string& tag,
+                              const std::string& help_text ) :
                     TypedArgument<bool>( tag, help_text, false ) {}
 
                 FlagArgument(
@@ -27,7 +28,8 @@ namespace NCPA {
                 //     const mapping_ptr_t<bool, std::string>& mapping ) :
                 //     TypedArgument<bool>( tag, defaultval, *mapping ) {}
 
-                FlagArgument( const std::string& tag,const std::string& help_text,
+                FlagArgument( const std::string& tag,
+                              const std::string& help_text,
                               const Mapping<bool, std::string>& mapping ) :
                     TypedArgument<bool>( tag, help_text, false, mapping ) {}
 
@@ -49,7 +51,11 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void swap( FlagArgument& a, FlagArgument& b ) noexcept;
+                friend void swap( FlagArgument& a, FlagArgument& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<TypedArgument<bool>&>( a ),
+                          static_cast<TypedArgument<bool>&>( b ) );
+                }
 
                 virtual std::unique_ptr<Argument> clone() const override {
                     return std::unique_ptr<Argument>(
@@ -69,10 +75,10 @@ namespace NCPA {
                 }
         };
 
-        void swap( FlagArgument& a, FlagArgument& b ) noexcept {
-            using std::swap;
-            swap( static_cast<TypedArgument<bool>&>( a ),
-                  static_cast<TypedArgument<bool>&>( b ) );
-        }
+        // void swap( FlagArgument& a, FlagArgument& b ) noexcept {
+        //     using std::swap;
+        //     swap( static_cast<TypedArgument<bool>&>( a ),
+        //           static_cast<TypedArgument<bool>&>( b ) );
+        // }
     }  // namespace config
 }  // namespace NCPA

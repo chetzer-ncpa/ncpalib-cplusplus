@@ -136,102 +136,102 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-inline void swap( NCPA::config::BaseParameter& a,
-                  NCPA::config::BaseParameter& b ) noexcept;
+// inline void swap( NCPA::config::BaseParameter& a,
+//                   NCPA::config::BaseParameter& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::TypedParameter<T>& a,
-           NCPA::config::TypedParameter<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::TypedParameter<T>& a,
+//            NCPA::config::TypedParameter<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::ScalarParameter<T>& a,
-           NCPA::config::ScalarParameter<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::ScalarParameter<T>& a,
+//            NCPA::config::ScalarParameter<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
-           NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
+//            NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::VectorParameter<T>& a,
-           NCPA::config::VectorParameter<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::VectorParameter<T>& a,
+//            NCPA::config::VectorParameter<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::VectorParameterWithUnits<T>& a,
-           NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::VectorParameterWithUnits<T>& a,
+//            NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::ConfigurationMap<T>& a,
-           NCPA::config::ConfigurationMap<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::ConfigurationMap<T>& a,
+//            NCPA::config::ConfigurationMap<T>& b ) noexcept;
 
-template<typename KEYTYPE>
-void swap( NCPA::config::Configurable<KEYTYPE>& a,
-           NCPA::config::Configurable<KEYTYPE>& b ) noexcept;
-
-
-void swap( NCPA::config::ValidationTest& a,
-           NCPA::config::ValidationTest& b ) noexcept;
+// template<typename KEYTYPE>
+// void swap( NCPA::config::Configurable<KEYTYPE>& a,
+//            NCPA::config::Configurable<KEYTYPE>& b ) noexcept;
 
 
-void swap( NCPA::config::ValidationTestSuite& a,
-           NCPA::config::ValidationTestSuite& b ) noexcept;
+// void swap( NCPA::config::ValidationTest& a,
+//            NCPA::config::ValidationTest& b ) noexcept;
 
 
-void swap( NCPA::config::NullaryValidationTest& a,
-           NCPA::config::NullaryValidationTest& b ) noexcept;
+// void swap( NCPA::config::ValidationTestSuite& a,
+//            NCPA::config::ValidationTestSuite& b ) noexcept;
 
 
-template<typename T>
-void swap( NCPA::config::TypedValidationTest<T>& a,
-           NCPA::config::TypedValidationTest<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::config::UnaryValidationTest<T>& a,
-           NCPA::config::UnaryValidationTest<T>& b ) noexcept;
+// void swap( NCPA::config::NullaryValidationTest& a,
+//            NCPA::config::NullaryValidationTest& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::BinaryValidationTest<T>& a,
-           NCPA::config::BinaryValidationTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::ListValidationTest<T>& a,
-           NCPA::config::ListValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::TypedValidationTest<T>& a,
+//            NCPA::config::TypedValidationTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::UnaryValidationTest<T>& a,
+//            NCPA::config::UnaryValidationTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsEqualToTest<T>& a,
-           NCPA::config::IsEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::BinaryValidationTest<T>& a,
+//            NCPA::config::BinaryValidationTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsNotEqualToTest<T>& a,
-           NCPA::config::IsNotEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::ListValidationTest<T>& a,
+//            NCPA::config::ListValidationTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsNotOneOfTest<T>& a,
-           NCPA::config::IsNotOneOfTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsEqualToTest<T>& a,
+//            NCPA::config::IsEqualToTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsOneOfTest<T>& a,
-           NCPA::config::IsOneOfTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsNotEqualToTest<T>& a,
+//            NCPA::config::IsNotEqualToTest<T>& b ) noexcept;
 
-void swap( NCPA::config::WasSetTest& a, NCPA::config::WasSetTest& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsNotOneOfTest<T>& a,
+//            NCPA::config::IsNotOneOfTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsBetweenTest<T>& a,
-           NCPA::config::IsBetweenTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsOneOfTest<T>& a,
+//            NCPA::config::IsOneOfTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsGreaterThanTest<T>& a,
-           NCPA::config::IsGreaterThanTest<T>& b ) noexcept;
+// void swap( NCPA::config::WasSetTest& a, NCPA::config::WasSetTest& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsGreaterThanOrEqualToTest<T>& a,
-           NCPA::config::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsBetweenTest<T>& a,
+//            NCPA::config::IsBetweenTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsLessThanTest<T>& a,
-           NCPA::config::IsLessThanTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsGreaterThanTest<T>& a,
+//            NCPA::config::IsGreaterThanTest<T>& b ) noexcept;
 
-template<typename T>
-void swap( NCPA::config::IsLessThanOrEqualToTest<T>& a,
-           NCPA::config::IsLessThanOrEqualToTest<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::IsGreaterThanOrEqualToTest<T>& a,
+//            NCPA::config::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
+
+// template<typename T>
+// void swap( NCPA::config::IsLessThanTest<T>& a,
+//            NCPA::config::IsLessThanTest<T>& b ) noexcept;
+
+// template<typename T>
+// void swap( NCPA::config::IsLessThanOrEqualToTest<T>& a,
+//            NCPA::config::IsLessThanOrEqualToTest<T>& b ) noexcept;
 
 namespace NCPA {
     namespace config {

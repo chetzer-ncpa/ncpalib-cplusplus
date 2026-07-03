@@ -19,8 +19,14 @@ namespace NCPA {
 
                 virtual ~IsLessThanOrEqualToTest() {}
 
-                friend void ::swap<>( IsLessThanOrEqualToTest<T>& a,
-                                      IsLessThanOrEqualToTest<T>& b ) noexcept;
+                friend void swap( IsLessThanOrEqualToTest<T>& a,
+                                  IsLessThanOrEqualToTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -56,8 +62,14 @@ namespace NCPA {
 
                 virtual ~IsLessThanOrEqualToTest() {}
 
-                friend void ::swap<>( IsLessThanOrEqualToTest<T>& a,
-                                      IsLessThanOrEqualToTest<T>& b ) noexcept;
+                friend void swap( IsLessThanOrEqualToTest<T>& a,
+                                  IsLessThanOrEqualToTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -85,10 +97,10 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::IsLessThanOrEqualToTest<T>& a,
-           NCPA::config::IsLessThanOrEqualToTest<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
-            static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::IsLessThanOrEqualToTest<T>& a,
+//            NCPA::config::IsLessThanOrEqualToTest<T>& b ) noexcept {
+//     using std::swap;
+//     ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
+//             static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
+// }

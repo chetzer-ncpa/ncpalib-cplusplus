@@ -36,7 +36,8 @@ namespace NCPA {
                                const INTYPE& defaultval ) :
                     Argument( tag, help_text ),
                     _default { defaultval },
-                    _value { defaultval }, _has_default{true} {}
+                    _value { defaultval },
+                    _has_default { true } {}
 
                 TypedArgument(
                     const std::string& tag, const std::string& help_text,
@@ -51,31 +52,34 @@ namespace NCPA {
                     const mapping_ptr_t<INTYPE, std::string>& mapping ) :
                     Argument( tag, help_text ),
                     _default { defaultval },
-                    _value { defaultval }, _has_default{true} {
+                    _value { defaultval },
+                    _has_default { true } {
                     _mappings.push_back( mapping.clone() );
                 }
 
-                TypedArgument( const std::string& tag,const std::string& help_text,
-                               const Mapping<INTYPE, std::string>& mapping )
-                               :
+                TypedArgument( const std::string& tag,
+                               const std::string& help_text,
+                               const Mapping<INTYPE, std::string>& mapping ) :
                     Argument( tag, help_text ) {
                     _mappings.push_back( mapping.clone() );
                 }
 
-                TypedArgument( const std::string& tag,const std::string& help_text,
+                TypedArgument( const std::string& tag,
+                               const std::string& help_text,
                                const INTYPE& defaultval,
-                               const Mapping<INTYPE, std::string>& mapping )
-                               :
+                               const Mapping<INTYPE, std::string>& mapping ) :
                     Argument( tag, help_text ),
                     _default { defaultval },
-                    _value { defaultval }, _has_default{true} {
+                    _value { defaultval },
+                    _has_default { true } {
                     _mappings.push_back( mapping.clone() );
                 }
 
                 TypedArgument( const TypedArgument<INTYPE>& other ) :
                     Argument( other ),
                     _default { other._default },
-                    _value { other._value }, _has_default{true},
+                    _value { other._value },
+                    _has_default { true },
                     _was_set { other._was_set } {
                     _mappings.reserve( other._mappings.size() );
                     for (auto it = other._mappings.begin();
@@ -96,8 +100,17 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void swap<>( TypedArgument<INTYPE>& a,
-                                    TypedArgument<INTYPE>& b ) noexcept;
+                friend void swap( TypedArgument<INTYPE>& a,
+                                  TypedArgument<INTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<Argument&>( a ),
+                          static_cast<Argument&>( b ) );
+                    swap( a._mappings, b._mappings );
+                    swap( a._default, b._default );
+                    swap( a._value, b._value );
+                    swap( a._was_set, b._was_set );
+                    swap( a._has_default, b._has_default );
+                }
 
                 virtual void apply() override {
                     for (auto it = _mappings.begin(); it != _mappings.end();
@@ -168,7 +181,9 @@ namespace NCPA {
 
                 virtual bool was_set() const override { return _was_set; }
 
-                virtual bool has_default() const override { return _has_default; }
+                virtual bool has_default() const override {
+                    return _has_default;
+                }
 
                 virtual bool expects_value() const override { return true; }
 
@@ -184,19 +199,16 @@ namespace NCPA {
                 bool _has_default = false;
 
                 bool _was_set = false;
-                
         };
 
-        template<typename INTYPE>
-        void swap( TypedArgument<INTYPE>& a,
-                   TypedArgument<INTYPE>& b ) noexcept {
-            using std::swap;
-            swap( static_cast<Argument&>( a ), static_cast<Argument&>( b ) );
-            swap( a._mappings, b._mappings );
-            swap( a._default, b._default );
-            swap( a._value, b._value );
-            swap( a._was_set, b._was_set );
-            swap( a._has_default, b._has_default );
-        }
+        // template<typename INTYPE>
+        // void swap( TypedArgument<INTYPE>& a,
+        //            TypedArgument<INTYPE>& b ) noexcept {
+        //     using std::swap;
+        //     swap( static_cast<Argument&>( a ), static_cast<Argument&>( b )
+        //     ); swap( a._mappings, b._mappings ); swap( a._default,
+        //     b._default ); swap( a._value, b._value ); swap( a._was_set,
+        //     b._was_set ); swap( a._has_default, b._has_default );
+        // }
     }  // namespace config
 }  // namespace NCPA

@@ -15,8 +15,12 @@ namespace NCPA {
 
                 virtual ~TypedValidationTest() {}
 
-                friend void ::swap<>( TypedValidationTest<T>& a,
-                                      TypedValidationTest<T>& b ) noexcept;
+                friend void swap( TypedValidationTest<T>& a,
+                                  TypedValidationTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::ValidationTest&>( a ),
+                          static_cast<NCPA::config::ValidationTest&>( b ) );
+                }
 
                 virtual const T parameter_value(
                     const BaseParameter *param ) const {
@@ -29,10 +33,10 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::TypedValidationTest<T>& a,
-           NCPA::config::TypedValidationTest<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::ValidationTest&>( a ),
-            static_cast<NCPA::config::ValidationTest&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::TypedValidationTest<T>& a,
+//            NCPA::config::TypedValidationTest<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::ValidationTest&>( a ),
+//             static_cast<NCPA::config::ValidationTest&>( b ) );
+// }

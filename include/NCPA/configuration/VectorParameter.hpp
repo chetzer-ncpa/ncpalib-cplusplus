@@ -8,18 +8,18 @@
 #include <regex>
 #include <vector>
 
-namespace NCPA {
-    namespace config {
-        namespace hidden {
-            template<typename T>
-            class _base_vector_parameter;
-        }
-    }  // namespace config
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace config {
+//         namespace hidden {
+//             template<typename T>
+//             class _base_vector_parameter;
+//         }
+//     }  // namespace config
+// }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
-           NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
+//            NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
@@ -93,18 +93,25 @@ namespace NCPA {
                     _base_vector_parameter(
                         _base_vector_parameter<PARAMTYPE>&& other ) noexcept :
                         TypedParameter<PARAMTYPE>() {
-                        ::swap( *this, other );
+                        swap( *this, other );
                     }
 
                     _base_vector_parameter<PARAMTYPE>& operator=(
                         _base_vector_parameter<PARAMTYPE> other ) {
-                        ::swap( *this, other );
+                        swap( *this, other );
                         return *this;
                     }
 
-                    friend void ::swap<>(
+                    friend void swap(
                         _base_vector_parameter<PARAMTYPE>& a,
-                        _base_vector_parameter<PARAMTYPE>& b ) noexcept;
+                        _base_vector_parameter<PARAMTYPE>& b ) noexcept {
+                        using std::swap;
+                        swap(
+                            static_cast<NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
+                            static_cast<NCPA::config::TypedParameter<PARAMTYPE>&>(
+                                b ) );
+                        swap( a._value, b._value );
+                    }
 
                     virtual std::string as_string() const override {
                         return this->_as_string();
@@ -296,7 +303,7 @@ namespace NCPA {
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
                         _as_string( size_t n = 0 ) const {
-                            return "<no string conversion defined>";
+                        return "<no string conversion defined>";
                         // throw std::out_of_range(
                         //     "No as_string() conversion defined!" );
                     }
@@ -375,19 +382,27 @@ namespace NCPA {
                 VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_vector_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~VectorParameter() {}
 
                 VectorParameter<PARAMTYPE>& operator=(
                     VectorParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( VectorParameter<PARAMTYPE>& a,
-                                      VectorParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_vector_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_vector_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -1313,19 +1328,21 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
-           NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-          static_cast<NCPA::config::TypedParameter<T>&>( b ) );
-    swap( a._value, b._value );
-}
+// template<typename T>
+// void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
+//            NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
+//           static_cast<NCPA::config::TypedParameter<T>&>( b ) );
+//     swap( a._value, b._value );
+// }
 
-template<typename T>
-void swap( NCPA::config::VectorParameter<T>& a,
-           NCPA::config::VectorParameter<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( a ),
-          static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::VectorParameter<T>& a,
+//            NCPA::config::VectorParameter<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( a
+//     ),
+//           static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( b )
+//           );
+// }

@@ -22,8 +22,15 @@ namespace NCPA {
 
                 virtual ~UnaryValidationTest() {}
 
-                friend void ::swap<>( UnaryValidationTest<T>& a,
-                                      UnaryValidationTest<T>& b ) noexcept;
+                friend void swap( UnaryValidationTest<T>& a,
+                                  UnaryValidationTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::TypedValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::TypedValidationTest<T>&>(
+                              b ) );
+                    swap( a._values, b._values );
+                }
 
                 virtual T value( size_t n = 0 ) const override {
                     if (n > 0) {
@@ -44,11 +51,11 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::UnaryValidationTest<T>& a,
-           NCPA::config::UnaryValidationTest<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::TypedValidationTest<T>&>( a ),
-            static_cast<NCPA::config::TypedValidationTest<T>&>( b ) );
-    swap( a._values, b._values );
-}
+// template<typename T>
+// void swap( NCPA::config::UnaryValidationTest<T>& a,
+//            NCPA::config::UnaryValidationTest<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::TypedValidationTest<T>&>( a ),
+//             static_cast<NCPA::config::TypedValidationTest<T>&>( b ) );
+//     swap( a._values, b._values );
+// }

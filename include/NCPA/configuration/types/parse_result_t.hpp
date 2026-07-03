@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include "NCPA/strings.hpp"
 
 namespace NCPA {
     namespace config {

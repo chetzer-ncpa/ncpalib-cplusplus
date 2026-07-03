@@ -35,7 +35,13 @@ namespace NCPA {
                 virtual ~HelpTextSection() {}
 
                 friend void swap( HelpTextSection& a,
-                                  HelpTextSection& b ) noexcept;
+                                  HelpTextSection& b ) noexcept {
+                    using std::swap;
+                    swap( a._title, b._title );
+                    swap( a._subsections, b._subsections );
+                    swap( a._depth, b._depth );
+                    swap( a._options, b._options );
+                }
 
                 virtual HelpTextSection& add_subsection(
                     const HelpTextSection& sub ) {
@@ -132,12 +138,13 @@ namespace NCPA {
                 // HelpTextSectionFormattingOptions _options;
         };
 
-        inline void swap( HelpTextSection& a, HelpTextSection& b ) noexcept {
-            using std::swap;
-            swap( a._title, b._title );
-            swap( a._subsections, b._subsections );
-            swap( a._depth, b._depth );
-            swap( a._options, b._options );
-        }
+        // inline void swap( HelpTextSection& a, HelpTextSection& b ) noexcept
+        // {
+        //     using std::swap;
+        //     swap( a._title, b._title );
+        //     swap( a._subsections, b._subsections );
+        //     swap( a._depth, b._depth );
+        //     swap( a._options, b._options );
+        // }
     }  // namespace config
 }  // namespace NCPA

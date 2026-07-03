@@ -6,25 +6,27 @@
 namespace NCPA {
     namespace config {
         class NullaryValidationTest : public ValidationTest {
-                public:
-                    NullaryValidationTest() : ValidationTest() {}
+            public:
+                NullaryValidationTest() : ValidationTest() {}
 
-                    NullaryValidationTest(
-                        const NullaryValidationTest& other ) {}
+                NullaryValidationTest( const NullaryValidationTest& other ) {}
 
-                    virtual ~NullaryValidationTest() {}
+                virtual ~NullaryValidationTest() {}
 
-                    friend void ::swap( NullaryValidationTest& a,
-                                        NullaryValidationTest& b ) noexcept;
-            };
+                friend void swap( NullaryValidationTest& a,
+                                  NullaryValidationTest& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::ValidationTest&>( a ),
+                          static_cast<NCPA::config::ValidationTest&>( b ) );
+                }
+        };
 
     }  // namespace config
 }  // namespace NCPA
 
-inline void swap(
-    NCPA::config::NullaryValidationTest& a,
-    NCPA::config::NullaryValidationTest& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::ValidationTest&>( a ),
-            static_cast<NCPA::config::ValidationTest&>( b ) );
-}
+// inline void swap( NCPA::config::NullaryValidationTest& a,
+//                   NCPA::config::NullaryValidationTest& b ) noexcept {
+//     using std::swap;
+//     ::swap( static_cast<NCPA::config::ValidationTest&>( a ),
+//             static_cast<NCPA::config::ValidationTest&>( b ) );
+// }

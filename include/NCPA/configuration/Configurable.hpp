@@ -1,6 +1,5 @@
 #pragma once
 
-#include "NCPA/logging.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
@@ -9,6 +8,7 @@
 #include "NCPA/configuration/ScalarParameterWithUnits.hpp"
 #include "NCPA/configuration/VectorParameter.hpp"
 #include "NCPA/configuration/VectorParameterWithUnits.hpp"
+#include "NCPA/logging.hpp"
 #include "NCPA/units.hpp"
 
 #include <algorithm>
@@ -34,8 +34,11 @@ namespace NCPA {
 
                 virtual ~Configurable() {}
 
-                friend void swap<>( Configurable<KEYTYPE>& a,
-                                    Configurable<KEYTYPE>& b ) noexcept;
+                friend void swap( Configurable<KEYTYPE>& a,
+                                  Configurable<KEYTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._parameters, b._parameters );
+                }
 
                 virtual bool parameter_has_units( KEYTYPE key ) const {
                     return this->parameter( key ).has_units();
@@ -142,9 +145,11 @@ namespace NCPA {
 
                 BaseParameter *add_parameter( KEYTYPE key,
                                               const param_ptr_t param ) {
-                    // NCPA_DEBUG << "Parameter passed to " << key << ": " << param->as_string() << std::endl;
+                    // NCPA_DEBUG << "Parameter passed to " << key << ": " <<
+                    // param->as_string() << std::endl;
                     _parameters[ key ] = param->clone();
-                    // NCPA_DEBUG << "Cloned parameter " << key << ": " << _parameters[ key ]->as_string() << std::endl;
+                    // NCPA_DEBUG << "Cloned parameter " << key << ": " <<
+                    // _parameters[ key ]->as_string() << std::endl;
                     return _parameters[ key ].get();
                 }
 
@@ -480,7 +485,9 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
-                    // NCPA_DEBUG << "Setting new " << key << " vector parameter.  Passed vector is size " << val.size() << std::endl;
+                    // NCPA_DEBUG << "Setting new " << key << " vector
+                    // parameter.  Passed vector is size " << val.size() <<
+                    // std::endl;
                     this->add_parameter(
                         key, Parameter::vector<typename PARAMTYPE::value_type>(
                                  val, units ) );
@@ -573,9 +580,9 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename KEYTYPE>
-void swap( NCPA::config::Configurable<KEYTYPE>& a,
-           NCPA::config::Configurable<KEYTYPE>& b ) noexcept {
-    using std::swap;
-    swap( a._parameters, b._parameters );
-}
+// template<typename KEYTYPE>
+// void swap( NCPA::config::Configurable<KEYTYPE>& a,
+//            NCPA::config::Configurable<KEYTYPE>& b ) noexcept {
+//     using std::swap;
+//     swap( a._parameters, b._parameters );
+// }

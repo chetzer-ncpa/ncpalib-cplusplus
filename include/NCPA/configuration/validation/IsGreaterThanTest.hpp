@@ -21,8 +21,14 @@ namespace NCPA {
 
                 virtual ~IsGreaterThanTest() {}
 
-                friend void ::swap<>( IsGreaterThanTest<T>& a,
-                                      IsGreaterThanTest<T>& b ) noexcept;
+                friend void swap( IsGreaterThanTest<T>& a,
+                                  IsGreaterThanTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -60,8 +66,14 @@ namespace NCPA {
 
                 virtual ~IsGreaterThanTest() {}
 
-                friend void ::swap<>( IsGreaterThanTest<T>& a,
-                                      IsGreaterThanTest<T>& b ) noexcept;
+                friend void swap( IsGreaterThanTest<T>& a,
+                                  IsGreaterThanTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -88,11 +100,11 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::IsGreaterThanTest<T>& a,
-           NCPA::config::IsGreaterThanTest<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
-        static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::IsGreaterThanTest<T>& a,
+//            NCPA::config::IsGreaterThanTest<T>& b ) noexcept {
+//     using std::swap;
+//     swap(
+//         static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
+//         static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
+// }

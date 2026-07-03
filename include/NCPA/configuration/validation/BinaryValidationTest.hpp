@@ -21,8 +21,15 @@ namespace NCPA {
 
                 virtual ~BinaryValidationTest() {}
 
-                friend void ::swap<>( BinaryValidationTest<T>& a,
-                                      BinaryValidationTest<T>& b ) noexcept;
+                friend void swap( BinaryValidationTest<T>& a,
+                                  BinaryValidationTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::TypedValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::TypedValidationTest<T>&>(
+                              b ) );
+                    swap( a._values, b._values );
+                }
 
                 virtual T value( size_t n ) const override {
                     if (n > 1) {

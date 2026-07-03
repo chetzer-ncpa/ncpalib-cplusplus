@@ -20,18 +20,21 @@ namespace NCPA {
                 }
 
                 ValidationTestSuite( ValidationTestSuite&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ValidationTestSuite() {}
 
                 ValidationTestSuite& operator=( ValidationTestSuite other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( ValidationTestSuite& a,
-                                    ValidationTestSuite& b ) noexcept;
+                friend void swap( ValidationTestSuite& a,
+                                  ValidationTestSuite& b ) noexcept {
+                    using std::swap;
+                    swap( a._tests, b._tests );
+                }
 
                 virtual ValidationTestSuite& append(
                     const ValidationTest& newtest ) {
@@ -88,8 +91,7 @@ namespace NCPA {
                 }
 
                 virtual ValidationTestSuite& run_tests(
-                    const BaseParameter *param,
-                    bool short_circuit = false ) {
+                    const BaseParameter *param, bool short_circuit = false ) {
                     // _status = test_status_t::PENDING;
                     bool pass = true;
                     for (auto it = _tests.begin(); it != _tests.end(); ++it) {
@@ -150,11 +152,11 @@ namespace NCPA {
                 // test_status_t _status;
                 std::vector<std::unique_ptr<ValidationTest>> _tests;
         };
-    }
-}
+    }  // namespace config
+}  // namespace NCPA
 
-inline void swap( NCPA::config::ValidationTestSuite& a,
-                  NCPA::config::ValidationTestSuite& b ) noexcept {
-    using std::swap;
-    swap( a._tests, b._tests );
-}
+// inline void swap( NCPA::config::ValidationTestSuite& a,
+//                   NCPA::config::ValidationTestSuite& b ) noexcept {
+//     using std::swap;
+//     swap( a._tests, b._tests );
+// }

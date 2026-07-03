@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
+#include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/validation/NullaryValidationTest.hpp"
 
 #include <memory>
@@ -15,7 +15,13 @@ namespace NCPA {
 
                 virtual ~WasSetTest() {}
 
-                friend void ::swap( WasSetTest& a, WasSetTest& b ) noexcept;
+                friend void swap( WasSetTest& a, WasSetTest& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<NCPA::config::NullaryValidationTest&>( a ),
+                        static_cast<NCPA::config::NullaryValidationTest&>(
+                            b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -42,9 +48,9 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-inline void swap( NCPA::config::WasSetTest& a,
-                  NCPA::config::WasSetTest& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::NullaryValidationTest&>( a ),
-            static_cast<NCPA::config::NullaryValidationTest&>( b ) );
-}
+// inline void swap( NCPA::config::WasSetTest& a,
+//                   NCPA::config::WasSetTest& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::NullaryValidationTest&>( a ),
+//             static_cast<NCPA::config::NullaryValidationTest&>( b ) );
+// }

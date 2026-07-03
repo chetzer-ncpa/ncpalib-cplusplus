@@ -19,9 +19,14 @@ namespace NCPA {
 
                 virtual ~IsGreaterThanOrEqualToTest() {}
 
-                friend void ::swap<>(
-                    IsGreaterThanOrEqualToTest<T>& a,
-                    IsGreaterThanOrEqualToTest<T>& b ) noexcept;
+                friend void swap( IsGreaterThanOrEqualToTest<T>& a,
+                                  IsGreaterThanOrEqualToTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -57,9 +62,14 @@ namespace NCPA {
 
                 virtual ~IsGreaterThanOrEqualToTest() {}
 
-                friend void ::swap<>(
-                    IsGreaterThanOrEqualToTest<T>& a,
-                    IsGreaterThanOrEqualToTest<T>& b ) noexcept;
+                friend void swap( IsGreaterThanOrEqualToTest<T>& a,
+                                  IsGreaterThanOrEqualToTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -91,6 +101,6 @@ template<typename T>
 void swap( NCPA::config::IsGreaterThanOrEqualToTest<T>& a,
            NCPA::config::IsGreaterThanOrEqualToTest<T>& b ) noexcept {
     using std::swap;
-    ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
-            static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
+    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
+          static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
 }

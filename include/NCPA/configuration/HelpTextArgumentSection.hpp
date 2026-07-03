@@ -46,7 +46,15 @@ namespace NCPA {
                 }
 
                 friend void swap( HelpTextArgumentSection& a,
-                                  HelpTextArgumentSection& b ) noexcept;
+                                  HelpTextArgumentSection& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<HelpTextSection&>( a ),
+                          static_cast<HelpTextSection&>( b ) );
+                    swap( a._arguments, b._arguments );
+                    swap( a._newline_after_tag, b._newline_after_tag );
+                    swap( a._max_tag_length_without_newline,
+                          b._max_tag_length_without_newline );
+                }
 
                 virtual std::unique_ptr<HelpTextSection> clone() const {
                     return std::unique_ptr<HelpTextSection>(
@@ -94,12 +102,14 @@ namespace NCPA {
 
                 virtual void add_argument( const Argument& arg ) {
                     _arguments.push_back( arg.clone() );
-                    std::string flagname           = arg.tag();
-                    size_t hanging = std::max(
+                    std::string flagname = arg.tag();
+                    size_t hanging       = std::max(
                         this->options().hanging_indent,
-                        std::min( flagname.size() + (arg.expects_value() ? 9 : 3),
+                        std::min( flagname.size()
+                                      + ( arg.expects_value() ? 9 : 3 ),
                                   _max_tag_length_without_newline ) );
-                    std::cout << "Setting hanging indent to " << hanging << std::endl;
+                    std::cout << "Setting hanging indent to " << hanging
+                              << std::endl;
                     this->options().hanging_indent = hanging;
                 }
 
@@ -125,8 +135,9 @@ namespace NCPA {
                         || ( total_size ) > _max_tag_length_without_newline) {
                         os << NEWLINE_MARKER << " ";
                     }
-                    os << "<i" << this->options().hanging_indent << "> " << arg.help_text();
-                    if (arg.has_default()) { 
+                    os << "<i" << this->options().hanging_indent << "> "
+                       << arg.help_text();
+                    if (arg.has_default()) {
                         os << " [default=" << arg.default_string() << "]";
                     }
                     os << NEWLINE_MARKER;
@@ -145,15 +156,15 @@ namespace NCPA {
                 }
         };
 
-        inline void swap( HelpTextArgumentSection& a,
-                          HelpTextArgumentSection& b ) noexcept {
-            using std::swap;
-            swap( static_cast<HelpTextSection&>( a ),
-                  static_cast<HelpTextSection&>( b ) );
-            swap( a._arguments, b._arguments );
-            swap( a._newline_after_tag, b._newline_after_tag );
-            swap( a._max_tag_length_without_newline,
-                  b._max_tag_length_without_newline );
-        }
+        // inline void swap( HelpTextArgumentSection& a,
+        //                   HelpTextArgumentSection& b ) noexcept {
+        //     using std::swap;
+        //     swap( static_cast<HelpTextSection&>( a ),
+        //           static_cast<HelpTextSection&>( b ) );
+        //     swap( a._arguments, b._arguments );
+        //     swap( a._newline_after_tag, b._newline_after_tag );
+        //     swap( a._max_tag_length_without_newline,
+        //           b._max_tag_length_without_newline );
+        // }
     }  // namespace config
 }  // namespace NCPA

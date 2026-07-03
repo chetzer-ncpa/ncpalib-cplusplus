@@ -34,17 +34,21 @@ namespace NCPA {
 
                 TypedParameter( TypedParameter<PARAMTYPE>&& other ) noexcept :
                     TypedParameter() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 TypedParameter<PARAMTYPE>& operator=(
                     TypedParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( TypedParameter<PARAMTYPE>& a,
-                                      TypedParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( TypedParameter<PARAMTYPE>& a,
+                                  TypedParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::BaseParameter&>( a ),
+                            static_cast<NCPA::config::BaseParameter&>( b ) );
+                }
 
                 virtual parameter_type_t type() const override {
                     return parameter_type<PARAMTYPE>();
@@ -56,35 +60,45 @@ namespace NCPA {
 
                 // virtual ScalarWithUnits<PARAMTYPE> get_with_units(
                 //     size_t n = 0 ) const {
-                //     throw std::logic_error( "Parameter has no units defined" );
+                //     throw std::logic_error( "Parameter has no units defined"
+                //     );
                 // }
 
                 virtual std::vector<PARAMTYPE> get_vector() const = 0;
 
                 // virtual VectorWithUnits<PARAMTYPE> get_vector_with_units()
                 //     const {
-                //     throw std::logic_error( "Parameter has no units defined" );
+                //     throw std::logic_error( "Parameter has no units defined"
+                //     );
                 // }
 
-                template<typename ASTYPE, typename std::enable_if<
-                    std::is_convertible<PARAMTYPE,ASTYPE>::value, int
-                >::type = 0>
+                template<typename ASTYPE,
+                         typename std::enable_if<
+                             std::is_convertible<PARAMTYPE, ASTYPE>::value,
+                             int>::type = 0>
                 ASTYPE as() const {
-                    return static_cast<ASTYPE>(this->get());
+                    return static_cast<ASTYPE>( this->get() );
                 }
 
-                template<typename ASTYPE, typename std::enable_if<
-                    std::is_convertible<PARAMTYPE,ASTYPE>::value, int
-                >::type = 0>
+                template<typename ASTYPE,
+                         typename std::enable_if<
+                             std::is_convertible<PARAMTYPE, ASTYPE>::value,
+                             int>::type = 0>
                 ScalarWithUnits<ASTYPE> as_with_units() const {
-                    return ScalarWithUnits<ASTYPE>( static_cast<ASTYPE>(this->get()), this->get_units() );
+                    return ScalarWithUnits<ASTYPE>(
+                        static_cast<ASTYPE>( this->get() ),
+                        this->get_units() );
                 }
 
-                template<typename ASTYPE, typename std::enable_if<
-                    (!(std::is_convertible<PARAMTYPE,ASTYPE>::value)), int
-                >::type = 0>
+                template<
+                    typename ASTYPE,
+                    typename std::enable_if<
+                        ( !( std::is_convertible<PARAMTYPE, ASTYPE>::value ) ),
+                        int>::type = 0>
                 ScalarWithUnits<ASTYPE> as_with_units() const {
-                    return ScalarWithUnits<ASTYPE>( static_cast<ASTYPE>(this->as_double()), this->get_units() );
+                    return ScalarWithUnits<ASTYPE>(
+                        static_cast<ASTYPE>( this->as_double() ),
+                        this->get_units() );
                 }
 
             protected:
@@ -108,10 +122,10 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::TypedParameter<T>& a,
-           NCPA::config::TypedParameter<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::BaseParameter&>( a ),
-            static_cast<NCPA::config::BaseParameter&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::TypedParameter<T>& a,
+//            NCPA::config::TypedParameter<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::BaseParameter&>( a ),
+//             static_cast<NCPA::config::BaseParameter&>( b ) );
+// }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "NCPA/strings.hpp"
 
 namespace NCPA {
     namespace config {

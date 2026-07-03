@@ -17,13 +17,16 @@ namespace NCPA {
                 }
 
                 ValidationTest( ValidationTest&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ValidationTest() {}
 
-                friend void ::swap( ValidationTest& a,
-                                    ValidationTest& b ) noexcept;
+                friend void swap( ValidationTest& a,
+                                  ValidationTest& b ) noexcept {
+                    using std::swap;
+                    swap( a._status, b._status );
+                }
 
                 virtual ValidationTest& clear() {
                     _status = test_status_t::PENDING;
@@ -75,10 +78,9 @@ namespace NCPA {
                     return this->test( param.get() );
                 }
 
-                virtual std::string description() const = 0;
-                virtual ValidationTest& test(
-                    const BaseParameter *param )           = 0;
-                virtual std::unique_ptr<ValidationTest> clone() const = 0;
+                virtual std::string description() const                    = 0;
+                virtual ValidationTest& test( const BaseParameter *param ) = 0;
+                virtual std::unique_ptr<ValidationTest> clone() const      = 0;
 
             protected:
                 test_status_t _status;
@@ -86,9 +88,8 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-
-inline void swap( NCPA::config::ValidationTest& a,
-                  NCPA::config::ValidationTest& b ) noexcept {
-    using std::swap;
-    swap( a._status, b._status );
-}
+// inline void swap( NCPA::config::ValidationTest& a,
+//                   NCPA::config::ValidationTest& b ) noexcept {
+//     using std::swap;
+//     swap( a._status, b._status );
+// }

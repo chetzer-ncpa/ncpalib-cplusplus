@@ -190,20 +190,28 @@ namespace NCPA {
                 ScalarParameterWithUnits(
                     ScalarParameterWithUnits<PARAMTYPE>&& other ) noexcept :
                     ScalarParameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameterWithUnits() {}
 
                 ScalarParameterWithUnits<PARAMTYPE>& operator=(
                     ScalarParameterWithUnits<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>(
+                friend void swap(
                     ScalarParameterWithUnits<PARAMTYPE>& a,
-                    ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept;
+                    ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>(
+                            a ),
+                        static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>(
+                            b ) );
+                    swap( a._uvalue, b._uvalue );
+                }
 
                 virtual std::string as_string( size_t n = 0 ) const override {
                     if (this->has_units()) {
@@ -273,11 +281,11 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename PARAMTYPE>
-void swap( NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& a,
-           NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( a ),
-            static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( b ) );
-    swap( a._uvalue, b._uvalue );
-}
+// template<typename PARAMTYPE>
+// void swap( NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& a,
+//            NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( a ),
+//             static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( b ) );
+//     swap( a._uvalue, b._uvalue );
+// }

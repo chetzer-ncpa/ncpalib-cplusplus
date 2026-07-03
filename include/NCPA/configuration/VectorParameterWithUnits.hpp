@@ -142,20 +142,28 @@ namespace NCPA {
                 VectorParameterWithUnits(
                     VectorParameterWithUnits<PARAMTYPE>&& other ) noexcept :
                     VectorParameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~VectorParameterWithUnits() {}
 
                 VectorParameterWithUnits<PARAMTYPE>& operator=(
                     VectorParameterWithUnits<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>(
+                friend void swap(
                     VectorParameterWithUnits<PARAMTYPE>& a,
-                    VectorParameterWithUnits<PARAMTYPE>& b ) noexcept;
+                    VectorParameterWithUnits<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>(
+                            a ),
+                        static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>(
+                            b ) );
+                    swap( a._uvalue, b._uvalue );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -230,11 +238,11 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename PARAMTYPE>
-void swap( NCPA::config::VectorParameterWithUnits<PARAMTYPE>& a,
-           NCPA::config::VectorParameterWithUnits<PARAMTYPE>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>( a ),
-            static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>( b ) );
-    swap( a._uvalue, b._uvalue );
-}
+// template<typename PARAMTYPE>
+// void swap( NCPA::config::VectorParameterWithUnits<PARAMTYPE>& a,
+//            NCPA::config::VectorParameterWithUnits<PARAMTYPE>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>( a ),
+//             static_cast<NCPA::config::VectorParameter<PARAMTYPE>&>( b ) );
+//     swap( a._uvalue, b._uvalue );
+// }

@@ -98,18 +98,27 @@ namespace NCPA {
                     _base_scalar_parameter(
                         _base_scalar_parameter<PARAMTYPE>&& other ) noexcept :
                         TypedParameter<PARAMTYPE>() {
-                        ::swap( *this, other );
+                        swap( *this, other );
                     }
 
                     _base_scalar_parameter<PARAMTYPE>& operator=(
                         _base_scalar_parameter<PARAMTYPE> other ) {
-                        ::swap( *this, other );
+                        swap( *this, other );
                         return *this;
                     }
 
-                    friend void ::swap<>(
+                    friend void swap(
                         _base_scalar_parameter<PARAMTYPE>& a,
-                        _base_scalar_parameter<PARAMTYPE>& b ) noexcept;
+                        _base_scalar_parameter<PARAMTYPE>& b ) noexcept {
+                        using std::swap;
+                        swap(
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>(
+                                b ) );
+                        swap( a._value, b._value );
+                    }
 
                     virtual parameter_form_t form() const override {
                         return parameter_form_t::SCALAR;
@@ -170,7 +179,7 @@ namespace NCPA {
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
                         _as_string( size_t n = 0 ) const {
-                            return "<no string conversion defined>";
+                        return "<no string conversion defined>";
                         // throw std::out_of_range(
                         //     "No as_string() conversion defined!" );
                     }
@@ -249,19 +258,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -441,19 +458,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -629,19 +654,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -814,19 +847,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -1003,19 +1044,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -1199,19 +1248,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -1399,19 +1456,27 @@ namespace NCPA {
                 ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
                     :
                     hidden::_base_scalar_parameter<PARAMTYPE>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ScalarParameter() {}
 
                 ScalarParameter<PARAMTYPE>& operator=(
                     ScalarParameter<PARAMTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ScalarParameter<PARAMTYPE>& a,
-                                      ScalarParameter<PARAMTYPE>& b ) noexcept;
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              a ),
+                          static_cast<NCPA::config::hidden::
+                                          _base_scalar_parameter<PARAMTYPE>&>(
+                              b ) );
+                }
 
                 virtual param_ptr_t clone() const override {
                     return param_ptr_t(
@@ -1524,20 +1589,21 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
-           NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-            static_cast<NCPA::config::TypedParameter<T>&>( b ) );
-    swap( a._value, b._value );
-}
+// template<typename T>
+// void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
+//            NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
+//             static_cast<NCPA::config::TypedParameter<T>&>( b ) );
+//     swap( a._value, b._value );
+// }
 
-template<typename T>
-void swap( NCPA::config::ScalarParameter<T>& a,
-           NCPA::config::ScalarParameter<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( a ),
-        static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::ScalarParameter<T>& a,
+//            NCPA::config::ScalarParameter<T>& b ) noexcept {
+//     using std::swap;
+//     swap(
+//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( a ),
+//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( b )
+//         );
+// }

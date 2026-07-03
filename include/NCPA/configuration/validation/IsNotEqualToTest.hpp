@@ -16,8 +16,14 @@ namespace NCPA {
 
                 virtual ~IsNotEqualToTest() {}
 
-                friend void ::swap<>( IsNotEqualToTest<T>& a,
-                                      IsNotEqualToTest<T>& b ) noexcept;
+                friend void swap( IsNotEqualToTest<T>& a,
+                                  IsNotEqualToTest<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              a ),
+                          static_cast<NCPA::config::UnaryValidationTest<T>&>(
+                              b ) );
+                }
 
                 virtual std::unique_ptr<ValidationTest> clone()
                     const override {
@@ -45,10 +51,10 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::IsNotEqualToTest<T>& a,
-           NCPA::config::IsNotEqualToTest<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
-            static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
-}
+// template<typename T>
+// void swap( NCPA::config::IsNotEqualToTest<T>& a,
+//            NCPA::config::IsNotEqualToTest<T>& b ) noexcept {
+//     using std::swap;
+//     ::swap( static_cast<NCPA::config::UnaryValidationTest<T>&>( a ),
+//             static_cast<NCPA::config::UnaryValidationTest<T>&>( b ) );
+// }

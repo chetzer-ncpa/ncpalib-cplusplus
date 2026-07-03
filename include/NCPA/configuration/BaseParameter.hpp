@@ -41,13 +41,16 @@ namespace NCPA {
 
                 BaseParameter( BaseParameter&& other ) noexcept :
                     BaseParameter() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~BaseParameter() {}
 
-                friend void ::swap( BaseParameter& a,
-                                    BaseParameter& b ) noexcept;
+                friend void swap( BaseParameter& a,
+                                    BaseParameter& b ) noexcept {
+                    using std::swap;
+                    swap( a._tests, b._tests );
+                }
 
                 virtual BaseParameter& append_test(
                     const ValidationTest& newtest ) {
@@ -248,8 +251,8 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-void swap( NCPA::config::BaseParameter& a,
-           NCPA::config::BaseParameter& b ) noexcept {
-    using std::swap;
-    swap( a._tests, b._tests );
-}
+// void swap( NCPA::config::BaseParameter& a,
+//            NCPA::config::BaseParameter& b ) noexcept {
+//     using std::swap;
+//     swap( a._tests, b._tests );
+// }
