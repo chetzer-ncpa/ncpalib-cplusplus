@@ -536,6 +536,21 @@ namespace NCPA {
                     }
                 }
 
+                virtual vector2d_u_t values(
+                    const std::string& key ) const override {
+                    vector2d_u_t v;
+                    v.set_units( *this->get_units( key ) );
+                    if (this->contains_vector(key)) {
+                        v[ 0 ] = _1d.values( key );
+                    } else if (this->contains_scalar(key)) {
+                        v[0] = _scalar_properties.at(key).second;
+                    } else {
+                        throw std::out_of_range( "No key " + key + " found in atmosphere." );
+                    }
+                    
+                    return v;
+                }
+
                 tuple_atmosphere_1d _1d;
                 vector_u_t _dummy;
                 std::unordered_map<std::string,

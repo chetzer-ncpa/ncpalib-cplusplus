@@ -468,6 +468,18 @@ namespace NCPA {
                     return ( r1 == r2 );
                 }
 
+                virtual vector2d_u_t values(
+                    const std::string& key ) const override {
+                    _assert_contains( key );
+                    if (this->contains_vector( key )) {
+                        return _properties.at( key ).values();
+                    } else {
+                        vector2d_u_t v;
+                        v[ 0 ] = _scalar_properties.at( key );
+                        return v;
+                    }
+                }
+
             protected:
                 void _assert_contains_vector( const std::string& key ) const {
                     if (!contains_vector( key )) {

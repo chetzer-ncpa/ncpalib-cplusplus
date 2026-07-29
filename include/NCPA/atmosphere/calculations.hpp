@@ -1,11 +1,24 @@
 #pragma once
 
 // #include "NCPA/atmosphere/constants.hpp"
+#include "NCPA/atmosphere/Atmosphere1D.hpp"
+#include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/ndvector.hpp"
 #include "NCPA/units.hpp"
 
 #include <cmath>
+
+// Units for tp2d() calculations
+#define NCPA_ATMOS_TP2D_T_UNITS_STR "K"
+#define NCPA_ATMOS_TP2D_P_UNITS_STR "Pa"
+#define NCPA_ATMOS_TP2D_D_UNITS_STR "kg/m3"
+#define NCPA_ATMOS_TP2D_T_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_TP2D_T_UNITS_STR )
+#define NCPA_ATMOS_TP2D_P_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_TP2D_P_UNITS_STR )
+#define NCPA_ATMOS_TP2D_D_UNITS \
+    NCPA::units::Units::from_string( NCPA_ATMOS_TP2D_D_UNITS_STR )
 
 // Units for t2c() calculations
 #define NCPA_ATMOS_T2C_T_UNITS_STR "K"
@@ -70,11 +83,118 @@ namespace NCPA {
     namespace atmos {
 
         // temperature to sound speed
+        static scalar_u_t tp2d( const scalar_u_t& t, const scalar_u_t& p ) {
+            return scalar_u_t(
+                p.get_as( NCPA_ATMOS_TP2D_P_UNITS )
+                    / ( constants::R() * t.get_as( NCPA_ATMOS_TP2D_T_UNITS ) ),
+                NCPA_ATMOS_TP2D_D_UNITS );
+        }
+
+        static vector2d_u_t tp2d( const Atmosphere2D& atmos,
+                                  const std::string& temperature_key,
+                                  const std::string& pressure_key ) {
+            vector2d_u_t t = atmos.internal()->values( temperature_key );
+            vector2d_u_t p = atmos.internal()->values( pressure_key );
+            vector2d_u_t d = t;
+            d.set_units( *NCPA_ATMOS_TP2D_D_UNITS );
+            for (size_t i = 0; i < t.size(); ++i) {
+                d[ i ] = tp2d( t.at( i ), t.get_units(), p.at( i ),
+                               p.get_units() );
+            }
+            return d;
+        }
+
+        static vector_u_t tp2d( const Atmosphere1D& atmos,
+                                const std::string& temperature_key,
+                                const std::string& pressure_key ) {
+            return tp2d( atmos.internal()->values( temperature_key ),
+                         atmos.internal()->values( pressure_key ) );
+        }
+
+        static scalar_u_t tp2d( double t, const std::string& t_units, double p,
+                                const std::string& p_units ) {
+            return tp2d( scalar_u_t( t, t_units ), scalar_u_t( p, p_units ) );
+        }
+
+        static vector_u_t tp2d( const vector_u_t& t, const vector_u_t& p ) {
+            vector_u_t d( t.size(), NCPA_ATMOS_TP2D_D_UNITS );
+            for (size_t i = 0; i < t.size(); i++) {
+                d.set( i, tp2d( t.get_scalar( i ), p.get_scalar( i ) ) );
+            }
+            return d;
+        }
+
+        static vector_u_t tp2d( const std::vector<double>& t,
+                                const std::string& t_units,
+                                const std::vector<double>& p,
+                                const std::string& p_units ) {
+            return tp2d( vector_u_t( t, t_units ), vector_u_t( p, p_units ) );
+        }
+
+        static std::vector<double> tp2d(
+            const NCPA::arrays::ndvector<1, double>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<1, double>& p,
+            const units_ptr_t p_units ) {
+            std::vector<double> d( t.size() );
+            for (size_t i = 0; i < t.size(); ++i) {
+                d[ i ]
+                    = tp2d(
+                          scalar_u_t( *static_cast<const double *>( &t[ i ] ),
+                                      t_units ),
+                          scalar_u_t( *static_cast<const double *>( &p[ i ] ),
+                                      p_units ) )
+                          .get();
+            }
+            return d;
+        }
+
+        static double tp2d( const NCPA::arrays::ndvector<0, double>& t,
+                            const units_ptr_t t_units,
+                            const NCPA::arrays::ndvector<0, double>& p,
+                            const units_ptr_t p_units ) {
+            return tp2d( scalar_u_t( t, t_units ), scalar_u_t( p, p_units ) )
+                .get();
+        }
+
+        template<size_t N>
+        NCPA::arrays::ndvector<N, double> tp2d(
+            const NCPA::arrays::ndvector<N, double>& t,
+            const units_ptr_t t_units,
+            const NCPA::arrays::ndvector<N, double>& p,
+            const units_ptr_t p_units ) {
+            NCPA::arrays::ndvector<N, double> d = t;
+
+            for (size_t i = 0; i < t.size(); ++i) {
+                d[ i ] = tp2d(
+                    NCPA::arrays::ndvector<N - 1, double>( t[ i ] ), t_units,
+                    NCPA::arrays::ndvector<N - 1, double>( p[ i ] ), p_units );
+            }
+            return d;
+        }
+
+        // temperature to sound speed
         static scalar_u_t t2c( const scalar_u_t& t ) {
             return scalar_u_t( std::sqrt( t.get_as( NCPA_ATMOS_T2C_T_UNITS )
                                           * constants::GAMMA()
                                           * constants::R() ),
                                NCPA_ATMOS_T2C_C_UNITS );
+        }
+
+        static vector2d_u_t t2c( const Atmosphere2D& atmos,
+                                 const std::string& temperature_key ) {
+            vector2d_u_t t = atmos.internal()->values( temperature_key );
+            vector2d_u_t c = t;
+            c.set_units( *NCPA_ATMOS_T2C_C_UNITS );
+            for (size_t i = 0; i < t.size(); ++i) {
+                c[ i ] = t2c( t.at( i ), t.get_units() );
+            }
+            return c;
+        }
+
+        static vector_u_t t2c( const Atmosphere1D& atmos,
+                               const std::string& temperature_key ) {
+            return t2c( atmos.internal()->values( temperature_key ) );
         }
 
         static scalar_u_t t2c( double t, const std::string& units ) {
@@ -193,6 +313,27 @@ namespace NCPA {
                 .as( *units_out );
         }
 
+        static vector2d_u_t pd2c( const Atmosphere2D& atmos,
+                                  const std::string& density_key,
+                                  const std::string& pressure_key ) {
+            vector2d_u_t d = atmos.internal()->values( density_key );
+            vector2d_u_t p = atmos.internal()->values( pressure_key );
+            vector2d_u_t c = d;
+            c.set_units( *NCPA_ATMOS_PD2C_C_UNITS );
+            for (size_t i = 0; i < d.size(); ++i) {
+                c[ i ] = pd2c( p.at( i ), p.get_units(), d.at( i ),
+                               d.get_units() );
+            }
+            return c;
+        }
+
+        static vector_u_t pd2c( const Atmosphere1D& atmos,
+                                const std::string& density_key,
+                                const std::string& pressure_key ) {
+            return pd2c( atmos.internal()->values( pressure_key ),
+                         atmos.internal()->values( density_key ) );
+        }
+
         static scalar_u_t pd2c( double p, const std::string& p_units, double d,
                                 const std::string& d_units,
                                 const std::string& units_out
@@ -296,10 +437,25 @@ namespace NCPA {
             double uu = u.get_as( uout );
             double vv = v.get_as( uout );
             return scalar_u_t( std::sqrt( uu * uu + vv * vv ), uout );
-            // return ( units_out == nullptr
-            //              ? scalar_u_t( std::sqrt( uu * uu + vv * vv ), uout )
-            //              : scalar_u_t( std::sqrt( uu * uu + vv * vv ), u.get_units())
-            //                    .as( units_out ) );
+        }
+
+        static vector2d_u_t uv2ws( const Atmosphere2D& atmos,
+                                   const std::string& u_key,
+                                   const std::string& v_key ) {
+            vector2d_u_t u  = atmos.internal()->values( u_key );
+            vector2d_u_t v  = atmos.internal()->values( v_key );
+            vector2d_u_t ws = u;
+            for (size_t i = 0; i < u.size(); ++i) {
+                ws[ i ] = uv2ws( u.at( i ), v.at( i ) );
+            }
+            return ws;
+        }
+
+        static vector_u_t uv2ws( const Atmosphere1D& atmos,
+                                 const std::string& u_key,
+                                 const std::string& v_key ) {
+            return uv2ws( atmos.internal()->values( u_key ),
+                          atmos.internal()->values( v_key ) );
         }
 
         static scalar_u_t uv2ws( double u, const std::string& u_units,
@@ -393,6 +549,25 @@ namespace NCPA {
                            v.get_as( *u.get_units() ), u.get() ) ) ),
                        NCPA_ATMOS_UV2WD_WD_UNITS )
                 .as( units_out );
+        }
+
+        static vector2d_u_t uv2wd( const Atmosphere2D& atmos,
+                                   const std::string& u_key,
+                                   const std::string& v_key ) {
+            vector2d_u_t u  = atmos.internal()->values( u_key );
+            vector2d_u_t v  = atmos.internal()->values( v_key );
+            vector2d_u_t wd = u;
+            for (size_t i = 0; i < u.size(); ++i) {
+                wd[ i ] = uv2wd( u.at( i ), v.at( i ) );
+            }
+            return wd;
+        }
+
+        static vector_u_t uv2wd( const Atmosphere1D& atmos,
+                                 const std::string& u_key,
+                                 const std::string& v_key ) {
+            return uv2wd( atmos.internal()->values( u_key ),
+                          atmos.internal()->values( v_key ) );
         }
 
         static scalar_u_t uv2wd( double u, const std::string& u_units,
@@ -756,7 +931,7 @@ namespace NCPA {
                 a_vib_c[ m ] = ( A_max / c_snd_z )
                              * ( ( 2 * ( pow( freq, 2 ) ) / f_vib[ m ] )
                                  / ( 1 + pow( freq / f_vib[ m ], 2 ) ) );
-                a_vib = a_vib + a_vib_c[ m ];
+                a_vib        = a_vib + a_vib_c[ m ];
             }
 
             scalar_u_t alpha(

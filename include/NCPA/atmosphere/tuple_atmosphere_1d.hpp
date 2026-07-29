@@ -324,6 +324,8 @@ namespace NCPA {
                     os.flush();
                 }
 
+                
+
             protected:
                 void _assert_contains_vector( const std::string& key ) const {
                     if (!contains_vector( key )) {

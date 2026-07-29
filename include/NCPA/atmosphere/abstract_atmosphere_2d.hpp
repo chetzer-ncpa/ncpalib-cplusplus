@@ -426,6 +426,8 @@ namespace NCPA {
                  */
                 virtual void print( std::ostream& os ) = 0;
 
+                virtual vector2d_u_t values( const std::string& key ) const = 0;
+
                 /**
                  * @brief 
                  * @param n 

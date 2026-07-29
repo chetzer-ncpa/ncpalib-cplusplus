@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace NCPA {
     namespace files {
@@ -17,30 +18,32 @@ namespace NCPA {
 #endif
         }
 
-		static std::string fullfile( const std::vector<std::string>& pathparts ) {
-			std::ostringstream oss;
-			if (pathparts.empty()) {
-				oss << ".";
-			} else if (pathparts.size() == 1) {
-				oss << "." << filesep() << pathparts[0];
-			} else {
-				oss << pathparts.front();
-				for (auto it = pathparts.cbegin()+1; it != pathparts.cend(); ++it) {
-					oss << filesep() << *it;
-				}
-			}
-			return oss.str();
-		}
+        static std::string fullfile(
+            const std::vector<std::string>& pathparts ) {
+            std::ostringstream oss;
+            if (pathparts.empty()) {
+                oss << ".";
+            } else if (pathparts.size() == 1) {
+                oss << "." << filesep() << pathparts[ 0 ];
+            } else {
+                oss << pathparts.front();
+                for (auto it = pathparts.cbegin() + 1; it != pathparts.cend();
+                     ++it) {
+                    oss << filesep() << *it;
+                }
+            }
+            return oss.str();
+        }
 
         static std::string fullfile( const std::vector<std::string>& path,
-                              const std::string& filename ) {
-			std::vector<std::string> pathparts = path;
-			pathparts.push_back( filename );
-			return fullfile( pathparts );
+                                     const std::string& filename ) {
+            std::vector<std::string> pathparts = path;
+            pathparts.push_back( filename );
+            return fullfile( pathparts );
         }
 
         static std::string fullfile( const std::string& path,
-                              const std::string& filename ) {
+                                     const std::string& filename ) {
             if (path.length() == 0) {
                 return fullfile( std::vector<std::string> {}, filename );
             } else {
@@ -48,36 +51,72 @@ namespace NCPA {
             }
         }
 
-        static void splitpath( const std::string& fullpath, std::string& basedir,
-                        std::string& filename ) {
+        template<typename T>
+        static std::pair<std::vector<std::vector<T>>, std::vector<std::string>>
+            read_columns( const std::string& filename, size_t ncolumns,
+                          const std::string& delimiters    = " ,:=",
+                          const std::string& comment_chars = "#" ) {
+            std::ifstream infile( filename, std::ios::in );
+            if (!infile.good()) {
+                throw std::runtime_error(
+                    "Cannot open stream in good state for file " + filename
+                    + "!" );
+            }
+            std::vector<std::vector<T>> columns( ncolumns );
+            std::vector<std::string> comments;
+
+            std::istringstream linestr;
+            std::getline( infile, line );
+            while (infile.good()) {
+                line = NCPA::deblank( line );
+                if (line.size() > 0) {
+                    // check for first character being a comment
+                    if (comment_chars.find( line[ 0 ] ) != std::string::npos) {
+                        comments.push_back( line );
+                    } else {
+                        linestr.str( line );
+                        for (size_t i = 0; i < ncolumns; ++i) {
+                            T tmpval;
+                            linestr >> tmpval;
+                            columns.at( i ).push_back( tmpval );
+                        }
+                    }
+                }
+                std::getline( infile, line );
+            }
+            return std::make_pair( columns, comments );
+        }
+
+        static void splitpath( const std::string& fullpath,
+                               std::string& basedir, std::string& filename ) {
             auto const pos = fullpath.find_last_of( NCPA::files::filesep() );
             if (pos == fullpath.npos) {
-                basedir = ".";
-				filename = fullpath;
+                basedir  = ".";
+                filename = fullpath;
             } else {
-                basedir = fullpath.substr( 0, pos );
-				filename = fullpath.substr( pos + 1 );
+                basedir  = fullpath.substr( 0, pos );
+                filename = fullpath.substr( pos + 1 );
             }
         }
 
-		static std::string pathname( const std::string& fullpath ) {
-			std::string path, file;
-			splitpath( fullpath, path, file );
-			return path;
-		}
+        static std::string pathname( const std::string& fullpath ) {
+            std::string path, file;
+            splitpath( fullpath, path, file );
+            return path;
+        }
 
-		static std::string filename( const std::string& fullpath ) {
-			std::string path, file;
-			splitpath( fullpath, path, file );
-			return file;
-		}
+        static std::string filename( const std::string& fullpath ) {
+            std::string path, file;
+            splitpath( fullpath, path, file );
+            return file;
+        }
 
         /**
         @brief Counts the rows in a file.
         @input filename The filename to count the rows from.
         @returns The number of rows in the file.
         */
-       static int count_rows_arbcol( const std::string& filename ) {
+        static int count_rows_arbcol( const std::string& filename ) {
             int answer, c;
             FILE *f = fopen( filename.c_str(), "r" );
 
@@ -98,11 +137,12 @@ namespace NCPA {
         /**
         Determines if a given filename represents a readable file by
         attempting to open it and determining if it is in a good state.
-        @brief Determines if a given filename represents a readable file.
+        @brief Determines if a given filename represents a readable
+        file.
         @param filename The name of the file to attempt to open.
         @returns true if the file can be read on open, false otherwise.
         */
-       static bool fexists( const char *filename ) {
+        static bool fexists( const char *filename ) {
             std::ifstream ifile( filename );
             bool tf = ifile.good();
             ifile.close();

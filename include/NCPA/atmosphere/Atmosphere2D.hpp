@@ -117,6 +117,13 @@ namespace NCPA {
                     return *this;
                 }
 
+                virtual Atmosphere2D& add_property(
+                    const std::string& key, const vector_u_t& property ) {
+                    check_pointer();
+                    _ptr->add_property( key, property );
+                    return *this;
+                }
+
                 virtual Atmosphere2D remove_property(
                     const std::string& key ) {
                     check_pointer();
@@ -322,6 +329,14 @@ namespace NCPA {
 
                 explicit operator bool() const {
                     return ( _ptr ? true : false );
+                }
+
+                virtual abstract_atmosphere_2d* internal() {
+                    return _ptr.get();
+                }
+
+                virtual const abstract_atmosphere_2d* internal() const {
+                    return _ptr.get();
                 }
 
             private:

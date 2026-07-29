@@ -277,6 +277,19 @@
                      }
                      return sc;
                  }
+
+                 virtual vector_u_t values( const std::string& key ) const {
+                    if (this->contains_vector(key)) {
+                        return this->get_property( key ).values();
+                    } else if (this->contains_scalar(key)) {
+                        vector_u_t v;
+                        v.set_units( this->get_units( key ) );
+                        v.push_back( this->get(key) );
+                        return v;
+                    } else {
+                        throw std::out_of_range( "No key " + key + " found" );
+                    }
+                 }
          };
  
          typedef std::unique_ptr<abstract_atmosphere_1d> _atm_1d_ptr_t;
