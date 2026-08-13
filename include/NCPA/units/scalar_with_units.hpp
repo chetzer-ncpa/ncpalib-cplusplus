@@ -12,58 +12,58 @@
 #include <vector>
 
 // forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class ScalarWithUnits;
-    }  // namespace units
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace units {
+//         template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
+//         class ScalarWithUnits;
+//     }  // namespace units
+// }  // namespace NCPA
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// void swap( NCPA::units::ScalarWithUnits<T>&,
+//            NCPA::units::ScalarWithUnits<T>& ) noexcept;
 
 // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-void swap( NCPA::units::ScalarWithUnits<T>&,
-           NCPA::units::ScalarWithUnits<T>& ) noexcept;
+// template<typename T>
+// bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b );
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// bool operator!=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b );
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// bool operator>=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b );
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// bool operator<=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b );
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// bool operator>( const NCPA::units::ScalarWithUnits<T>& a,
+//                 const NCPA::units::ScalarWithUnits<T>& b );
+
+// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+// template<typename T>
+// bool operator<( const NCPA::units::ScalarWithUnits<T>& a,
+//                 const NCPA::units::ScalarWithUnits<T>& b );
 
 // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator!=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator>=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator<=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator>( const NCPA::units::ScalarWithUnits<T>& a,
-                const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator<( const NCPA::units::ScalarWithUnits<T>& a,
-                const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-std::ostream& operator<<( std::ostream& output,
-                          const NCPA::units::ScalarWithUnits<T>& D );
+// template<typename T>
+// std::ostream& operator<<( std::ostream& output,
+//                           const NCPA::units::ScalarWithUnits<T>& D );
 
 namespace NCPA {
     namespace units {
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
+                                         int>::type ENABLER = 0>
         // ENABLE_IF_REAL(T)>
         class ScalarWithUnits {
             public:
@@ -159,7 +159,8 @@ namespace NCPA {
 
                 template<typename U>
                 ScalarWithUnits<U> as() const {
-                    return ScalarWithUnits<U>( (U)this->get(), this->get_units () );
+                    return ScalarWithUnits<U>( (U)this->get(),
+                                               this->get_units() );
                 }
 
                 virtual void set_value( T newval ) { _value = newval; }
@@ -222,7 +223,7 @@ namespace NCPA {
                     // will throw invalid_conversion and leave original units
                     // unchanged if there's an error
                     _check_units_pointer();
-                    if ( !new_units.equals( *_units ) ) {
+                    if (!new_units.equals( *_units )) {
                         _do_units_conversion( *_units, new_units );
                     }
                     _units = &new_units;
@@ -268,9 +269,9 @@ namespace NCPA {
 
                 ScalarWithUnits operator+=(
                     const ScalarWithUnits<T>& second ) {
-                        _check_units_pointer();
-                    if ( this->_units->is_convertible_to(
-                             *( second._units ) ) ) {
+                    _check_units_pointer();
+                    if (this->_units->is_convertible_to(
+                            *( second._units ) )) {
                         this->_value += second.get_as( *( this->_units ) );
                         return *this;
                     } else {
@@ -340,20 +341,75 @@ namespace NCPA {
                     return this->_value / b.get_as( this->_units );
                 }
 
-                friend bool ::operator== <>( const ScalarWithUnits<T>& a,
-                                             const ScalarWithUnits<T>& b );
-                friend bool ::operator!= <>( const ScalarWithUnits<T>& a,
-                                             const ScalarWithUnits<T>& b );
-                friend bool ::operator>= <>( const ScalarWithUnits<T>& a,
-                                             const ScalarWithUnits<T>& b );
-                friend bool ::operator<= <>( const ScalarWithUnits<T>& a,
-                                             const ScalarWithUnits<T>& b );
-                friend bool ::operator><>( const ScalarWithUnits<T>& a,
-                                           const ScalarWithUnits<T>& b );
-                friend bool ::operator< <>( const ScalarWithUnits<T>& a,
-                                            const ScalarWithUnits<T>& b );
-                friend std::ostream& ::operator<< <>(
-                    std::ostream& output, const ScalarWithUnits<T>& D );
+                friend bool operator==( const ScalarWithUnits<T>& a,
+                                        const ScalarWithUnits<T>& b ) {
+                    if (a.get_units() == nullptr || b.get_units() == nullptr) {
+                        throw NCPA::units::invalid_conversion<>(
+                            "One or both units is null" );
+                    } else if (a.get_units()->is_convertible_to(
+                                   *( b.get_units() ) )) {
+                        NCPA::units::ScalarWithUnits<T> bb = b;
+                        bb.convert_units( a._units );
+                        return ( a._value == b._value );
+                    } else {
+                        return false;
+                    }
+                }
+
+                friend bool operator!=( const ScalarWithUnits<T>& a,
+                                        const ScalarWithUnits<T>& b ) {
+                    return !( a == b );
+                }
+
+                friend bool operator>=( const ScalarWithUnits<T>& a,
+                                        const ScalarWithUnits<T>& b ) {
+                    return !( a < b );
+                }
+
+                friend bool operator<=( const ScalarWithUnits<T>& a,
+                                        const ScalarWithUnits<T>& b ) {
+                    return !( a > b );
+                }
+
+                friend bool operator>( const ScalarWithUnits<T>& a,
+                                       const ScalarWithUnits<T>& b ) {
+                    if (a.get_units() == nullptr || b.get_units() == nullptr) {
+                        throw NCPA::units::invalid_conversion<>(
+                            "One or both units is null" );
+                    } else if (a.get_units()->is_convertible_to(
+                                   *( b.get_units() ) )) {
+                        NCPA::units::ScalarWithUnits<T> bb = b;
+                        bb.convert_units( a._units );
+                        return ( a._value > b._value );
+                    } else {
+                        throw NCPA::units::invalid_conversion<>( a._units,
+                                                                 b._units );
+                    }
+                }
+
+                friend bool operator<( const ScalarWithUnits<T>& a,
+                                       const ScalarWithUnits<T>& b ) {
+                    if (a.get_units() == nullptr || b.get_units() == nullptr) {
+                        throw NCPA::units::invalid_conversion<>(
+                            "One or both units is null" );
+                    } else if (a.get_units()->is_convertible_to(
+                                   *( b.get_units() ) )) {
+                        NCPA::units::ScalarWithUnits<T> bb = b;
+                        bb.convert_units( a._units );
+                        return ( a._value < b._value );
+                    } else {
+                        throw NCPA::units::invalid_conversion<>( a._units,
+                                                                 b._units );
+                    }
+                }
+
+                friend std::ostream& operator<<(
+                    std::ostream& output, const ScalarWithUnits<T>& D ) {
+                    const Unit *u = D.get_units();
+                    output << D.get() << " "
+                           << ( u == nullptr ? "<null>" : u->name() );
+                    return output;
+                }
 
             protected:
                 T _value;
@@ -362,7 +418,7 @@ namespace NCPA {
 
                 void _check_units_pointer() const {
                     if (_units == nullptr) {
-                        throw std::logic_error( "No units have been set!");
+                        throw std::logic_error( "No units have been set!" );
                     }
                 }
 
@@ -381,14 +437,14 @@ namespace NCPA {
                 }
         };
 
-        template<typename T>
-        std::ostream& operator<<( std::ostream& output,
-                                  const ScalarWithUnits<T>& D ) {
-            const Unit *u = D.get_units();
-            output << D.get() << " "
-                   << ( u == nullptr ? "<null>" : u->name() );
-            return output;
-        }
+        // template<typename T>
+        // std::ostream& operator<<( std::ostream& output,
+        //                           const ScalarWithUnits<T>& D ) {
+        //     const Unit *u = D.get_units();
+        //     output << D.get() << " "
+        //            << ( u == nullptr ? "<null>" : u->name() );
+        //     return output;
+        // }
 
     }  // namespace units
 }  // namespace NCPA
@@ -402,67 +458,70 @@ namespace NCPA {
 // }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b ) {
-    if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
-        throw NCPA::units::invalid_conversion<>( "One or both units is null" );
-    } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
-        NCPA::units::ScalarWithUnits<T> bb = b;
-        bb.convert_units( a._units );
-        return ( a._value == b._value );
-    } else {
-        return false;
-    }
-}
+// template<typename T>
+// bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b ) {
+//     if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
+//         throw NCPA::units::invalid_conversion<>( "One or both units is null"
+//         );
+//     } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
+//         NCPA::units::ScalarWithUnits<T> bb = b;
+//         bb.convert_units( a._units );
+//         return ( a._value == b._value );
+//     } else {
+//         return false;
+//     }
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator!=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b ) {
-    return !( a == b );
-}
+// template<typename T>
+// bool operator!=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b ) {
+//     return !( a == b );
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator>( const NCPA::units::ScalarWithUnits<T>& a,
-                const NCPA::units::ScalarWithUnits<T>& b ) {
-    if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
-        throw NCPA::units::invalid_conversion<>( "One or both units is null" );
-    } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
-        NCPA::units::ScalarWithUnits<T> bb = b;
-        bb.convert_units( a._units );
-        return ( a._value > b._value );
-    } else {
-        throw NCPA::units::invalid_conversion<>( a._units, b._units );
-    }
-}
+// template<typename T>
+// bool operator>( const NCPA::units::ScalarWithUnits<T>& a,
+//                 const NCPA::units::ScalarWithUnits<T>& b ) {
+//     if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
+//         throw NCPA::units::invalid_conversion<>( "One or both units is null"
+//         );
+//     } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
+//         NCPA::units::ScalarWithUnits<T> bb = b;
+//         bb.convert_units( a._units );
+//         return ( a._value > b._value );
+//     } else {
+//         throw NCPA::units::invalid_conversion<>( a._units, b._units );
+//     }
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator<( const NCPA::units::ScalarWithUnits<T>& a,
-                const NCPA::units::ScalarWithUnits<T>& b ) {
-    if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
-        throw NCPA::units::invalid_conversion<>( "One or both units is null" );
-    } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
-        NCPA::units::ScalarWithUnits<T> bb = b;
-        bb.convert_units( a._units );
-        return ( a._value < b._value );
-    } else {
-        throw NCPA::units::invalid_conversion<>( a._units, b._units );
-    }
-}
+// template<typename T>
+// bool operator<( const NCPA::units::ScalarWithUnits<T>& a,
+//                 const NCPA::units::ScalarWithUnits<T>& b ) {
+//     if ( a.get_units() == nullptr || b.get_units() == nullptr ) {
+//         throw NCPA::units::invalid_conversion<>( "One or both units is null"
+//         );
+//     } else if ( a.get_units()->is_convertible_to( *( b.get_units() ) ) ) {
+//         NCPA::units::ScalarWithUnits<T> bb = b;
+//         bb.convert_units( a._units );
+//         return ( a._value < b._value );
+//     } else {
+//         throw NCPA::units::invalid_conversion<>( a._units, b._units );
+//     }
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator>=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b ) {
-    return !( a < b );
-}
+// template<typename T>
+// bool operator>=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b ) {
+//     return !( a < b );
+// }
 
 // template<typename T, NO_DEFAULT_ENABLE_FUNCTION_IF_REAL(T)>
-template<typename T>
-bool operator<=( const NCPA::units::ScalarWithUnits<T>& a,
-                 const NCPA::units::ScalarWithUnits<T>& b ) {
-    return !( a > b );
-}
+// template<typename T>
+// bool operator<=( const NCPA::units::ScalarWithUnits<T>& a,
+//                  const NCPA::units::ScalarWithUnits<T>& b ) {
+//     return !( a > b );
+// }
