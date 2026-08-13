@@ -1,9 +1,5 @@
 #pragma once
 
-/**
- * @file
- * @brief
- */
 
 #include "NCPA/atmosphere/abstract_atmospheric_property.hpp"
 #include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
@@ -16,14 +12,6 @@
 #include <array>
 #include <stdexcept>
 #include <unordered_map>
-
-/**
- * @brief
- * @param a
- * @param b
- */
-static void swap( NCPA::atmos::abstract_atmospheric_property_3d& a,
-                  NCPA::atmos::abstract_atmospheric_property_3d& b ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -44,9 +32,9 @@ namespace NCPA {
                  * @param a
                  * @param b
                  */
-                friend void ::swap(
+                friend void swap(
                     abstract_atmospheric_property_3d& a,
-                    abstract_atmospheric_property_3d& b ) noexcept;
+                    abstract_atmospheric_property_3d& b ) noexcept {}
 
                 /**
                  * @brief
@@ -396,12 +384,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-/**
- * @brief
- * @param a
- * @param b
- */
-static void swap( NCPA::atmos::abstract_atmospheric_property_3d& a,
-                  NCPA::atmos::abstract_atmospheric_property_3d& b ) noexcept {
-}

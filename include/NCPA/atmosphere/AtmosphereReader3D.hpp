@@ -1,17 +1,8 @@
 #pragma once
 
-#ifndef FILE_SEPARATOR
-#  ifdef _WIN32
-#    define FILE_SEPARATOR '\\'
-#  else
-#    define FILE_SEPARATOR '/'
-#  endif
-#endif
-
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
-// #include "NCPA/atmosphere/builders.hpp"
 #include "NCPA/atmosphere/abstract_atmosphere_reader_3d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/files.hpp"

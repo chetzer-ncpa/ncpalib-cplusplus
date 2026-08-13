@@ -11,9 +11,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::Atmosphere2D&,
-                  NCPA::atmos::Atmosphere2D& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class Atmosphere2D : public AtmosphericModel {
@@ -32,16 +29,20 @@ namespace NCPA {
 
                 Atmosphere2D( Atmosphere2D&& source ) noexcept :
                     Atmosphere2D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~Atmosphere2D() {}
 
-                friend void ::swap( Atmosphere2D& a,
-                                    Atmosphere2D& b ) noexcept;
+                friend void swap( Atmosphere2D& a, Atmosphere2D& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<AtmosphericModel&>( a ),
+                          static_cast<AtmosphericModel&>( b ) );
+                    a._ptr.swap( b._ptr );
+                }
 
                 Atmosphere2D& operator=( Atmosphere2D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -331,11 +332,3 @@ namespace NCPA {
 
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::Atmosphere2D& a,
-                  NCPA::atmos::Atmosphere2D& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
-            static_cast<NCPA::atmos::AtmosphericModel&>( b ) );
-    a._ptr.swap( b._ptr );
-}

@@ -12,9 +12,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::piecewise_stratified_atmosphere_2d&,
-                  NCPA::atmos::piecewise_stratified_atmosphere_2d& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class piecewise_stratified_atmosphere_2d
@@ -42,20 +39,30 @@ namespace NCPA {
                 piecewise_stratified_atmosphere_2d(
                     piecewise_stratified_atmosphere_2d&& source ) noexcept :
                     piecewise_stratified_atmosphere_2d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~piecewise_stratified_atmosphere_2d() {}
 
                 piecewise_stratified_atmosphere_2d& operator=(
                     piecewise_stratified_atmosphere_2d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap(
+                friend void swap(
                     piecewise_stratified_atmosphere_2d& a,
-                    piecewise_stratified_atmosphere_2d& b ) noexcept;
+                    piecewise_stratified_atmosphere_2d& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<abstract_atmosphere_2d&>( a ),
+                          dynamic_cast<abstract_atmosphere_2d&>( b ) );
+                    swap( a._components, b._components );
+                    swap( a._scalar_properties, b._scalar_properties );
+                    swap( a._scalar_splines, b._scalar_splines );
+                    swap( a._axes, b._axes );
+                    swap( a._change_points, b._change_points );
+                    swap( a._1d_interpolator_type, b._1d_interpolator_type );
+                }
 
                 virtual std::unique_ptr<abstract_atmosphere_2d> clone()
                     const override {
@@ -70,7 +77,7 @@ namespace NCPA {
 
                 virtual bool is_stratified() const override { return false; }
 
-                virtual abstract_atmosphere_2d& set(
+                virtual piecewise_stratified_atmosphere_2d& set(
                     abstract_atmosphere_1d& atmos1d ) override {
                     _components.clear();
                     _scalar_properties.clear();
@@ -92,10 +99,10 @@ namespace NCPA {
                     }
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set(
+                virtual piecewise_stratified_atmosphere_2d& set(
                     const vector_u_t ranges,
                     std::vector<abstract_atmosphere_1d *> components )
                     override {
@@ -121,10 +128,10 @@ namespace NCPA {
                     _axes[ 0 ] = ranges;
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& append(
+                virtual piecewise_stratified_atmosphere_2d& append(
                     scalar_u_t range,
                     abstract_atmosphere_1d& atmos1d ) override {
                     double r = range.get_as( _axes[ 0 ].get_units() );
@@ -149,7 +156,7 @@ namespace NCPA {
                     }
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual std::unique_ptr<abstract_atmosphere_1d> extract(
@@ -157,7 +164,7 @@ namespace NCPA {
                     return _at( range ).internal()->clone();
                 }
 
-                virtual abstract_atmosphere_2d& set_interpolator(
+                virtual piecewise_stratified_atmosphere_2d& set_interpolator(
                     NCPA::interpolation::interpolator_2d_type_t interp_type )
                     override {
                     throw NCPA::NotImplementedError(
@@ -166,7 +173,7 @@ namespace NCPA {
                         "atmospheres" );
                 }
 
-                virtual abstract_atmosphere_2d& set_interpolator(
+                virtual piecewise_stratified_atmosphere_2d& set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type )
                     override {
                     _1d_interpolator_type = interp_type;
@@ -174,10 +181,10 @@ namespace NCPA {
                          it != _components.end(); ++it) {
                         it->set_interpolator( interp_type );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set_axis(
+                virtual piecewise_stratified_atmosphere_2d& set_axis(
                     size_t axis, vector_u_t vals ) override {
                     this->validate_axis( axis );
                     if (axis == 1) {
@@ -193,10 +200,10 @@ namespace NCPA {
                                 "atmosphere" );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual piecewise_stratified_atmosphere_2d& add_property(
                     const std::string& key,
                     const AtmosphericProperty2D& property ) override {
                     _assert_does_not_contain( key );
@@ -214,10 +221,10 @@ namespace NCPA {
                                   .resample( _axes[ 1 ] );
                         _components[ i ].add_property( key, prop );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual piecewise_stratified_atmosphere_2d& add_property(
                     const std::string& key,
                     const vector2d_u_t& property ) override {
                     if (_axes[ 0 ].size() != property.dim( 0 )) {
@@ -235,10 +242,10 @@ namespace NCPA {
                         tuple_atmospheric_property_1d prop( _axes[ 1 ], p );
                         _components[ i ].add_property( key, prop );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual piecewise_stratified_atmosphere_2d& add_property(
                     const std::string& key,
                     const vector_u_t& property ) override {
                     if (property.size() != _axes[ 0 ].size()) {
@@ -249,10 +256,10 @@ namespace NCPA {
                     _assert_does_not_contain( key );
                     _scalar_properties[ key ]
                         = std::make_pair( _axes[ 0 ], property );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual piecewise_stratified_atmosphere_2d& add_property(
                     const std::string& key, const vector_u_t& property,
                     const vector_u_t& index ) override {
                     _assert_does_not_contain( key );
@@ -264,10 +271,10 @@ namespace NCPA {
                     _scalar_properties[ key ] = { index, property };
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual piecewise_stratified_atmosphere_2d& add_property(
                     const std::string& key,
                     const scalar_u_t& property ) override {
                     _assert_does_not_contain( key );
@@ -275,10 +282,10 @@ namespace NCPA {
                         = vector_u_t( _axes[ 0 ].size(), property );
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& remove_property(
+                virtual piecewise_stratified_atmosphere_2d& remove_property(
                     const std::string& key ) override {
                     _assert_contains( key );
                     if (this->contains_scalar( key )) {
@@ -291,10 +298,10 @@ namespace NCPA {
                             it->remove_property( key );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& copy_property(
+                virtual piecewise_stratified_atmosphere_2d& copy_property(
                     const std::string& old_key,
                     const std::string& new_key ) override {
                     _assert_contains( old_key );
@@ -310,7 +317,7 @@ namespace NCPA {
                             it->copy_property( old_key, new_key );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual vector_u_t get_axis_vector( size_t n ) override {
@@ -390,7 +397,7 @@ namespace NCPA {
                     return _axes[ n ].back();
                 }
 
-                virtual abstract_atmosphere_2d& convert_axis_units(
+                virtual piecewise_stratified_atmosphere_2d& convert_axis_units(
                     size_t n, units_ptr_t new_units ) override {
                     this->validate_axis( n );
                     if (n == 0) {
@@ -408,10 +415,10 @@ namespace NCPA {
                             it->convert_axis_units( new_units );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& convert_units(
+                virtual piecewise_stratified_atmosphere_2d& convert_units(
                     const std::string& key, units_ptr_t new_units ) override {
                     if (this->contains_scalar( key )) {
                         _scalar_properties[ key ].second.convert_units(
@@ -424,10 +431,10 @@ namespace NCPA {
                             it->convert_units( key, new_units );
                         }
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& resample(
+                virtual piecewise_stratified_atmosphere_2d& resample(
                     size_t axis, double new_d ) override {
                     this->validate_axis( axis );
                     vector_u_t new_axis = _axes[ axis ];
@@ -440,7 +447,7 @@ namespace NCPA {
                     return this->resample( axis, new_axis );
                 }
 
-                virtual abstract_atmosphere_2d& resample(
+                virtual piecewise_stratified_atmosphere_2d& resample(
                     size_t axis, vector_u_t new_z ) override {
                     this->validate_axis( axis );
                     if (axis == 1) {
@@ -473,10 +480,10 @@ namespace NCPA {
                         _calculate_change_points();
                     }
                     _axes[ axis ] = new_z;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& resample(
+                virtual piecewise_stratified_atmosphere_2d& resample(
                     vector_u_t new_ax1, vector_u_t new_ax2 ) override {
                     for (auto it = _scalar_properties.begin();
                          it != _scalar_properties.end(); ++it) {
@@ -505,7 +512,7 @@ namespace NCPA {
                     _axes[ 1 ] = new_ax2;
                     _build_scalar_splines();
                     _calculate_change_points();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual std::vector<std::string> get_keys() const override {
@@ -663,17 +670,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap(
-    NCPA::atmos::piecewise_stratified_atmosphere_2d& a,
-    NCPA::atmos::piecewise_stratified_atmosphere_2d& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::atmos::abstract_atmosphere_2d&>( a ),
-            dynamic_cast<NCPA::atmos::abstract_atmosphere_2d&>( b ) );
-    swap( a._components, b._components );
-    swap( a._scalar_properties, b._scalar_properties );
-    swap( a._scalar_splines, b._scalar_splines );
-    swap( a._axes, b._axes );
-    swap( a._change_points, b._change_points );
-    swap( a._1d_interpolator_type, b._1d_interpolator_type );
-}

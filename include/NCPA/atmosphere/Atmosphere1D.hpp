@@ -1,17 +1,14 @@
 #pragma once
 
 #include "NCPA/atmosphere/abstract_atmosphere_1d.hpp"
-#include "NCPA/atmosphere/tuple_atmosphere_1d.hpp"
 #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/atmosphere/tuple_atmosphere_1d.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
 #include <memory>
 #include <string>
-
-static void swap( NCPA::atmos::Atmosphere1D&,
-                  NCPA::atmos::Atmosphere1D& ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -32,22 +29,24 @@ namespace NCPA {
 
                 Atmosphere1D( Atmosphere1D&& source ) noexcept :
                     Atmosphere1D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~Atmosphere1D() {}
 
-                friend void ::swap( Atmosphere1D& a,
-                                    Atmosphere1D& b ) noexcept;
+                friend void swap( Atmosphere1D& a, Atmosphere1D& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<AtmosphericModel&>( a ),
+                          static_cast<AtmosphericModel&>( b ) );
+                    a._ptr.swap( b._ptr );
+                }
 
                 Atmosphere1D& operator=( Atmosphere1D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                virtual bool is_stratified() const override {
-                    return true;
-                }
+                virtual bool is_stratified() const override { return true; }
 
                 virtual Atmosphere1D set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type ) {
@@ -241,9 +240,7 @@ namespace NCPA {
                     }
                 }
 
-                virtual void print( std::ostream& os ) {
-                    os << *this;
-                }
+                virtual void print( std::ostream& os ) { os << *this; }
 
                 // friend binary operators
                 friend std::ostream& operator<<( std::ostream& os,
@@ -269,11 +266,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::Atmosphere1D& a,
-                  NCPA::atmos::Atmosphere1D& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
-          static_cast<NCPA::atmos::AtmosphericModel&>( b ) );
-    a._ptr.swap( b._ptr );
-}

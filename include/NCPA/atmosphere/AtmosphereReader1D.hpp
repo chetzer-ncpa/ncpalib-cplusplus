@@ -1,12 +1,5 @@
 #pragma once
 
-#ifndef FILE_SEPARATOR
-#  ifdef _WIN32
-#    define FILE_SEPARATOR '\\'
-#  else
-#    define FILE_SEPARATOR '/'
-#  endif
-#endif
 
 #include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
@@ -19,9 +12,6 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-
-static void swap( NCPA::atmos::AtmosphereReader1D&,
-                  NCPA::atmos::AtmosphereReader1D& ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -43,18 +33,21 @@ namespace NCPA {
 
                 AtmosphereReader1D( AtmosphereReader1D&& source ) noexcept :
                     AtmosphereReader1D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphereReader1D() {}
 
                 AtmosphereReader1D& operator=( AtmosphereReader1D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphereReader1D& a,
-                                    AtmosphereReader1D& b ) noexcept;
+                friend void swap( AtmosphereReader1D& a,
+                                  AtmosphereReader1D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual Atmosphere1D read( std::istream& in1 ) {
                     _check_pointer();
@@ -90,9 +83,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::AtmosphereReader1D& a,
-                  NCPA::atmos::AtmosphereReader1D& b ) noexcept {
-    using std::swap;
-    std::swap( a._ptr, b._ptr );
-}

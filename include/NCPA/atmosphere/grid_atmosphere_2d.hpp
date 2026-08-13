@@ -12,9 +12,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::grid_atmosphere_2d&,
-                  NCPA::atmos::grid_atmosphere_2d& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class grid_atmosphere_2d : public abstract_atmosphere_2d {
@@ -36,18 +33,30 @@ namespace NCPA {
 
                 grid_atmosphere_2d( grid_atmosphere_2d&& source ) noexcept :
                     grid_atmosphere_2d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~grid_atmosphere_2d() {}
 
                 grid_atmosphere_2d& operator=( grid_atmosphere_2d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( grid_atmosphere_2d& a,
-                                    grid_atmosphere_2d& b ) noexcept;
+                friend void swap( grid_atmosphere_2d& a,
+                                  grid_atmosphere_2d& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<abstract_atmosphere_2d&>( a ),
+                          dynamic_cast<abstract_atmosphere_2d&>( b ) );
+                    swap( a._properties, b._properties );
+                    swap( a._scalar_properties, b._scalar_properties );
+                    swap( a._scalar_splines, b._scalar_splines );
+                    swap( a._z, b._z );
+                    swap( a._r, b._r );
+                    swap( a._internals, b._internals );
+                    swap( a._interpolator_type, b._interpolator_type );
+                    swap( a._1d_interpolator_type, b._1d_interpolator_type );
+                }
 
                 virtual std::unique_ptr<abstract_atmosphere_2d> clone()
                     const override {
@@ -84,7 +93,7 @@ namespace NCPA {
                     }
                 }
 
-                virtual abstract_atmosphere_2d& set(
+                virtual grid_atmosphere_2d& set(
                     abstract_atmosphere_1d& atmos1d ) override {
                     _r.resize( 1 );
                     _r[ 0 ] = 0.0;
@@ -94,10 +103,10 @@ namespace NCPA {
                     _properties.clear();
                     _scalar_properties.clear();
                     _translate_to_grid();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set(
+                virtual grid_atmosphere_2d& set(
                     const vector_u_t ranges,
                     std::vector<abstract_atmosphere_1d *> components )
                     override {
@@ -111,10 +120,10 @@ namespace NCPA {
                         _internals.push_back( ( *it )->clone() );
                     }
                     _translate_to_grid();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& append(
+                virtual grid_atmosphere_2d& append(
                     scalar_u_t range,
                     abstract_atmosphere_1d& atmos1d ) override {
                     if (range.get_as( _r.get_units() ) <= _r.back()) {
@@ -126,10 +135,10 @@ namespace NCPA {
                     _r.push_back( range.get_as( _r.get_units() ) );
                     _internals.push_back( Atmosphere1D( atmos1d.clone() ) );
                     _internals.back().resample( _z );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set_interpolator(
+                virtual grid_atmosphere_2d& set_interpolator(
                     NCPA::interpolation::interpolator_2d_type_t interp_type )
                     override {
                     _interpolator_type = interp_type;
@@ -137,29 +146,29 @@ namespace NCPA {
                          it != _properties.end(); ++it) {
                         it->second.set_interpolator( interp_type );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set_interpolator(
+                virtual grid_atmosphere_2d& set_interpolator(
                     NCPA::interpolation::interpolator_1d_type_t interp_type )
                     override {
                     this->_translate_to_grid();
                     _1d_interpolator_type = interp_type;
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& set_axis(
+                virtual grid_atmosphere_2d& set_axis(
                     size_t axis, vector_u_t vals ) override {
                     this->validate_axis( axis );
                     for (auto it = _properties.begin();
                          it != _properties.end(); ++it) {
                         it->second.resample( axis, vals );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual grid_atmosphere_2d& add_property(
                     const std::string& key,
                     const AtmosphericProperty2D& property ) override {
                     _assert_does_not_contain( key );
@@ -172,10 +181,10 @@ namespace NCPA {
                         _z = _properties[ key ].axis( 1 );
                     }
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual grid_atmosphere_2d& add_property(
                     const std::string& key,
                     const vector2d_u_t& property ) override {
                     _assert_does_not_contain( key );
@@ -189,16 +198,16 @@ namespace NCPA {
                     _properties[ key ] = grid_atmospheric_property_2d();
                     _properties[ key ].set( _r, _z, property );
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual grid_atmosphere_2d& add_property(
                     const std::string& key,
                     const vector_u_t& property ) override {
                     return this->add_property( key, property, _r );
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual grid_atmosphere_2d& add_property(
                     const std::string& key, const vector_u_t& property,
                     const vector_u_t& index ) override {
                     _assert_does_not_contain( key );
@@ -225,28 +234,28 @@ namespace NCPA {
                         _scalar_properties[ key ] = newvec;
                     }
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& add_property(
+                virtual grid_atmosphere_2d& add_property(
                     const std::string& key,
                     const scalar_u_t& property ) override {
                     _assert_does_not_contain( key );
                     _scalar_properties[ key ]
                         = vector_u_t( _r.size(), property );
                     _build_scalar_splines();
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& remove_property(
+                virtual grid_atmosphere_2d& remove_property(
                     const std::string& key ) override {
                     _properties.erase( key );
                     _scalar_properties.erase( key );
                     _scalar_splines.erase( key );
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& copy_property(
+                virtual grid_atmosphere_2d& copy_property(
                     const std::string& old_key,
                     const std::string& new_key ) override {
                     _assert_does_not_contain( new_key );
@@ -261,7 +270,7 @@ namespace NCPA {
                             "Key " + old_key
                             + " does not exist in atmosphere!" );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual vector_u_t get_axis_vector( size_t n ) override {
@@ -342,7 +351,7 @@ namespace NCPA {
                     return maxax;
                 }
 
-                virtual abstract_atmosphere_2d& convert_axis_units(
+                virtual grid_atmosphere_2d& convert_axis_units(
                     size_t n, units_ptr_t new_units ) override {
                     this->validate_axis( n );
                     if (n == 0) {
@@ -354,10 +363,10 @@ namespace NCPA {
                         }
                         _z.convert_units( *new_units );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& convert_units(
+                virtual grid_atmosphere_2d& convert_units(
                     const std::string& key, units_ptr_t new_units ) override {
                     if (this->contains_vector( key )) {
                         _properties[ key ].convert_units( *new_units );
@@ -366,13 +375,13 @@ namespace NCPA {
                     } else {
                         throw std::range_error( "Unknown key: " + key );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual bool is_stratified() const override { return false; }
 
-                virtual abstract_atmosphere_2d& resample(
-                    size_t axis, double new_d ) override {
+                virtual grid_atmosphere_2d& resample( size_t axis,
+                                                      double new_d ) override {
                     this->validate_axis( axis );
                     if (axis == 1) {
                         vector_u_t new_z;
@@ -384,10 +393,10 @@ namespace NCPA {
                         }
                         return this->resample( axis, new_z );
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& resample(
+                virtual grid_atmosphere_2d& resample(
                     size_t axis, vector_u_t new_z ) override {
                     this->validate_axis( axis );
                     if (axis == 1) {
@@ -397,17 +406,17 @@ namespace NCPA {
                         }
                         _z = new_z;
                     }
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
-                virtual abstract_atmosphere_2d& resample(
+                virtual grid_atmosphere_2d& resample(
                     vector_u_t new_ax1, vector_u_t new_ax2 ) override {
                     for (auto it = _properties.begin();
                          it != _properties.end(); ++it) {
                         it->second.resample( new_ax1, new_ax2 );
                     }
                     _z = new_ax2;
-                    RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D;
+                    return *this;
                 }
 
                 virtual std::vector<std::string> get_keys() const override {
@@ -577,18 +586,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::grid_atmosphere_2d& a,
-                  NCPA::atmos::grid_atmosphere_2d& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::atmos::abstract_atmosphere_2d&>( a ),
-            dynamic_cast<NCPA::atmos::abstract_atmosphere_2d&>( b ) );
-    swap( a._properties, b._properties );
-    swap( a._scalar_properties, b._scalar_properties );
-    swap( a._scalar_splines, b._scalar_splines );
-    swap( a._z, b._z );
-    swap( a._r, b._r );
-    swap( a._internals, b._internals );
-    swap( a._interpolator_type, b._interpolator_type );
-    swap( a._1d_interpolator_type, b._1d_interpolator_type );
-}

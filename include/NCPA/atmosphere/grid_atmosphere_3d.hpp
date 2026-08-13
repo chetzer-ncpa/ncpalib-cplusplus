@@ -12,9 +12,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::grid_atmosphere_3d&,
-                  NCPA::atmos::grid_atmosphere_3d& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class grid_atmosphere_3d : public abstract_atmosphere_3d {
@@ -36,7 +33,34 @@ namespace NCPA {
                     _build_scalar_splines();
                 }
 
-                grid_atmosphere_3d( grid_atmosphere_3d&& source ) noexcept : grid_atmosphere_3d() { ::swap( *this, source ); } virtual ~grid_atmosphere_3d() {} grid_atmosphere_3d& operator=( grid_atmosphere_3d other ) { ::swap( *this, other ); return *this; } friend void ::swap( grid_atmosphere_3d& a, grid_atmosphere_3d& b ) noexcept; virtual std::unique_ptr<abstract_atmosphere_3d> clone() const override { return std::unique_ptr<abstract_atmosphere_3d>( new grid_atmosphere_3d( *this ) ); }
+                grid_atmosphere_3d( grid_atmosphere_3d&& source ) noexcept :
+                    grid_atmosphere_3d() {
+                    swap( *this, source );
+                }
+
+                virtual ~grid_atmosphere_3d() {}
+
+                grid_atmosphere_3d& operator=( grid_atmosphere_3d other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( grid_atmosphere_3d& a,
+                                  grid_atmosphere_3d& b ) noexcept {
+                    using std::swap;
+                    swap( a._properties, b._properties );
+                    swap( a._scalar_properties, b._scalar_properties );
+                    swap( a._scalar_splines, b._scalar_splines );
+                    swap( a._axes, b._axes );
+                    swap( a._interpolator_type, b._interpolator_type );
+                    swap( a._2d_interpolator_type, b._2d_interpolator_type );
+                }
+
+                virtual std::unique_ptr<abstract_atmosphere_3d> clone()
+                    const override {
+                    return std::unique_ptr<abstract_atmosphere_3d>(
+                        new grid_atmosphere_3d( *this ) );
+                }
 
                 virtual grid_atmosphere_3d& set(
                     const vector_u_t& ax1, const vector_u_t& ax2,
@@ -107,7 +131,8 @@ namespace NCPA {
                     }
                     this->set_interpolator( _interpolator_type );
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual size_t size( size_t dim ) const override {
@@ -146,7 +171,8 @@ namespace NCPA {
                     }
                     this->set_interpolator( _interpolator_type );
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& set_interpolator(
@@ -157,7 +183,8 @@ namespace NCPA {
                          it != _properties.end(); ++it) {
                         it->second.set_interpolator( interp_type );
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& set_interpolator(
@@ -165,7 +192,8 @@ namespace NCPA {
                     override {
                     _2d_interpolator_type = interp_type;
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& set_interpolator(
@@ -183,7 +211,8 @@ namespace NCPA {
                         it->second.resample( axis, vals );
                     }
                     _axes[ axis ] = vals;
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& add_property(
@@ -202,7 +231,8 @@ namespace NCPA {
                         }
                     }
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& add_property(
@@ -224,7 +254,8 @@ namespace NCPA {
                     _properties[ key ].set( _axes[ 0 ], _axes[ 1 ], _axes[ 2 ],
                                             property );
                     _properties[ key ].set_interpolator( _interpolator_type );
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& add_property(
@@ -244,7 +275,8 @@ namespace NCPA {
                     }
                     _scalar_properties[ key ] = property;
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& add_property(
@@ -259,7 +291,8 @@ namespace NCPA {
                         key, vector2d_u_t( _axes[ 0 ].size(),
                                            _axes[ 1 ].size(), property ) ) );
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& remove_property(
@@ -267,7 +300,8 @@ namespace NCPA {
                     _properties.erase( key );
                     _scalar_properties.erase( key );
                     _scalar_splines.erase( key );
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& copy_property(
@@ -285,7 +319,8 @@ namespace NCPA {
                             "Key " + old_key
                             + " does not exist in atmosphere!" );
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual vector_u_t get_axis_vector( size_t n ) override {
@@ -430,7 +465,8 @@ namespace NCPA {
                     }
                     _axes[ n ].convert_units( *new_units );
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& convert_units(
@@ -442,11 +478,12 @@ namespace NCPA {
                     } else {
                         throw std::range_error( "Unknown key: " + key );
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
-                virtual grid_atmosphere_3d& resample(
-                    size_t axis, double new_d ) override {
+                virtual grid_atmosphere_3d& resample( size_t axis,
+                                                      double new_d ) override {
                     this->validate_axis( axis );
                     vector_u_t new_x;
                     new_x.set_units( *_axes[ axis ].get_units() );
@@ -493,7 +530,8 @@ namespace NCPA {
                     if (axis <= 1) {
                         _build_scalar_splines();
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual grid_atmosphere_3d& resample(
@@ -524,7 +562,8 @@ namespace NCPA {
                     _scalar_properties = scalar_copy;
                     _axes              = { new_ax1, new_ax2, new_ax3 };
                     _build_scalar_splines();
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual std::vector<std::string> get_keys() const override {
@@ -661,14 +700,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::grid_atmosphere_3d& a,
-                  NCPA::atmos::grid_atmosphere_3d& b ) noexcept {
-    using std::swap;
-    swap( a._properties, b._properties );
-    swap( a._scalar_properties, b._scalar_properties );
-    swap( a._scalar_splines, b._scalar_splines );
-    swap( a._axes, b._axes );
-    swap( a._interpolator_type, b._interpolator_type );
-    swap( a._2d_interpolator_type, b._2d_interpolator_type );
-}

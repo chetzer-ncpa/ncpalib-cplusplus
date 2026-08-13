@@ -9,9 +9,6 @@
 #include <memory>
 #include <stdexcept>
 
-static void swap( NCPA::atmos::AtmosphericProperty1D& a,
-                  NCPA::atmos::AtmosphericProperty1D& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class AtmosphericProperty1D {
@@ -45,19 +42,23 @@ namespace NCPA {
                 AtmosphericProperty1D(
                     AtmosphericProperty1D&& source ) noexcept :
                     AtmosphericProperty1D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphericProperty1D() {}
 
                 AtmosphericProperty1D& operator=(
                     AtmosphericProperty1D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphericProperty1D& a,
-                                    AtmosphericProperty1D& b ) noexcept;
+                friend void swap(
+                    NCPA::atmos::AtmosphericProperty1D& a,
+                    NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual size_t size() const {
                     this->_check_pointer();
@@ -172,8 +173,8 @@ namespace NCPA {
     }  // namespace atmos
 }  // namespace NCPA
 
-static void swap( NCPA::atmos::AtmosphericProperty1D& a,
-                  NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
-    using std::swap;
-    swap( a._ptr, b._ptr );
-}
+// static void swap( NCPA::atmos::AtmosphericProperty1D& a,
+//                   NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
+//     using std::swap;
+//     swap( a._ptr, b._ptr );
+// }

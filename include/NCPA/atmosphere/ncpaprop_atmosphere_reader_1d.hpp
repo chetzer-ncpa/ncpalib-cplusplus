@@ -1,13 +1,5 @@
 #pragma once
 
-#ifndef FILE_SEPARATOR
-#  ifdef _WIN32
-#    define FILE_SEPARATOR '\\'
-#  else
-#    define FILE_SEPARATOR '/'
-#  endif
-#endif
-
 #include "NCPA/atmosphere/abstract_atmosphere_reader_1d.hpp"
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
@@ -19,9 +11,6 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-
-static void swap( NCPA::atmos::ncpaprop_atmosphere_reader_1d&,
-                  NCPA::atmos::ncpaprop_atmosphere_reader_1d& ) noexcept;
 
 namespace NCPA {
     namespace atmos {
@@ -38,20 +27,22 @@ namespace NCPA {
                 ncpaprop_atmosphere_reader_1d(
                     ncpaprop_atmosphere_reader_1d&& source ) noexcept :
                     ncpaprop_atmosphere_reader_1d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~ncpaprop_atmosphere_reader_1d() {}
 
                 ncpaprop_atmosphere_reader_1d& operator=(
                     ncpaprop_atmosphere_reader_1d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap(
-                    ncpaprop_atmosphere_reader_1d& a,
-                    ncpaprop_atmosphere_reader_1d& b ) noexcept;
+                friend void swap( ncpaprop_atmosphere_reader_1d& a,
+                  ncpaprop_atmosphere_reader_1d& b ) noexcept {
+    swap( dynamic_cast<_abstract_atmosphere_reader_1d&>( a ),
+            dynamic_cast<_abstract_atmosphere_reader_1d&>( b ) );
+}
 
                 virtual std::unique_ptr<_abstract_atmosphere_reader_1d> clone()
                     const override {
@@ -392,9 +383,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::ncpaprop_atmosphere_reader_1d& a,
-                  NCPA::atmos::ncpaprop_atmosphere_reader_1d& b ) noexcept {
-    ::swap( dynamic_cast<NCPA::atmos::_abstract_atmosphere_reader_1d&>( a ),
-            dynamic_cast<NCPA::atmos::_abstract_atmosphere_reader_1d&>( b ) );
-}

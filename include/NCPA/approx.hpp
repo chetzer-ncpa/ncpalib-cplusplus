@@ -1,15 +1,8 @@
 #pragma once
 
-/**
- * @file
- * @brief 
- */
-
 #include "NCPA/linearalgebra.hpp"
-// #include "NCPA/types.hpp"
 
 #include <complex>
-// #include <type_traits>
 #include <vector>
 
 namespace NCPA {

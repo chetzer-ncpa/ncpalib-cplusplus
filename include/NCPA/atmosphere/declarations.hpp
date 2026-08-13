@@ -6,6 +6,14 @@
 #include <unordered_map>
 #include <vector>
 
+#ifndef FILE_SEPARATOR
+#  ifdef _WIN32
+#    define FILE_SEPARATOR '\\'
+#  else
+#    define FILE_SEPARATOR '/'
+#  endif
+#endif
+
 #ifdef NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
 #  if NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
 #    define NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR \
