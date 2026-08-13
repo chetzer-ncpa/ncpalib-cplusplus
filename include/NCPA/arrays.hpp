@@ -37,14 +37,14 @@ namespace NCPA {
      * management utilities.
      */
     namespace arrays {
-        template<typename T>
-        class vector2d_t;
+        // template<typename T>
+        // class vector2d_t;
 
-        template<typename T>
-        class vector3d_t;
+        // template<typename T>
+        // class vector3d_t;
 
-        template<typename T, size_t N>
-        class _abstract_arraylike;
+        // template<typename T, size_t N>
+        // class _abstract_arraylike;
 
         template<typename T, size_t N>
         class ArrayLike;
@@ -93,95 +93,6 @@ namespace NCPA {
         template<typename T, size_t N>
         using global_registry_t
             = std::map<const ArrayLike<T, N> *, global_registry_entry_t<T, N>>;
-    }  // namespace arrays
-}  // namespace NCPA
-
-/**
- * @brief Global swap specialization for _abstract_arraylike objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::_abstract_arraylike<T, N>& a,
-                  NCPA::arrays::_abstract_arraylike<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ArrayLike objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLike<T, N>& a,
-                  NCPA::arrays::ArrayLike<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for 1D ArrayLike objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
-                  NCPA::arrays::ArrayLike<T, 1>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ArrayView objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first view.
- * @param b The second view.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, N>& a,
-                  NCPA::arrays::ArrayView<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for 0D (scalar) ArrayView objects.
- * @tparam T The element type.
- * @param a The first view.
- * @param b The second view.
- */
-template<typename T>
-static void swap( NCPA::arrays::ArrayView<T, 0>& a,
-                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for NDimensionalArray objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
-                  NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ThreeDimensionalArray objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
-                  NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for TwoDimensionalArray objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
-                  NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept;
-
-namespace NCPA {
-    namespace arrays {
 
         /**
          * @class vector2d_t
@@ -963,7 +874,7 @@ namespace NCPA {
          */
         template<typename T>
         void add_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
+            T *tempvec = zeros<T>( N );
             for (size_t i = 0; i < N; i++) {
                 tempvec[ i ] = v1[ i ] + v2[ i ];
             }
@@ -1003,7 +914,7 @@ namespace NCPA {
          */
         template<typename T>
         void divide_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
+            T *tempvec = zeros<T>( N );
             for (size_t i = 0; i < N; i++) {
                 tempvec[ i ] = v1[ i ] / v2[ i ];
             }
@@ -1040,7 +951,7 @@ namespace NCPA {
          */
         template<typename T>
         void multiply_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
+            T *tempvec = zeros<T>( N );
             for (size_t i = 0; i < N; i++) {
                 tempvec[ i ] = v1[ i ] * v2[ i ];
             }
@@ -1058,7 +969,7 @@ namespace NCPA {
          */
         template<typename T, typename U>
         void scale_array( size_t N, const U *in, T factor, U *& out ) {
-            U *tempvec = NCPA::arrays::zeros<U>( N );
+            U *tempvec = zeros<U>( N );
             for (size_t i = 0; i < N; i++) {
                 tempvec[ i ] = in[ i ] * (U)factor;
             }
@@ -1167,7 +1078,7 @@ namespace NCPA {
          */
         template<typename T>
         void subtract_arrays( size_t N, const T *v1, const T *v2, T *& v12 ) {
-            T *tempvec = NCPA::arrays::zeros<T>( N );
+            T *tempvec = zeros<T>( N );
             for (size_t i = 0; i < N; i++) {
                 tempvec[ i ] = v1[ i ] - v2[ i ];
             }
@@ -1289,8 +1200,9 @@ namespace NCPA {
             public:
                 virtual ~_abstract_arraylike() {}
 
-                friend void ::swap<>( _abstract_arraylike<T, N>& a,
-                                      _abstract_arraylike<T, N>& b ) noexcept;
+                friend void swap(
+                    _abstract_arraylike<T, N>& a,
+                    _abstract_arraylike<T, N>& b ) noexcept {}
 
                 virtual size_t buffer( T *b ) const            = 0;
                 virtual size_t debuffer( const T *b )          = 0;
@@ -1389,16 +1301,25 @@ namespace NCPA {
 
                 ArrayLike( ArrayLike<T, N>&& other ) noexcept :
                     ArrayLike<T, N>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 ArrayLike<T, N>& operator=( ArrayLike<T, N> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ArrayLike<T, N>& a,
-                                      ArrayLike<T, N>& b ) noexcept;
+                friend void swap( ArrayLike<T, N>& a,
+                                  ArrayLike<T, N>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<_abstract_arraylike<T, N>&>(
+                            a ),
+                        static_cast<_abstract_arraylike<T, N>&>(
+                            b ) );
+                    swap( a._dimensions, b._dimensions );
+                    swap( a._local_views, b._local_views );
+                }
 
                 virtual T& at( const std::array<size_t, N>& coords ) = 0;
                 virtual const T& at(
@@ -1656,8 +1577,17 @@ namespace NCPA {
 
                 virtual ~ArrayLike() {}
 
-                friend void ::swap<>( ArrayLike<T, 1>& a,
-                                      ArrayLike<T, 1>& b ) noexcept;
+                friend void swap( ArrayLike<T, 1>& a,
+                                  ArrayLike<T, 1>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<_abstract_arraylike<T, 1>&>(
+                            a ),
+                        static_cast<_abstract_arraylike<T, 1>&>(
+                            b ) );
+                    swap( a._dimensions, b._dimensions );
+                    swap( a._local_views, b._local_views );
+                }
 
                 ArrayLike( const ArrayLike<T, 1>& other ) :
                     ArrayLike<T, 1>( other._dimensions ) {
@@ -1667,11 +1597,11 @@ namespace NCPA {
 
                 ArrayLike( ArrayLike<T, 1>&& other ) noexcept :
                     ArrayLike<T, 1>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 ArrayLike<T, 1>& operator=( ArrayLike<T, 1> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -1944,7 +1874,7 @@ namespace NCPA {
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
                     // this->redimension( newdims );
-                    this->_dimensions = newdims;
+                    this->_dimensions             = newdims;
                 }
 
                 virtual ~ArrayView() {}
@@ -1960,16 +1890,27 @@ namespace NCPA {
 
                 ArrayView( ArrayView<T, N>&& other ) noexcept :
                     ArrayLike<T, N>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 ArrayView<T, N>& operator=( ArrayView<T, N> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ArrayView<T, N>& a,
-                                      ArrayView<T, N>& b ) noexcept;
+                friend void swap( ArrayView<T, N>& a,
+                                  ArrayView<T, N>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<ArrayLike<T, N>&>( a ),
+                          static_cast<ArrayLike<T, N>&>( b ) );
+                    swap( a._parent, b._parent );
+                    swap( a._cparent, b._cparent );
+                    swap( a._const_dim, b._const_dim );
+                    swap( a._key, b._key );
+                    swap( a._var_dims, b._var_dims );
+                    swap( a._mapped_indices, b._mapped_indices );
+                    swap( a._dimensions, b._dimensions );
+                }
 
                 virtual T& at( const std::array<size_t, N>& coords ) override {
                     if (_parent == nullptr) {
@@ -2052,7 +1993,7 @@ namespace NCPA {
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
                     // this->redimension( newdims );
-                    this->_dimensions = newdims;
+                    this->_dimensions             = newdims;
                 }
 
                 ArrayView( const ArrayLike<T, 2> *parent, size_t const_dim,
@@ -2073,7 +2014,7 @@ namespace NCPA {
                     }
                     _mapped_indices[ _const_dim ] = const_dim_ind;
                     // this->redimension( newdims );
-                    this->_dimensions = newdims;
+                    this->_dimensions             = newdims;
                 }
 
                 virtual ~ArrayView() {}
@@ -2089,16 +2030,27 @@ namespace NCPA {
 
                 ArrayView( ArrayView<T, 1>&& other ) noexcept :
                     ArrayLike<T, 1>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 ArrayView<T, 1>& operator=( ArrayView<T, 1> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( ArrayView<T, 1>& a,
-                                      ArrayView<T, 1>& b ) noexcept;
+                friend void swap( ArrayView<T, 1>& a,
+                                  ArrayView<T, 1>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<ArrayLike<T, 1>&>( a ),
+                          static_cast<ArrayLike<T, 1>&>( b ) );
+                    swap( a._parent, b._parent );
+                    swap( a._cparent, b._cparent );
+                    swap( a._const_dim, b._const_dim );
+                    swap( a._key, b._key );
+                    swap( a._var_dims, b._var_dims );
+                    swap( a._mapped_indices, b._mapped_indices );
+                    swap( a._dimensions, b._dimensions );
+                }
 
                 virtual T& at( const std::array<size_t, 1>& coords ) override {
                     if (_parent == nullptr) {
@@ -2185,11 +2137,11 @@ namespace NCPA {
                     _key { other._key } {}
 
                 ArrayView( ArrayView<T, 0>&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 ArrayView<T, 0>& operator=( ArrayView<T, 0> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -2200,8 +2152,14 @@ namespace NCPA {
 
                 virtual ~ArrayView() {}
 
-                friend void ::swap<>( ArrayView<T, 0>& a,
-                                      ArrayView<T, 0>& b ) noexcept;
+                friend void swap( ArrayView<T, 0>& a,
+                                  ArrayView<T, 0>& b ) noexcept {
+                    using std::swap;
+                    swap( a._parent, b._parent );
+                    swap( a._cparent, b._cparent );
+                    swap( a._parent_ind, b._parent_ind );
+                    swap( a._key, b._key );
+                }
 
                 virtual T& at() {
                     if (_parent != nullptr) {
@@ -2307,17 +2265,23 @@ namespace NCPA {
                 virtual ~NDimensionalArray() {}
 
                 NDimensionalArray( NDimensionalArray<T, N>&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 NDimensionalArray<T, N>& operator=(
                     NDimensionalArray<T, N> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap<>( NDimensionalArray<T, N>& a,
-                                      NDimensionalArray<T, N>& b ) noexcept;
+                friend void swap(
+                    NDimensionalArray<T, N>& a,
+                    NDimensionalArray<T, N>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<ArrayLike<T, N>&>( a ),
+                          static_cast<ArrayLike<T, N>&>( b ) );
+                    swap( a._internal, b._internal );
+                }
 
                 NDimensionalArray( const NDimensionalArray<T, N>& other ) :
                     ArrayLike<T, N>( other ), _internal { other._internal } {}
@@ -2424,15 +2388,21 @@ namespace NCPA {
 
                 TwoDimensionalArray(
                     TwoDimensionalArray<T>&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~TwoDimensionalArray() {}
 
                 TwoDimensionalArray<T>& operator=(
                     TwoDimensionalArray<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
+                }
+
+                friend void swap( TwoDimensionalArray<T>& a,
+                                  TwoDimensionalArray<T>& b ) noexcept {
+                    swap( static_cast<NDimensionalArray<T, 2>&>( a ),
+                          static_cast<NDimensionalArray<T, 2>&>( b ) );
                 }
         };
 
@@ -2457,106 +2427,25 @@ namespace NCPA {
 
                 ThreeDimensionalArray(
                     ThreeDimensionalArray<T>&& other ) noexcept {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~ThreeDimensionalArray() {}
 
+                friend void swap(
+                    ThreeDimensionalArray<T>& a,
+                    ThreeDimensionalArray<T>& b ) noexcept {
+                    swap( static_cast<NDimensionalArray<T, 3>&>(
+                              a ),
+                          static_cast<NDimensionalArray<T, 3>&>(
+                              b ) );
+                }
+
                 ThreeDimensionalArray<T>& operator=(
                     ThreeDimensionalArray<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
         };
     }  // namespace arrays
 }  // namespace NCPA
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::_abstract_arraylike<T, N>& a,
-                  NCPA::arrays::_abstract_arraylike<T, N>& b ) noexcept {
-    (void)a;
-    (void)b;  // Placeholder for base swap logic if added later
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLike<T, N>& a,
-                  NCPA::arrays::ArrayLike<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::_abstract_arraylike<T, N>&>( a ),
-            static_cast<NCPA::arrays::_abstract_arraylike<T, N>&>( b ) );
-    swap( a._dimensions, b._dimensions );
-    swap( a._local_views, b._local_views );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
-                  NCPA::arrays::ArrayLike<T, 1>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::_abstract_arraylike<T, 1>&>( a ),
-            static_cast<NCPA::arrays::_abstract_arraylike<T, 1>&>( b ) );
-    swap( a._dimensions, b._dimensions );
-    swap( a._local_views, b._local_views );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, N>& a,
-                  NCPA::arrays::ArrayView<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._const_dim, b._const_dim );
-    swap( a._key, b._key );
-    swap( a._var_dims, b._var_dims );
-    swap( a._mapped_indices, b._mapped_indices );
-    swap( a._dimensions, b._dimensions );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, 1>& a,
-                  NCPA::arrays::ArrayView<T, 1>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, 1>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, 1>&>( b ) );
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._const_dim, b._const_dim );
-    swap( a._key, b._key );
-    swap( a._var_dims, b._var_dims );
-    swap( a._mapped_indices, b._mapped_indices );
-    swap( a._dimensions, b._dimensions );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ArrayView<T, 0>& a,
-                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept {
-    using std::swap;
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._parent_ind, b._parent_ind );
-    swap( a._key, b._key );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
-                  NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
-    swap( a._internal, b._internal );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
-                  NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( a ),
-            static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( b ) );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
-                  NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( a ),
-            static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( b ) );
-}

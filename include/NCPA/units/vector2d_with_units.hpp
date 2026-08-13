@@ -14,16 +14,16 @@
 #include <vector>
 
 // forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class Vector2DWithUnits;
-    }  // namespace units
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace units {
+        // template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
+//         class Vector2DWithUnits;
+//     }  // namespace units
+// }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::units::Vector2DWithUnits<T>&,
-           NCPA::units::Vector2DWithUnits<T>& ) noexcept;
+// template<typename T>
+// void swap( NCPA::units::Vector2DWithUnits<T>&,
+//            NCPA::units::Vector2DWithUnits<T>& ) noexcept;
 
 namespace NCPA {
     namespace units {
@@ -33,7 +33,7 @@ namespace NCPA {
          */
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
+                                         int>::type ENABLER = 0>
         class Vector2DWithUnits : public NCPA::arrays::vector2d_t<T> {
             public:
                 using NCPA::arrays::vector2d_t<T>::dim;
@@ -128,18 +128,23 @@ namespace NCPA {
                 // move constructor
                 Vector2DWithUnits( Vector2DWithUnits<T>&& source ) noexcept :
                     Vector2DWithUnits<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // destructor
                 virtual ~Vector2DWithUnits() {}
 
                 // assignment and swapping
-                friend void ::swap<>( Vector2DWithUnits<T>& first,
-                                      Vector2DWithUnits<T>& second ) noexcept;
+                friend void swap( Vector2DWithUnits<T>& a,
+                                    Vector2DWithUnits<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::arrays::vector2d_t<T>&>( a ),
+                          static_cast<NCPA::arrays::vector2d_t<T>&>( b ) );
+                    swap( a._units, b._units );
+                }
 
                 Vector2DWithUnits& operator=( Vector2DWithUnits<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -178,7 +183,7 @@ namespace NCPA {
                                 this->at( i ), new_units );
                         }
                         buffer.set_units( new_units );
-                        std::swap( *this, buffer );
+                        swap( *this, buffer );
                     }
                 }
 
@@ -262,10 +267,11 @@ namespace NCPA {
 
                 template<typename U>
                 Vector2DWithUnits<U> as() const {
-                    Vector2DWithUnits<U> newv( this->dim(0), this->dim(1), this->get_units() );
-                    for (size_t i = 0; i < this->dim(0); ++i) {
-                        for (size_t j = 0; j < this->dim(1); ++j) {
-                            newv.set(i,j,(U)this->get(i,j));
+                    Vector2DWithUnits<U> newv( this->dim( 0 ), this->dim( 1 ),
+                                               this->get_units() );
+                    for (size_t i = 0; i < this->dim( 0 ); ++i) {
+                        for (size_t j = 0; j < this->dim( 1 ); ++j) {
+                            newv.set( i, j, (U)this->get( i, j ) );
                         }
                     }
                     return newv;
@@ -374,10 +380,10 @@ namespace NCPA {
                     _units = Units::from_string( new_units );
                 }
 
-                explicit operator bool() const { 
-                    // return !this->empty(); 
+                explicit operator bool() const {
+                    // return !this->empty();
                     auto dims = this->shape();
-                    return (dims[0] > 0 && dims[1] > 0);
+                    return ( dims[ 0 ] > 0 && dims[ 1 ] > 0 );
                 }
 
                 Vector2DWithUnits operator+(
@@ -412,11 +418,11 @@ namespace NCPA {
 /*
  * Friends
  */
-template<typename T>
-void swap( NCPA::units::Vector2DWithUnits<T>& a,
-           NCPA::units::Vector2DWithUnits<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::arrays::vector2d_t<T>&>( a ),
-          static_cast<NCPA::arrays::vector2d_t<T>&>( b ) );
-    swap( a._units, b._units );
-}
+// template<typename T>
+// void swap( NCPA::units::Vector2DWithUnits<T>& a,
+//            NCPA::units::Vector2DWithUnits<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<NCPA::arrays::vector2d_t<T>&>( a ),
+//           static_cast<NCPA::arrays::vector2d_t<T>&>( b ) );
+//     swap( a._units, b._units );
+// }

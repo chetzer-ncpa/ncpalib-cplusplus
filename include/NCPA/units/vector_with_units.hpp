@@ -13,16 +13,16 @@
 #include <vector>
 
 // forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class VectorWithUnits;
-    }  // namespace units
-}  // namespace NCPA
+// namespace NCPA {
+//     namespace units {
+//         template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
+//         class VectorWithUnits;
+//     }  // namespace units
+// }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::units::VectorWithUnits<T>&,
-           NCPA::units::VectorWithUnits<T>& ) noexcept;
+// template<typename T>
+// void swap( NCPA::units::VectorWithUnits<T>&,
+//            NCPA::units::VectorWithUnits<T>& ) noexcept;
 
 namespace NCPA {
     namespace units {
@@ -32,11 +32,12 @@ namespace NCPA {
          */
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
+                                         int>::type ENABLER = 0>
         class VectorWithUnits : public std::vector<T> {
             public:
                 // constructors
-                VectorWithUnits( const Unit *units = nullptr) : std::vector<T>(), _units { units } {}
+                VectorWithUnits( const Unit *units = nullptr ) :
+                    std::vector<T>(), _units { units } {}
 
                 // VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
                 //     this->resize( n_points );
@@ -143,18 +144,23 @@ namespace NCPA {
                 // move constructor
                 VectorWithUnits( VectorWithUnits<T>&& source ) noexcept :
                     std::vector<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // destructor
                 virtual ~VectorWithUnits() {}
 
                 // assignment and swapping
-                friend void ::swap<>( VectorWithUnits<T>& first,
-                                      VectorWithUnits<T>& second ) noexcept;
+                friend void swap( VectorWithUnits<T>& a,
+                                    VectorWithUnits<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<std::vector<T>&>( a ),
+                          static_cast<std::vector<T>&>( b ) );
+                    swap( a._units, b._units );
+                }
 
                 VectorWithUnits& operator=( VectorWithUnits<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -197,7 +203,7 @@ namespace NCPA {
                             = oldunits->convert_to( *this, new_units );
                         buffer.set_units( new_units );
 
-                        std::swap( *this, buffer );
+                        swap( *this, buffer );
                         // *this = buffer;
                     }
                 }
@@ -450,11 +456,11 @@ namespace NCPA {
 /*
  * Friends
  */
-template<typename T>
-void swap( NCPA::units::VectorWithUnits<T>& a,
-           NCPA::units::VectorWithUnits<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<std::vector<T>&>( a ),
-          static_cast<std::vector<T>&>( b ) );
-    swap( a._units, b._units );
-}
+// template<typename T>
+// void swap( NCPA::units::VectorWithUnits<T>& a,
+//            NCPA::units::VectorWithUnits<T>& b ) noexcept {
+//     using std::swap;
+//     swap( static_cast<std::vector<T>&>( a ),
+//           static_cast<std::vector<T>&>( b ) );
+//     swap( a._units, b._units );
+// }
