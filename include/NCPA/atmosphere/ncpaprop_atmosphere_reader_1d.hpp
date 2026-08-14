@@ -39,16 +39,19 @@ namespace NCPA {
                 }
 
                 friend void swap( ncpaprop_atmosphere_reader_1d& a,
-                  ncpaprop_atmosphere_reader_1d& b ) noexcept {
-    swap( dynamic_cast<_abstract_atmosphere_reader_1d&>( a ),
-            dynamic_cast<_abstract_atmosphere_reader_1d&>( b ) );
-}
-
-                virtual std::unique_ptr<_abstract_atmosphere_reader_1d> clone()
-                    const override {
-                    return std::unique_ptr<_abstract_atmosphere_reader_1d>(
-                        new ncpaprop_atmosphere_reader_1d( *this ) );
+                                  ncpaprop_atmosphere_reader_1d& b ) noexcept {
+                    swap( dynamic_cast<_abstract_atmosphere_reader_1d&>( a ),
+                          dynamic_cast<_abstract_atmosphere_reader_1d&>( b ) );
                 }
+
+                // virtual std::unique_ptr<_abstract_atmosphere_reader_1d>
+                // clone()
+                //     const override {
+                //     return std::unique_ptr<_abstract_atmosphere_reader_1d>(
+                //         new ncpaprop_atmosphere_reader_1d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( ncpaprop_atmosphere_reader_1d,
+                                   _abstract_atmosphere_reader_1d )
 
                 virtual Atmosphere1D read(
                     const std::string& filename ) override {

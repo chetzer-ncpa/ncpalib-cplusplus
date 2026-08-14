@@ -3,6 +3,7 @@
 #include "NCPA/atmosphere/AtmosphericProperty3D.hpp"
 #include "NCPA/atmosphere/calculations.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/interpolation.hpp"
 
@@ -16,7 +17,7 @@ namespace NCPA {
         /**
          * @brief
          */
-        class abstract_atmosphere_3d {
+        class abstract_atmosphere_3d : public Cloneable<abstract_atmosphere_3d> {
             public:
                 /**
                  * @brief

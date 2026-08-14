@@ -3,6 +3,7 @@
 
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/files.hpp"
 
 #include <fstream>
@@ -16,19 +17,13 @@ namespace NCPA {
         /**
          * @brief
          */
-        class _abstract_atmosphere_reader_1d {
+        class _abstract_atmosphere_reader_1d
+            : public Cloneable<_abstract_atmosphere_reader_1d> {
             public:
                 /**
                  * @brief
                  */
                 virtual ~_abstract_atmosphere_reader_1d() {}
-
-                /**
-                 * @brief
-                 * @return std::unique_ptr<_abstract_atmosphere_reader_1d>
-                 */
-                virtual std::unique_ptr<_abstract_atmosphere_reader_1d> clone()
-                    const = 0;
 
                 friend void swap(
                     _abstract_atmosphere_reader_1d& a,

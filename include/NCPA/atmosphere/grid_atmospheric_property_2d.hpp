@@ -5,6 +5,7 @@
 #include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/atmosphere/tuple_atmospheric_property_1d.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/exceptions.hpp"
 #include "NCPA/interpolation.hpp"
@@ -150,11 +151,14 @@ namespace NCPA {
                     swap( a._axis_limits, b._axis_limits );
                 }
 
-                virtual std::unique_ptr<abstract_atmospheric_property> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmospheric_property>(
-                        new grid_atmospheric_property_2d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmospheric_property>
+                // clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmospheric_property>(
+                //         new grid_atmospheric_property_2d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( grid_atmospheric_property_2d,
+                                   abstract_atmospheric_property )
 
                 virtual grid_atmospheric_property_2d& copy(
                     const abstract_atmospheric_property& source ) override {

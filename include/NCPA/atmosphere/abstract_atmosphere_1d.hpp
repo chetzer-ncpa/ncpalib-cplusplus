@@ -3,6 +3,7 @@
 #include "NCPA/atmosphere/AtmosphericProperty1D.hpp"
 #include "NCPA/atmosphere/calculations.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/interpolation.hpp"
 
@@ -15,7 +16,7 @@ namespace NCPA {
         /**
          * @brief
          */
-        class abstract_atmosphere_1d {
+        class abstract_atmosphere_1d : public Cloneable<abstract_atmosphere_1d> {
             public:
                 /**
                  * @brief
@@ -82,12 +83,12 @@ namespace NCPA {
                 virtual abstract_atmosphere_1d& copy_property(
                     const std::string& old_key, const std::string& new_key )
                     = 0;
-                /**
-                 * @brief
-                 * @return
-                 */
-                virtual std::unique_ptr<abstract_atmosphere_1d> clone() const
-                    = 0;
+                // /**
+                //  * @brief
+                //  * @return
+                //  */
+                // virtual std::unique_ptr<abstract_atmosphere_1d> clone() const
+                //     = 0;
                 /**
                  * @brief
                  * @param key

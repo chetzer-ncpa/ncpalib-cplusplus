@@ -46,11 +46,13 @@ namespace NCPA {
                     swap( a._interpolator_type, b._interpolator_type );
                 }
 
-                virtual std::unique_ptr<abstract_atmosphere_1d> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmosphere_1d>(
-                        new tuple_atmosphere_1d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmosphere_1d> clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmosphere_1d>(
+                //         new tuple_atmosphere_1d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( tuple_atmosphere_1d,
+                                   abstract_atmosphere_1d )
 
                 virtual size_t size() const override { return _z.size(); }
 

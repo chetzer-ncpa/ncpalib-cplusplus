@@ -4,6 +4,7 @@
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/files.hpp"
 
 #include <fstream>
@@ -15,50 +16,42 @@ namespace NCPA {
     namespace atmos {
 
         /**
-         * @brief 
+         * @brief
          */
-        class _abstract_atmosphere_reader_2d {
+        class _abstract_atmosphere_reader_2d
+            : public Cloneable<_abstract_atmosphere_reader_2d> {
             public:
                 /**
-                 * @brief 
+                 * @brief
                  */
                 virtual ~_abstract_atmosphere_reader_2d() {}
 
-                friend void swap( _abstract_atmosphere_reader_2d& a,
-                  _abstract_atmosphere_reader_2d& b ) noexcept {}
+                friend void swap(
+                    _abstract_atmosphere_reader_2d& a,
+                    _abstract_atmosphere_reader_2d& b ) noexcept {}
 
                 /**
-                 * @brief 
-                 * @return std::unique_ptr<_abstract_atmosphere_reader_2d> 
-                 */
-                virtual std::unique_ptr<_abstract_atmosphere_reader_2d> clone()
-                    const
-                    = 0;
-
-                /**
-                 * @brief 
-                 * @param filename 
-                 * @return Atmosphere2D 
+                 * @brief
+                 * @param filename
+                 * @return Atmosphere2D
                  */
                 virtual Atmosphere2D read( const std::string& filename ) = 0;
 
                 /**
-                 * @brief 
-                 * @param filenames 
-                 * @return Atmosphere2D 
+                 * @brief
+                 * @param filenames
+                 * @return Atmosphere2D
                  */
                 virtual Atmosphere2D read(
-                    const std::vector<std::string>& filenames )
-                    = 0;
+                    const std::vector<std::string>& filenames ) = 0;
 
                 /**
-                 * @brief 
-                 * @param u 
-                 * @return _abstract_atmosphere_reader_2d& 
+                 * @brief
+                 * @param u
+                 * @return _abstract_atmosphere_reader_2d&
                  */
                 virtual _abstract_atmosphere_reader_2d& set_axis_units(
-                    units_ptr_t u )
-                    = 0;
+                    units_ptr_t u ) = 0;
         };
     }  // namespace atmos
 }  // namespace NCPA

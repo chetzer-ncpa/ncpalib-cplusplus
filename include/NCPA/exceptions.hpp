@@ -4,7 +4,9 @@
 #include <string>
 
 #ifndef THROW_METHOD_NOT_IMPLEMENTED
-#define THROW_METHOD_NOT_IMPLEMENTED throw NCPA::NotImplementedError( std::string(__func__) + ": Not implemented" );
+#  define THROW_METHOD_NOT_IMPLEMENTED                         \
+      throw NCPA::NotImplementedError( std::string( __func__ ) \
+                                       + ": Not implemented" );
 #endif
 
 namespace NCPA {

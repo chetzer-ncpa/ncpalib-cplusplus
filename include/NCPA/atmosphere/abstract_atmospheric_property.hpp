@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/atmosphere/declarations.hpp"
+#include "NCPA/cloneable.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -11,7 +12,8 @@ namespace NCPA {
         /**
          * @brief
          */
-        class abstract_atmospheric_property {
+        class abstract_atmospheric_property
+            : public Cloneable<abstract_atmospheric_property> {
             public:
                 /**
                  * @brief
@@ -28,12 +30,6 @@ namespace NCPA {
                  */
                 virtual size_t dimensions() const = 0;
 
-                /**
-                 * @brief
-                 * @return std::unique_ptr<abstract_atmospheric_property>
-                 */
-                virtual std::unique_ptr<abstract_atmospheric_property> clone()
-                    const = 0;
 
                 /**
                  * @brief

@@ -71,11 +71,13 @@ namespace NCPA {
                     swap( a._2d_interpolator_type, b._2d_interpolator_type );
                 }
 
-                virtual std::unique_ptr<abstract_atmosphere_3d> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmosphere_3d>(
-                        new stratified_atmosphere_3d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmosphere_3d> clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmosphere_3d>(
+                //         new stratified_atmosphere_3d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( stratified_atmosphere_3d,
+                                   abstract_atmosphere_3d )
 
                 virtual size_t size( size_t dim ) const override {
                     this->validate_axis( dim );

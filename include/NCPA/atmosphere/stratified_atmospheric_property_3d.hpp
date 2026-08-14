@@ -92,11 +92,13 @@ namespace NCPA {
                     swap( a._as_3d, b._as_3d );
                 }
 
-                virtual std::unique_ptr<abstract_atmospheric_property> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmospheric_property>(
-                        new stratified_atmospheric_property_3d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmospheric_property> clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmospheric_property>(
+                //         new stratified_atmospheric_property_3d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( stratified_atmospheric_property_3d,
+                                   abstract_atmospheric_property )
 
                 virtual stratified_atmospheric_property_3d& clear() override {
                     _z.clear();

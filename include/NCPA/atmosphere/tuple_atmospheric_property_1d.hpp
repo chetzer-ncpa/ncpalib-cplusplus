@@ -67,11 +67,14 @@ namespace NCPA {
                     swap( a._spline, b._spline );
                 }
 
-                virtual std::unique_ptr<abstract_atmospheric_property> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmospheric_property>(
-                        new tuple_atmospheric_property_1d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmospheric_property>
+                // clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmospheric_property>(
+                //         new tuple_atmospheric_property_1d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( tuple_atmospheric_property_1d,
+                                   abstract_atmospheric_property )
 
                 virtual std::unique_ptr<abstract_atmospheric_property_1d>
                     clone1d() const override {

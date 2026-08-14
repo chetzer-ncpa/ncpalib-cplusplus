@@ -47,12 +47,15 @@ namespace NCPA {
                           dynamic_cast<ncpaprop_atmosphere_reader_2d&>( b ) );
                 }
 
-                virtual std::unique_ptr<_abstract_atmosphere_reader_2d> clone()
-                    const override {
-                    return std::unique_ptr<_abstract_atmosphere_reader_2d>(
-                        new ncpaprop_atmosphere_reader_stratified_2d(
-                            *this ) );
-                }
+                // virtual std::unique_ptr<_abstract_atmosphere_reader_2d>
+                // clone()
+                //     const override {
+                //     return std::unique_ptr<_abstract_atmosphere_reader_2d>(
+                //         new ncpaprop_atmosphere_reader_stratified_2d(
+                //             *this ) );
+                // }
+                NCPA_CLONE_METHOD( ncpaprop_atmosphere_reader_stratified_2d,
+                                   _abstract_atmosphere_reader_2d )
 
                 virtual bool stratified() const override { return true; }
         };

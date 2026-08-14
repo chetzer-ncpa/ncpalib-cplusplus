@@ -54,7 +54,7 @@ namespace NCPA {
 
                     template<typename T>
                     _logger& log( log_level_t level, T message ) {
-                        if ( level <= _level ) {
+                        if (level <= _level) {
                             stream() << message;
                         }
                         return *this;
@@ -75,7 +75,7 @@ namespace NCPA {
                     template<typename T>
                     _logger operator<<( T msg ) {
                         // return log( _current_level, msg );
-                        if ( _current_level <= _level ) {
+                        if (_current_level <= _level) {
                             stream() << msg;
                         }
                         return *this;
@@ -116,7 +116,7 @@ namespace NCPA {
                     void _open_stream() {
                         _fstream.open( _filename, std::ios_base::out
                                                       | std::ios_base::app );
-                        if ( !_fstream.is_open() ) {
+                        if (!_fstream.is_open()) {
                             throw std::runtime_error( "Failed to open file "
                                                       + _filename );
                         }
@@ -133,7 +133,7 @@ namespace NCPA {
 
                 void init( log_level_t loglevel
                            = details::_default_log_level ) {
-                    if ( _loggers.count( _default ) == 0 ) {
+                    if (_loggers.count( _default ) == 0) {
                         add_logger( _default, loglevel );
                     }
                 }
@@ -195,8 +195,8 @@ namespace NCPA {
                 template<typename T>
                 Logger& pass_on( T msg ) {
                     init();
-                    for ( auto it = _loggers.begin(); it != _loggers.end();
-                          ++it ) {
+                    for (auto it = _loggers.begin(); it != _loggers.end();
+                         ++it) {
                         it->second << msg;
                     }
                     return *this;
@@ -213,22 +213,22 @@ namespace NCPA {
                 // }
 
                 void assert_set( const std::string& loggername ) {
-                    if ( _loggers.count( loggername ) == 0 ) {
+                    if (_loggers.count( loggername ) == 0) {
                         throw std::range_error( "No logger named " + loggername
                                                 + " has been set" );
                     }
                 }
 
                 void assert_not_set( const std::string& loggername ) {
-                    if ( _loggers.count( loggername ) == 1 ) {
+                    if (_loggers.count( loggername ) == 1) {
                         throw std::range_error( "A logger named " + loggername
                                                 + " has already been set" );
                     }
                 }
 
                 Logger& flush() {
-                    for ( auto it = _loggers.begin(); it != _loggers.end();
-                          ++it ) {
+                    for (auto it = _loggers.begin(); it != _loggers.end();
+                         ++it) {
                         it->second.flush();
                     }
                     return *this;
@@ -247,21 +247,21 @@ namespace NCPA {
         static constexpr log_level_t default_level() {
             return details::_default_log_level;
         }
+
         static constexpr bool default_level_is_debug() {
-            return (default_level() == log_level_t::DEBUG);
+            return ( default_level() == log_level_t::DEBUG );
         }
 
         static Logger logger = Logger::logger();
 
         struct NullBuffer : std::streambuf {
-            int overflow(int c) override {
-                return c;
-            }
+                int overflow( int c ) override { return c; }
         };
 
         class NullStream : public std::ostream {
             public:
-                NullStream() : std::ostream(&m_buf) {}
+                NullStream() : std::ostream( &m_buf ) {}
+
             private:
                 NullBuffer m_buf;
         };
@@ -269,8 +269,20 @@ namespace NCPA {
     }  // namespace logging
 }  // namespace NCPA
 
-#define NCPA_DEBUG NCPA::logging::logger << NCPA::logging::log_level_t::DEBUG
-#define NCPA_INFO  NCPA::logging::logger << NCPA::logging::log_level_t::INFO
-#define NCPA_ERROR NCPA::logging::logger << NCPA::logging::log_level_t::ERROR
-#define NCPA_WARNING NCPA::logging::logger << NCPA::logging::log_level_t::WARNING
-#define NCPA_CRITICAL NCPA::logging::logger << NCPA::logging::log_level_t::CRITICAL
+#ifndef NCPA_DEBUG
+#  define NCPA_DEBUG NCPA::logging::logger << NCPA::logging::log_level_t::DEBUG
+#endif
+#ifndef NCPA_INFO
+#  define NCPA_INFO NCPA::logging::logger << NCPA::logging::log_level_t::INFO
+#endif
+#ifndef NCPA_ERROR
+#  define NCPA_ERROR NCPA::logging::logger << NCPA::logging::log_level_t::ERROR
+#endif
+#ifndef NCPA_WARNING
+#  define NCPA_WARNING \
+      NCPA::logging::logger << NCPA::logging::log_level_t::WARNING
+#endif
+#ifndef NCPA_CRITICAL
+#  define NCPA_CRITICAL \
+      NCPA::logging::logger << NCPA::logging::log_level_t::CRITICAL
+#endif

@@ -77,11 +77,14 @@ namespace NCPA {
                     swap( a._axis_limits, b._axis_limits );
                 }
 
-                virtual std::unique_ptr<abstract_atmospheric_property> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmospheric_property>(
-                        new grid_atmospheric_property_3d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmospheric_property>
+                // clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmospheric_property>(
+                //         new grid_atmospheric_property_3d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( grid_atmospheric_property_3d,
+                                   abstract_atmospheric_property )
 
                 virtual grid_atmospheric_property_3d& copy(
                     const abstract_atmospheric_property& source ) override {

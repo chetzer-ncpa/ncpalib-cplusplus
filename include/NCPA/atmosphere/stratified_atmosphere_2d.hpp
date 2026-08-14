@@ -57,11 +57,13 @@ namespace NCPA {
                     swap( a._1d_interpolator_type, b._1d_interpolator_type );
                 }
 
-                virtual std::unique_ptr<abstract_atmosphere_2d> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmosphere_2d>(
-                        new stratified_atmosphere_2d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmosphere_2d> clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmosphere_2d>(
+                //         new stratified_atmosphere_2d( *this ) );
+                // }
+                NCPA_CLONE_METHOD( stratified_atmosphere_2d,
+                                   abstract_atmosphere_2d )
 
                 virtual bool is_stratified() const override { return true; }
 

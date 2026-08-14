@@ -56,11 +56,12 @@ namespace NCPA {
                     swap( a._2d_interpolator_type, b._2d_interpolator_type );
                 }
 
-                virtual std::unique_ptr<abstract_atmosphere_3d> clone()
-                    const override {
-                    return std::unique_ptr<abstract_atmosphere_3d>(
-                        new grid_atmosphere_3d( *this ) );
-                }
+                // virtual std::unique_ptr<abstract_atmosphere_3d> clone()
+                //     const override {
+                //     return std::unique_ptr<abstract_atmosphere_3d>(
+                //         new grid_atmosphere_3d( *this ) );
+                // }
+                NCPA_CLONE_METHOD(grid_atmosphere_3d,abstract_atmosphere_3d)
 
                 virtual grid_atmosphere_3d& set(
                     const vector_u_t& ax1, const vector_u_t& ax2,

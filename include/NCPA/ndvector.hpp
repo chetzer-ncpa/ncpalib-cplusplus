@@ -1,8 +1,5 @@
 #pragma once
 
-// #include "NCPA/arrays.hpp"
-
-// #include <array>
 #include <algorithm>
 #include <initializer_list>
 #include <iostream>
@@ -11,37 +8,19 @@
 #include <stdexcept>
 #include <vector>
 
-namespace NCPA {
-    namespace arrays {
-        template<typename T>
-        class _as;
+// namespace NCPA {
+//     namespace arrays {
+//         template<typename T>
+//         class _as;
 
-        template<size_t N>
-        class _dimarray;
+//         template<size_t N>
+//         class _dimarray;
 
-        template<size_t N, typename T>
-        class ndvector;
-    }  // namespace arrays
-}  // namespace NCPA
+//         template<size_t N, typename T>
+//         class ndvector;
+//     }  // namespace arrays
+// }  // namespace NCPA
 
-template<typename T>
-static void swap( NCPA::arrays::_as<T>& a, NCPA::arrays::_as<T>& b ) noexcept;
-
-template<size_t N>
-static void swap( NCPA::arrays::_dimarray<N>& a,
-                  NCPA::arrays::_dimarray<N>& b ) noexcept;
-
-template<size_t N, typename T>
-static void swap( NCPA::arrays::ndvector<N, T>& a,
-                  NCPA::arrays::ndvector<N, T>& b ) noexcept;
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<1, T>& a,
-                  NCPA::arrays::ndvector<1, T>& b ) noexcept;
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<0, T>& a,
-                  NCPA::arrays::ndvector<0, T>& b ) noexcept;
 
 namespace NCPA {
     namespace arrays {
@@ -56,9 +35,10 @@ namespace NCPA {
 
                 operator T() const { return _val; }
 
-                friend void ::swap<>( NCPA::arrays::_as<T>& a,
-                                    NCPA::arrays::_as<T>& b ) noexcept;
-
+                friend void swap( _as<T>& a, _as<T>& b ) noexcept {
+                    using std::swap;
+                    swap( a._val, b._val );
+                }
 
             protected:
                 T _val;
@@ -84,30 +64,33 @@ namespace NCPA {
                 }
 
                 _dimarray( _dimarray<N>&& source ) noexcept : _dimarray<N>() {
-                    ::swap( *this, source );
+                    using std::swap;
+                    swap( *this, source );
                 }
 
                 _dimarray<N>& operator=( _dimarray<N> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
                 _dimarray<N>& operator=( std::vector<size_t> other ) {
+                    using std::swap;
                     if (other.size() != this->size()) {
                         throw std::invalid_argument(
                             "_dimarray.operator=(): Dimension vectors must be "
                             "the same size!" );
                     }
-                    std::swap( static_cast<std::vector<size_t>&>( *this ),
-                               other );
+                    swap( static_cast<std::vector<size_t>&>( *this ), other );
                     return *this;
                 }
 
                 virtual ~_dimarray() {}
 
-                friend void ::swap<N>(
-                    NCPA::arrays::_dimarray<N>& a,
-                    NCPA::arrays::_dimarray<N>& b ) noexcept;
+                friend void swap( _dimarray<N>& a, _dimarray<N>& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<std::vector<size_t>&>( a ),
+                          dynamic_cast<std::vector<size_t>&>( b ) );
+                }
 
                 _dimarray<N - 1> subdims() const {
                     _dimarray<N - 1> sub;
@@ -133,7 +116,7 @@ namespace NCPA {
                 }
 
                 ndvector( const std::initializer_list<size_t>& dims ) :
-                    ndvector<N, T>( _dimarray<N>{ dims } ) {}
+                    ndvector<N, T>( _dimarray<N> { dims } ) {}
 
                 ndvector( const std::vector<_subvector>& v ) {
                     // _v = v;
@@ -143,28 +126,35 @@ namespace NCPA {
                 ndvector( const std::initializer_list<_subvector>& ls ) :
                     ndvector( std::vector<_subvector>( ls ) ) {}
 
-                ndvector( const ndvector<N,T>& other ) :
+                ndvector( const ndvector<N, T>& other ) :
                     std::vector<_subvector>( other ) {}
-                
+
                 template<typename U>
-                ndvector( const ndvector<N,U>& other ) : std::vector<_subvector>( other.size() ) {
+                ndvector( const ndvector<N, U>& other ) :
+                    std::vector<_subvector>( other.size() ) {
                     for (size_t i = 0; i < this->size(); ++i) {
-                        this->at( i ) = _subvector( other.at(i) );
+                        this->at( i ) = _subvector( other.at( i ) );
                     }
                 }
 
                 ndvector<N, T>& operator=(
                     const std::initializer_list<_subvector>& other ) {
                     ndvector<N, T> othervec( other );
-                    ::swap( *this, othervec );
+                    swap( *this, othervec );
                     return *this;
                 }
 
                 virtual ~ndvector() {}
 
-                friend void ::swap<N, T>(
-                    NCPA::arrays::ndvector<N, T>& a,
-                    NCPA::arrays::ndvector<N, T>& b ) noexcept;
+                friend void swap( ndvector<N, T>& a,
+                                  ndvector<N, T>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        dynamic_cast<std::vector<ndvector<N - 1, T>>&>( a ),
+                        dynamic_cast<std::vector<ndvector<N - 1, T>>&>( b ) );
+
+                    // swap( a._v, b._v );
+                }
 
                 T& operator[]( const std::initializer_list<size_t> inds ) {
                     return ( *this )[ _dimarray<N>( inds ) ];
@@ -188,12 +178,10 @@ namespace NCPA {
                     return this->at( inds[ 0 ] )[ inds.subdims() ];
                 }
 
-                _subvector& operator[]( size_t n ) {
-                    return this->at(n);
-                }
+                _subvector& operator[]( size_t n ) { return this->at( n ); }
 
                 const _subvector& operator[]( size_t n ) const {
-                    return this->at(n);
+                    return this->at( n );
                 }
 
                 void set( const T& val ) {
@@ -244,15 +232,15 @@ namespace NCPA {
                     return dims;
                 }
 
-                void copy( const ndvector<N,T>& other ) {
-                    *this = ndvector<N,T>( other );
+                void copy( const ndvector<N, T>& other ) {
+                    *this = ndvector<N, T>( other );
                 }
 
                 template<typename U>
-                void copy( const ndvector<N,U>& other ) {
+                void copy( const ndvector<N, U>& other ) {
                     this->resize( other.size() );
                     for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i).copy( other.at( i ) );
+                        this->at( i ).copy( other.at( i ) );
                     }
                 }
 
@@ -276,7 +264,8 @@ namespace NCPA {
                     std::vector<T>( other ) {}
 
                 template<typename U>
-                ndvector( const ndvector<1, U>& other ) : std::vector<T>( other.size() ) {
+                ndvector( const ndvector<1, U>& other ) :
+                    std::vector<T>( other.size() ) {
                     for (size_t i = 0; i < other.size(); ++i) {
                         this->at( i ) = static_cast<T>( other.at( i ) );
                     }
@@ -284,17 +273,17 @@ namespace NCPA {
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<1, T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 ndvector( const _dimarray<1>& dims ) :
                     ndvector<1, T>( dims[ 0 ] ) {}
 
-                    ndvector( const std::initializer_list<size_t>& dims ) :
-                    ndvector<1, T>( _dimarray<1>{dims}[ 0 ] ) {}
+                ndvector( const std::initializer_list<size_t>& dims ) :
+                    ndvector<1, T>( _dimarray<1> { dims }[ 0 ] ) {}
 
                 ndvector<1, T>& operator=( ndvector<1, T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -305,9 +294,12 @@ namespace NCPA {
 
                 virtual ~ndvector() {}
 
-                friend void ::swap<T>(
-                    NCPA::arrays::ndvector<1, T>& a,
-                    NCPA::arrays::ndvector<1, T>& b ) noexcept;
+                friend void swap( ndvector<1, T>& a,
+                                  ndvector<1, T>& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<std::vector<T>&>( a ),
+                          dynamic_cast<std::vector<T>&>( b ) );
+                }
 
                 void set( const T& val ) { this->assign( this->size(), val ); }
 
@@ -360,15 +352,15 @@ namespace NCPA {
                     // inds[0] ] );
                 }
 
-                void copy( const ndvector<1,T>& other ) {
-                    *this = ndvector<1,T>( other );
+                void copy( const ndvector<1, T>& other ) {
+                    *this = ndvector<1, T>( other );
                 }
 
                 template<typename U>
-                void copy( const ndvector<1,U>& other ) {
+                void copy( const ndvector<1, U>& other ) {
                     this->resize( other.size() );
                     for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i) = static_cast<T>( other.at(i) );
+                        this->at( i ) = static_cast<T>( other.at( i ) );
                     }
                 }
         };
@@ -389,11 +381,11 @@ namespace NCPA {
 
                 ndvector( ndvector<1, T>&& source ) noexcept :
                     ndvector<0, T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 ndvector<0, T>& operator=( ndvector<0, T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -404,59 +396,22 @@ namespace NCPA {
 
                 virtual ~ndvector() {}
 
-                friend void ::swap<T>(
-                    NCPA::arrays::ndvector<0, T>& a,
-                    NCPA::arrays::ndvector<0, T>& b ) noexcept;
+                friend void swap( ndvector<0, T>& a,
+                                  ndvector<0, T>& b ) noexcept {
+                    using std::swap;
+                    swap( dynamic_cast<_as<T>&>( a ),
+                          dynamic_cast<_as<T>&>( b ) );
+                }
 
-                void copy( const ndvector<0,T>& other ) {
+                void copy( const ndvector<0, T>& other ) {
                     this->_val = other._val;
                 }
 
                 template<typename U>
-                void copy( const ndvector<0,U>& other ) {
+                void copy( const ndvector<0, U>& other ) {
                     this->_val = static_cast<T>( other._val );
                 }
         };
 
     }  // namespace arrays
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::arrays::_as<T>& a, NCPA::arrays::_as<T>& b ) noexcept {
-    using std::swap;
-    swap( a._val, b._val );
-}
-
-template<size_t N>
-static void swap( NCPA::arrays::_dimarray<N>& a,
-                  NCPA::arrays::_dimarray<N>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<size_t>&>( a ),
-          dynamic_cast<std::vector<size_t>&>( b ) );
-}
-
-template<size_t N, typename T>
-static void swap( NCPA::arrays::ndvector<N, T>& a,
-                  NCPA::arrays::ndvector<N, T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<NCPA::arrays::ndvector<N - 1, T>>&>( a ),
-          dynamic_cast<std::vector<NCPA::arrays::ndvector<N - 1, T>>&>( b ) );
-
-    // swap( a._v, b._v );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<1, T>& a,
-                  NCPA::arrays::ndvector<1, T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<T>&>( a ),
-          dynamic_cast<std::vector<T>&>( b ) );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<0, T>& a,
-                  NCPA::arrays::ndvector<0, T>& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::arrays::_as<T>&>( a ),
-            dynamic_cast<NCPA::arrays::_as<T>&>( b ) );
-}

@@ -26,16 +26,6 @@ namespace NCPA {
         using NCPA::constants::PI;
         using NCPA::constants::zero;
 
-        // template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
-        // bool is_zero( T val ) {
-        // return ( std::fpclassify( val ) == FP_ZERO );
-        // }
-
-        // template<typename T, ENABLE_FUNCTION_IF_COMPLEX( T )>
-        // bool is_zero( T val ) {
-        //     return is_zero( val.real() ) && is_zero( val.imag() );
-        // }
-
         template<typename T>
         constexpr T pi() {
             return (T)( NCPA::constants::PI );
