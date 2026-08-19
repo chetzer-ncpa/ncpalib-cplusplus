@@ -8,20 +8,30 @@
  */
 #pragma once
 
-#define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )                     \
-    virtual std::unique_ptr<PARENTTYPE> clone() const override {      \
-        return std::unique_ptr<PARENTTYPE>(                           \
-            new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
+// #define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )                     \
+//     virtual std::unique_ptr<PARENTTYPE> clone() const override {      \
+//         return std::unique_ptr<PARENTTYPE>(                           \
+//             new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
+//     }
+
+#define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )                    \
+    virtual std::unique_ptr<PARENTTYPE> clone() const override {     \
+        return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
     }
 
 
 #define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE ) \
     virtual std::unique_ptr<PARENTTYPE> clone() const override;
 
-#define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )              \
-    std::unique_ptr<PARENTTYPE> THISTYPE::clone() const override {    \
-        return std::unique_ptr<PARENTTYPE>(                           \
-            new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
+// #define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )              \
+//     std::unique_ptr<PARENTTYPE> THISTYPE::clone() const override {    \
+//         return std::unique_ptr<PARENTTYPE>(                           \
+//             new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
+//     }
+
+#define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )             \
+    std::unique_ptr<PARENTTYPE> THISTYPE::clone() const override {   \
+        return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
     }
 
 #include <memory>
