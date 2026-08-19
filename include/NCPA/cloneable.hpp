@@ -30,7 +30,7 @@
 //     }
 
 #define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )             \
-    std::unique_ptr<PARENTTYPE> THISTYPE::clone() const override {   \
+    std::unique_ptr<PARENTTYPE> THISTYPE::clone() const {            \
         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
     }
 
