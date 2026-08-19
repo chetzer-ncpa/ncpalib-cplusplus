@@ -14,6 +14,10 @@
             new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
     }
 
+
+#define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE ) \
+    virtual std::unique_ptr<PARENTTYPE> clone() const override;
+
 #include <memory>
 #include <utility>
 

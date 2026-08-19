@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * Configuration library
+ * 
+ * Examples:
+ * 
+ */
+
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
