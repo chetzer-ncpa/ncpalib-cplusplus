@@ -21,22 +21,24 @@ namespace NCPA {
             public:
                 BaseParameter( units_ptr_t u = nullptr ) {}
 
-                BaseParameter( const ValidationTest& newtest ) :
-                    BaseParameter() {
-                    this->append_test( newtest );
-                }
+                // BaseParameter( const ValidationTest& newtest ) :
+                //     BaseParameter() {
+                //     this->append_test( newtest );
+                // }
 
-                BaseParameter( const test_ptr_t& newtest ) : BaseParameter() {
-                    this->append_test( newtest );
-                }
+                // BaseParameter( const test_ptr_t& newtest ) : BaseParameter()
+                // {
+                //     this->append_test( newtest );
+                // }
 
-                BaseParameter( std::initializer_list<test_ptr_t> new_tests ) :
-                    BaseParameter() {
-                    this->append_tests( new_tests );
-                }
+                // BaseParameter( std::initializer_list<test_ptr_t> new_tests )
+                // :
+                //     BaseParameter() {
+                //     this->append_tests( new_tests );
+                // }
 
                 BaseParameter( const BaseParameter& other ) {
-                    _tests = other._tests;
+                    // _tests = other._tests;
                 }
 
                 BaseParameter( BaseParameter&& other ) noexcept :
@@ -47,31 +49,31 @@ namespace NCPA {
                 virtual ~BaseParameter() {}
 
                 friend void swap( BaseParameter& a,
-                                    BaseParameter& b ) noexcept {
-                    using std::swap;
-                    swap( a._tests, b._tests );
+                                  BaseParameter& b ) noexcept {
+                    // using std::swap;
+                    // swap( a._tests, b._tests );
                 }
 
-                virtual BaseParameter& append_test(
-                    const ValidationTest& newtest ) {
-                    _tests.append( newtest );
-                    return *this;
-                }
+                // virtual BaseParameter& append_test(
+                //     const ValidationTest& newtest ) {
+                //     _tests.append( newtest );
+                //     return *this;
+                // }
 
-                virtual BaseParameter& append_test(
-                    const test_ptr_t& newtest ) {
-                    _tests.append( newtest );
-                    return *this;
-                }
+                // virtual BaseParameter& append_test(
+                //     const test_ptr_t& newtest ) {
+                //     _tests.append( newtest );
+                //     return *this;
+                // }
 
-                virtual BaseParameter& append_tests(
-                    std::initializer_list<test_ptr_t> new_tests ) {
-                    for (auto it = new_tests.begin(); it != new_tests.end();
-                         ++it) {
-                        this->append_test( *it );
-                    }
-                    return *this;
-                }
+                // virtual BaseParameter& append_tests(
+                //     std::initializer_list<test_ptr_t> new_tests ) {
+                //     for (auto it = new_tests.begin(); it != new_tests.end();
+                //          ++it) {
+                //         this->append_test( *it );
+                //     }
+                //     return *this;
+                // }
 
                 virtual bool as_bool() const { return this->as_bool( 0 ); }
 
@@ -117,12 +119,15 @@ namespace NCPA {
                                  : 0.0 );
                 }
 
-                virtual bool failed() const { return _tests.failed(); }
-
-                virtual std::vector<const ValidationTest *> failed_tests()
-                    const {
-                    return _tests.failed_tests();
+                virtual bool failed() const {
+                    validation_status_t res = this->validate();
+                    return ( res.result == test_result_t::FAILED );
                 }
+
+                // virtual std::vector<const ValidationTest *> failed_tests()
+                //     const {
+                //     return _tests.failed_tests();
+                // }
 
                 virtual units_ptr_t get_units() const {
                     this->_check_has_units();
@@ -139,62 +144,66 @@ namespace NCPA {
                     return ( this->form() == parameter_form_t::VECTOR );
                 }
 
-                virtual bool passed() const { return _tests.passed(); }
-
-                virtual bool pending() const { return _tests.pending(); }
-
-                virtual BaseParameter& prepend_test(
-                    const ValidationTest& newtest ) {
-                    _tests.prepend( newtest );
-                    return *this;
+                virtual bool passed() const {
+                    validation_status_t res = this->validate();
+                    return ( res.result == test_result_t::NONE
+                             || res.result == test_result_t::PASSED );
                 }
 
-                virtual BaseParameter& prepend_tests(
-                    std::initializer_list<ValidationTest> new_tests ) {
-                    for (auto it = new_tests.begin(); it != new_tests.end();
-                         ++it) {
-                        this->prepend_test( *it );
-                    }
-                    return *this;
-                }
+                // virtual bool pending() const {
+                //     validation_status_t res = this->validate();
+                //     return ( res.result == test_result_t::PENDING );
+                // }
+
+                // virtual BaseParameter& prepend_test(
+                //     const ValidationTest& newtest ) {
+                //     _tests.prepend( newtest );
+                //     return *this;
+                // }
+
+                // virtual BaseParameter& prepend_tests(
+                //     std::initializer_list<ValidationTest> new_tests ) {
+                //     for (auto it = new_tests.begin(); it != new_tests.end();
+                //          ++it) {
+                //         this->prepend_test( *it );
+                //     }
+                //     return *this;
+                // }
 
                 virtual void set_units( units_ptr_t u ) {
                     this->_check_has_units();
                 }
 
-                virtual const ValidationTestSuite& tests() const {
-                    return _tests;
-                }
+                // virtual const ValidationTestSuite& tests() const {
+                //     return _tests;
+                // }
 
-                virtual BaseParameter& validate( bool short_circuit = false ) {
-                    _tests.run_tests( this, short_circuit );
-                    return *this;
-                }
 
-                virtual std::ostream& validation_report(
-                    std::ostream& os, bool newline = true,
-                    const std::string& prepend = "" ) const {
-                    if (this->passed()) {
-                        os << prepend << "All tests passed";
-                    } else {
-                        auto f = this->failed_tests();
-                        for (auto it = f.begin(); it != f.end(); ++it) {
-                            if (it != f.begin()) {
-                                os << std::endl;
-                            }
-                            os << prepend
-                               << "Failed: " << ( *it )->description();
-                        }
-                    }
-                    if (newline) {
-                        os << std::endl;
-                    }
-                    return os;
-                }
+                // {
+                //     _tests.run_tests( this, short_circuit );
+                //     return *this;
+                // }
 
-                virtual test_status_t validation_status() const {
-                    return _tests.status();
-                }
+                // virtual std::ostream& validation_report(
+                //     std::ostream& os, bool newline = true,
+                //     const std::string& prepend = "" ) const {
+                //     if (this->passed()) {
+                //         os << prepend << "All tests passed";
+                //     } else {
+                //         auto f = this->failed_tests();
+                //         for (auto it = f.begin(); it != f.end(); ++it) {
+                //             if (it != f.begin()) {
+                //                 os << std::endl;
+                //             }
+                //             os << prepend
+                //                << "Failed: " << ( *it )->description();
+                //         }
+                //     }
+                //     if (newline) {
+                //         os << std::endl;
+                //     }
+                //     return os;
+                // }
 
                 virtual bool was_set() const { return true; }
 
@@ -207,6 +216,11 @@ namespace NCPA {
                 virtual unsigned long long as_unsigned_int( size_t n ) const
                     = 0;
 
+                virtual BaseParameter& add_test( Validation& v )     = 0;
+                virtual BaseParameter& add_test( Validation&& v )     = 0;
+                virtual validation_status_t validate( bool short_circuit
+                                                      = false ) const = 0;
+                // virtual validation_status_t validation_status() const = 0;
 
                 virtual param_ptr_t clone() const     = 0;
                 virtual parameter_form_t form() const = 0;
@@ -238,8 +252,6 @@ namespace NCPA {
                 virtual parameter_type_t type() const = 0;
 
             protected:
-                ValidationTestSuite _tests;
-
                 virtual void _check_has_units() const {
                     if (NCPA_CONFIG_USE_STRICT_UNITS && !this->has_units()) {
                         throw std::logic_error(

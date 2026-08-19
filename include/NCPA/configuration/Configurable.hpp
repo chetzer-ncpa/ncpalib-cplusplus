@@ -506,8 +506,8 @@ namespace NCPA {
                          it != other.parameters().cend(); ++it) {
                         if (create_if_missing
                             || this->has_parameter( it->first )) {
-                            std::cout << "Setting parameter " << it->first
-                                      << std::endl;
+                            // std::cout << "Setting parameter " << it->first
+                            //           << std::endl;
                             this->copy_parameter( it->first,
                                                   it->second->clone() );
                         }

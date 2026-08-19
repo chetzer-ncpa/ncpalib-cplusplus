@@ -5,31 +5,30 @@ method of a Configurable.
 */
 #pragma once
 
+#include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/Configurable.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/pointers.hpp"
 
 #include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 
-// #define DECLARE_MAPPING_TYPE( _SUBCLASS_, _INTYPE_, _OUTTYPE_, _KEYTYPE_,   \
-//                               _LAMBDA_ )                                    \
-//     class _SUBCLASS_ : public Mapping<_INTYPE_, _KEYTYPE_> {                \
-//         public:                                                             \
-//             typedef Mapping<_INTYPE_, _KEYTYPE_> parent_t;                  \
+// #define DECLARE_MAPPING_TYPE( _SUBCLASS_, _INTYPE_, _OUTTYPE_, _KEYTYPE_, \
+//                               _LAMBDA_ ) \
+//     class _SUBCLASS_ : public Mapping<_INTYPE_, _KEYTYPE_> { \
+//         public: \
+//             typedef Mapping<_INTYPE_, _KEYTYPE_> parent_t; \
 //                                                                             \
-//             _SUBCLASS_() : Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>() {}     \
-//             _SUBCLASS_( _KEYTYPE_ key ) :                                   \
-//                 Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>( key, _LAMBDA_ ) {} \
-//             virtual ~_SUBCLASS_() {}                                        \
+//             _SUBCLASS_() : Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>() {} \
+//             _SUBCLASS_( _KEYTYPE_ key ) : \
+//                 Mapping<_INTYPE_, _OUTTYPE_, _KEYTYPE_>( key, _LAMBDA_ ) {}
+//                 \
+//             virtual ~_SUBCLASS_() {} \
 //     };
 
 namespace NCPA {
     namespace config {
-
-        using namespace NCPA::pointers;
 
         template<typename INTYPE, typename KEYTYPE>
         class Mapping : public Cloneable<Mapping<INTYPE, KEYTYPE>> {
@@ -82,8 +81,8 @@ namespace NCPA {
                 NCPA_CLONE_METHOD( this_t, parent_t )
 
                 virtual void apply( const INTYPE& in ) override {
-                    std::cout << "Applying value of " << this->convert( in )
-                              << " to key " << this->key() << std::endl;
+                    // std::cout << "Applying value of " << this->convert( in )
+                    //           << " to key " << this->key() << std::endl;
                     _target->set( this->key(), this->convert( in ) );
                 }
 
@@ -100,7 +99,8 @@ namespace NCPA {
                     _target = &newtarget;
                 }
 
-                virtual void set_converter( std::function<OUTTYPE( INTYPE )> converter ) {
+                virtual void set_converter(
+                    std::function<OUTTYPE( INTYPE )> converter ) {
                     _converter = converter;
                 }
 

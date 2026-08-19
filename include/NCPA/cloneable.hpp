@@ -9,7 +9,7 @@
 #pragma once
 
 #define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )                     \
-    std::unique_ptr<PARENTTYPE> clone() const override {              \
+    virtual std::unique_ptr<PARENTTYPE> clone() const override {      \
         return std::unique_ptr<PARENTTYPE>(                           \
             new THISTYPE( dynamic_cast<const THISTYPE&>( *this ) ) ); \
     }

@@ -9,8 +9,10 @@
 #include "NCPA/exceptions.hpp"
 
 #include <complex>
+#include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #ifndef NCPA_CONFIG_DEFAULT_NEWLINE_MARKER
 #  define NCPA_CONFIG_DEFAULT_NEWLINE_MARKER "<br>"
@@ -44,6 +46,30 @@ namespace NCPA {
         //         size_t title_indent      = 0;
         //         bool indent_subsections  = true;
         // };
+
+        enum class test_result_t {
+            NONE = 0,
+            PENDING,
+            FAILED,
+            PASSED
+        };
+        struct validation_status_t {
+                test_result_t result;
+                std::string message;
+        };
+
+        template<typename T>
+        using validation_function_t = std::function<validation_status_t( T )>;
+
+        class AbstractValidation;
+
+        template<typename T>
+        class TypedValidation;
+
+        template<typename T>
+        class PredefinedValidation;
+
+        class Validation;
 
         class ValidationTest;
         class ValidationTestSuite;
@@ -93,33 +119,33 @@ namespace NCPA {
         template<typename INTYPE, typename KEYTYPE = std::string>
         using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE, KEYTYPE>>;
 
-        template<typename T>
-        class TypedValidationTest;
-        template<typename T>
-        class UnaryValidationTest;
-        template<typename T>
-        class BinaryValidationTest;
-        template<typename T>
-        class ListValidationTest;
-        template<typename T>
-        class IsEqualToTest;
-        template<typename T>
-        class IsNotEqualToTest;
-        template<typename T>
-        class IsNotOneOfTest;
-        template<typename T>
-        class IsOneOfTest;
-        class WasSetTest;
-        template<typename T, typename Enable = void>
-        class IsBetweenTest;
-        template<typename T, typename Enable = void>
-        class IsGreaterThanTest;
-        template<typename T, typename Enable = void>
-        class IsGreaterThanOrEqualToTest;
-        template<typename T, typename Enable = void>
-        class IsLessThanTest;
-        template<typename T, typename Enable = void>
-        class IsLessThanOrEqualToTest;
+        // template<typename T>
+        // class TypedValidationTest;
+        // template<typename T>
+        // class UnaryValidationTest;
+        // template<typename T>
+        // class BinaryValidationTest;
+        // template<typename T>
+        // class ListValidationTest;
+        // template<typename T>
+        // class IsEqualToTest;
+        // template<typename T>
+        // class IsNotEqualToTest;
+        // template<typename T>
+        // class IsNotOneOfTest;
+        // template<typename T>
+        // class IsOneOfTest;
+        // class WasSetTest;
+        // template<typename T, typename Enable = void>
+        // class IsBetweenTest;
+        // template<typename T, typename Enable = void>
+        // class IsGreaterThanTest;
+        // template<typename T, typename Enable = void>
+        // class IsGreaterThanOrEqualToTest;
+        // template<typename T, typename Enable = void>
+        // class IsLessThanTest;
+        // template<typename T, typename Enable = void>
+        // class IsLessThanOrEqualToTest;
 
         typedef std::unique_ptr<BaseParameter> param_ptr_t;
         typedef ScalarParameter<double> DoubleParameter;
@@ -133,108 +159,6 @@ namespace NCPA {
         template<typename KEYTYPE>
         using param_pair_t = std::pair<KEYTYPE, param_ptr_t>;
 
-    }  // namespace config
-}  // namespace NCPA
-
-// inline void swap( NCPA::config::BaseParameter& a,
-//                   NCPA::config::BaseParameter& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::TypedParameter<T>& a,
-//            NCPA::config::TypedParameter<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::ScalarParameter<T>& a,
-//            NCPA::config::ScalarParameter<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::ScalarParameterWithUnits<T>& a,
-//            NCPA::config::ScalarParameterWithUnits<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::VectorParameter<T>& a,
-//            NCPA::config::VectorParameter<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::VectorParameterWithUnits<T>& a,
-//            NCPA::config::VectorParameterWithUnits<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::ConfigurationMap<T>& a,
-//            NCPA::config::ConfigurationMap<T>& b ) noexcept;
-
-// template<typename KEYTYPE>
-// void swap( NCPA::config::Configurable<KEYTYPE>& a,
-//            NCPA::config::Configurable<KEYTYPE>& b ) noexcept;
-
-
-// void swap( NCPA::config::ValidationTest& a,
-//            NCPA::config::ValidationTest& b ) noexcept;
-
-
-// void swap( NCPA::config::ValidationTestSuite& a,
-//            NCPA::config::ValidationTestSuite& b ) noexcept;
-
-
-// void swap( NCPA::config::NullaryValidationTest& a,
-//            NCPA::config::NullaryValidationTest& b ) noexcept;
-
-
-// template<typename T>
-// void swap( NCPA::config::TypedValidationTest<T>& a,
-//            NCPA::config::TypedValidationTest<T>& b ) noexcept;
-// template<typename T>
-// void swap( NCPA::config::UnaryValidationTest<T>& a,
-//            NCPA::config::UnaryValidationTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::BinaryValidationTest<T>& a,
-//            NCPA::config::BinaryValidationTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::ListValidationTest<T>& a,
-//            NCPA::config::ListValidationTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsEqualToTest<T>& a,
-//            NCPA::config::IsEqualToTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsNotEqualToTest<T>& a,
-//            NCPA::config::IsNotEqualToTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsNotOneOfTest<T>& a,
-//            NCPA::config::IsNotOneOfTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsOneOfTest<T>& a,
-//            NCPA::config::IsOneOfTest<T>& b ) noexcept;
-
-// void swap( NCPA::config::WasSetTest& a, NCPA::config::WasSetTest& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsBetweenTest<T>& a,
-//            NCPA::config::IsBetweenTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsGreaterThanTest<T>& a,
-//            NCPA::config::IsGreaterThanTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsGreaterThanOrEqualToTest<T>& a,
-//            NCPA::config::IsGreaterThanOrEqualToTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsLessThanTest<T>& a,
-//            NCPA::config::IsLessThanTest<T>& b ) noexcept;
-
-// template<typename T>
-// void swap( NCPA::config::IsLessThanOrEqualToTest<T>& a,
-//            NCPA::config::IsLessThanOrEqualToTest<T>& b ) noexcept;
-
-namespace NCPA {
-    namespace config {
         // floating point
         template<typename PARAMTYPE,
                  typename std::enable_if<
