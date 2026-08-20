@@ -222,10 +222,8 @@ namespace NCPA {
                     }
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameterWithUnits<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameterWithUnits<PARAMTYPE>,
+                                   BaseParameter )
 
                 virtual bool has_units() const {
                     return ( _uvalue.get_units() != nullptr );

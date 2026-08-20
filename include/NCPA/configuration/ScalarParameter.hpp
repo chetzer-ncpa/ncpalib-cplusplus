@@ -17,9 +17,9 @@ namespace NCPA {
     }  // namespace config
 }  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
-           NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
+//            NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept;
 
 namespace NCPA {
     namespace config {
@@ -29,7 +29,7 @@ namespace NCPA {
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
                     _base_scalar_parameter() :
-                        _base_scalar_parameter<PARAMTYPE>() {}
+                        TypedParameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
@@ -40,7 +40,8 @@ namespace NCPA {
                         _get_first_value_from_vector( defaultval );
                     }
 
-                    // _base_scalar_parameter( const ValidationTest& newtest ) :
+                    // _base_scalar_parameter( const ValidationTest& newtest )
+                    // :
                     //     TypedParameter<PARAMTYPE>( newtest ) {}
 
                     // _base_scalar_parameter( const test_ptr_t& newtest ) :
@@ -51,7 +52,8 @@ namespace NCPA {
                     //     TypedParameter<PARAMTYPE>( new_tests ) {}
 
                     // _base_scalar_parameter( PARAMTYPE defaultval,
-                    //                         const ValidationTest& newtest ) :
+                    //                         const ValidationTest& newtest )
+                    //                         :
                     //     TypedParameter<PARAMTYPE>( newtest ),
                     //     _value { defaultval } {}
 
@@ -218,7 +220,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -234,7 +237,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -250,7 +254,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -280,10 +285,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual long long as_int( size_t n ) const override {
                     return static_cast<long long>(
@@ -418,7 +420,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -434,7 +437,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -450,7 +454,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -480,10 +485,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -614,7 +616,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -630,7 +633,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -646,7 +650,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -676,10 +681,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -807,7 +809,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -823,7 +826,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -839,7 +843,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -869,10 +874,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     return this->get( n );
@@ -1004,7 +1006,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1020,7 +1023,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1036,7 +1040,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1066,10 +1071,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     std::string s = this->get( n );
@@ -1208,7 +1210,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1224,7 +1227,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1240,7 +1244,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1270,10 +1275,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
@@ -1416,7 +1418,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1432,7 +1435,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1448,7 +1452,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1478,10 +1483,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new ScalarParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, parameter_t )
 
                 virtual bool as_bool( size_t n ) const override {
                     throw std::out_of_range(
@@ -1588,22 +1590,3 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
-//            NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-//             static_cast<NCPA::config::TypedParameter<T>&>( b ) );
-//     swap( a._value, b._value );
-// }
-
-// template<typename T>
-// void swap( NCPA::config::ScalarParameter<T>& a,
-//            NCPA::config::ScalarParameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap(
-//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( a ),
-//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( b )
-//         );
-// }

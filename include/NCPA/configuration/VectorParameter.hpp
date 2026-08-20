@@ -8,19 +8,6 @@
 #include <regex>
 #include <vector>
 
-// namespace NCPA {
-//     namespace config {
-//         namespace hidden {
-//             template<typename T>
-//             class _base_vector_parameter;
-//         }
-//     }  // namespace config
-// }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
-//            NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept;
-
 namespace NCPA {
     namespace config {
 
@@ -404,10 +391,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( VectorParameter<PARAMTYPE>, BaseParameter )
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(

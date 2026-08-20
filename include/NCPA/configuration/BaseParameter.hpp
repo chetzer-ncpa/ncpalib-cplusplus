@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/ValidationTest.hpp"
 #include "NCPA/configuration/ValidationTestSuite.hpp"
@@ -17,9 +18,9 @@ namespace NCPA {
     namespace config {
         using namespace NCPA::units;
 
-        class BaseParameter {
+        class BaseParameter : public Cloneable<BaseParameter> {
             public:
-                BaseParameter( units_ptr_t u = nullptr ) {}
+                BaseParameter() {}
 
                 // BaseParameter( const ValidationTest& newtest ) :
                 //     BaseParameter() {
@@ -38,7 +39,7 @@ namespace NCPA {
                 // }
 
                 BaseParameter( const BaseParameter& other ) {
-                    // _tests = other._tests;
+                    
                 }
 
                 BaseParameter( BaseParameter&& other ) noexcept :
@@ -50,8 +51,7 @@ namespace NCPA {
 
                 friend void swap( BaseParameter& a,
                                   BaseParameter& b ) noexcept {
-                    // using std::swap;
-                    // swap( a._tests, b._tests );
+                    using std::swap;
                 }
 
                 // virtual BaseParameter& append_test(
@@ -136,13 +136,14 @@ namespace NCPA {
 
                 virtual bool has_units() const { return false; }
 
-                bool is_scalar() const {
+                virtual bool is_scalar() const {
                     return ( this->form() == parameter_form_t::SCALAR );
                 }
 
-                bool is_vector() const {
+                virtual bool is_vector() const {
                     return ( this->form() == parameter_form_t::VECTOR );
                 }
+
 
                 virtual bool passed() const {
                     validation_status_t res = this->validate();
@@ -174,37 +175,6 @@ namespace NCPA {
                     this->_check_has_units();
                 }
 
-                // virtual const ValidationTestSuite& tests() const {
-                //     return _tests;
-                // }
-
-
-                // {
-                //     _tests.run_tests( this, short_circuit );
-                //     return *this;
-                // }
-
-                // virtual std::ostream& validation_report(
-                //     std::ostream& os, bool newline = true,
-                //     const std::string& prepend = "" ) const {
-                //     if (this->passed()) {
-                //         os << prepend << "All tests passed";
-                //     } else {
-                //         auto f = this->failed_tests();
-                //         for (auto it = f.begin(); it != f.end(); ++it) {
-                //             if (it != f.begin()) {
-                //                 os << std::endl;
-                //             }
-                //             os << prepend
-                //                << "Failed: " << ( *it )->description();
-                //         }
-                //     }
-                //     if (newline) {
-                //         os << std::endl;
-                //     }
-                //     return os;
-                // }
-
                 virtual bool was_set() const { return true; }
 
                 // abstract API
@@ -216,13 +186,11 @@ namespace NCPA {
                 virtual unsigned long long as_unsigned_int( size_t n ) const
                     = 0;
 
-                virtual BaseParameter& add_test( Validation& v )     = 0;
+                virtual BaseParameter& add_test( Validation& v )      = 0;
                 virtual BaseParameter& add_test( Validation&& v )     = 0;
                 virtual validation_status_t validate( bool short_circuit
                                                       = false ) const = 0;
-                // virtual validation_status_t validation_status() const = 0;
 
-                virtual param_ptr_t clone() const     = 0;
                 virtual parameter_form_t form() const = 0;
 
                 virtual void from_bool( bool b )                     = 0;
@@ -262,9 +230,3 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
-
-// void swap( NCPA::config::BaseParameter& a,
-//            NCPA::config::BaseParameter& b ) noexcept {
-//     using std::swap;
-//     swap( a._tests, b._tests );
-// }

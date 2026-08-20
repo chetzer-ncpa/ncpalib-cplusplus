@@ -31,7 +31,9 @@ namespace NCPA {
                 virtual ~TypedParameter() {}
 
                 TypedParameter( const TypedParameter<PARAMTYPE>& other ) :
-                    BaseParameter( *this ) {}
+                    BaseParameter( *this ) {
+                    _validations = other._validations;
+                }
 
                 TypedParameter( TypedParameter<PARAMTYPE>&& other ) noexcept :
                     TypedParameter() {
@@ -49,6 +51,7 @@ namespace NCPA {
                     using std::swap;
                     swap( static_cast<NCPA::config::BaseParameter&>( a ),
                           static_cast<NCPA::config::BaseParameter&>( b ) );
+                    swap( a._validations, b._validations );
                 }
 
                 virtual parameter_type_t type() const override {
@@ -121,7 +124,8 @@ namespace NCPA {
                     try {
                         auto& typed_ref
                             = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
-                        _validations.push_back( TypedValidation<PARAMTYPE>( typed_ref ) );
+                        _validations.push_back(
+                            TypedValidation<PARAMTYPE>( typed_ref ) );
                     } catch (const std::bad_cast&) {
                         throw std::logic_error(
                             "Error in Parameter: Can't cast to TypedParameter "
@@ -141,20 +145,18 @@ namespace NCPA {
                              _validations) {
                             validation_status_t teststatus
                                 = test.validate( this->get() );
-                            switch
-                                (teststatus.result) {
-                                    case test_result_t::FAILED:
-                                        status.result
-                                            = test_result_t::FAILED;
-                                        status.message
-                                            += "\n" + teststatus.message;
-                                        if (short_circuit) {
-                                            return status;
-                                        }
-                                        break;
-                                    default:
-                                        break;
-                                }
+                            switch (teststatus.result) {
+                                case test_result_t::FAILED:
+                                    status.result = test_result_t::FAILED;
+                                    status.message
+                                        += "\n" + teststatus.message;
+                                    if (short_circuit) {
+                                        return status;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         if (status.result == test_result_t::PENDING) {
                             status.result = test_result_t::PASSED;

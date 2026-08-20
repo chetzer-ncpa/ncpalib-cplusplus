@@ -165,10 +165,7 @@ namespace NCPA {
                     swap( a._uvalue, b._uvalue );
                 }
 
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameterWithUnits<PARAMTYPE>( *this ) );
-                }
+                NCPA_CLONE_METHOD( VectorParameterWithUnits<PARAMTYPE>, BaseParameter )
 
                 virtual std::string as_string() const override {
                     if (this->has_units()) {
