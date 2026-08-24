@@ -52,7 +52,9 @@ namespace NCPA {
                 virtual ~TypedParameter() {}
 
                 TypedParameter( const TypedParameter<PARAMTYPE>& other ) :
-                    BaseParameter( *this ) {}
+                    BaseParameter( *this ) {
+                    _validations = other._validations;
+                }
 
                 TypedParameter( TypedParameter<PARAMTYPE>&& other ) noexcept :
                     TypedParameter() {
@@ -70,6 +72,7 @@ namespace NCPA {
                     using std::swap;
                     swap( static_cast<NCPA::config::BaseParameter&>( a ),
                           static_cast<NCPA::config::BaseParameter&>( b ) );
+                    swap( a._validations, b._validations );
                 }
 
                 virtual parameter_type_t type() const override {

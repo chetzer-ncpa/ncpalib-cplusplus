@@ -25,6 +25,11 @@ namespace NCPA {
                     swap( *this, other );
                 }
 
+                TypedValidation& operator=( TypedValidation<T> other ) noexcept {
+                    swap( *this, other );
+                    return *this;
+                }
+
                 TypedValidation( validation_function_t<T> v ) { validate = v; }
 
                 friend void swap( TypedValidation<T>& a,
