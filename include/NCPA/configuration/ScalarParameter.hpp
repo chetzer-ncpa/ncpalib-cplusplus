@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NCPA/configuration/BaseParameter.hpp"
-#include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
@@ -40,7 +39,52 @@ namespace NCPA {
                         _get_first_value_from_vector( defaultval );
                     }
 
-                    // _base_scalar_parameter( const ValidationTest& newtest ) :
+                    _base_scalar_parameter(
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( v ) {}
+
+                    _base_scalar_parameter(
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( v ) {}
+
+                    _base_scalar_parameter(
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( ptr ) {}
+
+                    _base_scalar_parameter(
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tests ) {}
+
+                    _base_scalar_parameter(
+                        PARAMTYPE defaultval,
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( v ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        PARAMTYPE defaultval,
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( v ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        PARAMTYPE defaultval,
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( ptr ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        PARAMTYPE defaultval,
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tests ),
+                        _value { defaultval } {}
+
+                    // _base_scalar_parameter( const ValidationTest& newtest )
+                    // :
                     //     TypedParameter<PARAMTYPE>( newtest ) {}
 
                     // _base_scalar_parameter( const test_ptr_t& newtest ) :
@@ -51,7 +95,8 @@ namespace NCPA {
                     //     TypedParameter<PARAMTYPE>( new_tests ) {}
 
                     // _base_scalar_parameter( PARAMTYPE defaultval,
-                    //                         const ValidationTest& newtest ) :
+                    //                         const ValidationTest& newtest )
+                    //                         :
                     //     TypedParameter<PARAMTYPE>( newtest ),
                     //     _value { defaultval } {}
 
@@ -210,6 +255,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -218,7 +299,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -234,7 +316,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -250,7 +333,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -410,6 +494,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -418,7 +538,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -434,7 +555,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -450,7 +572,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -606,6 +729,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -614,7 +773,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -630,7 +790,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -646,7 +807,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -799,6 +961,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -807,7 +1005,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -823,7 +1022,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -839,7 +1039,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -996,6 +1197,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -1004,7 +1241,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1020,7 +1258,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1036,7 +1275,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1200,6 +1440,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -1208,7 +1484,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1224,7 +1501,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1240,7 +1518,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1408,6 +1687,42 @@ namespace NCPA {
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
 
+                ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+
+                ScalarParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+
+                ScalarParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               v ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               ptr ) {}
+
+                ScalarParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
+                                                               tests ) {}
+
                 // ScalarParameter( const ValidationTest& newtest ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
 
@@ -1416,7 +1731,8 @@ namespace NCPA {
 
                 // ScalarParameter(
                 //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests ) {}
+                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
+                //     {}
 
                 // ScalarParameter( PARAMTYPE defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1432,7 +1748,8 @@ namespace NCPA {
                 //     PARAMTYPE defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
                 //                  const ValidationTest& newtest ) :
@@ -1448,7 +1765,8 @@ namespace NCPA {
                 //     const std::vector<PARAMTYPE>& defaultval,
                 //     std::initializer_list<test_ptr_t> new_tests ) :
                 //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests ) {}
+                //                                                new_tests )
+                //                                                {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
@@ -1588,22 +1906,3 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
-//            NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-//             static_cast<NCPA::config::TypedParameter<T>&>( b ) );
-//     swap( a._value, b._value );
-// }
-
-// template<typename T>
-// void swap( NCPA::config::ScalarParameter<T>& a,
-//            NCPA::config::ScalarParameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap(
-//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( a ),
-//         static_cast<NCPA::config::hidden::_base_scalar_parameter<T>&>( b )
-//         );
-// }

@@ -52,134 +52,151 @@ namespace NCPA {
                                           0.0, defaultval.get_units() )
                                     : defaultval.get_scalar( 0 ) ) } {}
 
-                ScalarParameterWithUnits( const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ) {}
+                ScalarParameterWithUnits( const TypedValidation<PARAMTYPE>& v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
 
-                ScalarParameterWithUnits( const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ) {}
+                ScalarParameterWithUnits( const TypedValidation<PARAMTYPE> *v ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
 
                 ScalarParameterWithUnits(
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ) {}
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval,
-                                          const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
-
-                ScalarParameterWithUnits( PARAMTYPE defaultval,
-                                          const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
+                ScalarParameterWithUnits(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
 
                 ScalarParameterWithUnits(
                     PARAMTYPE defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
                     _uvalue { defaultval } {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
-
-                ScalarParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
                     _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     PARAMTYPE defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
                     _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    ScalarWithUnits<PARAMTYPE> defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
                     _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    ScalarParameter<PARAMTYPE>( v ), _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    ScalarParameter<PARAMTYPE>( tests ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const ScalarParameterWithUnits<PARAMTYPE>& other ) :

@@ -1,12 +1,98 @@
 #pragma once
 
+#include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
-#include "NCPA/configuration/boilerplate.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 
 #include <regex>
 #include <vector>
+
+#define NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE                 \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;                 \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;              \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_double;               \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_int;                  \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_string;               \
+    using hidden::_base_vector_parameter<PARAMTYPE>::as_unsigned_int;         \
+    VectorParameter() : hidden::_base_vector_parameter<PARAMTYPE>() {}        \
+                                                                              \
+    VectorParameter( PARAMTYPE defaultval ) :                                 \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}            \
+                                                                              \
+    VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :             \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}            \
+                                                                              \
+    VectorParameter( const TypedValidation<PARAMTYPE>& v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( v ) {}                     \
+                                                                              \
+    VectorParameter( const TypedValidation<PARAMTYPE> *v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( v ) {}                     \
+                                                                              \
+    VectorParameter(                                                          \
+        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
+        hidden::_base_vector_parameter<PARAMTYPE>( ptr ) {}                   \
+                                                                              \
+    VectorParameter(                                                          \
+        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
+        hidden::_base_vector_parameter<PARAMTYPE>( tests ) {}                 \
+                                                                              \
+    VectorParameter( PARAMTYPE defaultval,                                    \
+                     const TypedValidation<PARAMTYPE>& v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
+                                                                              \
+    VectorParameter( PARAMTYPE defaultval,                                    \
+                     const TypedValidation<PARAMTYPE> *v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
+                                                                              \
+    VectorParameter(                                                          \
+        PARAMTYPE defaultval,                                                 \
+        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, ptr ) {}       \
+                                                                              \
+    VectorParameter(                                                          \
+        PARAMTYPE defaultval,                                                 \
+        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, tests ) {}     \
+                                                                              \
+    VectorParameter( const std::vector<PARAMTYPE>& defaultval,                \
+                     const TypedValidation<PARAMTYPE>& v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
+                                                                              \
+    VectorParameter( const std::vector<PARAMTYPE>& defaultval,                \
+                     const TypedValidation<PARAMTYPE> *v ) :                  \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
+                                                                              \
+    VectorParameter(                                                          \
+        const std::vector<PARAMTYPE>& defaultval,                             \
+        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, ptr ) {}       \
+                                                                              \
+    VectorParameter(                                                          \
+        const std::vector<PARAMTYPE>& defaultval,                             \
+        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
+        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, tests ) {}     \
+                                                                              \
+    VectorParameter( const VectorParameter<PARAMTYPE>& other ) :              \
+        hidden::_base_vector_parameter<PARAMTYPE>( other ) {}                 \
+                                                                              \
+    VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept :          \
+        hidden::_base_vector_parameter<PARAMTYPE>() {                         \
+        swap( *this, other );                                                 \
+    }                                                                         \
+    virtual ~VectorParameter() {}                                             \
+    VectorParameter<PARAMTYPE>& operator=(                                    \
+        VectorParameter<PARAMTYPE> other ) {                                  \
+        swap( *this, other );                                                 \
+        return *this;                                                         \
+    }                                                                         \
+    friend void swap( VectorParameter<PARAMTYPE>& a,                          \
+                      VectorParameter<PARAMTYPE>& b ) noexcept {              \
+        using std::swap;                                                      \
+        swap( static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ),   \
+              static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ) ); \
+    }                                                                         \
+    NCPA_CLONE_METHOD( VectorParameter<PARAMTYPE>, BaseParameter )
 
 // namespace NCPA {
 //     namespace config {
@@ -38,48 +124,74 @@ namespace NCPA {
                         const std::vector<PARAMTYPE>& defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
 
-                    _base_vector_parameter( const ValidationTest& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ) {}
-
-                    _base_vector_parameter( const test_ptr_t& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ) {}
+                    _base_vector_parameter(
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( v ) {}
 
                     _base_vector_parameter(
-                        std::initializer_list<test_ptr_t> new_tests ) :
-                        TypedParameter<PARAMTYPE>( new_tests ) {}
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( v ) {}
 
-                    _base_vector_parameter( PARAMTYPE defaultval,
-                                            const ValidationTest& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ),
-                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+                    _base_vector_parameter(
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( ptr ) {}
 
-                    _base_vector_parameter( PARAMTYPE defaultval,
-                                            const test_ptr_t& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ),
+                    _base_vector_parameter(
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tests ) {}
+
+                    _base_vector_parameter(
+                        PARAMTYPE defaultval,
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( v ),
                         _value { std::vector<PARAMTYPE> { defaultval } } {}
 
                     _base_vector_parameter(
                         PARAMTYPE defaultval,
-                        std::initializer_list<test_ptr_t> new_tests ) :
-                        TypedParameter<PARAMTYPE>( new_tests ),
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( v ),
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+
+                    _base_vector_parameter(
+                        PARAMTYPE defaultval,
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( ptr ),
+                        _value { std::vector<PARAMTYPE> { defaultval } } {}
+
+                    _base_vector_parameter(
+                        PARAMTYPE defaultval,
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tests ),
                         _value { std::vector<PARAMTYPE> { defaultval } } {}
 
                     _base_vector_parameter(
                         const std::vector<PARAMTYPE>& defaultval,
-                        const ValidationTest& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ),
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( v ),
                         _value { defaultval } {}
 
                     _base_vector_parameter(
                         const std::vector<PARAMTYPE>& defaultval,
-                        const test_ptr_t& newtest ) :
-                        TypedParameter<PARAMTYPE>( newtest ),
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( v ),
                         _value { defaultval } {}
 
                     _base_vector_parameter(
                         const std::vector<PARAMTYPE>& defaultval,
-                        std::initializer_list<test_ptr_t> new_tests ) :
-                        TypedParameter<PARAMTYPE>( new_tests ),
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( ptr ),
+                        _value { defaultval } {}
+
+                    _base_vector_parameter(
+                        const std::vector<PARAMTYPE>& defaultval,
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tests ),
                         _value { defaultval } {}
 
                     virtual ~_base_vector_parameter() {}
@@ -107,8 +219,10 @@ namespace NCPA {
                         _base_vector_parameter<PARAMTYPE>& b ) noexcept {
                         using std::swap;
                         swap(
-                            static_cast<NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
-                            static_cast<NCPA::config::TypedParameter<PARAMTYPE>&>(
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>(
                                 b ) );
                         swap( a._value, b._value );
                     }
@@ -317,97 +431,7 @@ namespace NCPA {
                            std::is_floating_point<PARAMTYPE>::value>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
-
-                VectorParameter() :
-                    hidden::_base_vector_parameter<PARAMTYPE>() {}
-
-                VectorParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}
-
-                VectorParameter( const ValidationTest& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( newtest ) {}
-
-                VectorParameter( const test_ptr_t& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( newtest ) {}
-
-                VectorParameter(
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( new_tests ) {}
-
-                VectorParameter( PARAMTYPE defaultval,
-                                 const ValidationTest& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               newtest ) {}
-
-                VectorParameter( PARAMTYPE defaultval,
-                                 const test_ptr_t& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               newtest ) {}
-
-                VectorParameter(
-                    PARAMTYPE defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               new_tests ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
-                                 const ValidationTest& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               newtest ) {}
-
-                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
-                                 const test_ptr_t& newtest ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               newtest ) {}
-
-                VectorParameter(
-                    const std::vector<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( defaultval,
-                                                               new_tests ) {}
-
-                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
-                    hidden::_base_vector_parameter<PARAMTYPE>( other ) {}
-
-                VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_vector_parameter<PARAMTYPE>() {
-                    swap( *this, other );
-                }
-
-                virtual ~VectorParameter() {}
-
-                VectorParameter<PARAMTYPE>& operator=(
-                    VectorParameter<PARAMTYPE> other ) {
-                    swap( *this, other );
-                    return *this;
-                }
-
-                friend void swap( VectorParameter<PARAMTYPE>& a,
-                                  VectorParameter<PARAMTYPE>& b ) noexcept {
-                    using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_vector_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_vector_parameter<PARAMTYPE>&>(
-                              b ) );
-                }
-
-                virtual param_ptr_t clone() const override {
-                    return param_ptr_t(
-                        new VectorParameter<PARAMTYPE>( *this ) );
-                }
+                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
@@ -529,13 +553,6 @@ namespace NCPA {
                                   && std::is_signed<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -659,13 +676,6 @@ namespace NCPA {
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -786,13 +796,6 @@ namespace NCPA {
                                              PARAMTYPE, bool>::value>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
@@ -918,13 +921,6 @@ namespace NCPA {
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
@@ -1059,13 +1055,6 @@ namespace NCPA {
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {
@@ -1204,13 +1193,6 @@ namespace NCPA {
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
             : public hidden::_base_vector_parameter<PARAMTYPE> {
             public:
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
-                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
-                using hidden::_base_vector_parameter<
-                    PARAMTYPE>::as_unsigned_int;
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
                 virtual bool as_bool( size_t n = 0 ) const override {

@@ -339,3 +339,29 @@ TEST_F( _TEST_TITLE_, MappingCloneWorksCorrectly ) {
     mapping->apply( 4.2 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 8.4 );
 }
+
+TEST_F( _TEST_TITLE_, TrueValidationValidateReturnsCorrect ) {
+    dparam->add_test( is_greater_than<double>( 2.0 ) );
+    EXPECT_EQ( ( dparam->validate().result ), test_result_t::PASSED );
+}
+
+TEST_F( _TEST_TITLE_, TrueValidationPassedReturnsTrue ) {
+    dparam->add_test( is_greater_than<double>( 2.0 ) );
+    EXPECT_TRUE( dparam->passed() );
+}
+
+TEST_F( _TEST_TITLE_, FalseValidationValidateReturnsCorrect ) {
+    dparam->add_test( is_greater_than<double>( 6.0 ) );
+    EXPECT_EQ( ( dparam->validate().result ), test_result_t::FAILED );
+}
+
+TEST_F( _TEST_TITLE_, FalseValidationPassedReturnsFalse ) {
+    dparam->add_test( is_greater_than<double>( 6.0 ) );
+    EXPECT_TRUE( dparam->failed() );
+}
+
+TEST_F( _TEST_TITLE_, MultipleTrueValidationsReturnCorrect ) {
+    DoubleParameter dparam2(
+        4.5, { is_greater_than<double>( 2.0 ), is_less_than<double>( 6.0 ) } );
+    EXPECT_TRUE( dparam2.passed() );
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/ValidationTest.hpp"
 #include "NCPA/configuration/ValidationTestSuite.hpp"
@@ -17,7 +18,7 @@ namespace NCPA {
     namespace config {
         using namespace NCPA::units;
 
-        class BaseParameter {
+        class BaseParameter : public Cloneable<BaseParameter> {
             public:
                 BaseParameter( units_ptr_t u = nullptr ) {}
 
@@ -216,13 +217,13 @@ namespace NCPA {
                 virtual unsigned long long as_unsigned_int( size_t n ) const
                     = 0;
 
-                virtual BaseParameter& add_test( Validation& v )     = 0;
+                virtual BaseParameter& add_test( Validation& v )      = 0;
                 virtual BaseParameter& add_test( Validation&& v )     = 0;
                 virtual validation_status_t validate( bool short_circuit
                                                       = false ) const = 0;
                 // virtual validation_status_t validation_status() const = 0;
 
-                virtual param_ptr_t clone() const     = 0;
+                // virtual param_ptr_t clone() const     = 0;
                 virtual parameter_form_t form() const = 0;
 
                 virtual void from_bool( bool b )                     = 0;

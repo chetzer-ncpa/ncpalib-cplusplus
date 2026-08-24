@@ -119,34 +119,6 @@ namespace NCPA {
         template<typename INTYPE, typename KEYTYPE = std::string>
         using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE, KEYTYPE>>;
 
-        // template<typename T>
-        // class TypedValidationTest;
-        // template<typename T>
-        // class UnaryValidationTest;
-        // template<typename T>
-        // class BinaryValidationTest;
-        // template<typename T>
-        // class ListValidationTest;
-        // template<typename T>
-        // class IsEqualToTest;
-        // template<typename T>
-        // class IsNotEqualToTest;
-        // template<typename T>
-        // class IsNotOneOfTest;
-        // template<typename T>
-        // class IsOneOfTest;
-        // class WasSetTest;
-        // template<typename T, typename Enable = void>
-        // class IsBetweenTest;
-        // template<typename T, typename Enable = void>
-        // class IsGreaterThanTest;
-        // template<typename T, typename Enable = void>
-        // class IsGreaterThanOrEqualToTest;
-        // template<typename T, typename Enable = void>
-        // class IsLessThanTest;
-        // template<typename T, typename Enable = void>
-        // class IsLessThanOrEqualToTest;
-
         typedef std::unique_ptr<BaseParameter> param_ptr_t;
         typedef ScalarParameter<double> DoubleParameter;
         typedef ScalarParameter<int> IntegerParameter;

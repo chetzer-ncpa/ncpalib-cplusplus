@@ -2,6 +2,7 @@
 
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/TypedValidation.hpp"
 #include "NCPA/types.hpp"
 #include "NCPA/units.hpp"
 
@@ -17,6 +18,26 @@ namespace NCPA {
                 using value_type = PARAMTYPE;
 
                 TypedParameter() : BaseParameter() {}
+
+                TypedParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    TypedParameter<PARAMTYPE>() {
+                    _validations.push_back( v );
+                }
+
+                TypedParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    TypedParameter<PARAMTYPE>( *v ) {}
+
+                TypedParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    TypedParameter<PARAMTYPE>( *ptr ) {}
+
+                TypedParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests 
+                ) : TypedParameter<PARAMTYPE>() {
+                    for (auto& test: tests) {
+                        _validations.push_back( test );
+                    }
+                }
 
                 // TypedParameter( const ValidationTest& newtest ) :
                 //     BaseParameter( newtest ) {}
@@ -121,7 +142,8 @@ namespace NCPA {
                     try {
                         auto& typed_ref
                             = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
-                        _validations.push_back( TypedValidation<PARAMTYPE>( typed_ref ) );
+                        _validations.push_back(
+                            TypedValidation<PARAMTYPE>( typed_ref ) );
                     } catch (const std::bad_cast&) {
                         throw std::logic_error(
                             "Error in Parameter: Can't cast to TypedParameter "
@@ -141,20 +163,18 @@ namespace NCPA {
                              _validations) {
                             validation_status_t teststatus
                                 = test.validate( this->get() );
-                            switch
-                                (teststatus.result) {
-                                    case test_result_t::FAILED:
-                                        status.result
-                                            = test_result_t::FAILED;
-                                        status.message
-                                            += "\n" + teststatus.message;
-                                        if (short_circuit) {
-                                            return status;
-                                        }
-                                        break;
-                                    default:
-                                        break;
-                                }
+                            switch (teststatus.result) {
+                                case test_result_t::FAILED:
+                                    status.result = test_result_t::FAILED;
+                                    status.message
+                                        += "\n" + teststatus.message;
+                                    if (short_circuit) {
+                                        return status;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         if (status.result == test_result_t::PENDING) {
                             status.result = test_result_t::PASSED;
