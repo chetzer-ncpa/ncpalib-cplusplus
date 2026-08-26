@@ -7,7 +7,7 @@ CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
 
 # SOURCES=test_extern_armadillo_fftw3.cpp
 # SOURCES=test_atmosphere.cpp
-# SOURCES=test_ndvector.cpp
+SOURCES=test_configuration.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 

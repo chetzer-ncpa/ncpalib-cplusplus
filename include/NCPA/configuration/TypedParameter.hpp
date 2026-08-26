@@ -2,6 +2,7 @@
 
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/TypedValidation.hpp"
 #include "NCPA/types.hpp"
 #include "NCPA/units.hpp"
 
@@ -18,19 +19,42 @@ namespace NCPA {
 
                 TypedParameter() : BaseParameter() {}
 
-                TypedParameter( const ValidationTest& newtest ) :
-                    BaseParameter( newtest ) {}
+                TypedParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    TypedParameter<PARAMTYPE>() {
+                    _validations.push_back( v );
+                }
 
-                TypedParameter( const test_ptr_t& newtest ) :
-                    BaseParameter( newtest ) {}
+                TypedParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    TypedParameter<PARAMTYPE>( *v ) {}
 
-                TypedParameter( std::initializer_list<test_ptr_t> new_tests ) :
-                    BaseParameter( new_tests ) {}
+                TypedParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    TypedParameter<PARAMTYPE>( *ptr ) {}
+
+                TypedParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests 
+                ) : TypedParameter<PARAMTYPE>() {
+                    for (auto& test: tests) {
+                        _validations.push_back( test );
+                    }
+                }
+
+                // TypedParameter( const ValidationTest& newtest ) :
+                //     BaseParameter( newtest ) {}
+
+                // TypedParameter( const test_ptr_t& newtest ) :
+                //     BaseParameter( newtest ) {}
+
+                // TypedParameter( std::initializer_list<test_ptr_t> new_tests
+                // ) :
+                //     BaseParameter( new_tests ) {}
 
                 virtual ~TypedParameter() {}
 
                 TypedParameter( const TypedParameter<PARAMTYPE>& other ) :
-                    BaseParameter( *this ) {}
+                    BaseParameter( *this ) {
+                    _validations = other._validations;
+                }
 
                 TypedParameter( TypedParameter<PARAMTYPE>&& other ) noexcept :
                     TypedParameter() {
@@ -47,7 +71,8 @@ namespace NCPA {
                                   TypedParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
                     swap( static_cast<NCPA::config::BaseParameter&>( a ),
-                            static_cast<NCPA::config::BaseParameter&>( b ) );
+                          static_cast<NCPA::config::BaseParameter&>( b ) );
+                    swap( a._validations, b._validations );
                 }
 
                 virtual parameter_type_t type() const override {
@@ -101,7 +126,69 @@ namespace NCPA {
                         this->get_units() );
                 }
 
+                virtual TypedParameter<PARAMTYPE>& add_test(
+                    Validation&& v ) override {
+                    try {
+                        auto& typed_ref
+                            = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
+                        _validations.push_back( std::move( typed_ref ) );
+                    } catch (const std::bad_cast&) {
+                        throw std::logic_error(
+                            "Error in Parameter: Can't cast to TypedParameter "
+                            "of proper type" );
+                    }
+                    return *this;
+                }
+
+                virtual TypedParameter<PARAMTYPE>& add_test(
+                    Validation& v ) override {
+                    try {
+                        auto& typed_ref
+                            = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
+                        _validations.push_back(
+                            TypedValidation<PARAMTYPE>( typed_ref ) );
+                    } catch (const std::bad_cast&) {
+                        throw std::logic_error(
+                            "Error in Parameter: Can't cast to TypedParameter "
+                            "of proper type" );
+                    }
+                    return *this;
+                }
+
+                virtual validation_status_t validate(
+                    bool short_circuit = false ) const override {
+                    validation_status_t status;
+                    if (_validations.empty()) {
+                        status.result = test_result_t::NONE;
+                    } else {
+                        status.result = test_result_t::PENDING;
+                        for (const TypedValidation<PARAMTYPE>& test :
+                             _validations) {
+                            validation_status_t teststatus
+                                = test.validate( this->get() );
+                            switch (teststatus.result) {
+                                case test_result_t::FAILED:
+                                    status.result = test_result_t::FAILED;
+                                    status.message
+                                        += "\n" + teststatus.message;
+                                    if (short_circuit) {
+                                        return status;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        if (status.result == test_result_t::PENDING) {
+                            status.result = test_result_t::PASSED;
+                        }
+                    }
+                    return status;
+                }
+
             protected:
+                std::vector<TypedValidation<PARAMTYPE>> _validations;
+
                 template<typename T = PARAMTYPE,
                          typename std::enable_if<
                              NCPA::types::has_to_string<T>::value, int>::type

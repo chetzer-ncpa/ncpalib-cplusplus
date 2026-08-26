@@ -23,67 +23,96 @@ namespace NCPA {
             return dynamic_cast<VectorParameter<PARAMTYPE> *>( &p );
         }
 
-        // convenience functions
         template<typename T>
-        test_ptr_t IsLessThan( const T& val ) {
-            return test_ptr_t( new IsLessThanTest<T>( val ) );
-        }
-
-        template<typename T>
-        test_ptr_t IsLessThan( const T& val, bool equalOK ) {
-            return equalOK
-                     ? test_ptr_t( new IsLessThanOrEqualToTest<T>( val ) )
-                     : test_ptr_t( new IsLessThanTest<T>( val ) );
-        }
-
-        template<typename T>
-        test_ptr_t IsGreaterThan( const T& val ) {
-            return test_ptr_t( new IsGreaterThanTest<T>( val ) );
+        validation_function_t<T> _binary_comparison(
+            const std::function<bool( T, T )>& cmp, const T& a,
+            std::string msg ) {
+            using std::to_string;
+            validation_function_t<T> func
+                = [ cmp, a, msg ]( T d ) -> validation_status_t {
+                return cmp( d, a )
+                         ? validation_status_t { test_result_t::PASSED, "" }
+                         : validation_status_t { test_result_t::FAILED, msg };
+            };
+            return func;
         }
 
         template<typename T>
-        test_ptr_t IsGreaterThan( const T& val, bool equalOK ) {
-            return equalOK
-                     ? test_ptr_t( new IsGreaterThanOrEqualToTest<T>( val ) )
-                     : test_ptr_t( new IsGreaterThanTest<T>( val ) );
+        TypedValidation<T> is_less_than( const T& val, bool equalok = false,
+                                         std::string errmsg = "" ) {
+            using std::to_string;
+            if (errmsg.empty()) {
+                std::string addendum = ( equalok ? "or equal to " : "" );
+                errmsg = "Supplied value must be less than " + addendum
+                       + to_string( val );
+            }
+            return std::move( TypedValidation<T>( _binary_comparison<T>(
+                ( equalok ? []( T x, T y ) { return x <= y; }
+                          : []( T x, T y ) { return x < y; } ),
+                val, errmsg ) ) );
         }
 
         template<typename T>
-        test_ptr_t IsEqualTo( const T& val ) {
-            return test_ptr_t( new IsEqualToTest<T>( val ) );
+        TypedValidation<T> is_equal_to( const T& val,
+                                        std::string errmsg = "" ) {
+            using std::to_string;
+            if (errmsg.empty()) {
+                errmsg = "Supplied value must be equal to " + to_string( val );
+            }
+            return std::move( TypedValidation<T>( _binary_comparison<T>(
+                []( T x, T y ) { return x == y; }, val, errmsg ) ) );
         }
 
         template<typename T>
-        test_ptr_t IsNotEqualTo( const T& val ) {
-            return test_ptr_t( new IsNotEqualToTest<T>( val ) );
+        TypedValidation<T> is_not_equal_to( const T& val,
+                                            std::string errmsg = "" ) {
+            using std::to_string;
+            if (errmsg.empty()) {
+                errmsg = "Supplied value must be equal to " + to_string( val );
+            }
+            return std::move( TypedValidation<T>( _binary_comparison<T>(
+                []( T x, T y ) { return x != y; }, val, errmsg ) ) );
         }
 
         template<typename T>
-        test_ptr_t IsZero() {
-            return IsEqualTo<T>( (T)0 );
+        TypedValidation<T> is_greater_than( const T& val, bool equalok = false,
+                                            std::string errmsg = "" ) {
+            using std::to_string;
+            if (errmsg.empty()) {
+                errmsg = "Supplied value must be greater than "
+                       + to_string( val );
+            }
+            return std::move( TypedValidation<T>( _binary_comparison<T>(
+                ( equalok ? []( T x, T y ) { return x >= y; }
+                          : []( T x, T y ) { return x > y; } ),
+                val, errmsg ) ) );
+        };
+
+        template<typename T>
+        TypedValidation<T> is_positive() {
+            return std::move(
+                is_greater_than( static_cast<T>( 0 ), false,
+                                 "Supplied value must be positive." ) );
         }
 
         template<typename T>
-        test_ptr_t IsNotZero() {
-            return IsNotEqualTo<T>( (T)0 );
+        TypedValidation<T> is_negative() {
+            return std::move(
+                is_less_than( static_cast<T>( 0 ), false,
+                              "Supplied value must be negative." ) );
         }
 
         template<typename T>
-        test_ptr_t IsNegative() {
-            return IsLessThan<T>( (T)0 );
+        TypedValidation<T> is_zero() {
+            return std::move( is_equal_to( static_cast<T>( 0 ),
+                                           "Supplied value must be zero" ) );
         }
 
         template<typename T>
-        test_ptr_t IsPositive() {
-            return IsGreaterThan<T>( (T)0 );
+        TypedValidation<T> is_nonzero() {
+            return std::move( is_not_equal_to(
+                static_cast<T>( 0 ), "Supplied value must be nonzero" ) );
         }
 
-        inline test_ptr_t IsNotEmptyString() {
-            return IsNotEqualTo<std::string>( "" );
-        }
-
-        inline test_ptr_t IsEmptyString() {
-            return IsEqualTo<std::string>( "" );
-        }
     }  // namespace config
 }  // namespace NCPA

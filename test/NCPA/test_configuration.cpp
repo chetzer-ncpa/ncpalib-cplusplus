@@ -69,26 +69,16 @@ TEST_F( _TEST_TITLE_, BooleanParameterReturnsExpectedOutputs ) {
 TEST_F( _TEST_TITLE_, IntegerParameterAllowsTests ) {
     EXPECT_TRUE( iparam->passed() );
     EXPECT_FALSE( iparam->failed() );
-    iparam->append_test( IsNotZero<int>() );
-    EXPECT_TRUE( iparam->pending() );
-    EXPECT_FALSE( iparam->validate().pending() );
+    iparam->add_test( is_nonzero<int>() );
     EXPECT_TRUE( iparam->passed() );
     EXPECT_FALSE( iparam->failed() );
-    iparam->append_test( IsZero<int>() );
-    EXPECT_FALSE( iparam->validate().pending() );
+    iparam->add_test( is_positive<int>() );
+    EXPECT_TRUE( iparam->passed() );
+    EXPECT_FALSE( iparam->failed() );
+    iparam->add_test( is_greater_than<int>( 5 ) );
     EXPECT_TRUE( iparam->failed() );
     EXPECT_FALSE( iparam->passed() );
 }
-
-TEST_F( _TEST_TITLE_, CanAddTestsAtCreateTime ) {
-    DoubleParameter d2( { IsNotZero<double>(), IsLessThan<double>( 5.0 ) } );
-    d2.from_double( 3.0 );
-    EXPECT_TRUE( d2.validate().passed() );
-    d2.from_double( 0.0 );
-    EXPECT_FALSE( d2.validate().passed() );
-}
-
-
 
 TEST_F( _TEST_TITLE_, ScalarParameterWithUnitsConstructor1Works ) {
     param_ptr_t suparam( new ScalarParameterWithUnits<double>() );
@@ -273,18 +263,17 @@ TEST_F( _TEST_TITLE_, ParameterVectorMethodWorksForDoubleWithUnitsAndValues ) {
     EXPECT_DOUBLE_EQ( ptr->as_double( 2 ), 4.5 );
     EXPECT_EQ( ptr->size(), 3 );
     EXPECT_TRUE( ptr->has_units() );
-    EXPECT_DOUBLE_EQ( ptr->convert_units(&METERS).as_double( 0 ), 2.5e3 );
-    EXPECT_DOUBLE_EQ( ptr->convert_units(&METERS).as_double( 1 ), 3.5e3 );
-    EXPECT_DOUBLE_EQ( ptr->convert_units(&METERS).as_double( 2 ), 4.5e3 );
+    EXPECT_DOUBLE_EQ( ptr->convert_units( &METERS ).as_double( 0 ), 2.5e3 );
+    EXPECT_DOUBLE_EQ( ptr->convert_units( &METERS ).as_double( 1 ), 3.5e3 );
+    EXPECT_DOUBLE_EQ( ptr->convert_units( &METERS ).as_double( 2 ), 4.5e3 );
 }
 
 TEST_F( _TEST_TITLE_, ConfigurableClassWorksAsExpected ) {
     cvec1.push_back( 1.0 );
     cvec1.push_back( 2.0 );
-    cvec1.add_parameter( "par1",
-                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
+    cvec1.add_parameter( "par1", DoubleParameter( 1.0 ) );
     EXPECT_EQ( cvec1.get<int>( "par1" ), 1 );
-    DoubleParameter par2( 0.0, { IsNotZero<double>() } );
+    DoubleParameter par2( 0.0 );
     cvec1.add_parameter( "par2", par2 );
     EXPECT_EQ( cvec1.get<int>( "par2" ), 0 );
 }
@@ -292,8 +281,7 @@ TEST_F( _TEST_TITLE_, ConfigurableClassWorksAsExpected ) {
 TEST_F( _TEST_TITLE_, ConfigurableClassWorksWithEnum ) {
     cvec1.add_parameter( "write_atmosphere",
                          ScalarParameter<testenum>( testenum::FIRST_ONLY ) );
-    cvec1.add_parameter( "par1",
-                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
+    cvec1.add_parameter( "par1", DoubleParameter( 1.0 ) );
     cvec1.validate_parameters();
     EXPECT_TRUE( cvec1.passed() );
     Configurable<std::string> c;
@@ -314,37 +302,66 @@ TEST_F( _TEST_TITLE_, ConfigurableClassCopiesParameters ) {
                  == testenum::FIRST_ONLY );
 }
 
-TEST_F( _TEST_TITLE_, ConfigurableClassHandlesScalarUnits) {
-    cvec1.add_parameter( "speed", Parameter::scalar<double>( 360.0, &METERS_PER_SECOND ) );
+TEST_F( _TEST_TITLE_, ConfigurableClassHandlesScalarUnits ) {
+    cvec1.add_parameter(
+        "speed", Parameter::scalar<double>( 360.0, &METERS_PER_SECOND ) );
     EXPECT_TRUE( cvec1.has_parameter( "speed" ) );
-    EXPECT_EQ( cvec1.parameter("speed").size(), 1 );
+    EXPECT_EQ( cvec1.parameter( "speed" ).size(), 1 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "speed" ), 360.0 );
-    EXPECT_DOUBLE_EQ( cvec1.convert_parameter( "speed", &KILOMETERS_PER_SECOND ).as_double(), 0.36 );
+    EXPECT_DOUBLE_EQ(
+        cvec1.convert_parameter( "speed", &KILOMETERS_PER_SECOND ).as_double(),
+        0.36 );
 }
 
-TEST_F( _TEST_TITLE_, ConfigurableClassHandlesVectorUnits) {
-    cvec1.add_parameter( "length", Parameter::vector<double>( {-5.0, 2.0, 8.3 }, &KILOMETERS ) );
+TEST_F( _TEST_TITLE_, ConfigurableClassHandlesVectorUnits ) {
+    cvec1.add_parameter( "length", Parameter::vector<double>(
+                                       { -5.0, 2.0, 8.3 }, &KILOMETERS ) );
     EXPECT_TRUE( cvec1.has_parameter( "length" ) );
-    EXPECT_EQ( cvec1.parameter("length").size(), 3 );
+    EXPECT_EQ( cvec1.parameter( "length" ).size(), 3 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "length" ), -5.0 );
-    EXPECT_DOUBLE_EQ( cvec1.convert_parameter( "length", &METERS ).as_double(), -5000.0 );
+    EXPECT_DOUBLE_EQ( cvec1.convert_parameter( "length", &METERS ).as_double(),
+                      -5000.0 );
 }
 
 TEST_F( _TEST_TITLE_, MappingWorksCorrectly ) {
-    cvec1.add_parameter( "par1",
-                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
-    Mapping<double>* mapping = new ConfigurationMapping<double,double>( "par1", 
-        [](double d){ return d; }, cvec1 );
+    cvec1.add_parameter( "par1", DoubleParameter( 1.0 ) );
+    Mapping<double> *mapping = new ConfigurationMapping<double, double>(
+        "par1", []( double d ) { return d; }, cvec1 );
     mapping->apply( 4.2 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 4.2 );
 }
 
 TEST_F( _TEST_TITLE_, MappingCloneWorksCorrectly ) {
-    cvec1.add_parameter( "par1",
-                         DoubleParameter( 1.0, { IsNotZero<double>() } ) );
-    Mapping<double>* mapping = new ConfigurationMapping<double,double>( "par1", 
-        [](double d){ return d * 2.0; }, cvec1 );
+    cvec1.add_parameter( "par1", DoubleParameter( 1.0 ) );
+    Mapping<double> *mapping = new ConfigurationMapping<double, double>(
+        "par1", []( double d ) { return d * 2.0; }, cvec1 );
     mapping_ptr_t<double> ptr( mapping->clone() );
     mapping->apply( 4.2 );
     EXPECT_DOUBLE_EQ( cvec1.get<double>( "par1" ), 8.4 );
+}
+
+TEST_F( _TEST_TITLE_, TrueValidationValidateReturnsCorrect ) {
+    dparam->add_test( is_greater_than<double>( 2.0 ) );
+    EXPECT_EQ( ( dparam->validate().result ), test_result_t::PASSED );
+}
+
+TEST_F( _TEST_TITLE_, TrueValidationPassedReturnsTrue ) {
+    dparam->add_test( is_greater_than<double>( 2.0 ) );
+    EXPECT_TRUE( dparam->passed() );
+}
+
+TEST_F( _TEST_TITLE_, FalseValidationValidateReturnsCorrect ) {
+    dparam->add_test( is_greater_than<double>( 6.0 ) );
+    EXPECT_EQ( ( dparam->validate().result ), test_result_t::FAILED );
+}
+
+TEST_F( _TEST_TITLE_, FalseValidationPassedReturnsFalse ) {
+    dparam->add_test( is_greater_than<double>( 6.0 ) );
+    EXPECT_TRUE( dparam->failed() );
+}
+
+TEST_F( _TEST_TITLE_, MultipleTrueValidationsReturnCorrect ) {
+    DoubleParameter dparam2(
+        4.5, { is_greater_than<double>( 2.0 ), is_less_than<double>( 6.0 ) } );
+    EXPECT_TRUE( dparam2.passed() );
 }
