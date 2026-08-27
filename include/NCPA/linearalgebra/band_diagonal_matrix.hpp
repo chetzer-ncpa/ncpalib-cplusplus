@@ -1298,9 +1298,14 @@ namespace NCPA {
                     int pcols      = (int)( product.columns() );
                     // int new_n_lower = product.lower_bandwidth();
                     // int new_n_upper = product.upper_bandwidth();
+                    int newlowbw = a.lower_bandwidth() + b.lower_bandwidth();
+                    int newupbw = a.upper_bandwidth() + b.upper_bandwidth();
                     size_t counter = 0;
                     for (int r = 0; r < (int)product.rows(); ++r) {
-                        for (int c = 0; c < (int)product.columns(); ++c) {
+                        int cmin = std::max( 0, r - newlowbw );
+                        int cmax = std::min( (int)product.rows() - 1, r + newupbw );
+                        for (int c = cmin; c <= cmax; ++c) {
+                        // for (int c = 0; c < (int)product.columns(); ++c) {
                             int min_k_a
                                 = std::max( r - (int)a.lower_bandwidth(), 0 );
                             int max_k_a
