@@ -7,7 +7,7 @@ CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
 
 # SOURCES=test_extern_armadillo_fftw3.cpp
 # SOURCES=test_atmosphere.cpp
-SOURCES=test_configuration.cpp
+SOURCES=test_linearalgebra_banddiagonalmatrix.cpp test_linearalgebra_banddiagonalmatrix_complex.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 
