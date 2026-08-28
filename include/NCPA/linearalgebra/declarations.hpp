@@ -108,6 +108,7 @@ namespace NCPA {
         class MatrixFactory;
         template<typename ELEMENTTYPE>
         class SolverFactory;
+        class Algorithms;
 
         // vectors (behind the scenes)
         template<typename ELEMENTTYPE>

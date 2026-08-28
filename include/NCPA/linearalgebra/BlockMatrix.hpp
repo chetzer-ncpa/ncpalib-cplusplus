@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/exceptions.hpp"
+#include "NCPA/linearalgebra/algorithms.hpp"
 #include "NCPA/linearalgebra/builders.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -1065,19 +1066,14 @@ namespace NCPA {
                             << v.size() << " elements in vector";
                         throw std::invalid_argument( oss.str() );
                     }
-                    Vector<ELEMENTTYPE> product
-                        = VectorFactory<ELEMENTTYPE>::build(vector_t::DENSE,
-                            this->rows() );
-                    for (size_t i = 0; i < rows(); i++) {
-                        product.set( i, this->get_row( i )->dot( v ) );
-                        // auto row = this->get_row( i );
-                        // ELEMENTTYPE sum = NCPA::math::zero<ELEMENTTYPE>();
-                        // for (size_t j = 0; j < columns(); j++) {
-                        //     sum += get( i, j ) * v.get( j );
-                        // }
-                        // product.set( i, sum );
-                    }
-                    return product;
+                    return algorithms::multiply( *this, v );
+                    // Vector<ELEMENTTYPE> product
+                    //     = VectorFactory<ELEMENTTYPE>::build(vector_t::DENSE,
+                    //         this->rows() );
+                    // for (size_t i = 0; i < rows(); i++) {
+                    //     product.set( i, this->get_row( i )->dot( v ) );
+                    // }
+                    // return product;
                 }
 
                 virtual size_t rows() const override {

@@ -5,6 +5,7 @@
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/functions.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
+#include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
@@ -438,6 +439,7 @@ namespace NCPA {
                             << v.size() << " elements in vector";
                         throw std::invalid_argument( oss.str() );
                     }
+                    NCPA_DEBUG << "Using abstract right_multiply()" << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                         = build_vector( rows() );
                     for (size_t i = 0; i < rows(); i++) {
