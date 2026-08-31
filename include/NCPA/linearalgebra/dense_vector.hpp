@@ -21,8 +21,8 @@
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+        template<typename ELEMENTTYPE>
+        class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
             : public abstract_vector<ELEMENTTYPE> {
             public:
                 dense_vector() {}
