@@ -26,14 +26,6 @@
     NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE ) \
     NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )
 
-// #define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )                      \
-//     virtual std::unique_ptr<PARENTTYPE> clone() const override {       \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) );   \
-//     }                                                                  \
-//     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override { \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE() );          \
-//     }
-
 #define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )       \
     virtual std::unique_ptr<PARENTTYPE> clone() const override; \
     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override;
