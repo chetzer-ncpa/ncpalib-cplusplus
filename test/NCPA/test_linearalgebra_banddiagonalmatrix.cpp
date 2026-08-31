@@ -742,3 +742,4 @@ TEST_F( _TEST_TITLE_, IsUpperTriangularIsCorrect ) {
     zeromat.set( 1, 0, testval );
     EXPECT_FALSE( zeromat.is_upper_triangular() );
 }
+

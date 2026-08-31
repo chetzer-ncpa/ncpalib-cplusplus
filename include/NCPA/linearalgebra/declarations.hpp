@@ -108,7 +108,15 @@ namespace NCPA {
         class MatrixFactory;
         template<typename ELEMENTTYPE>
         class SolverFactory;
-        class Algorithms;
+
+        namespace algorithms {
+            template<typename element_t>
+            Vector<element_t> multiply( const Matrix<element_t>& A,
+                                        const Vector<element_t>& b );
+            template<typename element_t>
+            Matrix<element_t> multiply( const Matrix<element_t>& A,
+                                        const Matrix<element_t>& b );
+        }
 
         // vectors (behind the scenes)
         template<typename ELEMENTTYPE>
