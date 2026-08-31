@@ -9,9 +9,20 @@
 
 namespace NCPA {
     namespace linear {
+
+        // template<typename arg1_t, typename arg2_t, typename return_t>
+        // using algorithm_t
+        //     = std::function<return_t( const arg1_t&, const arg2_t& )>;
+
+        // template<typename T>
+        // using mvv_algorithm_t = algorithm_t<Matrix<T>, Vector<T>,
+        // Vector<T>>;
+
         namespace algorithms {
+
+
             template<typename element_t>
-            Vector<element_t> _mult_diagonal_matrix_vector(
+            static Vector<element_t> _mult_diagonal_matrix_vector(
                 const Matrix<element_t>& A, const Vector<element_t>& b ) {
                 Vector<element_t> c( b, true );
                 c.resize( b.size() );
@@ -23,7 +34,7 @@ namespace NCPA {
             }
 
             template<typename element_t>
-            Vector<element_t> _mult_band_diagonal_matrix_vector(
+            static Vector<element_t> _mult_band_diagonal_matrix_vector(
                 const Matrix<element_t>& A, const Vector<element_t>& b ) {
                 Vector<element_t> product( b, true );
                 product.resize( b.size() );
@@ -41,7 +52,7 @@ namespace NCPA {
             }
 
             template<typename element_t>
-            Vector<element_t> _mult_matrix_vector(
+            static Vector<element_t> _mult_matrix_vector(
                 const Matrix<element_t>& A, const Vector<element_t>& b ) {
                 Vector<element_t> product( b, true );
                 product.resize( b.size() );
@@ -57,8 +68,8 @@ namespace NCPA {
             }
 
             template<typename element_t>
-            Vector<element_t> multiply( const Matrix<element_t>& A,
-                                        const Vector<element_t>& b ) {
+            static Vector<element_t> multiply( const Matrix<element_t>& A,
+                                               const Vector<element_t>& b ) {
                 if (A.is_diagonal()) {
                     NCPA_DEBUG << "Returning diagonal matrix-vector product"
                                << std::endl;
