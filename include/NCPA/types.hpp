@@ -170,6 +170,7 @@
             static constexpr bool value = decltype( test<T>( 0 ) )::value; \
     };
 
+
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -304,7 +305,6 @@ namespace NCPA {
         DECLARE_CAN_USE_STD_FUNCTION( to_string )
         DECLARE_HAS_METHOD( to_string )
 
-        
 
     }  // namespace types
 }  // namespace NCPA

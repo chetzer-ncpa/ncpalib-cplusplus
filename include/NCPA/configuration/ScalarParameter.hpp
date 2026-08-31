@@ -27,7 +27,8 @@ namespace NCPA {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
-                    _base_scalar_parameter() : TypedParameter<PARAMTYPE>() {}
+                    _base_scalar_parameter() :
+                        TypedParameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
@@ -463,7 +464,7 @@ namespace NCPA {
                     PARAMTYPE>::as_unsigned_int;
 
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
@@ -695,7 +696,7 @@ namespace NCPA {
                     PARAMTYPE>::as_unsigned_int;
 
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( 0 ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}

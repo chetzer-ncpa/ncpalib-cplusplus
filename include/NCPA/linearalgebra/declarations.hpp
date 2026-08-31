@@ -101,6 +101,12 @@ namespace NCPA {
         template<typename T>
         class BlockMatrixPolynomial;
 
+        namespace algorithms {
+            template<typename element_t>
+            Vector<element_t> multiply( const Matrix<element_t>& A,
+                                        const Vector<element_t>& b );
+        }
+
         // factories
         template<typename ELEMENTTYPE>
         class VectorFactory;

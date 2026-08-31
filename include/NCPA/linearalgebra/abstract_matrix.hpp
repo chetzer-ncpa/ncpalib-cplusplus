@@ -5,6 +5,7 @@
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/functions.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
+#include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
@@ -17,14 +18,19 @@
 #include <sstream>
 #include <vector>
 
-
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::abstract_matrix,
-                                             ELEMENTTYPE );
-
-template<typename ELEMENTTYPE>
-std::ostream& operator<<(
-    std::ostream& output,
-    const NCPA::linear::abstract_matrix<ELEMENTTYPE>& D );
+// template<typename ELEMENTTYPE>
+// static void swap( NCPA::linear::abstract_matrix<ELEMENTTYPE>& a,
+//                   NCPA::linear::abstract_matrix<ELEMENTTYPE>& b ) noexcept;
+// template<typename ELEMENTTYPE>
+// bool operator==( const NCPA::linear::abstract_matrix<ELEMENTTYPE>& a,
+//                  const NCPA::linear::abstract_matrix<ELEMENTTYPE>& b );
+// template<typename ELEMENTTYPE>
+// bool operator!=( const NCPA::linear::abstract_matrix<ELEMENTTYPE>& a,
+//                  const NCPA::linear::abstract_matrix<ELEMENTTYPE>& b );
+// template<typename ELEMENTTYPE>
+// std::ostream& operator<<(
+//     std::ostream& output,
+//     const NCPA::linear::abstract_matrix<ELEMENTTYPE>& D );
 
 namespace NCPA {
     namespace linear {
@@ -34,26 +40,24 @@ namespace NCPA {
             public:
                 // constructors, destructors, copying, and assignment
                 virtual ~abstract_matrix() = default;
-                friend void ::swap<ELEMENTTYPE>(
-                    abstract_matrix<ELEMENTTYPE>& a,
-                    abstract_matrix<ELEMENTTYPE>& b ) noexcept;
+
+                friend void swap( abstract_matrix<ELEMENTTYPE>& a,
+                                  abstract_matrix<ELEMENTTYPE>& b ) noexcept {}
 
                 // API: must override
                 virtual abstract_matrix<ELEMENTTYPE>& as_array(
-                    size_t& nrows, size_t& ncols, ELEMENTTYPE **& vals )
-                    = 0;
-                virtual size_t bandwidth() const = 0;
+                    size_t& nrows, size_t& ncols, ELEMENTTYPE **& vals ) = 0;
+                virtual size_t bandwidth() const                         = 0;
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
-                    build_vector( size_t n = 0 ) const                    = 0;
-                virtual abstract_matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) = 0;
-                virtual abstract_matrix<ELEMENTTYPE>& clear()             = 0;
-                virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> clone()
-                    const
+                    build_vector( size_t n = 0 ) const = 0;
+                virtual abstract_matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol )
                     = 0;
+                virtual abstract_matrix<ELEMENTTYPE>& clear() = 0;
+                virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>> clone()
+                    const                      = 0;
                 virtual size_t columns() const = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& copy(
-                    const abstract_matrix<ELEMENTTYPE>& other )
-                    = 0;
+                    const abstract_matrix<ELEMENTTYPE>& other ) = 0;
                 virtual std::unique_ptr<abstract_matrix<ELEMENTTYPE>>
                     fresh_clone() const = 0;
                 virtual const ELEMENTTYPE& get( size_t row, size_t col ) const
@@ -62,17 +66,14 @@ namespace NCPA {
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                     get_column( size_t column ) const = 0;
                 virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> get_row(
-                    size_t row ) const
-                    = 0;
+                    size_t row ) const         = 0;
                 virtual std::string id() const = 0;
                 virtual bool is_this_subclass(
-                    const abstract_matrix<ELEMENTTYPE>& b ) const
-                    = 0;
+                    const abstract_matrix<ELEMENTTYPE>& b ) const  = 0;
                 virtual bool is_zero( double tol = 1.0e-12 ) const = 0;
                 virtual bool is_zero( size_t r, size_t c,
-                                      double tol = 1.0e-12 ) const
-                    = 0;
-                virtual size_t lower_bandwidth() const = 0;
+                                      double tol = 1.0e-12 ) const = 0;
+                virtual size_t lower_bandwidth() const             = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& resize( size_t rows,
                                                               size_t cols )
                     = 0;
@@ -85,15 +86,12 @@ namespace NCPA {
                     = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& set_column(
                     size_t column, size_t nvals, const size_t *row_inds,
-                    const ELEMENTTYPE *vals )
-                    = 0;
+                    const ELEMENTTYPE *vals ) = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& set_row(
                     size_t row, size_t nvals, const size_t *column_inds,
-                    const ELEMENTTYPE *vals )
-                    = 0;
+                    const ELEMENTTYPE *vals ) = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& swap_columns(
-                    size_t ind1, size_t ind2 )
-                    = 0;
+                    size_t ind1, size_t ind2 ) = 0;
                 virtual abstract_matrix<ELEMENTTYPE>& swap_rows( size_t ind1,
                                                                  size_t ind2 )
                     = 0;
@@ -398,7 +396,7 @@ namespace NCPA {
                     product->resize( rows(), b.columns() );
                     std::vector<std::unique_ptr<abstract_vector<ELEMENTTYPE>>>
                         b_cols( b.columns() );
-                    
+
                     int aubw = this->upper_bandwidth();
                     int albw = this->lower_bandwidth();
                     int bubw = b.upper_bandwidth();
@@ -410,20 +408,13 @@ namespace NCPA {
                         int cmax = std::min( k + bubw, (int)b.columns() - 1 );
                         for (int r = rmin; r <= rmax; ++r) {
                             for (int c = cmin; c <= cmax; ++c) {
-                                product->set( r, c, product->get( r, c ) + this->get(r, k) * b.get( k, c ) );
+                                product->set( r, c,
+                                              product->get( r, c )
+                                                  + this->get( r, k )
+                                                        * b.get( k, c ) );
                             }
                         }
                     }
-                    // for (size_t row = 0; row < product->rows(); row++) {
-                    //     auto a_row = get_row( row );
-                    //     for (size_t col = 0; col < product->columns(); col++) {
-                    //         if (!b_cols[ col ]) {
-                    //             b_cols[ col ] = b.get_column( col );
-                    //         }
-                    //         product->set( row, col,
-                    //                       a_row->dot( *b_cols[ col ] ) );
-                    //     }
-                    // }
                     return product;
                 }
 
@@ -438,6 +429,8 @@ namespace NCPA {
                             << v.size() << " elements in vector";
                         throw std::invalid_argument( oss.str() );
                     }
+                    NCPA_DEBUG << "Using abstract right_multiply()"
+                               << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> product
                         = build_vector( rows() );
                     for (size_t i = 0; i < rows(); i++) {
@@ -666,34 +659,51 @@ namespace NCPA {
                     const abstract_matrix<ELEMENTTYPE>& b ) {
                     return !( a.equals( b ) );
                 }
+
+                friend std::ostream& operator<<(
+                    std::ostream& output,
+                    const abstract_matrix<ELEMENTTYPE>& D ) {
+                    output << "[ ";
+                    for (size_t i = 0; i < D.rows(); i++) {
+                        if (i > 0) {
+                            output << "  ";
+                        }
+                        output << "[ ";
+                        for (size_t j = 0; j < D.columns(); j++) {
+                            if (j > 0) {
+                                output << ", ";
+                            }
+                            output << D.get( i, j );
+                        }
+                        output << " ]" << std::endl;
+                    }
+                    output << "]" << std::endl;
+                    return output;
+                }
         };
 
 
     }  // namespace linear
 }  // namespace NCPA
 
-template<typename T>
-static void swap( NCPA::linear::abstract_matrix<T>& a,
-                  NCPA::linear::abstract_matrix<T>& b ) noexcept {}
-
-template<typename ELEMENTTYPE>
-std::ostream& operator<<(
-    std::ostream& output,
-    const NCPA::linear::abstract_matrix<ELEMENTTYPE>& D ) {
-    output << "[ ";
-    for (size_t i = 0; i < D.rows(); i++) {
-        if (i > 0) {
-            output << "  ";
-        }
-        output << "[ ";
-        for (size_t j = 0; j < D.columns(); j++) {
-            if (j > 0) {
-                output << ", ";
-            }
-            output << D.get( i, j );
-        }
-        output << " ]" << std::endl;
-    }
-    output << "]" << std::endl;
-    return output;
-}
+// template<typename ELEMENTTYPE>
+// std::ostream& operator<<(
+//     std::ostream& output,
+//     const NCPA::linear::abstract_matrix<ELEMENTTYPE>& D ) {
+//     output << "[ ";
+//     for (size_t i = 0; i < D.rows(); i++) {
+//         if (i > 0) {
+//             output << "  ";
+//         }
+//         output << "[ ";
+//         for (size_t j = 0; j < D.columns(); j++) {
+//             if (j > 0) {
+//                 output << ", ";
+//             }
+//             output << D.get( i, j );
+//         }
+//         output << " ]" << std::endl;
+//     }
+//     output << "]" << std::endl;
+//     return output;
+// }

@@ -16,13 +16,13 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::dense_vector,
-                                             ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::dense_vector,
+//                                              ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+        template<typename ELEMENTTYPE>
+        class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
             : public abstract_vector<ELEMENTTYPE> {
             public:
                 dense_vector() {}
@@ -60,14 +60,18 @@ namespace NCPA {
                  */
                 dense_vector( dense_vector<ELEMENTTYPE>&& source ) noexcept :
                     dense_vector<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~dense_vector() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    dense_vector<ELEMENTTYPE>& a,
-                    dense_vector<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( dense_vector<ELEMENTTYPE>& a,
+                                  dense_vector<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_vector<ELEMENTTYPE>&>( a ),
+                          static_cast<abstract_vector<ELEMENTTYPE>&>( b ) );
+                    swap( a._elements, b._elements );
+                }
 
                 /**
                  * Assignment operator.
@@ -75,7 +79,7 @@ namespace NCPA {
                  */
                 dense_vector<ELEMENTTYPE>& operator=(
                     dense_vector<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -116,8 +120,7 @@ namespace NCPA {
                     return set( _zero );
                 }
 
-                virtual dense_vector<ELEMENTTYPE>& zero(
-                    size_t n ) override {
+                virtual dense_vector<ELEMENTTYPE>& zero( size_t n ) override {
                     return set( n, _zero );
                 }
 
@@ -171,10 +174,12 @@ namespace NCPA {
                     return nz;
                 }
 
-                virtual dense_vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                virtual dense_vector<ELEMENTTYPE>& clean(
+                    ELEMENTTYPE tol ) override {
                     auto atol = std::abs( tol );
-                    for (auto it = _elements.begin(); it != _elements.end(); ++it) {
-                        if (std::abs( *it ) < atol ) {
+                    for (auto it = _elements.begin(); it != _elements.end();
+                         ++it) {
+                        if (std::abs( *it ) < atol) {
                             *it = _zero;
                         }
                     }
@@ -198,11 +203,23 @@ namespace NCPA {
                     return v;
                 }
 
-                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> clone()
-                    override {
-                    return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
-                        new dense_vector( *this ) );
-                }
+                NCPA_CLONE_METHOD( dense_vector<ELEMENTTYPE>,
+                                   abstract_vector<ELEMENTTYPE> )
+
+                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                // clone()
+                //     override {
+                //     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                //         new dense_vector( *this ) );
+                // }
+
+                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                // fresh_clone()
+                //     override {
+                //     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                //         new dense_vector() );
+                // }
+
 
                 virtual dense_vector<ELEMENTTYPE>& clear() override {
                     _elements.clear();
@@ -338,17 +355,20 @@ namespace NCPA {
 
                 friend class dense_matrix<ELEMENTTYPE>;
 
-                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> subvector(
-                    size_t start, size_t elements ) const override {
+                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                    subvector( size_t start, size_t elements ) const override {
                     if (start + elements > this->size()) {
-                        throw std::range_error( "Requested segment extends past end of vector" );
+                        throw std::range_error(
+                            "Requested segment extends past end of vector" );
                     }
                     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
                         new dense_vector<ELEMENTTYPE>(
                             elements, _elements.data() + start ) );
                 }
 
-                virtual dense_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start, size_t elements ) override {
+                virtual dense_vector<ELEMENTTYPE>& splice(
+                    const abstract_vector<ELEMENTTYPE>& v, size_t start,
+                    size_t elements ) override {
                     size_t last = start + elements;
                     if (last > this->size()) {
                         this->resize( last );
@@ -375,12 +395,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::dense_vector<T>& a,
-                  NCPA::linear::dense_vector<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_vector<T>&>( a ),
-            static_cast<NCPA::linear::abstract_vector<T>&>( b ) );
-    swap( a._elements, b._elements );
-}

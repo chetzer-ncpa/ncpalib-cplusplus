@@ -830,6 +830,7 @@ namespace NCPA {
                             << x.size() << " elements in vector";
                         throw std::invalid_argument( oss.str() );
                     }
+                    NCPA_DEBUG << "Using band_diagonal_matrix.right_multiply()" << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> b(
                         new dense_vector<ELEMENTTYPE>( rows() ) );
                     int n = (int)rows();  // , bw = (int)bandwidth();

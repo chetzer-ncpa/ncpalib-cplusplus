@@ -20,8 +20,8 @@
 #include <vector>
 
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Vector,
-                                             ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Vector,
+//                                              ELEMENTTYPE );
 
 template<typename ELEMENTTYPE>
 std::ostream& operator<<( std::ostream& os,
@@ -55,9 +55,14 @@ namespace NCPA {
                 }
 
                 // copy constructor
-                Vector( const Vector<ELEMENTTYPE>& other ) :
+                Vector( const Vector<ELEMENTTYPE>& other,
+                        bool fresh = false ) :
                     Vector<ELEMENTTYPE>() {
-                    _ptr = std::move( other._ptr->clone() );
+                    if (fresh) {
+                        _ptr = std::move( other._ptr->fresh_clone() );
+                    } else {
+                        _ptr = std::move( other._ptr->clone() );
+                    }
                 }
 
                 /**
@@ -66,13 +71,16 @@ namespace NCPA {
                  */
                 Vector( Vector<ELEMENTTYPE>&& source ) noexcept :
                     Vector<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~Vector() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    Vector<ELEMENTTYPE>& a, Vector<ELEMENTTYPE>& b ) noexcept;
+                friend void swap(
+                    Vector<ELEMENTTYPE>& a, Vector<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 // friend Vector<ELEMENTTYPE> operator*(
                 //     const Vector<ELEMENTTYPE>& a,
@@ -86,38 +94,8 @@ namespace NCPA {
                  * @param other The vector to assign to this.
                  */
                 Vector<ELEMENTTYPE>& operator=( Vector<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
-                }
-
-                virtual size_t size() const {
-                    return _ptr ? _ptr->size() : 0;
-                };
-
-                virtual bool is_zero() const {
-                    return !( _ptr && !( _ptr->is_zero() ) );
-                }
-
-                virtual Vector<ELEMENTTYPE>& zero() {
-                    check_pointer();
-                    _ptr->zero();
-                    return *this;
-                }
-
-                virtual Vector<ELEMENTTYPE>& zero( size_t n ) {
-                    check_pointer();
-                    _ptr->zero( n );
-                    return *this;
-                }
-
-                virtual ELEMENTTYPE& get( size_t n ) {
-                    check_pointer();
-                    return _ptr->get( n );
-                };
-
-                virtual const ELEMENTTYPE& get( size_t n ) const {
-                    check_pointer();
-                    return _ptr->get( n );
                 }
 
                 virtual std::vector<ELEMENTTYPE> as_std() const {
@@ -134,11 +112,36 @@ namespace NCPA {
 
                 virtual Vector<ELEMENTTYPE>& clear() {
                     if (_ptr) {
-                        // _ptrclear();
                         _ptr->clear();
-                        // _ptr.reset();
                     }
                     return *this;
+                }
+
+                virtual ELEMENTTYPE& get( size_t n ) {
+                    check_pointer();
+                    return _ptr->get( n );
+                };
+
+                virtual const ELEMENTTYPE& get( size_t n ) const {
+                    check_pointer();
+                    return _ptr->get( n );
+                }
+
+                virtual bool is_zero() const {
+                    return !( _ptr && !( _ptr->is_zero() ) );
+                }
+
+                virtual std::map<size_t, ELEMENTTYPE> nonzero() const {
+                    check_pointer();
+                    return _ptr->nonzero();
+                }
+
+                virtual std::vector<size_t> nonzero_indices() const {
+                    if (_ptr) {
+                        return this->_ptr->nonzero_indices();
+                    } else {
+                        return std::vector<size_t>();
+                    }
                 }
 
                 virtual void print( std::ostream& os = std::cout ) const {
@@ -151,8 +154,20 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual std::vector<size_t> nonzero_indices() const {
-                    return this->_ptr->nonzero_indices();
+                virtual size_t size() const {
+                    return _ptr ? _ptr->size() : 0;
+                };
+
+                virtual Vector<ELEMENTTYPE>& zero() {
+                    check_pointer();
+                    _ptr->zero();
+                    return *this;
+                }
+
+                virtual Vector<ELEMENTTYPE>& zero( size_t n ) {
+                    check_pointer();
+                    _ptr->zero( n );
+                    return *this;
                 }
 
                 virtual Vector<ELEMENTTYPE>& as_array( size_t n,
@@ -188,8 +203,6 @@ namespace NCPA {
                     return *this;
                 }
 
-
-
                 virtual Vector<ELEMENTTYPE>& scale( ELEMENTTYPE val ) {
                     check_pointer();
                     _ptr->scale( val );
@@ -210,7 +223,9 @@ namespace NCPA {
                         _ptr->subvector( start, end ) );
                 }
 
-                virtual Vector<ELEMENTTYPE>& splice( const Vector<ELEMENTTYPE>& v, size_t start, size_t elements ) {
+                virtual Vector<ELEMENTTYPE>& splice(
+                    const Vector<ELEMENTTYPE>& v, size_t start,
+                    size_t elements ) {
                     check_pointer();
                     _ptr->splice( *v.internal(), start, elements );
                     return *this;
@@ -456,10 +471,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::Vector<T>& a,
-                  NCPA::linear::Vector<T>& b ) noexcept {
-    // using std::swap;
-    a._ptr.swap( b._ptr );
-}

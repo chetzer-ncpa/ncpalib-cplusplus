@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/linearalgebra/algorithms.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -530,8 +531,9 @@ namespace NCPA {
                             "Matrix-vector size mismatch: cannot "
                             "multiply" );
                     }
-                    return Vector<ELEMENTTYPE>(
-                        _ptr->right_multiply( *( other._ptr ) ) );
+                    // return Vector<ELEMENTTYPE>(
+                    //     _ptr->right_multiply( *( other._ptr ) ) );
+                    return algorithms::multiply( *this, other );
                 }
 
                 virtual size_t rows() const {
