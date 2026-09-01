@@ -4,49 +4,73 @@
 #include <stdexcept>
 #include <vector>
 
+// namespace NCPA {
+//     namespace dsp {
+//         template<typename T>
+//         class _window;
+//         template<typename T>
+//         class CosineWindow;
+//         template<typename T>
+//         class HannWindow;
+//         template<typename T>
+//         class HammingWindow;
+//     }  // namespace dsp
+// }  // namespace NCPA
+
+// template<typename T>
+// void swap( NCPA::dsp::_window<T>& a, NCPA::dsp::_window<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::dsp::CosineWindow<T>& a,
+//            NCPA::dsp::CosineWindow<T>& b ) noexcept;
+// template<typename T>
+// void swap( NCPA::dsp::HannWindow<T>& a, NCPA::dsp::HannWindow<T>& b )
+// noexcept; template<typename T> void swap( NCPA::dsp::HammingWindow<T>& a,
+//            NCPA::dsp::HammingWindow<T>& b ) noexcept;
+
 namespace NCPA {
     namespace dsp {
+
         template<typename T>
         class _window;
-        template<typename T>
-        class CosineWindow;
-        template<typename T>
-        class HannWindow;
-        template<typename T>
-        class HammingWindow;
-    }  // namespace dsp
-}  // namespace NCPA
 
-template<typename T>
-void swap( NCPA::dsp::_window<T>& a, NCPA::dsp::_window<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::dsp::CosineWindow<T>& a,
-           NCPA::dsp::CosineWindow<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::dsp::HannWindow<T>& a, NCPA::dsp::HannWindow<T>& b ) noexcept;
-template<typename T>
-void swap( NCPA::dsp::HammingWindow<T>& a,
-           NCPA::dsp::HammingWindow<T>& b ) noexcept;
-
-namespace NCPA {
-    namespace dsp {
         template<typename T>
-        class _window : public std::vector<T> {
+        std::vector<T>& operator*=( std::vector<T>& v, const _window<T>& w );
+
+        template<typename T>
+        class _window {
             public:
                 _window() : _window( 0 ) {}
 
                 _window( size_t n, const T& val = 1.0 ) { _init( n, val ); }
 
-                _window( const _window<T>& other ) :
-                    std::vector<T> { other } {}
+                _window( const _window<T>& other ) { _vals = other._vals; }
 
                 _window( _window<T>&& other ) noexcept : _window<T>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~_window() {}
 
-                friend void ::swap<>( _window<T>& a, _window<T>& b ) noexcept;
+                friend void swap( _window<T>& a, _window<T>& b ) noexcept {
+                    using std::swap;
+                    swap( a._vals, b._vals );
+                }
+
+                friend std::vector<T> operator*( const std::vector<T>& v,
+                                                 const _window<T>& w ) {
+                    if (v.size() != w.size()) {
+                        throw std::range_error( "Incompatible vector sizes "
+                                                "for window multiplication" );
+                    }
+                    std::vector<T> x  = v;
+                    x                *= w;
+                    return x;
+                }
+
+                friend std::vector<T> operator*( const _window<T>& w,
+                                                 const std::vector<T>& v ) {
+                    return v * w;
+                }
 
                 virtual T value( size_t winsize, size_t n ) const = 0;
 
@@ -66,7 +90,7 @@ namespace NCPA {
                             + " out of range for window of size "
                             + std::to_string( this->size() ) );
                     } else {
-                        point *= this->at( n );
+                        point *= _vals.at( n );
                         return *this;
                     }
                 }
@@ -75,7 +99,7 @@ namespace NCPA {
                     bool size_matches = ( signal.size() == this->size() );
                     for (size_t n = 0; n < signal.size(); ++n) {
                         if (size_matches) {
-                            signal[ n ] *= this->at( n );
+                            signal[ n ] *= _vals.at( n );
                         } else {
                             this->apply( signal.size(), n, signal[ n ] );
                         }
@@ -84,18 +108,41 @@ namespace NCPA {
                 }
 
                 virtual _window& build( size_t npts ) {
-                    this->resize( npts, 1.0 );
+                    _vals.resize( npts, 1.0 );
                     for (size_t i = 0; i < npts; ++i) {
-                        this->at( i ) *= this->value( npts, i );
+                        _vals.at( i ) *= this->value( npts, i );
                     }
                     return *this;
                 }
 
+                virtual bool empty() const { return _vals.empty(); }
+
+                virtual size_t size() const { return _vals.size(); }
+
+                T& operator[]( size_t n ) { return _vals[ n ]; }
+
+                const T& operator[]( size_t n ) const { return _vals[ n ]; }
+
             protected:
                 void _init( size_t npts, const T& val ) {
-                    this->resize( npts, static_cast<T>( val ) );
+                    _vals.resize( npts, static_cast<T>( val ) );
                 }
+
+            private:
+                std::vector<T> _vals;
         };
+
+        template<typename T>
+        std::vector<T>& operator*=( std::vector<T>& v, const _window<T>& w ) {
+            if (v.size() != w.size()) {
+                throw std::range_error(
+                    "Incompatible vector sizes for window multiplication" );
+            }
+            for (size_t i = 0; i < v.size(); ++i) {
+                v[ i ] *= w[ i ];
+            }
+            return v;
+        }
 
         template<typename T>
         class CosineWindow : public _window<T> {
@@ -120,15 +167,21 @@ namespace NCPA {
 
                 virtual ~CosineWindow() {}
 
-                friend void ::swap<>( CosineWindow<T>& a,
-                                      CosineWindow<T>& b ) noexcept;
+                friend void swap( CosineWindow<T>& a,
+                                  CosineWindow<T>& b ) noexcept {
+                    using std::swap;
+                    ::swap( static_cast<_window<T>&>( a ),
+                            static_cast<_window<T>&>( b ) );
+                    swap( a._a, b._a );
+                }
 
                 virtual T value( size_t winsize, size_t n ) const override {
                     T w       = 0;
                     T kfactor = 1.0;
                     for (size_t k = 0; k < _a.size(); ++k) {
                         w += kfactor * _a[ k ]
-                           * std::cos( 2.0 * NCPA::constants::PI * k * static_cast<T>( n )
+                           * std::cos( 2.0 * NCPA::constants::PI * k
+                                       * static_cast<T>( n )
                                        / static_cast<T>( this->size() - 1 ) );
                         kfactor = -kfactor;
                     }
@@ -156,8 +209,11 @@ namespace NCPA {
 
                 virtual ~HannWindow() {}
 
-                friend void ::swap<>( HannWindow<T>& a,
-                                      HannWindow<T>& b ) noexcept;
+                friend void swap( HannWindow<T>& a,
+                                  HannWindow<T>& b ) noexcept {
+                    swap( static_cast<CosineWindow<T>&>( a ),
+                          static_cast<CosineWindow<T>&>( b ) );
+                }
         };
 
         template<typename T>
@@ -181,38 +237,11 @@ namespace NCPA {
 
                 virtual ~HammingWindow() {}
 
-                friend void ::swap<>( HammingWindow<T>& a,
-                                      HammingWindow<T>& b ) noexcept;
+                friend void swap( HammingWindow<T>& a,
+                                  HammingWindow<T>& b ) noexcept {
+                    swap( static_cast<CosineWindow<T>&>( a ),
+                          static_cast<CosineWindow<T>&>( b ) );
+                }
         };
     }  // namespace dsp
 }  // namespace NCPA
-
-template<typename T>
-void swap( NCPA::dsp::_window<T>& a, NCPA::dsp::_window<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<std::vector<T>&>( a ),
-          static_cast<std::vector<T>&>( b ) );
-}
-
-template<typename T>
-void swap( NCPA::dsp::CosineWindow<T>& a,
-           NCPA::dsp::CosineWindow<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::dsp::_window<T>&>( a ),
-            static_cast<NCPA::dsp::_window<T>&>( b ) );
-    swap( a._a, b._a );
-}
-
-template<typename T>
-void swap( NCPA::dsp::HannWindow<T>& a,
-           NCPA::dsp::HannWindow<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::dsp::CosineWindow<T>&>( a ),
-            static_cast<NCPA::dsp::CosineWindow<T>&>( b ) );
-}
-
-template<typename T>
-void swap( NCPA::dsp::HammingWindow<T>& a,
-           NCPA::dsp::HammingWindow<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::dsp::CosineWindow<T>&>( a ),
-            static_cast<NCPA::dsp::CosineWindow<T>&>( b ) );
-}

@@ -42,14 +42,16 @@ TEST( NCPADSPLibraryTest, HammingWindowIsCorrect ) {
     }
 }
 
-TEST( NCPADSPLibraryTest, HanningWindowIsHannWindow ) {
+TEST( NCPADSPLibraryTest, WindowScalesVectorCorrectly ) {
     size_t nwin = 11;
-    HanningWindow<double> hann( nwin );
+    HammingWindow<double> hamm( nwin );
+    std::vector<double> v( nwin, 1.0 );
+    std::vector<double> w = v * hamm;
     for (size_t i = 0; i < nwin; ++i) {
-        EXPECT_DOUBLE_EQ( hann[ i ],
-                          ( 0.5
-                            - 0.5
-                                  * cos( 2.0 * NCPA::constants::PI * (double)i
-                                         / (double)( nwin - 1 ) ) ) );
+        EXPECT_DOUBLE_EQ( hamm[ i ], w[ i ] );
+    }
+    v *= hamm;
+    for (size_t i = 0; i < nwin; ++i) {
+        EXPECT_DOUBLE_EQ( hamm[ i ], v[ i ] );
     }
 }
