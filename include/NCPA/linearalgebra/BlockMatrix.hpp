@@ -22,10 +22,6 @@
 #include <sstream>
 #include <vector>
 
-template<typename T>
-static void swap( NCPA::linear::BlockMatrix<T>& a,
-                  NCPA::linear::BlockMatrix<T>& b ) noexcept;
-
 namespace NCPA {
     namespace linear {
 
@@ -57,26 +53,27 @@ namespace NCPA {
                 BlockMatrix( const BlockMatrix<ELEMENTTYPE>& other ) :
                     BlockMatrix<ELEMENTTYPE>( other._blocktype ) {
                     this->copy( other );
-                    // for (auto it = other._elements.cbegin();
-                    //      it != other._elements.cend(); ++it) {
-                    //     _elements.push_back( *it );
-                    // }
-                    // _rows_of_blocks = other._rows_of_blocks;
-                    // _cols_of_blocks = other._cols_of_blocks;
-                    // _rows_per_block = other._rows_per_block;
-                    // _cols_per_block = other._cols_per_block;
                 }
 
                 BlockMatrix( BlockMatrix<ELEMENTTYPE>&& source ) noexcept :
                     BlockMatrix<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~BlockMatrix() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    BlockMatrix<ELEMENTTYPE>& a,
-                    BlockMatrix<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( BlockMatrix<ELEMENTTYPE>& a,
+                                  BlockMatrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<Matrix<ELEMENTTYPE>&>( a ),
+                          static_cast<Matrix<ELEMENTTYPE>&>( b ) );
+                    swap( a._elements, b._elements );
+                    swap( a._rows_of_blocks, b._rows_of_blocks );
+                    swap( a._cols_of_blocks, b._cols_of_blocks );
+                    swap( a._rows_per_block, b._rows_per_block );
+                    swap( a._cols_per_block, b._cols_per_block );
+                    swap( a._blocktype, b._blocktype );
+                }
 
                 /**
                  * Assignment operator.
@@ -84,12 +81,14 @@ namespace NCPA {
                  */
                 BlockMatrix<ELEMENTTYPE>& operator=(
                     BlockMatrix<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const override {
-                    return std::unique_ptr<Matrix<ELEMENTTYPE>>( new BlockMatrix<ELEMENTTYPE>( *this ) );
+                virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone()
+                    const override {
+                    return std::unique_ptr<Matrix<ELEMENTTYPE>>(
+                        new BlockMatrix<ELEMENTTYPE>( *this ) );
                 }
 
                 virtual BlockMatrix<ELEMENTTYPE>& add(
@@ -298,11 +297,14 @@ namespace NCPA {
                                     = element->diagonals();
                                 for (auto bit = blockdiags.cbegin();
                                      bit != blockdiags.cend(); ++bit) {
-                                    diags.push_back( bdiag * _cols_per_block + *bit );
+                                    diags.push_back( bdiag * _cols_per_block
+                                                     + *bit );
                                     // if (bdiag < 0) {
-                                    //     diags.push_back( bdiag * _cols_per_block + *bit );
+                                    //     diags.push_back( bdiag *
+                                    //     _cols_per_block + *bit );
                                     // } else if (bdiag > 0) {
-                                    //     diags.push_back( br * _rows_per_block 
+                                    //     diags.push_back( br *
+                                    //     _rows_per_block
                                     //                      - *bit );
                                     // }
                                 }
@@ -900,9 +902,12 @@ namespace NCPA {
                                 const Matrix<ELEMENTTYPE> *B
                                     = &other.get_block( k, c );
                                 if (!( A->is_zero() || B->is_zero() )) {
-                                    // std::cout << "Computing A[ " << r << ", "
-                                    //           << k << " ] * B[ " << k << ", "
-                                    //           << c << " ] to add to C[ " << r
+                                    // std::cout << "Computing A[ " << r << ",
+                                    // "
+                                    //           << k << " ] * B[ " << k << ",
+                                    //           "
+                                    //           << c << " ] to add to C[ " <<
+                                    //           r
                                     //           << ", " << c << " ]"
                                     //           << std::endl;
                                     if (P->is_zero()) {
@@ -1019,21 +1024,26 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual BlockMatrix& resize( size_t rows_of_blocks, size_t cols_of_blocks,
+                virtual BlockMatrix& resize( size_t rows_of_blocks,
+                                             size_t cols_of_blocks,
                                              size_t rows_per_block,
                                              size_t cols_per_block ) {
                     this->check();
-                    if (rows_of_blocks == _rows_of_blocks && cols_of_blocks == _cols_of_blocks
+                    if (rows_of_blocks == _rows_of_blocks
+                        && cols_of_blocks == _cols_of_blocks
                         && rows_per_block == _rows_per_block
                         && cols_per_block == _cols_per_block) {
                         return *this;
                     }
-                    std::vector<Matrix<ELEMENTTYPE>> _newelements( rows_of_blocks
-                                                                   * cols_of_blocks );
-                    for (size_t rowind = 0; rowind < rows_of_blocks; ++rowind) {
-                        for (size_t colind = 0; colind < cols_of_blocks; ++colind) {
+                    std::vector<Matrix<ELEMENTTYPE>> _newelements(
+                        rows_of_blocks * cols_of_blocks );
+                    for (size_t rowind = 0; rowind < rows_of_blocks;
+                         ++rowind) {
+                        for (size_t colind = 0; colind < cols_of_blocks;
+                             ++colind) {
                             size_t newind
-                                = rc2index( rowind, colind, rows_of_blocks, cols_of_blocks );
+                                = rc2index( rowind, colind, rows_of_blocks,
+                                            cols_of_blocks );
                             if (rowind < _rows_of_blocks
                                 && colind < _cols_of_blocks) {
                                 std::swap( _newelements[ newind ],
@@ -1956,8 +1966,8 @@ namespace NCPA {
                     matrix_coordinate_t blockcoord
                         = _blockindex2blockcoord( bmic.index );
                     matrix_coordinate_t overall;
-                    overall.row = blockcoord.row * _rows_per_block
-                                + bmic.coordinates_in_block.row;
+                    overall.row    = blockcoord.row * _rows_per_block
+                                   + bmic.coordinates_in_block.row;
                     overall.column = blockcoord.column * _cols_per_block
                                    + bmic.coordinates_in_block.column;
                     return overall;
@@ -2020,15 +2030,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::BlockMatrix<T>& a,
-                  NCPA::linear::BlockMatrix<T>& b ) noexcept {
-    using std::swap;
-    swap( a._elements, b._elements );
-    swap( a._rows_of_blocks, b._rows_of_blocks );
-    swap( a._cols_of_blocks, b._cols_of_blocks );
-    swap( a._rows_per_block, b._rows_per_block );
-    swap( a._cols_per_block, b._cols_per_block );
-    swap( a._blocktype, b._blocktype );
-}

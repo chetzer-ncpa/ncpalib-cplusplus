@@ -19,9 +19,6 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::diagonal_matrix,
-                                             ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
 
@@ -46,15 +43,23 @@ namespace NCPA {
                 diagonal_matrix(
                     diagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
                     diagonal_matrix<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // constructors, destructors, copying, and assignment
                 virtual ~diagonal_matrix() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    diagonal_matrix<ELEMENTTYPE>& a,
-                    diagonal_matrix<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( diagonal_matrix<ELEMENTTYPE>& a,
+                                  diagonal_matrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_matrix<T>&>( a ),
+                          static_cast<abstract_matrix<T>&>( b ) );
+                    swap( a._nrows, b._nrows );
+                    swap( a._ncols, b._ncols );
+                    swap( a._n_lower, b._n_lower );
+                    swap( a._n_upper, b._n_upper );
+                    swap( a._contents, b._contents );
+                }
 
                 diagonal_matrix<ELEMENTTYPE>& operator=(
                     diagonal_matrix<ELEMENTTYPE> other ) {
@@ -1214,16 +1219,3 @@ namespace NCPA {
 
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::diagonal_matrix<T>& a,
-                  NCPA::linear::diagonal_matrix<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
-    swap( a._nrows, b._nrows );
-    swap( a._ncols, b._ncols );
-    swap( a._n_lower, b._n_lower );
-    swap( a._n_upper, b._n_upper );
-    swap( a._contents, b._contents );
-}

@@ -18,13 +18,8 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::basic_tridiagonal_linear_system_solver, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
-
-
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class basic_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
@@ -50,15 +45,24 @@ namespace NCPA {
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>&&
                         source ) noexcept :
                     abstract_linear_system_solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~basic_tridiagonal_linear_system_solver() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>& a,
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>&
-                        b ) noexcept;
+                        b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                            b ) );
+                    swap( a._mat, b._mat );
+                }
 
                 /**
                  * Assignment operator.
@@ -67,7 +71,7 @@ namespace NCPA {
                 basic_tridiagonal_linear_system_solver<ELEMENTTYPE>& operator=(
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>
                         other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -181,14 +185,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap(
-    NCPA::linear::basic_tridiagonal_linear_system_solver<T>& a,
-    NCPA::linear::basic_tridiagonal_linear_system_solver<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( a ),
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( b ) );
-    swap( a._mat, b._mat );
-}
