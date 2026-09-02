@@ -19,9 +19,6 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::block_outrigger_linear_system_solver, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
@@ -54,15 +51,24 @@ namespace NCPA {
                     block_outrigger_linear_system_solver<ELEMENTTYPE>&&
                         source ) noexcept :
                     abstract_linear_system_solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~block_outrigger_linear_system_solver() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     block_outrigger_linear_system_solver<ELEMENTTYPE>& a,
                     block_outrigger_linear_system_solver<ELEMENTTYPE>&
-                        b ) noexcept;
+                        b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                            b ) );
+                    swap( a._mat, b._mat );
+                }
 
                 /**
                  * Assignment operator.
@@ -70,7 +76,7 @@ namespace NCPA {
                  */
                 block_outrigger_linear_system_solver<ELEMENTTYPE>& operator=(
                     block_outrigger_linear_system_solver<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -284,14 +290,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap(
-    NCPA::linear::block_outrigger_linear_system_solver<T>& a,
-    NCPA::linear::block_outrigger_linear_system_solver<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( a ),
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( b ) );
-    swap( a._mat, b._mat );
-}

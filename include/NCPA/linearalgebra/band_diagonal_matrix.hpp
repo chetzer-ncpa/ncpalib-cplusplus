@@ -19,9 +19,6 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::band_diagonal_matrix, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
 
@@ -77,15 +74,24 @@ namespace NCPA {
                 band_diagonal_matrix(
                     band_diagonal_matrix<ELEMENTTYPE>&& source ) noexcept :
                     band_diagonal_matrix<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // constructors, destructors, copying, and assignment
                 virtual ~band_diagonal_matrix() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     band_diagonal_matrix<ELEMENTTYPE>& a,
-                    band_diagonal_matrix<ELEMENTTYPE>& b ) noexcept;
+                    band_diagonal_matrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_matrix<ELEMENTTYPE>&>( a ),
+                          static_cast<abstract_matrix<ELEMENTTYPE>&>( b ) );
+                    swap( a._nrows, b._nrows );
+                    swap( a._ncols, b._ncols );
+                    swap( a._n_lower, b._n_lower );
+                    swap( a._n_upper, b._n_upper );
+                    swap( a._contents, b._contents );
+                }
 
                 band_diagonal_matrix<ELEMENTTYPE>& operator=(
                     band_diagonal_matrix<ELEMENTTYPE> other ) {
@@ -830,7 +836,8 @@ namespace NCPA {
                             << x.size() << " elements in vector";
                         throw std::invalid_argument( oss.str() );
                     }
-                    NCPA_DEBUG << "Using band_diagonal_matrix.right_multiply()" << std::endl;
+                    NCPA_DEBUG << "Using band_diagonal_matrix.right_multiply()"
+                               << std::endl;
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> b(
                         new dense_vector<ELEMENTTYPE>( rows() ) );
                     int n = (int)rows();  // , bw = (int)bandwidth();
@@ -1299,14 +1306,16 @@ namespace NCPA {
                     int pcols      = (int)( product.columns() );
                     // int new_n_lower = product.lower_bandwidth();
                     // int new_n_upper = product.upper_bandwidth();
-                    int newlowbw = a.lower_bandwidth() + b.lower_bandwidth();
-                    int newupbw = a.upper_bandwidth() + b.upper_bandwidth();
+                    int newlowbw   = a.lower_bandwidth() + b.lower_bandwidth();
+                    int newupbw    = a.upper_bandwidth() + b.upper_bandwidth();
                     size_t counter = 0;
                     for (int r = 0; r < (int)product.rows(); ++r) {
                         int cmin = std::max( 0, r - newlowbw );
-                        int cmax = std::min( (int)product.rows() - 1, r + newupbw );
+                        int cmax
+                            = std::min( (int)product.rows() - 1, r + newupbw );
                         for (int c = cmin; c <= cmax; ++c) {
-                        // for (int c = 0; c < (int)product.columns(); ++c) {
+                            // for (int c = 0; c < (int)product.columns(); ++c)
+                            // {
                             int min_k_a
                                 = std::max( r - (int)a.lower_bandwidth(), 0 );
                             int max_k_a
@@ -1354,16 +1363,3 @@ namespace NCPA {
 
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::band_diagonal_matrix<T>& a,
-                  NCPA::linear::band_diagonal_matrix<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
-    swap( a._nrows, b._nrows );
-    swap( a._ncols, b._ncols );
-    swap( a._n_lower, b._n_lower );
-    swap( a._n_upper, b._n_upper );
-    swap( a._contents, b._contents );
-}

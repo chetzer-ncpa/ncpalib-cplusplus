@@ -7,10 +7,6 @@
 #include <stdexcept>
 #include <vector>
 
-template<typename T>
-static void swap( NCPA::linear::MatrixPolynomial<T>& a,
-                  NCPA::linear::MatrixPolynomial<T>& b ) noexcept;
-
 namespace NCPA {
     namespace linear {
 
@@ -32,7 +28,7 @@ namespace NCPA {
 
                 MatrixPolynomial( MatrixPolynomial<T>&& source ) noexcept :
                     MatrixPolynomial<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~MatrixPolynomial() {}
@@ -42,11 +38,15 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void ::swap<T>( MatrixPolynomial<T>& a,
-                                       MatrixPolynomial<T>& b ) noexcept;
+                friend void swap( MatrixPolynomial<T>& a,
+                                  MatrixPolynomial<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<std::vector<Matrix<T>>&>( a ),
+                          static_cast<std::vector<Matrix<T>>&>( b ) );
+                }
 
                 // contents: this->at(0) = Q, this->at(1) = Q^2, etc.
-                // So order() = this->size(), 
+                // So order() = this->size(),
                 virtual int order() const { return this->size(); }
 
                 virtual MatrixPolynomial<T>& compute( size_t order ) {
@@ -77,7 +77,8 @@ namespace NCPA {
                     // if (coeffs.size() != this->size()) {
                     //     std::ostringstream oss;
                     //     oss << "Matrix polynomial order " << this->size()
-                    //         << " and coefficient vector size " << coeffs.size()
+                    //         << " and coefficient vector size " <<
+                    //         coeffs.size()
                     //         << " do not match!";
                     //     throw std::out_of_range( oss.str() );
                     // }
@@ -90,8 +91,7 @@ namespace NCPA {
                     return sum;
                 }
 
-                virtual Matrix<T> scale_and_sum(
-                    const Vector<T>& coeffs ) {
+                virtual Matrix<T> scale_and_sum( const Vector<T>& coeffs ) {
                     return this->scale_and_sum( coeffs.as_std() );
                 }
 
@@ -102,11 +102,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::MatrixPolynomial<T>& a,
-                  NCPA::linear::MatrixPolynomial<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<std::vector<NCPA::linear::Matrix<T>>&>( a ),
-            static_cast<std::vector<NCPA::linear::Matrix<T>>&>( b ) );
-}

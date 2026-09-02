@@ -19,9 +19,6 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::Solver,
-                                             ELEMENTTYPE );
-
 NCPA_LINEARALGEBRA_DECLARE_FRIEND_BINARY_OPERATORS( NCPA::linear::Solver,
                                                     ELEMENTTYPE )
 
@@ -51,7 +48,7 @@ namespace NCPA {
                  */
                 Solver( Solver<ELEMENTTYPE>&& source ) noexcept :
                     Solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 ~Solver() {}
@@ -61,7 +58,7 @@ namespace NCPA {
                  * @param other The solver to assign to this.
                  */
                 Solver<ELEMENTTYPE>& operator=( Solver<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -70,8 +67,11 @@ namespace NCPA {
                         new Solver<ELEMENTTYPE>( *this ) );
                 }
 
-                friend void ::swap<ELEMENTTYPE>(
-                    Solver<ELEMENTTYPE>& a, Solver<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( Solver<ELEMENTTYPE>& a,
+                                  Solver<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 explicit operator bool() const {
                     return ( _ptr ? true : false );
@@ -85,7 +85,7 @@ namespace NCPA {
                 }
 
                 virtual Solver<ELEMENTTYPE>& clear() {
-                    if ( _ptr ) {
+                    if (_ptr) {
                         _ptr->clear();
                     }
                     return *this;
@@ -104,7 +104,7 @@ namespace NCPA {
                 }
 
                 virtual void check_pointer() const {
-                    if ( !_ptr ) {
+                    if (!_ptr) {
                         throw std::logic_error(
                             "Solver: Internal pointer has not been set!" );
                     }
@@ -113,15 +113,6 @@ namespace NCPA {
             private:
                 std::unique_ptr<abstract_linear_system_solver<ELEMENTTYPE>>
                     _ptr;
-
-                
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::Solver<T>& a,
-                  NCPA::linear::Solver<T>& b ) noexcept {
-    // using std::swap;
-    a._ptr.swap( b._ptr );
-}

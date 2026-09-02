@@ -4,6 +4,7 @@
 #  define NCPA_LINEAR_TRIDIAGONAL_EIGENSOLVER_TOLERANCE 1.0e-8
 #endif
 
+#include "NCPA/linearalgebra/builders.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
 
@@ -14,9 +15,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-
-static void swap( NCPA::linear::TridiagonalEigensolver& a,
-                  NCPA::linear::TridiagonalEigensolver& b ) noexcept;
 
 namespace NCPA {
     namespace linear {
@@ -47,17 +45,24 @@ namespace NCPA {
                 TridiagonalEigensolver(
                     TridiagonalEigensolver&& source ) noexcept :
                     TridiagonalEigensolver() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~TridiagonalEigensolver() {}
 
-                friend void ::swap( TridiagonalEigensolver& a,
-                                    TridiagonalEigensolver& b ) noexcept;
+                friend void swap( TridiagonalEigensolver& a,
+                                  TridiagonalEigensolver& b ) noexcept {
+                    using std::swap;
+                    swap( a._lmin, b._lmin );
+                    swap( a._lmax, b._lmax );
+                    swap( a._eigs, b._eigs );
+                    swap( a._eigvs, b._eigvs );
+                    swap( a._Q, b._Q );
+                }
 
                 TridiagonalEigensolver& operator=(
                     TridiagonalEigensolver other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -287,13 +292,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-static void swap( NCPA::linear::TridiagonalEigensolver& a,
-                  NCPA::linear::TridiagonalEigensolver& b ) noexcept {
-    using std::swap;
-    swap( a._lmin, b._lmin );
-    swap( a._lmax, b._lmax );
-    swap( a._eigs, b._eigs );
-    swap( a._eigvs, b._eigvs );
-    swap( a._Q, b._Q );
-}
