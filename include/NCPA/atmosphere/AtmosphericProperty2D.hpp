@@ -12,9 +12,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap( NCPA::atmos::AtmosphericProperty2D& a,
-                  NCPA::atmos::AtmosphericProperty2D& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
 
@@ -23,22 +20,21 @@ namespace NCPA {
                 AtmosphericProperty2D() {}
 
                 AtmosphericProperty2D( _atm_prop_2d_ptr_t engine ) {
-                    _ptr = std::move( engine->clone2d() );
+                    _ptr = engine->clone2d();
                 }
 
                 AtmosphericProperty2D( const AtmosphericProperty2D& other ) :
                     AtmosphericProperty2D() {
-                    _ptr = std::move( other._ptr->clone2d() );
+                    _ptr = other._ptr->clone2d();
                 }
 
                 AtmosphericProperty2D(
                     const abstract_atmospheric_property& prop ) {
                     if (prop.dimensions() == 2) {
-                        _ptr = std::move(
-                            dynamic_cast<
-                                const abstract_atmospheric_property_2d&>(
-                                prop )
-                                .clone2d() );
+                        _ptr = dynamic_cast<
+                                   const abstract_atmospheric_property_2d&>(
+                                   prop )
+                                   .clone2d();
                     } else {
                         throw std::invalid_argument(
                             "AtmosphericProperty2D: Can only ingest 2-D "
@@ -92,19 +88,22 @@ namespace NCPA {
                 AtmosphericProperty2D(
                     AtmosphericProperty2D&& source ) noexcept :
                     AtmosphericProperty2D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphericProperty2D() {}
 
                 AtmosphericProperty2D& operator=(
                     AtmosphericProperty2D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphericProperty2D& a,
-                                    AtmosphericProperty2D& b ) noexcept;
+                friend void swap( AtmosphericProperty2D& a,
+                                  AtmosphericProperty2D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual size_t size( size_t d ) const {
                     _check_pointer();
@@ -265,9 +264,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::AtmosphericProperty2D& a,
-                  NCPA::atmos::AtmosphericProperty2D& b ) noexcept {
-    using std::swap;
-    swap( a._ptr, b._ptr );
-}

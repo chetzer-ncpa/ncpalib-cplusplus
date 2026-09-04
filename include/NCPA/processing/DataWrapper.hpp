@@ -89,17 +89,7 @@ namespace NCPA {
                 explicit operator bool() const { return (bool)_internal; }
 
             private:
-                // std::unique_ptr<T> _internal;
                 std::shared_ptr<T> _internal;
         };
     }  // namespace processing
 }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::processing::DataWrapper<T>& a,
-//            NCPA::processing::DataWrapper<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::processing::AbstractDataWrapper&>( a ),
-//           static_cast<NCPA::processing::AbstractDataWrapper&>( b ) );
-//     swap( a._internal, b._internal );
-// }

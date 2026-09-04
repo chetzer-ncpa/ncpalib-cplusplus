@@ -1,18 +1,10 @@
 #pragma once
 
-#ifndef FILE_SEPARATOR
-#  ifdef _WIN32
-#    define FILE_SEPARATOR '\\'
-#  else
-#    define FILE_SEPARATOR '/'
-#  endif
-#endif
 
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
-// #include "NCPA/atmosphere/builders.hpp"
-#include "NCPA/atmosphere/abstract_atmosphere_reader_3d.hpp"
+#include "NCPA/atmosphere/readers/abstract_atmosphere_reader_3d.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/files.hpp"
 
@@ -21,8 +13,13 @@
 #include <memory>
 #include <vector>
 
-static void swap( NCPA::atmos::AtmosphereReader3D&,
-                  NCPA::atmos::AtmosphereReader3D& ) noexcept;
+#ifndef FILE_SEPARATOR
+#  ifdef _WIN32
+#    define FILE_SEPARATOR '\\'
+#  else
+#    define FILE_SEPARATOR '/'
+#  endif
+#endif
 
 namespace NCPA {
     namespace atmos {
@@ -39,23 +36,26 @@ namespace NCPA {
                 // copy constructor
                 AtmosphereReader3D( const AtmosphereReader3D& other ) :
                     AtmosphereReader3D() {
-                    _ptr = std::move( other._ptr->clone() );
+                    _ptr = other._ptr->clone();
                 }
 
                 AtmosphereReader3D( AtmosphereReader3D&& source ) noexcept :
                     AtmosphereReader3D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphereReader3D() {}
 
                 AtmosphereReader3D& operator=( AtmosphereReader3D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphereReader3D& a,
-                                    AtmosphereReader3D& b ) noexcept;
+                friend void swap( AtmosphereReader3D& a,
+                                  AtmosphereReader3D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual Atmosphere3D read( const std::string& filename,
                                            bool stratified = false ) {
@@ -89,9 +89,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::AtmosphereReader3D& a,
-                  NCPA::atmos::AtmosphereReader3D& b ) noexcept {
-    using std::swap;
-    std::swap( a._ptr, b._ptr );
-}

@@ -13,9 +13,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::Atmosphere3D&,
-                  NCPA::atmos::Atmosphere3D& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class Atmosphere3D : public AtmosphericModel {
@@ -29,21 +26,25 @@ namespace NCPA {
 
                 // copy constructor
                 Atmosphere3D( const Atmosphere3D& other ) : Atmosphere3D() {
-                    _ptr = std::move( other._ptr->clone() );
+                    _ptr = other._ptr->clone();
                 }
 
                 Atmosphere3D( Atmosphere3D&& source ) noexcept :
                     Atmosphere3D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~Atmosphere3D() {}
 
-                friend void ::swap( Atmosphere3D& a,
-                                    Atmosphere3D& b ) noexcept;
+                friend void swap( Atmosphere3D& a, Atmosphere3D& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<AtmosphericModel&>( a ),
+                          static_cast<AtmosphericModel&>( b ) );
+                    swap( a._ptr, b._ptr );
+                }
 
                 Atmosphere3D& operator=( Atmosphere3D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -177,7 +178,7 @@ namespace NCPA {
 
                 virtual vector3d_u_t get_values( const std::string& key ) {
                     check_pointer();
-                    return _ptr->get_values(key);
+                    return _ptr->get_values( key );
                 }
 
                 virtual double get( const std::string& key ) {
@@ -443,11 +444,3 @@ namespace NCPA {
 
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::Atmosphere3D& a,
-                  NCPA::atmos::Atmosphere3D& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::atmos::AtmosphericModel&>( a ),
-          static_cast<NCPA::atmos::AtmosphericModel&>( b ) );
-    a._ptr.swap( b._ptr );
-}

@@ -8,10 +8,6 @@
 #include <stdexcept>
 #include <vector>
 
-template<typename T>
-static void swap( NCPA::linear::BlockMatrixPolynomial<T>& a,
-                  NCPA::linear::BlockMatrixPolynomial<T>& b ) noexcept;
-
 namespace NCPA {
     namespace linear {
 
@@ -36,7 +32,7 @@ namespace NCPA {
                 BlockMatrixPolynomial(
                     BlockMatrixPolynomial<T>&& source ) noexcept :
                     BlockMatrixPolynomial<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~BlockMatrixPolynomial() {}
@@ -47,8 +43,15 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void ::swap<T>( BlockMatrixPolynomial<T>& a,
-                                       BlockMatrixPolynomial<T>& b ) noexcept;
+                friend void swap( BlockMatrixPolynomial<T>& a,
+                                  BlockMatrixPolynomial<T>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<
+                            std::vector<NCPA::linear::BlockMatrix<T>>&>( a ),
+                        static_cast<
+                            std::vector<NCPA::linear::BlockMatrix<T>>&>( b ) );
+                }
 
                 virtual int order() const { return this->size() - 1; }
 
@@ -83,11 +86,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::BlockMatrixPolynomial<T>& a,
-                  NCPA::linear::BlockMatrixPolynomial<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<std::vector<NCPA::linear::BlockMatrix<T>>&>( a ),
-            static_cast<std::vector<NCPA::linear::BlockMatrix<T>>&>( b ) );
-}

@@ -13,9 +13,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap( NCPA::atmos::AtmosphericProperty3D& a,
-                  NCPA::atmos::AtmosphericProperty3D& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
 
@@ -90,19 +87,22 @@ namespace NCPA {
                 AtmosphericProperty3D(
                     AtmosphericProperty3D&& source ) noexcept :
                     AtmosphericProperty3D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphericProperty3D() {}
 
                 AtmosphericProperty3D& operator=(
                     AtmosphericProperty3D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphericProperty3D& a,
-                                    AtmosphericProperty3D& b ) noexcept;
+                friend void swap( AtmosphericProperty3D& a,
+                                  AtmosphericProperty3D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual size_t size( size_t d ) const {
                     _check_pointer();
@@ -295,9 +295,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::AtmosphericProperty3D& a,
-                  NCPA::atmos::AtmosphericProperty3D& b ) noexcept {
-    using std::swap;
-    swap( a._ptr, b._ptr );
-}

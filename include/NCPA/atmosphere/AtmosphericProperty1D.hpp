@@ -9,9 +9,6 @@
 #include <memory>
 #include <stdexcept>
 
-static void swap( NCPA::atmos::AtmosphericProperty1D& a,
-                  NCPA::atmos::AtmosphericProperty1D& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class AtmosphericProperty1D {
@@ -19,12 +16,12 @@ namespace NCPA {
                 AtmosphericProperty1D() {}
 
                 AtmosphericProperty1D( _atm_prop_1d_ptr_t engine ) {
-                    _ptr = std::move( engine->clone1d() );
+                    _ptr = engine->clone1d();
                 }
 
                 AtmosphericProperty1D( const AtmosphericProperty1D& other ) :
                     AtmosphericProperty1D() {
-                    _ptr = std::move( other._ptr->clone1d() );
+                    _ptr = other._ptr->clone1d();
                 }
 
                 AtmosphericProperty1D(
@@ -45,19 +42,22 @@ namespace NCPA {
                 AtmosphericProperty1D(
                     AtmosphericProperty1D&& source ) noexcept :
                     AtmosphericProperty1D() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~AtmosphericProperty1D() {}
 
                 AtmosphericProperty1D& operator=(
                     AtmosphericProperty1D other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( AtmosphericProperty1D& a,
-                                    AtmosphericProperty1D& b ) noexcept;
+                friend void swap( AtmosphericProperty1D& a,
+                                  AtmosphericProperty1D& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                }
 
                 virtual size_t size() const {
                     this->_check_pointer();
@@ -171,9 +171,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::AtmosphericProperty1D& a,
-                  NCPA::atmos::AtmosphericProperty1D& b ) noexcept {
-    using std::swap;
-    swap( a._ptr, b._ptr );
-}
