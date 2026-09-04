@@ -5,14 +5,6 @@
  * @brief 
  */
 
-#ifndef FILE_SEPARATOR
-#  ifdef _WIN32
-#    define FILE_SEPARATOR '\\'
-#  else
-#    define FILE_SEPARATOR '/'
-#  endif
-#endif
-
 #include "NCPA/atmosphere/Atmosphere1D.hpp"
 #include "NCPA/atmosphere/Atmosphere2D.hpp"
 #include "NCPA/atmosphere/Atmosphere3D.hpp"
@@ -24,13 +16,15 @@
 #include <memory>
 #include <vector>
 
-/**
- * @brief 
- * @param a 
- * @param b 
- */
-static void swap( NCPA::atmos::_abstract_atmosphere_reader_2d&,
-                  NCPA::atmos::_abstract_atmosphere_reader_2d& ) noexcept;
+
+#ifndef FILE_SEPARATOR
+#  ifdef _WIN32
+#    define FILE_SEPARATOR '\\'
+#  else
+#    define FILE_SEPARATOR '/'
+#  endif
+#endif
+
 
 namespace NCPA {
     namespace atmos {
@@ -44,6 +38,10 @@ namespace NCPA {
                  * @brief 
                  */
                 virtual ~_abstract_atmosphere_reader_2d() {}
+
+                friend void swap(
+                    _abstract_atmosphere_reader_2d& a,
+                    _abstract_atmosphere_reader_2d& b ) noexcept {}
 
                 /**
                  * @brief 
@@ -80,11 +78,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-/**
- * @brief 
- * @param a 
- * @param b 
- */
-static void swap( NCPA::atmos::_abstract_atmosphere_reader_2d& a,
-                  NCPA::atmos::_abstract_atmosphere_reader_2d& b ) noexcept {}

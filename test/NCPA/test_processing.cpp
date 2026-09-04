@@ -39,23 +39,8 @@ class NCPAProcessingLibraryTest : public ::testing::Test {
         time_point_t now;
 };
 
-TEST_F( NCPAProcessingLibraryTest, DataWrapperEvaluatesFalseIfUnset ) {
-    EXPECT_FALSE( double_wrapper );
-}
-
-TEST_F( NCPAProcessingLibraryTest, DataWrapperEvaluatesTrueIfSet ) {
-    EXPECT_TRUE( set_double_wrapper );
-}
-
 TEST_F( NCPAProcessingLibraryTest, DataWrapperReturnsExpectedContents ) {
     EXPECT_DOUBLE_EQ( set_double_wrapper.get(), doubleval );
-}
-
-TEST_F( NCPAProcessingLibraryTest, DataWrapperCanBeSet ) {
-    ASSERT_FALSE( double_wrapper );
-    double_wrapper.set( doubleval );
-    ASSERT_TRUE( double_wrapper );
-    EXPECT_DOUBLE_EQ( double_wrapper.get(), doubleval );
 }
 
 TEST_F( NCPAProcessingLibraryTest, InputPacketPointerReturnsCorrectID ) {

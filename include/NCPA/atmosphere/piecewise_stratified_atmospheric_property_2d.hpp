@@ -13,10 +13,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap(
-    NCPA::atmos::piecewise_stratified_atmospheric_property_2d& a,
-    NCPA::atmos::piecewise_stratified_atmospheric_property_2d& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class piecewise_stratified_atmospheric_property_2d
@@ -141,20 +137,31 @@ namespace NCPA {
                     piecewise_stratified_atmospheric_property_2d&&
                         source ) noexcept :
                     piecewise_stratified_atmospheric_property_2d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~piecewise_stratified_atmospheric_property_2d() {}
 
                 piecewise_stratified_atmospheric_property_2d& operator=(
                     piecewise_stratified_atmospheric_property_2d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap(
+                friend void swap(
                     piecewise_stratified_atmospheric_property_2d& a,
-                    piecewise_stratified_atmospheric_property_2d& b ) noexcept;
+                    piecewise_stratified_atmospheric_property_2d&
+                        b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<abstract_atmospheric_property_2d&>( a ),
+                        static_cast<abstract_atmospheric_property_2d&>( a ) );
+                    swap( a._ax1, b._ax1 );
+                    swap( a._change_points, b._change_points );
+                    swap( a._props, b._props );
+                    swap( a._interptype, b._interptype );
+                    swap( a._tmpvals, b._tmpvals );
+                }
 
                 virtual std::unique_ptr<abstract_atmospheric_property> clone()
                     const override {
@@ -473,18 +480,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap(
-    NCPA::atmos::piecewise_stratified_atmospheric_property_2d& a,
-    NCPA::atmos::piecewise_stratified_atmospheric_property_2d& b ) noexcept {
-    using std::swap;
-    ::swap(
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_2d&>( a ),
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_2d&>( a ) );
-    // swap( a._axis_limits, b._axis_limits );
-    swap( a._ax1, b._ax1 );
-    swap( a._change_points, b._change_points );
-    swap( a._props, b._props );
-    swap( a._interptype, b._interptype );
-    swap( a._tmpvals, b._tmpvals );
-}
