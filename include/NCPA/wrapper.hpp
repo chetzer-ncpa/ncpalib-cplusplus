@@ -1,5 +1,55 @@
 #pragma once
 
+#define NCPA_BEGIN_WRAPPER_CLASS_TEMPLATE(                             \
+    _CLASS_NAME_, _TEMPLATE_TYPE_, _BASE_CLASS_NAME_, _POINTER_NAME_ ) \
+    template<typename _TEMPLATE_TYPE_>                                 \
+    class _CLASS_NAME_ {                                               \
+        private:                                                       \
+            std::unique_ptr<_BASE_CLASS_NAME_> _POINTER_NAME_;
+
+#define NCPA_DECLARE_WRAPPED_POINTER( _BASE_CLASS_NAME_, _POINTER_NAME_ ) \
+                                                                          \
+private:                                                                  \
+    std::unique_ptr<_BASE_CLASS_NAME_> _POINTER_NAME_;
+
+#define NCPA_END_WRAPPER_CLASS_TEMPLATE \
+    }                                   \
+    ;
+
+
+#define NCPA_FORWARD_METHOD( _METHOD_NAME_, _RETURN_TYPE_, _POINTER_NAME_, \
+                             _RETURN_IF_NULL_ )                            \
+    virtual _RETURN_TYPE_ _METHOD_NAME_() {                                \
+        return ( _POINTER_NAME_ ? _POINTER_NAME_->_METHOD_NAME_()          \
+                                : _RETURN_IF_NULL_ );                      \
+    }
+
+#define NCPA_FORWARD_METHOD_ARGUMENTS(                                   \
+    _METHOD_NAME_, _RETURN_TYPE_, _ARGUMENT_LIST_, _POINTER_NAME_,       \
+    _FWD_ARGUMENT_LIST_, _RETURN_IF_NULL_ )                              \
+    virtual _RETURN_TYPE_ _METHOD_NAME_ _ARGUMENT_LIST_ {                \
+        return ( _POINTER_NAME_                                          \
+                     ? _POINTER_NAME_->_METHOD_NAME_ _FWD_ARGUMENT_LIST_ \
+                     : _RETURN_IF_NULL_ );                               \
+    }
+
+#define NCPA_FORWARD_CONST_METHOD( _METHOD_NAME_, _RETURN_TYPE_,      \
+                                   _POINTER_NAME_, _RETURN_IF_NULL_ ) \
+    virtual _RETURN_TYPE_ _METHOD_NAME_() const {                     \
+        return ( _POINTER_NAME_ ? _POINTER_NAME_->_METHOD_NAME_()     \
+                                : _RETURN_IF_NULL_ );                 \
+    }
+
+#define NCPA_FORWARD_CONST_METHOD_ARGUMENTS(                             \
+    _METHOD_NAME_, _RETURN_TYPE_, _ARGUMENT_LIST_, _POINTER_NAME_,       \
+    _FWD_ARGUMENT_LIST_, _RETURN_IF_NULL_ )                              \
+    virtual _RETURN_TYPE_ _METHOD_NAME_ _ARGUMENT_LIST_ const {          \
+        return ( _POINTER_NAME_                                          \
+                     ? _POINTER_NAME_->_METHOD_NAME_ _FWD_ARGUMENT_LIST_ \
+                     : _RETURN_IF_NULL_ );                               \
+    }
+
+
 #include <memory>
 #include <type_traits>
 

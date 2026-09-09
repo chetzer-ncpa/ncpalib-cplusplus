@@ -1,8 +1,9 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
-#include "NCPA/linearalgebra/algorithms.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
+#include "NCPA/linearalgebra/algorithms.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/functions.hpp"
@@ -10,6 +11,7 @@
 #include "NCPA/logging.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
+#include "NCPA/wrapper.hpp"
 
 #include <cmath>
 #include <complex>
@@ -23,8 +25,12 @@
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class Matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
+
+        template<typename ELEMENTTYPE>
+        class Matrix : public Cloneable<Matrix<ELEMENTTYPE>> {
+                NCPA_DECLARE_WRAPPED_POINTER( abstract_matrix<ELEMENTTYPE>,
+                                              _ptr )
+
             public:
                 friend class Vector<ELEMENTTYPE>;
                 friend class LUDecomposition<ELEMENTTYPE>;
@@ -53,27 +59,33 @@ namespace NCPA {
 
                 Matrix( Matrix<ELEMENTTYPE>&& source ) noexcept :
                     Matrix<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~Matrix() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    Matrix<ELEMENTTYPE>& a, Matrix<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( Matrix<ELEMENTTYPE>& a,
+                                  Matrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._ptr, b._ptr );
+                    swap( a._lu, b._lu );
+                }
 
                 /**
                  * Assignment operator.
                  * @param other The vector to assign to this.
                  */
                 Matrix<ELEMENTTYPE>& operator=( Matrix<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
-                    return std::unique_ptr<Matrix<ELEMENTTYPE>>(
-                        new Matrix<ELEMENTTYPE>( *this ) );
-                }
+                // virtual std::unique_ptr<Matrix<ELEMENTTYPE>> clone() const {
+                //     return std::unique_ptr<Matrix<ELEMENTTYPE>>(
+                //         new Matrix<ELEMENTTYPE>( *this ) );
+                // }
+
+                NCPA_CLONE_METHOD( Matrix<ELEMENTTYPE>, Matrix<ELEMENTTYPE> )
 
                 virtual Matrix<ELEMENTTYPE>& add(
                     const Matrix<ELEMENTTYPE>& other ) {
@@ -104,9 +116,9 @@ namespace NCPA {
                     return ( _ptr ? true : false );
                 }
 
-                virtual size_t bandwidth() const {
-                    return ( _ptr ? _ptr->bandwidth() : 1 );
-                }
+                // virtual size_t bandwidth() const {
+                //     return ( _ptr ? _ptr->bandwidth() : 1 );
+                // }
 
                 virtual Matrix<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) {
                     if (_ptr) {
@@ -124,9 +136,9 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual size_t columns() const {
-                    return ( _ptr ? _ptr->columns() : 0 );
-                }
+                // virtual size_t columns() const {
+                //     return ( _ptr ? _ptr->columns() : 0 );
+                // }
 
                 virtual Matrix<ELEMENTTYPE>& copy(
                     const Matrix<ELEMENTTYPE>& other ) {
@@ -153,20 +165,21 @@ namespace NCPA {
                     if (this->is_identity()) {
                         return NCPA::math::one<ELEMENTTYPE>();
                     }
-                    if (this->is_diagonal() || this->is_upper_triangular() || this->is_lower_triangular()) {
+                    if (this->is_diagonal() || this->is_upper_triangular()
+                        || this->is_lower_triangular()) {
                         ELEMENTTYPE prod = NCPA::math::one<ELEMENTTYPE>();
-                        for (size_t i = 0; i < this->diagonal_size(0); ++i) {
-                            prod *= this->get(i,i);
+                        for (size_t i = 0; i < this->diagonal_size( 0 ); ++i) {
+                            prod *= this->get( i, i );
                         }
                         return prod;
                     }
-                    std::unique_ptr<LUDecomposition<ELEMENTTYPE>> lu( 
-                        (this->is_band_diagonal() 
-                        ? new BandDiagonalLUDecomposition<ELEMENTTYPE>()
-                        : new LUDecomposition<ELEMENTTYPE>())
-                    );
+                    std::unique_ptr<LUDecomposition<ELEMENTTYPE>> lu(
+                        ( this->is_band_diagonal()
+                              ? new BandDiagonalLUDecomposition<ELEMENTTYPE>()
+                              : new LUDecomposition<ELEMENTTYPE>() ));
                     lu->decompose( *this );
-                    return lu->lower().determinant() * lu->upper().determinant();
+                    return lu->lower().determinant()
+                         * lu->upper().determinant();
                 }
 
                 virtual size_t diagonal_size( int offset = 0 ) const {
@@ -174,9 +187,10 @@ namespace NCPA {
                                                  offset );
                 }
 
-                virtual std::vector<int> diagonals() const {
-                    return ( _ptr ? _ptr->diagonals() : std::vector<int>() );
-                }
+                // virtual std::vector<int> diagonals() const {
+                //     return ( _ptr ? _ptr->diagonals() : std::vector<int>()
+                //     );
+                // }
 
                 virtual bool equals( const Matrix<ELEMENTTYPE>& other ) const {
                     return ( is_empty() || other.is_empty()
@@ -184,10 +198,10 @@ namespace NCPA {
                                  : _ptr->equals( *( other._ptr ) ) );
                 }
 
-                virtual const ELEMENTTYPE& get( size_t row,
-                                                size_t col ) const {
-                    return ( _ptr ? _ptr->get( row, col ) : _zero );
-                }
+                // virtual const ELEMENTTYPE& get( size_t row,
+                //                                 size_t col ) const {
+                //     return ( _ptr ? _ptr->get( row, col ) : _zero );
+                // }
 
                 virtual const ELEMENTTYPE& get( size_t ind ) const {
                     if (*this) {
@@ -403,9 +417,36 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual bool is_band_diagonal() const {
-                    return ( _ptr ? _ptr->is_band_diagonal() : true );
-                }
+                NCPA_FORWARD_CONST_METHOD( bandwidth, size_t, _ptr, 1 )
+                NCPA_FORWARD_CONST_METHOD( columns, size_t, _ptr, 0 )
+                NCPA_FORWARD_CONST_METHOD( diagonals, std::vector<int>, _ptr,
+                                           std::vector<int>() )
+                NCPA_FORWARD_CONST_METHOD_ARGUMENTS( get, const ELEMENTTYPE&,
+                                                     ( size_t row,
+                                                       size_t col ),
+                                                     _ptr, ( row, col ), _zero )
+                NCPA_FORWARD_CONST_METHOD( is_band_diagonal, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_diagonal, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_empty, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_identity, bool, _ptr, false )
+                NCPA_FORWARD_CONST_METHOD( is_lower_triangular, bool, _ptr,
+                                           true )
+                NCPA_FORWARD_CONST_METHOD( is_square, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_symmetric, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_tridiagonal, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD( is_upper_triangular, bool, _ptr,
+                                           true )
+                NCPA_FORWARD_CONST_METHOD( is_zero, bool, _ptr, true )
+                NCPA_FORWARD_CONST_METHOD_ARGUMENTS( is_zero, bool,
+                                                     ( size_t r, size_t c ),
+                                                     _ptr, ( r, c ), true )
+                NCPA_FORWARD_CONST_METHOD( lower_bandwidth, size_t, _ptr, 0 )
+                NCPA_FORWARD_CONST_METHOD( rows, size_t, _ptr, 0 )
+                NCPA_FORWARD_CONST_METHOD( upper_bandwidth, size_t, _ptr, 0 )
+
+                // virtual bool is_band_diagonal() const {
+                //     return ( _ptr ? _ptr->is_band_diagonal() : true );
+                // }
 
                 virtual bool is_block_matrix() const { return false; }
 
@@ -413,51 +454,49 @@ namespace NCPA {
                     return ( columns() == 1 );
                 }
 
-                virtual bool is_diagonal() const {
-                    return ( _ptr ? _ptr->is_diagonal() : true );
-                }
+                // virtual bool is_diagonal() const {
+                //     return ( _ptr ? _ptr->is_diagonal() : true );
+                // }
 
-                virtual bool is_empty() const {
-                    return ( _ptr ? _ptr->is_empty() : true );
-                }
+                // virtual bool is_empty() const {
+                //     return ( _ptr ? _ptr->is_empty() : true );
+                // }
 
-                virtual bool is_identity() const {
-                    return ( _ptr ? _ptr->is_identity() : false );
-                }
+                // virtual bool is_identity() const {
+                //     return ( _ptr ? _ptr->is_identity() : false );
+                // }
 
-                virtual bool is_lower_triangular() const {
-                    return ( _ptr ? _ptr->is_lower_triangular() : true );
-                }
+                // virtual bool is_lower_triangular() const {
+                //     return ( _ptr ? _ptr->is_lower_triangular() : true );
+                // }
 
-                virtual bool is_null() const {
-                    return this->is_zero();
-                }
+                virtual bool is_null() const { return this->is_zero(); }
 
                 virtual bool is_row_matrix() const { return ( rows() == 1 ); }
 
-                virtual bool is_square() const {
-                    return ( _ptr ? _ptr->is_square() : true );
-                }
+                // virtual bool is_square() const {
+                //     return ( _ptr ? _ptr->is_square() : true );
+                // }
 
-                virtual bool is_symmetric() const {
-                    return ( _ptr ? _ptr->is_symmetric() : true );
-                }
+                // virtual bool is_symmetric() const {
+                //     return ( _ptr ? _ptr->is_symmetric() : true );
+                // }
 
-                virtual bool is_tridiagonal() const {
-                    return ( _ptr ? _ptr->is_tridiagonal() : true );
-                }
+                // virtual bool is_tridiagonal() const {
+                //     return ( _ptr ? _ptr->is_tridiagonal() : true );
+                // }
 
-                virtual bool is_upper_triangular() const {
-                    return ( _ptr ? _ptr->is_upper_triangular() : true );
-                }
+                // virtual bool is_upper_triangular() const {
+                //     return ( _ptr ? _ptr->is_upper_triangular() : true );
+                // }
 
-                virtual bool is_zero() const {
-                    return ( _ptr ? _ptr->is_zero() : true );
-                }
+                // virtual bool is_zero() const {
+                //     return ( _ptr ? _ptr->is_zero() : true );
+                // }
 
-                virtual bool is_zero( size_t r, size_t c ) const {
-                    return ( _ptr ? _ptr->is_zero( r, c ) : true );
-                }
+                // virtual bool is_zero( size_t r, size_t c ) const {
+                //     return ( _ptr ? _ptr->is_zero( r, c ) : true );
+                // }
 
                 virtual Vector<ELEMENTTYPE> left_multiply(
                     const Vector<ELEMENTTYPE>& other ) const {
@@ -472,9 +511,9 @@ namespace NCPA {
                         _ptr->left_multiply( *( other._ptr ) ) );
                 }
 
-                virtual size_t lower_bandwidth() const {
-                    return ( _ptr ? _ptr->lower_bandwidth() : 0 );
-                }
+                // virtual size_t lower_bandwidth() const {
+                //     return ( _ptr ? _ptr->lower_bandwidth() : 0 );
+                // }
 
                 virtual LUDecomposition<ELEMENTTYPE>& lu() {
                     check();
@@ -536,9 +575,9 @@ namespace NCPA {
                     return algorithms::multiply( *this, other );
                 }
 
-                virtual size_t rows() const {
-                    return ( _ptr ? _ptr->rows() : 0 );
-                }
+                // virtual size_t rows() const {
+                //     return ( _ptr ? _ptr->rows() : 0 );
+                // }
 
                 virtual Matrix<ELEMENTTYPE>& scale(
                     const Matrix<ELEMENTTYPE>& other ) {
@@ -887,9 +926,9 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual size_t upper_bandwidth() const {
-                    return ( _ptr ? _ptr->upper_bandwidth() : 0 );
-                }
+                // virtual size_t upper_bandwidth() const {
+                //     return ( _ptr ? _ptr->upper_bandwidth() : 0 );
+                // }
 
                 virtual Matrix<ELEMENTTYPE>& zero( size_t row, size_t col ) {
                     check();
@@ -1102,7 +1141,7 @@ namespace NCPA {
 
 
             private:
-                std::unique_ptr<abstract_matrix<ELEMENTTYPE>> _ptr;
+                // std::unique_ptr<abstract_matrix<ELEMENTTYPE>> _ptr;
                 // std::map<size_t, WrapperVector<ELEMENTTYPE>> _wrappers;
                 const ELEMENTTYPE _zero = NCPA::math::zero<ELEMENTTYPE>();
 
@@ -1121,26 +1160,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::Matrix<T>& a,
-                  NCPA::linear::Matrix<T>& b ) noexcept {
-    // using std::swap;
-    a._ptr.swap( b._ptr );
-    // swap( a._wrappers, b._wrappers );
-    a._lu.swap( b._lu );
-}
-
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Vector<ELEMENTTYPE>& vec,
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& mat ) {
-//     return mat.left_multiply( vec );
-// }
-
-// template<typename ELEMENTTYPE>
-// NCPA::linear::Vector<ELEMENTTYPE> operator*(
-//     const NCPA::linear::Matrix<ELEMENTTYPE>& mat,
-//     const NCPA::linear::Vector<ELEMENTTYPE>& vec ) {
-//     return mat.right_multiply( vec );
-// }
