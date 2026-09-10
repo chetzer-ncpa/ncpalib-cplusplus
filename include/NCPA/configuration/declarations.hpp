@@ -47,6 +47,7 @@ namespace NCPA {
         //         bool indent_subsections  = true;
         // };
 
+        // Validation API
         enum class test_result_t {
             NONE = 0,
             PENDING,
@@ -61,19 +62,21 @@ namespace NCPA {
         template<typename T>
         using validation_function_t = std::function<validation_status_t( T )>;
 
-        class AbstractValidation;
+        class Validation;
+        typedef Validation ValidationTest;  // convenience alias
 
         template<typename T>
         class TypedValidation;
 
         template<typename T>
-        class PredefinedValidation;
+        class WrappedValidation;
 
-        class Validation;
+        template<typename BASETYPE>
+        class Validated;
 
-        class ValidationTest;
-        class ValidationTestSuite;
-        class NullaryValidationTest;
+        // class ValidationTest;
+        // class ValidationTestSuite;
+        // class NullaryValidationTest;
         class BaseParameter;
         class ArgumentSet;
         class Parser;
@@ -126,7 +129,7 @@ namespace NCPA {
         typedef ScalarParameter<bool> BooleanParameter;
         typedef ScalarParameter<std::complex<double>> ComplexParameter;
         typedef VectorParameter<double> DoubleVectorParameter;
-        typedef std::unique_ptr<ValidationTest> test_ptr_t;
+        typedef std::unique_ptr<Validation> test_ptr_t;
 
         template<typename KEYTYPE>
         using param_pair_t = std::pair<KEYTYPE, param_ptr_t>;

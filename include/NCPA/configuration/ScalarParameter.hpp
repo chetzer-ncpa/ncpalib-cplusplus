@@ -26,9 +26,10 @@ namespace NCPA {
         namespace hidden {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
+                using TypedParameter<PARAMTYPE>::validate;
+
                 public:
-                    _base_scalar_parameter() :
-                        TypedParameter<PARAMTYPE>() {}
+                    _base_scalar_parameter() : TypedParameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
@@ -159,6 +160,10 @@ namespace NCPA {
                     virtual std::vector<PARAMTYPE> get_vector()
                         const override {
                         return std::vector<PARAMTYPE> { this->_value };
+                    }
+
+                    virtual validation_status_t validate() const override {
+                        return validate( _value );
                     }
 
                 protected:
@@ -464,7 +469,8 @@ namespace NCPA {
                     PARAMTYPE>::as_unsigned_int;
 
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {
+                }
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
@@ -696,7 +702,8 @@ namespace NCPA {
                     PARAMTYPE>::as_unsigned_int;
 
                 ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
+                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {
+                }
 
                 ScalarParameter( PARAMTYPE defaultval ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}

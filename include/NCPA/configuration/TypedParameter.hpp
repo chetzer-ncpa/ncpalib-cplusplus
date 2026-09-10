@@ -16,6 +16,7 @@ namespace NCPA {
         class TypedParameter : public BaseParameter {
             public:
                 using value_type = PARAMTYPE;
+                using BaseParameter::validate;
 
                 TypedParameter() : BaseParameter() {}
 
@@ -126,65 +127,69 @@ namespace NCPA {
                         this->get_units() );
                 }
 
-                virtual TypedParameter<PARAMTYPE>& add_test(
-                    Validation&& v ) override {
-                    try {
-                        auto& typed_ref
-                            = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
-                        _validations.push_back( std::move( typed_ref ) );
-                    } catch (const std::bad_cast&) {
-                        throw std::logic_error(
-                            "Error in Parameter: Can't cast to TypedParameter "
-                            "of proper type" );
-                    }
-                    return *this;
-                }
+                // virtual validation_status_t validate() const override {
+                //     return this->validate<PARAMTYPE>( this->get() );
+                // }
 
-                virtual TypedParameter<PARAMTYPE>& add_test(
-                    Validation& v ) override {
-                    try {
-                        auto& typed_ref
-                            = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
-                        _validations.push_back(
-                            TypedValidation<PARAMTYPE>( typed_ref ) );
-                    } catch (const std::bad_cast&) {
-                        throw std::logic_error(
-                            "Error in Parameter: Can't cast to TypedParameter "
-                            "of proper type" );
-                    }
-                    return *this;
-                }
+                // virtual TypedParameter<PARAMTYPE>& add_test(
+                //     Validation&& v ) override {
+                //     try {
+                //         auto& typed_ref
+                //             = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
+                //         _validations.push_back( std::move( typed_ref ) );
+                //     } catch (const std::bad_cast&) {
+                //         throw std::logic_error(
+                //             "Error in Parameter: Can't cast to TypedParameter "
+                //             "of proper type" );
+                //     }
+                //     return *this;
+                // }
 
-                virtual validation_status_t validate(
-                    bool short_circuit = false ) const override {
-                    validation_status_t status;
-                    if (_validations.empty()) {
-                        status.result = test_result_t::NONE;
-                    } else {
-                        status.result = test_result_t::PENDING;
-                        for (const TypedValidation<PARAMTYPE>& test :
-                             _validations) {
-                            validation_status_t teststatus
-                                = test.validate( this->get() );
-                            switch (teststatus.result) {
-                                case test_result_t::FAILED:
-                                    status.result = test_result_t::FAILED;
-                                    status.message
-                                        += "\n" + teststatus.message;
-                                    if (short_circuit) {
-                                        return status;
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if (status.result == test_result_t::PENDING) {
-                            status.result = test_result_t::PASSED;
-                        }
-                    }
-                    return status;
-                }
+                // virtual TypedParameter<PARAMTYPE>& add_test(
+                //     Validation& v ) override {
+                //     try {
+                //         auto& typed_ref
+                //             = dynamic_cast<TypedValidation<PARAMTYPE>&>( v );
+                //         _validations.push_back(
+                //             TypedValidation<PARAMTYPE>( typed_ref ) );
+                //     } catch (const std::bad_cast&) {
+                //         throw std::logic_error(
+                //             "Error in Parameter: Can't cast to TypedParameter "
+                //             "of proper type" );
+                //     }
+                //     return *this;
+                // }
+
+                // virtual validation_status_t validate(
+                //     bool short_circuit = false ) const override {
+                //     validation_status_t status;
+                //     if (_validations.empty()) {
+                //         status.result = test_result_t::NONE;
+                //     } else {
+                //         status.result = test_result_t::PENDING;
+                //         for (const TypedValidation<PARAMTYPE>& test :
+                //              _validations) {
+                //             validation_status_t teststatus
+                //                 = test.validate( this->get() );
+                //             switch (teststatus.result) {
+                //                 case test_result_t::FAILED:
+                //                     status.result = test_result_t::FAILED;
+                //                     status.message
+                //                         += "\n" + teststatus.message;
+                //                     if (short_circuit) {
+                //                         return status;
+                //                     }
+                //                     break;
+                //                 default:
+                //                     break;
+                //             }
+                //         }
+                //         if (status.result == test_result_t::PENDING) {
+                //             status.result = test_result_t::PASSED;
+                //         }
+                //     }
+                //     return status;
+                // }
 
             protected:
                 std::vector<TypedValidation<PARAMTYPE>> _validations;

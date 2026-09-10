@@ -113,6 +113,8 @@ namespace NCPA {
         namespace hidden {
             template<typename PARAMTYPE>
             class _base_vector_parameter : public TypedParameter<PARAMTYPE> {
+                    using TypedParameter<PARAMTYPE>::validate;
+
                 public:
                     _base_vector_parameter() : TypedParameter<PARAMTYPE>() {}
 
@@ -251,6 +253,10 @@ namespace NCPA {
                     virtual std::vector<PARAMTYPE> get_vector()
                         const override {
                         return _value;
+                    }
+
+                    virtual validation_status_t validate() const override {
+                        return this->validate( _value );
                     }
 
                 protected:

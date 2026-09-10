@@ -17,7 +17,7 @@ namespace NCPA {
 
                 TypedValidation( const TypedValidation<T>& other ) :
                     Validation( other ) {
-                    validate = other.validate;
+                    _validate = other._validate;
                 }
 
                 TypedValidation( TypedValidation<T>&& other ) noexcept :
@@ -30,19 +30,23 @@ namespace NCPA {
                     return *this;
                 }
 
-                TypedValidation( validation_function_t<T> v ) { validate = v; }
+                TypedValidation( validation_function_t<T> v ) { _validate = v; }
 
                 friend void swap( TypedValidation<T>& a,
                                   TypedValidation<T>& b ) noexcept {
                     using std::swap;
                     swap( static_cast<Validation&>( a ),
                           static_cast<Validation&>( b ) );
-                    swap( a.validate, b.validate );
+                    swap( a._validate, b._validate );
+                }
+
+                virtual validation_status_t validate(const T& val) const {
+                    return _validate( val );
                 }
 
                 NCPA_CLONE_METHOD( TypedValidation<T>, Validation )
 
-                validation_function_t<T> validate;
+                validation_function_t<T> _validate;
         };
     }  // namespace config
 }  // namespace NCPA

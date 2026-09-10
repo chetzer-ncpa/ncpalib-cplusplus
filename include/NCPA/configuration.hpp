@@ -120,13 +120,13 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 
 #pragma once
 
-#include "NCPA/configuration/Argument.hpp"
+// #include "NCPA/configuration/Argument.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/Configurable.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/FlagArgument.hpp"
-#include "NCPA/configuration/HelpTextArgumentSection.hpp"
+// #include "NCPA/configuration/FlagArgument.hpp"
+// #include "NCPA/configuration/HelpTextArgumentSection.hpp"
 #include "NCPA/configuration/HelpTextFormatter.hpp"
 #include "NCPA/configuration/HelpTextOrganizerSection.hpp"
 #include "NCPA/configuration/HelpTextParagraphSection.hpp"
@@ -137,9 +137,11 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 #include "NCPA/configuration/ScalarParameterWithUnits.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 #include "NCPA/configuration/TypedValidation.hpp"
+#include "NCPA/configuration/Validated.hpp"
 #include "NCPA/configuration/Validation.hpp"
 #include "NCPA/configuration/VectorParameter.hpp"
 #include "NCPA/configuration/VectorParameterWithUnits.hpp"
+#include "NCPA/configuration/WrappedValidation.hpp"
 
 // Make sure this is included last
 #include "NCPA/configuration/functions.hpp"
