@@ -162,7 +162,7 @@ namespace NCPA {
 
                 CosineWindow( CosineWindow<T>&& other ) noexcept :
                     CosineWindow<T>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~CosineWindow() {}
@@ -170,7 +170,7 @@ namespace NCPA {
                 friend void swap( CosineWindow<T>& a,
                                   CosineWindow<T>& b ) noexcept {
                     using std::swap;
-                    ::swap( static_cast<_window<T>&>( a ),
+                    swap( static_cast<_window<T>&>( a ),
                             static_cast<_window<T>&>( b ) );
                     swap( a._a, b._a );
                 }
@@ -204,7 +204,7 @@ namespace NCPA {
 
                 HannWindow( HannWindow<T>&& other ) noexcept :
                     HannWindow<T>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~HannWindow() {}
@@ -232,7 +232,7 @@ namespace NCPA {
 
                 HammingWindow( HammingWindow<T>&& other ) noexcept :
                     HammingWindow<T>() {
-                    ::swap( *this, other );
+                    swap( *this, other );
                 }
 
                 virtual ~HammingWindow() {}

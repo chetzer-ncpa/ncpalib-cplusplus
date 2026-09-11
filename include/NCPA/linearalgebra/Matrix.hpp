@@ -1,8 +1,8 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
-#include "NCPA/linearalgebra/algorithms.hpp"
 #include "NCPA/linearalgebra/abstract_matrix.hpp"
+// #include "NCPA/linearalgebra/algorithms.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/functions.hpp"
@@ -23,8 +23,8 @@
 
 namespace NCPA {
     namespace linear {
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class Matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
+        template<typename ELEMENTTYPE>
+        class Matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC> {
             public:
                 friend class Vector<ELEMENTTYPE>;
                 friend class LUDecomposition<ELEMENTTYPE>;
@@ -153,20 +153,21 @@ namespace NCPA {
                     if (this->is_identity()) {
                         return NCPA::math::one<ELEMENTTYPE>();
                     }
-                    if (this->is_diagonal() || this->is_upper_triangular() || this->is_lower_triangular()) {
+                    if (this->is_diagonal() || this->is_upper_triangular()
+                        || this->is_lower_triangular()) {
                         ELEMENTTYPE prod = NCPA::math::one<ELEMENTTYPE>();
-                        for (size_t i = 0; i < this->diagonal_size(0); ++i) {
-                            prod *= this->get(i,i);
+                        for (size_t i = 0; i < this->diagonal_size( 0 ); ++i) {
+                            prod *= this->get( i, i );
                         }
                         return prod;
                     }
-                    std::unique_ptr<LUDecomposition<ELEMENTTYPE>> lu( 
-                        (this->is_band_diagonal() 
-                        ? new BandDiagonalLUDecomposition<ELEMENTTYPE>()
-                        : new LUDecomposition<ELEMENTTYPE>())
-                    );
+                    std::unique_ptr<LUDecomposition<ELEMENTTYPE>> lu(
+                        ( this->is_band_diagonal()
+                              ? new BandDiagonalLUDecomposition<ELEMENTTYPE>()
+                              : new LUDecomposition<ELEMENTTYPE>() ));
                     lu->decompose( *this );
-                    return lu->lower().determinant() * lu->upper().determinant();
+                    return lu->lower().determinant()
+                         * lu->upper().determinant();
                 }
 
                 virtual size_t diagonal_size( int offset = 0 ) const {
@@ -429,9 +430,7 @@ namespace NCPA {
                     return ( _ptr ? _ptr->is_lower_triangular() : true );
                 }
 
-                virtual bool is_null() const {
-                    return this->is_zero();
-                }
+                virtual bool is_null() const { return this->is_zero(); }
 
                 virtual bool is_row_matrix() const { return ( rows() == 1 ); }
 
