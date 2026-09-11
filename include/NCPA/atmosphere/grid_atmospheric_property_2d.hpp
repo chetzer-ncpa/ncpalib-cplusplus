@@ -13,9 +13,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap( NCPA::atmos::grid_atmospheric_property_2d& a,
-                  NCPA::atmos::grid_atmospheric_property_2d& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class grid_atmospheric_property_2d
@@ -61,7 +58,6 @@ namespace NCPA {
                     _axis_limits[ 1 ] = std::pair<double, double>( { 0, 0 } );
                     _spline.clear();
                     return *this;
-                    ;
                 }
 
                 virtual grid_atmospheric_property_2d& set(
@@ -130,19 +126,28 @@ namespace NCPA {
                 grid_atmospheric_property_2d(
                     grid_atmospheric_property_2d&& source ) noexcept :
                     grid_atmospheric_property_2d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~grid_atmospheric_property_2d() {}
 
                 grid_atmospheric_property_2d& operator=(
                     grid_atmospheric_property_2d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( grid_atmospheric_property_2d& a,
-                                    grid_atmospheric_property_2d& b ) noexcept;
+                friend void swap( grid_atmospheric_property_2d& a,
+                                  grid_atmospheric_property_2d& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<abstract_atmospheric_property_2d&>( a ),
+                        static_cast<abstract_atmospheric_property_2d&>( a ) );
+                    swap( a._axes, b._axes );
+                    swap( a._vals, b._vals );
+                    swap( a._spline, b._spline );
+                    swap( a._axis_limits, b._axis_limits );
+                }
 
                 virtual std::unique_ptr<abstract_atmospheric_property> clone()
                     const override {
@@ -429,15 +434,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::grid_atmospheric_property_2d& a,
-                  NCPA::atmos::grid_atmospheric_property_2d& b ) noexcept {
-    using std::swap;
-    ::swap(
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_2d&>( a ),
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_2d&>( a ) );
-    swap( a._axes, b._axes );
-    swap( a._vals, b._vals );
-    swap( a._spline, b._spline );
-    swap( a._axis_limits, b._axis_limits );
-}

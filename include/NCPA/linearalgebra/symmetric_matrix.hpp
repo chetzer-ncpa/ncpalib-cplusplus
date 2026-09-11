@@ -19,13 +19,8 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::symmetric_matrix,
-                                             ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
-
-
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class symmetric_matrix<ELEMENTTYPE,
                                    _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
@@ -88,15 +83,24 @@ namespace NCPA {
                 symmetric_matrix(
                     symmetric_matrix<ELEMENTTYPE>&& source ) noexcept :
                     symmetric_matrix<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // constructors, destructors, copying, and assignment
                 virtual ~symmetric_matrix() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    symmetric_matrix<ELEMENTTYPE>& a,
-                    symmetric_matrix<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( symmetric_matrix<ELEMENTTYPE>& a,
+                                  symmetric_matrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_matrix<ELEMENTTYPE>&>( a ),
+                          static_cast<abstract_matrix<ELEMENTTYPE>&>( b ) );
+                    swap( a._nrows, b._nrows );
+                    swap( a._ncols, b._ncols );
+                    swap( a._n_offdiag, b._n_offdiag );
+                    swap( a.contents(), b.contents() );
+                    swap( a._ones_on_last_diagonals,
+                          b._ones_on_last_diagonals );
+                }
 
                 symmetric_matrix<ELEMENTTYPE>& operator=(
                     symmetric_matrix<ELEMENTTYPE> other ) {
@@ -718,7 +722,8 @@ namespace NCPA {
                 void _prep_diagonals() {
                     contents().clear();
                     size_t n_diag = _n_offdiag + 1;
-                    // std::vector<ELEMENTTYPE> diag( this->diagonal_size( 0 ) );
+                    // std::vector<ELEMENTTYPE> diag( this->diagonal_size( 0 )
+                    // );
                     for (size_t i = 0; i < n_diag; i++) {
                         contents().push_back( std::vector<ELEMENTTYPE>() );
                     }
@@ -778,16 +783,3 @@ namespace NCPA {
 
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::symmetric_matrix<T>& a,
-                  NCPA::linear::symmetric_matrix<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
-    swap( a._nrows, b._nrows );
-    swap( a._ncols, b._ncols );
-    swap( a._n_offdiag, b._n_offdiag );
-    swap( a.contents(), b.contents() );
-    swap( a._ones_on_last_diagonals, b._ones_on_last_diagonals );
-}

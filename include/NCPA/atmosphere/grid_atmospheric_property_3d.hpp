@@ -13,9 +13,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap( NCPA::atmos::grid_atmospheric_property_3d& a,
-                  NCPA::atmos::grid_atmospheric_property_3d& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class grid_atmospheric_property_3d
@@ -57,19 +54,28 @@ namespace NCPA {
                 grid_atmospheric_property_3d(
                     grid_atmospheric_property_3d&& source ) noexcept :
                     grid_atmospheric_property_3d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~grid_atmospheric_property_3d() {}
 
                 grid_atmospheric_property_3d& operator=(
                     grid_atmospheric_property_3d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( grid_atmospheric_property_3d& a,
-                                    grid_atmospheric_property_3d& b ) noexcept;
+                friend void swap( grid_atmospheric_property_3d& a,
+                                  grid_atmospheric_property_3d& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<abstract_atmospheric_property_3d&>( a ),
+                        static_cast<abstract_atmospheric_property_3d&>( a ) );
+                    swap( a._axes, b._axes );
+                    swap( a._vals, b._vals );
+                    swap( a._spline, b._spline );
+                    swap( a._axis_limits, b._axis_limits );
+                }
 
                 virtual std::unique_ptr<abstract_atmospheric_property> clone()
                     const override {
@@ -456,15 +462,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::grid_atmospheric_property_3d& a,
-                  NCPA::atmos::grid_atmospheric_property_3d& b ) noexcept {
-    using std::swap;
-    ::swap(
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_3d&>( a ),
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_3d&>( a ) );
-    swap( a._axes, b._axes );
-    swap( a._vals, b._vals );
-    swap( a._spline, b._spline );
-    swap( a._axis_limits, b._axis_limits );
-}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/atmosphere/readers/declarations.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"
 
@@ -54,15 +55,6 @@ namespace NCPA {
         enum class atmosphere_2d_t { GRID, STRATIFIED, PIECEWISE_STRATIFIED };
         enum class atmosphere_3d_t { GRID, STRATIFIED };
 
-        enum class reader_1d_t { NCPAPROP };
-        enum class reader_2d_t {
-            NCPAPROP,
-            NCPAPROP_STRATIFIED,
-            NCPAPROP_PIECEWISE_STRATIFIED
-        };
-        enum class reader_3d_t { NCPAPROP, NCPAPROP_STRATIFIED };
-        // enum class extrapolation_t { ZERO, CONSTANT, LINEAR };
-
         // Public API
         class AtmosphericProperty1D;
         class AtmosphericProperty2D;
@@ -71,9 +63,6 @@ namespace NCPA {
         class Atmosphere1D;
         class Atmosphere2D;
         class Atmosphere3D;
-        class AtmosphereReader1D;
-        class AtmosphereReader2D;
-        class AtmosphereReader3D;
         class AtmosphereFactory;
 
 
@@ -94,16 +83,6 @@ namespace NCPA {
         class abstract_atmosphere_3d;
         class grid_atmosphere_3d;
         class stratified_atmosphere_3d;
-
-        // readers
-        class _abstract_atmosphere_reader_1d;
-        class ncpaprop_atmosphere_reader_1d;
-        class _abstract_atmosphere_reader_2d;
-        class ncpaprop_atmosphere_reader_2d;
-        class ncpaprop_atmosphere_reader_stratified_2d;
-        class _abstract_atmosphere_reader_3d;
-        class ncpaprop_atmosphere_reader_3d;
-        class ncpaprop_atmosphere_reader_stratified_3d;
 
         // atmospheric properties
         class abstract_atmospheric_property;

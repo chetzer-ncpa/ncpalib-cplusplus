@@ -19,10 +19,6 @@
 #include <sstream>
 #include <vector>
 
-
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::basic_linear_system_solver, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
 
@@ -51,14 +47,24 @@ namespace NCPA {
                     basic_linear_system_solver<ELEMENTTYPE>&& source ) noexcept
                     :
                     abstract_linear_system_solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~basic_linear_system_solver() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     basic_linear_system_solver<ELEMENTTYPE>& a,
-                    basic_linear_system_solver<ELEMENTTYPE>& b ) noexcept;
+                    basic_linear_system_solver<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                            b ) );
+                    swap( a._mat, b._mat );
+                    swap( a._lu, b._lu );
+                }
 
                 /**
                  * Assignment operator.
@@ -66,7 +72,7 @@ namespace NCPA {
                  */
                 basic_linear_system_solver<ELEMENTTYPE>& operator=(
                     basic_linear_system_solver<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -79,9 +85,9 @@ namespace NCPA {
                 }
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
-                    set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M, bool check = true ) override {
-                    if ( check && !M.is_square() ) {
+                    set_system_matrix( const Matrix<ELEMENTTYPE>& M,
+                                       bool check = true ) override {
+                    if (check && !M.is_square()) {
                         throw std::logic_error(
                             "System matrix must be square!" );
                     }
@@ -104,20 +110,20 @@ namespace NCPA {
                         Pb( N, NCPA::math::zero<ELEMENTTYPE>() );
 
                     // forward substitution
-                    for ( i = 0; i < iN; i++ ) {
+                    for (i = 0; i < iN; i++) {
                         // @todo is this loop necessary if no pivoting?
-                        for ( j = 0; j < iN; j++ ) {
+                        for (j = 0; j < iN; j++) {
                             Pb[ i ] += ( _mat->lu().permutation().get( i, j ) )
                                      * b.get( j );
                         }
-                        for ( j = 0; j < i; j++ ) {
+                        for (j = 0; j < i; j++) {
                             Pb[ i ] -= _mat->lu().lower().get( i, j ) * y[ j ];
                         }
                         y[ i ] = Pb[ i ] / _mat->lu().lower().get( i, i );
                     }
 
-                    for ( i = iN - 1; i >= 0; i-- ) {
-                        for ( j = i + 1; j < iN; j++ ) {
+                    for (i = iN - 1; i >= 0; i--) {
+                        for (j = i + 1; j < iN; j++) {
                             y[ i ]
                                 -= _mat->lu().upper().get( i, j ) * x.get( j );
                         }
@@ -130,7 +136,7 @@ namespace NCPA {
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                     const NCPA::linear::Vector<ELEMENTTYPE>& b ) override {
                     size_t N = b.size();
-                    if ( N != _mat->rows() ) {
+                    if (N != _mat->rows()) {
                         std::ostringstream oss;
                         oss << "solver: size mismatch between system "
                                "matrix "
@@ -156,9 +162,9 @@ namespace NCPA {
 
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                     const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
-                    if ( b.is_column_matrix() ) {
+                    if (b.is_column_matrix()) {
                         return solve( *b.get_column( 0 ) );
-                    } else if ( b.is_row_matrix() ) {
+                    } else if (b.is_row_matrix()) {
                         return solve( *b.get_row( 0 ) );
                     } else {
                         throw std::logic_error(
@@ -181,14 +187,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::basic_linear_system_solver<T>& a,
-                  NCPA::linear::basic_linear_system_solver<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( a ),
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( b ) );
-    swap( a._mat, b._mat );
-    swap( a._lu, b._lu );
-}

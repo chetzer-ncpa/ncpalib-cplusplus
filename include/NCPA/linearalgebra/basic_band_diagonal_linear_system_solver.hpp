@@ -20,15 +20,6 @@
 #include <sstream>
 #include <vector>
 
-// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-//     NCPA::linear::basic_band_diagonal_linear_system_solver,
-//     ELEMENTTYPE );
-template<typename ELEMENTTYPE>
-static void swap(
-    NCPA::linear::basic_band_diagonal_linear_system_solver<ELEMENTTYPE>& a,
-    NCPA::linear::basic_band_diagonal_linear_system_solver<ELEMENTTYPE>&
-        b ) noexcept;
-
 namespace NCPA {
     namespace linear {
 
@@ -56,17 +47,27 @@ namespace NCPA {
                     basic_band_diagonal_linear_system_solver<ELEMENTTYPE>&&
                         source ) noexcept :
                     abstract_linear_system_solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~basic_band_diagonal_linear_system_solver() {
                     this->clear();
                 }
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     basic_band_diagonal_linear_system_solver<ELEMENTTYPE>& a,
                     basic_band_diagonal_linear_system_solver<ELEMENTTYPE>&
-                        b ) noexcept;
+                        b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
+                        static_cast<
+                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                            b ) );
+                    // swap( a._mat, b._mat );
+                    swap( a._lu, b._lu );
+                }
 
                 /**
                  * Assignment operator.
@@ -76,7 +77,7 @@ namespace NCPA {
                     operator=(
                         basic_band_diagonal_linear_system_solver<ELEMENTTYPE>
                             other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -88,18 +89,19 @@ namespace NCPA {
                 }
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
-                    set_system_matrix(
-                        const Matrix<ELEMENTTYPE>& M, bool check = true ) override {
-                    if ( check && !M.is_band_diagonal() ) {
+                    set_system_matrix( const Matrix<ELEMENTTYPE>& M,
+                                       bool check = true ) override {
+                    if (check && !M.is_band_diagonal()) {
                         throw std::logic_error(
                             "System matrix must be band-diagonal" );
                     }
-                    if ( check && !M.is_square() ) {
+                    if (check && !M.is_square()) {
                         throw std::logic_error(
                             "System matrix must be square!" );
                     }
                     this->clear();
-                    // NCPA_DEBUG << "Decomposing into LU structure..." << std::endl;
+                    // NCPA_DEBUG << "Decomposing into LU structure..." <<
+                    // std::endl;
                     _lu.decompose( M );
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
@@ -109,7 +111,7 @@ namespace NCPA {
                     const NCPA::linear::Vector<ELEMENTTYPE>& rhs ) override {
                     int n                                      = rhs.size();
                     const band_diagonal_matrix<ELEMENTTYPE> *A = &( _lu._A );
-                    if ( n != A->rows() ) {
+                    if (n != A->rows()) {
                         std::ostringstream oss;
                         oss << "solver: size mismatch between system "
                                "matrix "
@@ -122,17 +124,17 @@ namespace NCPA {
                     NCPA::linear::Vector<ELEMENTTYPE> b = rhs;
                     int p = A->lower_bandwidth(), q = A->upper_bandwidth();
                     // size_t nloops = 0;
-                    for ( int j = 1; j <= n; j++ ) {
+                    for (int j = 1; j <= n; j++) {
                         int ni = std::min( j + p, n );
-                        for ( int i = j + 1; i <= ni; i++ ) {
+                        for (int i = j + 1; i <= ni; i++) {
                             b[ i - 1 ] -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
                             // nloops++;
                         }
                     }
-                    for ( int j = n; j > 0; j-- ) {
+                    for (int j = n; j > 0; j--) {
                         b[ j - 1 ] /= A->get( j - 1, j - 1 );
                         int ni      = std::max( j - q, 1 );
-                        for ( int i = ni; i <= j - 1; i++ ) {
+                        for (int i = ni; i <= j - 1; i++) {
                             b[ i - 1 ] -= A->get( i - 1, j - 1 ) * b[ j - 1 ];
                             // nloops++;
                         }
@@ -192,9 +194,9 @@ namespace NCPA {
 
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
                     const NCPA::linear::Matrix<ELEMENTTYPE>& b ) override {
-                    if ( b.is_column_matrix() ) {
+                    if (b.is_column_matrix()) {
                         return solve( *b.get_column( 0 ) );
-                    } else if ( b.is_row_matrix() ) {
+                    } else if (b.is_row_matrix()) {
                         return solve( *b.get_row( 0 ) );
                     } else {
                         throw std::logic_error(
@@ -210,15 +212,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap(
-    NCPA::linear::basic_band_diagonal_linear_system_solver<T>& a,
-    NCPA::linear::basic_band_diagonal_linear_system_solver<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( a ),
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( b ) );
-    // swap( a._mat, b._mat );
-    swap( a._lu, b._lu );
-}

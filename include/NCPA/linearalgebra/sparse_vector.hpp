@@ -56,7 +56,7 @@ namespace NCPA {
                  */
                 sparse_vector( sparse_vector<ELEMENTTYPE>&& source ) noexcept :
                     sparse_vector<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~sparse_vector() {}
@@ -76,7 +76,7 @@ namespace NCPA {
                  */
                 sparse_vector<ELEMENTTYPE>& operator=(
                     sparse_vector<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
