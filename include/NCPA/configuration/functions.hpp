@@ -114,5 +114,31 @@ namespace NCPA {
                 static_cast<T>( 0 ), "Supplied value must be nonzero" ) );
         }
 
+        inline validation_status_t merge( const validation_status_t& a, const validation_status_t& b ) {
+            validation_status_t merged;
+            if (a.result == test_result_t::FAILED || b.result == test_result_t::FAILED) {
+                merged.result = test_result_t::FAILED;
+            } else if (a.result == test_result_t::PENDING || b.result == test_result_t::PENDING) {
+                merged.result = test_result_t::PENDING;
+            } else if (a.result == test_result_t::NONE && b.result == test_result_t::NONE) { 
+                merged.result = test_result_t::NONE;
+            } else {
+                merged.result = test_result_t::PASSED;
+            }
+
+            if (!a.message.empty()) {
+                if (b.message.empty()) {
+                    merged.message = a.message;
+                } else {
+                    merged.message = a.message + "\n" + b.message;
+                }
+            } else {
+                if (!b.message.empty()) {
+                    merged.message = b.message;
+                }
+            }
+            
+            return merged;
+        }
     }  // namespace config
 }  // namespace NCPA

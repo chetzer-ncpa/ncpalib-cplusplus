@@ -3,6 +3,7 @@
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/TypedValidation.hpp"
 #include "NCPA/configuration/Validation.hpp"
+#include "NCPA/configuration/functions.hpp"
 
 #include <memory>
 #include <string>
@@ -36,7 +37,7 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
-                validation_status_t validate( const PARAMTYPE& value ) const {
+                validation_status_t validate_value( const PARAMTYPE& value ) const {
                     validation_status_t status;
                     if (_validations.empty()) {
                         status.result = test_result_t::NONE;
@@ -67,6 +68,10 @@ namespace NCPA {
                         }
                     }
                     return status;
+                }
+
+                size_t validation_count() const noexcept {
+                    return _validations.size();
                 }
 
 

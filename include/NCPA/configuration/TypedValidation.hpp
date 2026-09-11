@@ -10,8 +10,8 @@ namespace NCPA {
         template<typename T>
         class TypedValidation : public Validation {
             public:
-
-                TypedValidation() : Validation() {}
+                TypedValidation( const std::string& failmsg = "" ) :
+                    Validation( failmsg ) {}
 
                 virtual ~TypedValidation() {}
 
@@ -25,12 +25,15 @@ namespace NCPA {
                     swap( *this, other );
                 }
 
-                TypedValidation& operator=( TypedValidation<T> other ) noexcept {
+                TypedValidation& operator=(
+                    TypedValidation<T> other ) noexcept {
                     swap( *this, other );
                     return *this;
                 }
 
-                TypedValidation( validation_function_t<T> v ) { _validate = v; }
+                TypedValidation( validation_function_t<T> v ) {
+                    _validate = v;
+                }
 
                 friend void swap( TypedValidation<T>& a,
                                   TypedValidation<T>& b ) noexcept {
@@ -40,8 +43,15 @@ namespace NCPA {
                     swap( a._validate, b._validate );
                 }
 
-                virtual validation_status_t validate(const T& val) const {
-                    return _validate( val );
+                virtual validation_status_t validate( const T& val ) const {
+                    validation_status_t status;
+                    if (_validate( val )) {
+                        status.result = test_result_t::PASSED;
+                    } else {
+                        status.result  = test_result_t::FAILED;
+                        status.message = this->failure_message();
+                    }
+                    return status;
                 }
 
                 NCPA_CLONE_METHOD( TypedValidation<T>, Validation )

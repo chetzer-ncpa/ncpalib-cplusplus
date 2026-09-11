@@ -1,22 +1,27 @@
 #pragma once
 
+#ifndef NCPA_ARGUMENT_DEFAULT_STRING_VALUE
+#  define NCPA_ARGUMENT_DEFAULT_STRING_VALUE ""
+#endif
+
+#ifndef NCPA_CONFIG_DEFAULT_NEWLINE_MARKER
+#  define NCPA_CONFIG_DEFAULT_NEWLINE_MARKER "<br>"
+#endif
+
 // #include "NCPA/defines.hpp"
+#include "NCPA/configuration/exceptions.hpp"
 #include "NCPA/configuration/types/parameter_form_t.hpp"
 #include "NCPA/configuration/types/parameter_type_t.hpp"
 #include "NCPA/configuration/types/parse_result_t.hpp"
 #include "NCPA/configuration/types/test_status_t.hpp"
-#include "NCPA/types.hpp"
 #include "NCPA/exceptions.hpp"
+#include "NCPA/types.hpp"
 
 #include <complex>
 #include <functional>
 #include <memory>
 #include <string>
 #include <utility>
-
-#ifndef NCPA_CONFIG_DEFAULT_NEWLINE_MARKER
-#  define NCPA_CONFIG_DEFAULT_NEWLINE_MARKER "<br>"
-#endif
 
 namespace NCPA {
     namespace config {
@@ -48,22 +53,19 @@ namespace NCPA {
         // };
 
         // Validation API
-        enum class test_result_t {
-            NONE = 0,
-            PENDING,
-            FAILED,
-            PASSED
-        };
+        enum class test_result_t { NONE = 0, PENDING, FAILED, PASSED };
+
         struct validation_status_t {
-                test_result_t result;
-                std::string message;
+                test_result_t result = test_result_t::PENDING;
+                std::string message = "";
         };
 
         template<typename T>
-        using validation_function_t = std::function<validation_status_t( T )>;
+        using validation_function_t = std::function<bool( T )>;
+        // using validation_function_t = std::function<validation_status_t( T )>;
+
 
         class Validation;
-        typedef Validation ValidationTest;  // convenience alias
 
         template<typename T>
         class TypedValidation;
@@ -74,11 +76,27 @@ namespace NCPA {
         template<typename BASETYPE>
         class Validated;
 
+        typedef Validation ValidationTest;  // convenience alias
+        typedef std::unique_ptr<Validation> test_ptr_t;
+
+        // Argument API
+        enum class argument_multiplicity_t {
+            ZERO,   /**< No arguments, flag only */
+            SINGLE, /**< Maximum of one argument */
+            PLURAL  /**< At least one argument */
+        };
+        class Argument;
+        template<typename T>
+        class TypedArgument;
+        class ArgumentSet;
+        typedef std::unique_ptr<Argument> argument_ptr_t;
+
+
         // class ValidationTest;
         // class ValidationTestSuite;
         // class NullaryValidationTest;
         class BaseParameter;
-        class ArgumentSet;
+
         class Parser;
 
         class HelpTextSection;
@@ -111,10 +129,6 @@ namespace NCPA {
         template<typename KEYTYPE = std::string>
         class Configurable;
 
-        class Argument;
-
-        template<typename T>
-        class TypedArgument;
 
         template<typename INTYPE, typename KEYTYPE = std::string>
         class Mapping;
@@ -129,7 +143,7 @@ namespace NCPA {
         typedef ScalarParameter<bool> BooleanParameter;
         typedef ScalarParameter<std::complex<double>> ComplexParameter;
         typedef VectorParameter<double> DoubleVectorParameter;
-        typedef std::unique_ptr<Validation> test_ptr_t;
+
 
         template<typename KEYTYPE>
         using param_pair_t = std::pair<KEYTYPE, param_ptr_t>;
@@ -277,7 +291,8 @@ namespace NCPA {
                  || can_use_from_string<T>::value ) ),
             void>::type
             parse_string( const std::string& str, T& val ) {
-            throw NCPA::NotImplementedError( "parse_string() not implemented for this type!" );
+            throw NCPA::NotImplementedError(
+                "parse_string() not implemented for this type!" );
         }
     }  // namespace config
 }  // namespace NCPA

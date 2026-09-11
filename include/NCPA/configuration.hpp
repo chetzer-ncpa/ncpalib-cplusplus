@@ -120,11 +120,13 @@ void swap( NCPA::config::validation::TESTNAME<T>& a,
 
 #pragma once
 
-// #include "NCPA/configuration/Argument.hpp"
+#include "NCPA/configuration/Argument.hpp"
+#include "NCPA/configuration/ArgumentSet.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/Configurable.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/exceptions.hpp"
 // #include "NCPA/configuration/FlagArgument.hpp"
 // #include "NCPA/configuration/HelpTextArgumentSection.hpp"
 #include "NCPA/configuration/HelpTextFormatter.hpp"

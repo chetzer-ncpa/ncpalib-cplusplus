@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef NCPA_DEFAULT_WHITESPACE
+#  define NCPA_DEFAULT_WHITESPACE " \t\n\r\f\v"
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -46,7 +50,7 @@ namespace NCPA {
         */
         static inline std::string deblank( const std::string& str,
                                            const std::string& whitespace
-                                           = " \t\n\r" ) {
+                                           = NCPA_DEFAULT_WHITESPACE ) {
             const size_t strBegin = str.find_first_not_of( whitespace );
             if (strBegin == std::string::npos) {
                 return "";
