@@ -24,7 +24,7 @@ namespace NCPA {
     namespace linear {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class sparse_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_vector<ELEMENTTYPE>,
+            : // public abstract_vector<ELEMENTTYPE>,
               public Cloneable<sparse_vector<ELEMENTTYPE>,
                                abstract_vector<ELEMENTTYPE>> {
             public:

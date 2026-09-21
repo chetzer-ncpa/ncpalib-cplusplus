@@ -40,24 +40,11 @@
 
 namespace NCPA {
 
-    // template<typename BASE>
-    // class Cloneable {
-    //     public:
-    //         Cloneable()                             = default;
-    //         virtual ~Cloneable()                    = default;
-    //         Cloneable( const Cloneable<BASE>& )     = default;
-    //         Cloneable( Cloneable<BASE>&& ) noexcept = default;
-
-    //         friend void swap( Cloneable<BASE>& a,
-    //                           Cloneable<BASE>& b ) noexcept {}
-
-    //         virtual std::unique_ptr<BASE> clone() const         = 0;
-    //         virtual std::unique_ptr<BASE> default_clone() const = 0;
-    // };
-
     template<typename BASE>
     class CloneBase {
         public:
+            using BaseType = BASE;
+
             CloneBase()                             = default;
             virtual ~CloneBase()                    = default;
             CloneBase( const CloneBase<BASE>& )     = default;
@@ -65,33 +52,44 @@ namespace NCPA {
 
             virtual std::unique_ptr<BASE> clone() const         = 0;
             virtual std::unique_ptr<BASE> default_clone() const = 0;
+
+            void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
     };
 
-    template<typename DERIVED, typename BASE>
-    class Cloneable : public virtual CloneBase<BASE> {
+    template<typename DERIVED, typename BASE_OR_INTERFACE>
+    class Cloneable : public BASE_OR_INTERFACE {
         public:
             Cloneable()                                      = default;
             virtual ~Cloneable()                             = default;
-            Cloneable( const Cloneable<DERIVED, BASE>& )     = default;
-            Cloneable( Cloneable<DERIVED, BASE>&& ) noexcept = default;
+            Cloneable( const Cloneable<DERIVED, BASE_OR_INTERFACE>& )     = default;
+            Cloneable( Cloneable<DERIVED, BASE_OR_INTERFACE>&& ) noexcept = default;
 
-            friend void swap( Cloneable<DERIVED, BASE>& a,
-                              Cloneable<DERIVED, BASE>& b ) noexcept {}
+            friend void swap( Cloneable<DERIVED, BASE_OR_INTERFACE>& a,
+                              Cloneable<DERIVED, BASE_OR_INTERFACE>& b ) noexcept {
+                using std::swap;
+                swap( static_cast<BASE_OR_INTERFACE&>( a ),
+                      static_cast<BASE_OR_INTERFACE&>( b ) );
+            }
 
-            virtual std::unique_ptr<BASE> clone() const override {
-                return std::unique_ptr<BASE>(
+            std::unique_ptr<typename BASE_OR_INTERFACE::BaseType> clone()
+                const override {
+                return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
                     new DERIVED( *static_cast<const DERIVED *>( this ) ) );
             }
 
-            // template<typename U = DERIVED,
-            //          typename std::enable_if<
-            //              std::is_default_constructible<U>::value, int>::type
-            //              ENABLER = 0>
-            std::unique_ptr<BASE> default_clone() const override {
+            // virtual std::unique_ptr<BASE> clone() const override {
+            //     return std::unique_ptr<BASE>(
+            //         new DERIVED( *static_cast<const DERIVED *>( this ) ) );
+            // }
+
+            std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>
+                default_clone() const override {
                 static_assert(
                     std::is_default_constructible<DERIVED>::value,
-                    "Cloneable methods must have a default constructor" );
-                return std::unique_ptr<BASE>( new DERIVED() );
+                    "Cloneable classes must have a default constructor" );
+                return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
+                    new DERIVED() );
+                // return std::unique_ptr<BASE>( new DERIVED() );
             }
     };
 

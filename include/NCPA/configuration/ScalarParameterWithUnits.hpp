@@ -15,9 +15,9 @@ namespace NCPA {
         class ScalarParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public ScalarParameter<PARAMTYPE>,
+            : // public ScalarParameter<PARAMTYPE>,
               public Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
-                               BaseParameter> {
+                               ScalarParameter<PARAMTYPE>> {
             public:
                 ScalarParameterWithUnits() : ScalarParameter<PARAMTYPE>() {}
 

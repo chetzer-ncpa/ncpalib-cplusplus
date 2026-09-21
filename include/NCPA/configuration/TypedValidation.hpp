@@ -8,7 +8,7 @@
 namespace NCPA {
     namespace config {
         template<typename T>
-        class TypedValidation : public Validation,
+        class TypedValidation : // public Validation,
         public Cloneable<TypedValidation<T>, Validation> {
             public:
 

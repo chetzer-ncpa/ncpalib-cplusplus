@@ -6,8 +6,8 @@ INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
 
 # SOURCES=test_extern_armadillo_fftw3.cpp
-# SOURCES=test_dsp.cpp
-SOURCES=test_linearalgebra_matrix_bdmatrix_complex.cpp
+SOURCES=test_dsp.cpp
+# SOURCES=test_linearalgebra_matrix_bdmatrix_complex.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 

@@ -217,8 +217,8 @@ namespace NCPA {
         class ScalarParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -454,8 +454,8 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -687,8 +687,8 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -917,8 +917,8 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1151,8 +1151,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1391,8 +1391,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1637,8 +1637,8 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE>,
-            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
+            : // public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;

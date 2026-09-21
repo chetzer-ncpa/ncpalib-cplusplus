@@ -29,7 +29,7 @@ namespace NCPA {
         enum class fft_t { FFTW, FFTW3, POCKETFFT };
         enum class fft_scaling_t { NONE, HALF, FULL };
 
-        class FFT : public virtual CloneBase<FFT> {
+        class FFT : public CloneBase<FFT> {
             public:
                 virtual void compute( std::complex<double> *in,
                                       std::complex<double> *out, size_t NFFT,
@@ -155,19 +155,19 @@ namespace NCPA {
         typedef std::unique_ptr<FFT> fft_ptr_t;
 
 #ifdef NCPA_HAVE_POCKETFFT
-        class PocketFFT : public FFT,
-                          public Cloneable<PocketFFT, FFT> {
+        class PocketFFT : public Cloneable<PocketFFT, FFT> {
             public:
                 using FFT::compute;
 
-                PocketFFT() : FFT() {}
+                PocketFFT() = default;
 
-                PocketFFT( const std::vector<std::complex<double>>& input ) :
-                    FFT( input ) {}
+                PocketFFT( const std::vector<std::complex<double>>& input ) {
+                    set( input );
+                }
 
-                PocketFFT( const std::vector<double>& input ) : FFT( input ) {}
+                PocketFFT( const std::vector<double>& input ) { set( input ); }
 
-                PocketFFT( const PocketFFT& other ) : FFT( other ) {}
+                PocketFFT( const PocketFFT& other ) = default;
 
                 PocketFFT( PocketFFT&& other ) noexcept {
                     swap( *this, other );
@@ -177,7 +177,8 @@ namespace NCPA {
 
                 friend void swap( PocketFFT& a, PocketFFT& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<FFT&>( a ), static_cast<FFT&>( b ) );
+                    swap( static_cast<Cloneable<PocketFFT, FFT>&>( a ),
+                          static_cast<Cloneable<PocketFFT, FFT>&>( b ) );
                 }
 
                 // NCPA_CLONE_METHOD( PocketFFT, FFT )
@@ -214,19 +215,19 @@ namespace NCPA {
 #endif
 
 #ifdef NCPA_HAVE_FFTW3
-        class FFTW : public FFT,
-                     public Cloneable<FFTW, FFT> {
+        class FFTW : public Cloneable<FFTW, FFT> {
             public:
                 using FFT::compute;
 
-                FFTW() : FFT() {}
+                FFTW() = default;
 
-                FFTW( const std::vector<std::complex<double>>& input ) :
-                    FFT( input ) {}
+                FFTW( const std::vector<std::complex<double>>& input ) {
+                    set( input );
+                }
 
-                FFTW( const std::vector<double>& input ) : FFT( input ) {}
+                FFTW( const std::vector<double>& input ) { set( input ); }
 
-                FFTW( const FFTW& other ) : FFT( other ) {}
+                FFTW( const FFTW& other ) = default;
 
                 FFTW( FFTW&& other ) noexcept { swap( *this, other ); }
 
@@ -234,7 +235,8 @@ namespace NCPA {
 
                 friend void swap( FFTW& a, FFTW& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<FFT&>( a ), static_cast<FFT&>( b ) );
+                    swap( static_cast<Cloneable<FFTW, FFT>&>( a ),
+                          static_cast<Cloneable<FFTW, FFT>&>( b ) );
                 }
 
                 void compute( std::complex<double> *in,

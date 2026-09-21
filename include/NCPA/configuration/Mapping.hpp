@@ -57,7 +57,7 @@ namespace NCPA {
         template<typename INTYPE, typename OUTTYPE,
                  typename KEYTYPE = std::string>
         class ConfigurationMapping
-            : public Mapping<INTYPE, KEYTYPE>,
+            : // public Mapping<INTYPE, KEYTYPE>,
               public Cloneable<ConfigurationMapping<INTYPE, OUTTYPE>,
                                Mapping<INTYPE, OUTTYPE>> {
             public:

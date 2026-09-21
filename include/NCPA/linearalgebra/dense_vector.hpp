@@ -24,7 +24,7 @@ namespace NCPA {
     namespace linear {
         template<typename ELEMENTTYPE>
         class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_vector<ELEMENTTYPE>,
+            : // public abstract_vector<ELEMENTTYPE>,
               public Cloneable<dense_vector<ELEMENTTYPE>,
                                abstract_vector<ELEMENTTYPE>> {
             public:

@@ -16,9 +16,9 @@ namespace NCPA {
         class VectorParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public VectorParameter<PARAMTYPE>,
+            : // public VectorParameter<PARAMTYPE>,
               public Cloneable<VectorParameterWithUnits<PARAMTYPE>,
-                               BaseParameter> {
+                               VectorParameter<PARAMTYPE>> {
             public:
                 // default
                 VectorParameterWithUnits() : VectorParameter<PARAMTYPE>() {}
