@@ -16,7 +16,9 @@ namespace NCPA {
         class VectorParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public VectorParameter<PARAMTYPE> {
+            : public VectorParameter<PARAMTYPE>,
+              public Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                               BaseParameter> {
             public:
                 // default
                 VectorParameterWithUnits() : VectorParameter<PARAMTYPE>() {}
@@ -200,8 +202,8 @@ namespace NCPA {
                     swap( a._uvalue, b._uvalue );
                 }
 
-                NCPA_CLONE_METHOD( VectorParameterWithUnits<PARAMTYPE>,
-                                   BaseParameter )
+                // NCPA_CLONE_METHOD( VectorParameterWithUnits<PARAMTYPE>,
+                //                    BaseParameter )
 
                 // virtual param_ptr_t clone() const override {
                 //     return param_ptr_t(

@@ -18,7 +18,7 @@ namespace NCPA {
     namespace config {
         using namespace NCPA::units;
 
-        class BaseParameter : public Cloneable<BaseParameter> {
+        class BaseParameter : public virtual CloneBase<BaseParameter> {
             public:
                 BaseParameter() {}
 

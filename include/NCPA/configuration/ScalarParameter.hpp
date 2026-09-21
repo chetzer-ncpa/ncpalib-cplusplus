@@ -217,7 +217,8 @@ namespace NCPA {
         class ScalarParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -345,7 +346,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual long long as_int( size_t n ) const override {
                     return static_cast<long long>(
@@ -453,7 +454,8 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -581,7 +583,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -685,7 +687,8 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -813,7 +816,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -914,7 +917,8 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1042,7 +1046,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return this->get( n );
@@ -1147,7 +1151,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1275,7 +1280,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     std::string s = this->get( n );
@@ -1386,7 +1391,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1515,7 +1521,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
@@ -1631,7 +1637,8 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            : public hidden::_base_scalar_parameter<PARAMTYPE>,
+            public Cloneable<ScalarParameter<PARAMTYPE>,BaseParameter> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1759,7 +1766,7 @@ namespace NCPA {
                               b ) );
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     throw std::out_of_range(

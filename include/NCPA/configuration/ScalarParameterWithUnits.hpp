@@ -15,7 +15,9 @@ namespace NCPA {
         class ScalarParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public ScalarParameter<PARAMTYPE> {
+            : public ScalarParameter<PARAMTYPE>,
+              public Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                               BaseParameter> {
             public:
                 ScalarParameterWithUnits() : ScalarParameter<PARAMTYPE>() {}
 
@@ -52,10 +54,12 @@ namespace NCPA {
                                           0.0, defaultval.get_units() )
                                     : defaultval.get_scalar( 0 ) ) } {}
 
-                ScalarParameterWithUnits( const TypedValidation<PARAMTYPE>& v ) :
+                ScalarParameterWithUnits(
+                    const TypedValidation<PARAMTYPE>& v ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
 
-                ScalarParameterWithUnits( const TypedValidation<PARAMTYPE> *v ) :
+                ScalarParameterWithUnits(
+                    const TypedValidation<PARAMTYPE> *v ) :
                     hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
 
                 ScalarParameterWithUnits(
@@ -239,8 +243,8 @@ namespace NCPA {
                     }
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameterWithUnits<PARAMTYPE>,
-                                   BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameterWithUnits<PARAMTYPE>,
+                //                    BaseParameter )
 
                 virtual bool has_units() const {
                     return ( _uvalue.get_units() != nullptr );

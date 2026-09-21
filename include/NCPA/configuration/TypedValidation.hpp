@@ -8,7 +8,8 @@
 namespace NCPA {
     namespace config {
         template<typename T>
-        class TypedValidation : public Validation {
+        class TypedValidation : public Validation,
+        public Cloneable<TypedValidation<T>, Validation> {
             public:
 
                 TypedValidation() : Validation() {}
@@ -40,7 +41,7 @@ namespace NCPA {
                     swap( a.validate, b.validate );
                 }
 
-                NCPA_CLONE_METHOD( TypedValidation<T>, Validation )
+                // NCPA_CLONE_METHOD( TypedValidation<T>, Validation )
 
                 validation_function_t<T> validate;
         };

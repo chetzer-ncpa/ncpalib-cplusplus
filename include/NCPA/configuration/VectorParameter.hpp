@@ -91,8 +91,7 @@
         using std::swap;                                                      \
         swap( static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ),   \
               static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ) ); \
-    }                                                                         \
-    NCPA_CLONE_METHOD( VectorParameter<PARAMTYPE>, BaseParameter )
+    }
 
 // namespace NCPA {
 //     namespace config {
@@ -112,7 +111,9 @@ namespace NCPA {
 
         namespace hidden {
             template<typename PARAMTYPE>
-            class _base_vector_parameter : public TypedParameter<PARAMTYPE> {
+            class _base_vector_parameter
+                : public TypedParameter<PARAMTYPE>,
+                  public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
                 public:
                     _base_vector_parameter() : TypedParameter<PARAMTYPE>() {}
 
@@ -429,7 +430,8 @@ namespace NCPA {
         class VectorParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -551,7 +553,8 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -674,7 +677,8 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -794,7 +798,8 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class VectorParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -919,7 +924,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -1053,7 +1059,8 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 
@@ -1191,7 +1198,8 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public hidden::_base_vector_parameter<PARAMTYPE> {
+            : public hidden::_base_vector_parameter<PARAMTYPE>,
+              public Cloneable<VectorParameter<PARAMTYPE>, BaseParameter> {
             public:
                 NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
 

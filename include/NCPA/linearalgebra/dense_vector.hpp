@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -23,7 +24,9 @@ namespace NCPA {
     namespace linear {
         template<typename ELEMENTTYPE>
         class dense_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_vector<ELEMENTTYPE> {
+            : public abstract_vector<ELEMENTTYPE>,
+              public Cloneable<dense_vector<ELEMENTTYPE>,
+                               abstract_vector<ELEMENTTYPE>> {
             public:
                 dense_vector() {}
 
@@ -203,8 +206,8 @@ namespace NCPA {
                     return v;
                 }
 
-                NCPA_CLONE_METHOD( dense_vector<ELEMENTTYPE>,
-                                   abstract_vector<ELEMENTTYPE> )
+                // NCPA_CLONE_METHOD( dense_vector<ELEMENTTYPE>,
+                //                    abstract_vector<ELEMENTTYPE> )
 
                 // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
                 // clone()

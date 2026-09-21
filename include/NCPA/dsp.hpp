@@ -29,7 +29,7 @@ namespace NCPA {
         enum class fft_t { FFTW, FFTW3, POCKETFFT };
         enum class fft_scaling_t { NONE, HALF, FULL };
 
-        class FFT : public Cloneable<FFT> {
+        class FFT : public virtual CloneBase<FFT> {
             public:
                 virtual void compute( std::complex<double> *in,
                                       std::complex<double> *out, size_t NFFT,
@@ -155,7 +155,8 @@ namespace NCPA {
         typedef std::unique_ptr<FFT> fft_ptr_t;
 
 #ifdef NCPA_HAVE_POCKETFFT
-        class PocketFFT : public FFT {
+        class PocketFFT : public FFT,
+                          public Cloneable<PocketFFT, FFT> {
             public:
                 using FFT::compute;
 
@@ -179,13 +180,13 @@ namespace NCPA {
                     swap( static_cast<FFT&>( a ), static_cast<FFT&>( b ) );
                 }
 
-                NCPA_CLONE_METHOD( PocketFFT, FFT )
+                // NCPA_CLONE_METHOD( PocketFFT, FFT )
 
-                virtual void compute( std::complex<double> *in,
-                                      std::complex<double> *out, size_t NFFT,
-                                      fft_sign_t sign,
-                                      fft_scaling_t scaling
-                                      = fft_scaling_t::NONE ) override {
+                void compute( std::complex<double> *in,
+                              std::complex<double> *out, size_t NFFT,
+                              fft_sign_t sign,
+                              fft_scaling_t scaling
+                              = fft_scaling_t::NONE ) override {
                     using namespace pocketfft;
                     bool forward = ( sign == fft_sign_t::NEGATIVE );
                     shape_t shape { NFFT };
@@ -195,10 +196,10 @@ namespace NCPA {
                          FFT::scaling_factor( scaling, NFFT ), 1 );
                 }
 
-                virtual void compute( double *in, std::complex<double> *out,
-                                      size_t NFFT, fft_sign_t sign,
-                                      fft_scaling_t scaling
-                                      = fft_scaling_t::NONE ) override {
+                void compute( double *in, std::complex<double> *out,
+                              size_t NFFT, fft_sign_t sign,
+                              fft_scaling_t scaling
+                              = fft_scaling_t::NONE ) override {
                     using namespace pocketfft;
                     bool forward = ( sign == fft_sign_t::NEGATIVE );
                     shape_t shape { NFFT };
@@ -213,7 +214,8 @@ namespace NCPA {
 #endif
 
 #ifdef NCPA_HAVE_FFTW3
-        class FFTW : public FFT {
+        class FFTW : public FFT,
+                     public Cloneable<FFTW, FFT> {
             public:
                 using FFT::compute;
 
@@ -235,13 +237,11 @@ namespace NCPA {
                     swap( static_cast<FFT&>( a ), static_cast<FFT&>( b ) );
                 }
 
-                NCPA_CLONE_METHOD( FFTW, FFT )
-
-                virtual void compute( std::complex<double> *in,
-                                      std::complex<double> *out, size_t NFFT,
-                                      fft_sign_t sign,
-                                      fft_scaling_t scaling
-                                      = fft_scaling_t::NONE ) override {
+                void compute( std::complex<double> *in,
+                              std::complex<double> *out, size_t NFFT,
+                              fft_sign_t sign,
+                              fft_scaling_t scaling
+                              = fft_scaling_t::NONE ) override {
                     // FORWARD in FFTW is negative sign
                     int fftwsign = ( sign == fft_sign_t::NEGATIVE ? -1 : 1 );
                     fftw_plan p  = fftw_plan_dft_1d(
