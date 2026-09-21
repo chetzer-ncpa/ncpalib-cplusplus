@@ -58,8 +58,8 @@ namespace NCPA {
                  typename KEYTYPE = std::string>
         class ConfigurationMapping
             : public Mapping<INTYPE, KEYTYPE>,
-              public Cloneable < ConfigurationMapping<INTYPE, OUTTYPE>,
-              Mapping<INTYPE, OUTTYPE> {
+              public Cloneable<ConfigurationMapping<INTYPE, OUTTYPE>,
+                               Mapping<INTYPE, OUTTYPE>> {
             public:
                 typedef Mapping<INTYPE, KEYTYPE> parent_t;
                 typedef ConfigurationMapping<INTYPE, OUTTYPE, KEYTYPE> this_t;
