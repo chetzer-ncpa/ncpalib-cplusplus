@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/VectorParameter.hpp"
@@ -15,133 +16,198 @@ namespace NCPA {
         class VectorParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public VectorParameter<PARAMTYPE> {
+            :  // public VectorParameter<PARAMTYPE>,
+               public Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                                VectorParameter<PARAMTYPE>> {
             public:
                 // default
-                VectorParameterWithUnits() : VectorParameter<PARAMTYPE>() {}
+                VectorParameterWithUnits() :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>() {}
 
                 // scalar, no units
                 VectorParameterWithUnits( PARAMTYPE defaultval ) :
-                    VectorParameter<PARAMTYPE>(),
                     _uvalue { VectorWithUnits<PARAMTYPE>( 1, defaultval ) } {}
 
                 // vector, no units
                 VectorParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval ) :
-                    VectorParameter<PARAMTYPE>(),
                     _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
+
+                VectorParameterWithUnits(
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ) {}
+
+                VectorParameterWithUnits(
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ) {}
+
+                VectorParameterWithUnits(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ) {}
+
+                VectorParameterWithUnits(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ) {}
 
                 // scalar, units separate
                 VectorParameterWithUnits( PARAMTYPE defaultval,
                                           units_ptr_t u ) :
-                    VectorParameter<PARAMTYPE>(),
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>(),
+                    _uvalue { VectorWithUnits<PARAMTYPE>(
+                        std::vector<PARAMTYPE>( 1, defaultval ), u ) } {}
+
+                VectorParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>(
+                        std::vector<PARAMTYPE>( 1, defaultval ), u ) } {}
+
+                VectorParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>(
+                        std::vector<PARAMTYPE>( 1, defaultval ), u ) } {}
+
+                VectorParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>(
+                        std::vector<PARAMTYPE>( 1, defaultval ), u ) } {}
+
+                VectorParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
                     _uvalue { VectorWithUnits<PARAMTYPE>(
                         std::vector<PARAMTYPE>( 1, defaultval ), u ) } {}
 
                 // scalar with units
                 VectorParameterWithUnits(
                     const ScalarWithUnits<PARAMTYPE>& defaultval ) :
-                    VectorParameter<PARAMTYPE>(),
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>(),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
+
+                VectorParameterWithUnits(
+                    const ScalarWithUnits<PARAMTYPE>& defaultval,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
+
+                VectorParameterWithUnits(
+                    const ScalarWithUnits<PARAMTYPE>& defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
+
+                VectorParameterWithUnits(
+                    const ScalarWithUnits<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
+
+                VectorParameterWithUnits(
+                    const ScalarWithUnits<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
                     _uvalue { VectorWithUnits<PARAMTYPE>( defaultval ) } {}
 
                 // vector, units separate
                 VectorParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u ) :
-                    VectorParameter<PARAMTYPE>(),
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>(),
                     _uvalue { VectorWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
-                // scalar with units
+                VectorParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                VectorParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                VectorParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                VectorParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { VectorWithUnits<PARAMTYPE>( defaultval, u ) } {}
+
+                // vector with units
                 VectorParameterWithUnits(
                     const VectorWithUnits<PARAMTYPE>& defaultval ) :
-                    VectorParameter<PARAMTYPE>(), _uvalue { defaultval } {}
-
-                VectorParameterWithUnits( const ValidationTest& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ) {}
-
-                VectorParameterWithUnits( const test_ptr_t& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ) {}
-
-                VectorParameterWithUnits(
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    VectorParameter<PARAMTYPE>( new_tests ) {}
-
-                VectorParameterWithUnits( PARAMTYPE defaultval,
-                                          const ValidationTest& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ) } {}
-
-                VectorParameterWithUnits( PARAMTYPE defaultval,
-                                          const test_ptr_t& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ) } {}
-
-                VectorParameterWithUnits(
-                    PARAMTYPE defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    VectorParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ) } {}
-
-                VectorParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const ValidationTest& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ), u } {}
-
-                VectorParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const test_ptr_t& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ), u } {}
-
-                VectorParameterWithUnits(
-                    PARAMTYPE defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    VectorParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { std::vector<PARAMTYPE>( 1, defaultval ), u } {}
-
-                VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval,
-                    const ValidationTest& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>(),
                     _uvalue { defaultval } {}
 
                 VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval,
-                    const test_ptr_t& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
+                    const VectorWithUnits<PARAMTYPE>& defaultval,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
                     _uvalue { defaultval } {}
 
                 VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    VectorParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { defaultval, u } {}
+                    const VectorWithUnits<PARAMTYPE>& defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
 
                 VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const ValidationTest& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval, u } {}
+                    const VectorWithUnits<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
 
                 VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const test_ptr_t& newtest ) :
-                    VectorParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval, u } {}
-
-                VectorParameterWithUnits(
-                    const std::vector<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    VectorParameter<PARAMTYPE>( new_tests ),
+                    const VectorWithUnits<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( v ),
                     _uvalue { defaultval } {}
 
                 VectorParameterWithUnits(
                     const VectorParameterWithUnits<PARAMTYPE>& other ) :
-                    VectorParameter<PARAMTYPE>( other ) {
+                    Cloneable<VectorParameterWithUnits<PARAMTYPE>,
+                              VectorParameter<PARAMTYPE>>( other ) {
                     _uvalue = other._uvalue;
                 }
 
                 VectorParameterWithUnits(
-                    VectorParameterWithUnits<PARAMTYPE>&& other ) noexcept :
-                    VectorParameter<PARAMTYPE>() {
+                    VectorParameterWithUnits<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -165,7 +231,13 @@ namespace NCPA {
                     swap( a._uvalue, b._uvalue );
                 }
 
-                NCPA_CLONE_METHOD( VectorParameterWithUnits<PARAMTYPE>, BaseParameter )
+                // NCPA_CLONE_METHOD( VectorParameterWithUnits<PARAMTYPE>,
+                //                    BaseParameter )
+
+                // virtual param_ptr_t clone() const override {
+                //     return param_ptr_t(
+                //         new VectorParameterWithUnits<PARAMTYPE>( *this ) );
+                // }
 
                 virtual std::string as_string() const override {
                     if (this->has_units()) {

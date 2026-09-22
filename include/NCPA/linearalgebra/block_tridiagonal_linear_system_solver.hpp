@@ -19,25 +19,20 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::block_tridiagonal_linear_system_solver, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
-
-
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class block_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_linear_system_solver<ELEMENTTYPE> {
+            : public Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>> {
                 friend class block_outrigger_linear_system_solver<ELEMENTTYPE>;
 
             public:
-                block_tridiagonal_linear_system_solver() :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {}
+                block_tridiagonal_linear_system_solver() {}
 
-                block_tridiagonal_linear_system_solver( matrix_t blocktype ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                block_tridiagonal_linear_system_solver( matrix_t blocktype ) {
                     _blocktype = blocktype;
                     this->init();
                 }
@@ -46,7 +41,9 @@ namespace NCPA {
                 block_tridiagonal_linear_system_solver(
                     const block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                         other ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                    Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>( other ) {
                     _mat->copy( other._mat );
                     // _lu  = other._lu;
                 }
@@ -57,17 +54,25 @@ namespace NCPA {
                  */
                 block_tridiagonal_linear_system_solver(
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>&&
-                        source ) noexcept :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                        source ) noexcept {
+                    swap( *this, source );
                 }
 
                 virtual ~block_tridiagonal_linear_system_solver() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>& a,
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
-                        b ) noexcept;
+                        b ) noexcept {
+                    using std::swap;
+                    ::swap( static_cast<Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( a ),
+                            static_cast<Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( b ) );
+                    swap( a._mat, b._mat );
+                }
 
                 /**
                  * Assignment operator.
@@ -76,7 +81,7 @@ namespace NCPA {
                 block_tridiagonal_linear_system_solver<ELEMENTTYPE>& operator=(
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>
                         other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -152,8 +157,8 @@ namespace NCPA {
                     Vector<ELEMENTTYPE> *Ris;
                     Matrix<ELEMENTTYPE> Bi_inv
                         = _mat->get_block( 0, 0 ).inverse();
-                    Matrix<ELEMENTTYPE> Ci = _mat->get_block(0,1);
-                    Cis[ 0 ] = Bi_inv * Ci;
+                    Matrix<ELEMENTTYPE> Ci = _mat->get_block( 0, 1 );
+                    Cis[ 0 ]               = Bi_inv * Ci;
                     Vector<ELEMENTTYPE> Ris0
                         = Bi_inv * b.subvector( 0, blocksize );
 
@@ -215,14 +220,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap(
-    NCPA::linear::block_tridiagonal_linear_system_solver<T>& a,
-    NCPA::linear::block_tridiagonal_linear_system_solver<T>& b ) noexcept {
-    using std::swap;
-    ::swap(
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( a ),
-        static_cast<NCPA::linear::abstract_linear_system_solver<T>&>( b ) );
-    swap( a._mat, b._mat );
-}

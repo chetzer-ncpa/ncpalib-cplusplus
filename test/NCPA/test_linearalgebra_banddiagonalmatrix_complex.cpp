@@ -430,6 +430,27 @@ TEST_F( _TEST_TITLE_, MatrixMatrixMultiplicationIsCorrect ) {
     auto product = lhs.multiply( rhs );
     // cout << "Actual product = " << endl << *product;
     EXPECT_TRUE( product2.equals( *product ) );
+
+    lhs.zero()
+        .set_diagonal( { 1, 2, 3, 4, 5 } )
+        .set_diagonal( { 6, 7, 8, 9 }, 1 )
+        .set_diagonal( { 9, 8, 7, 6 }, -1 );
+    rhs = lhs;
+    rhs.set_diagonal( { 3, 4, 5 }, -2 ).set_diagonal( vector<test_t>{ 6, 7 }, -3 );
+    product2.zero()
+        .set_diagonal( { 55, 114, 121, 126, 79 } )
+        .set_diagonal( { 18, 35, 56, 81 }, 1 )
+        .set_diagonal( { 42, 56, 72 }, 2 )
+        .set_diagonal( { 48, 72, 94, 54 }, -1 )
+        .set_diagonal( { 129, 135, 67 }, -2 )
+        .set_diagonal( vector<test_t>{ 45, 59 }, -3 )
+        .set_diagonal( vector<test_t>{ 36 }, -4 );
+    product = lhs.multiply( rhs );
+    cout << "lhs = \n"
+         << lhs << "\nrhs = \n"
+         << rhs << "\nproduct = \n"
+         << *product << std::endl;
+    EXPECT_TRUE( product2.equals( *product ) );
 }
 
 TEST_F( _TEST_TITLE_, ScaleWorksWithScalar ) {

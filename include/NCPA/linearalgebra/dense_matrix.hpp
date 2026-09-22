@@ -19,15 +19,13 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::dense_matrix,
-                                             ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::dense_matrix,
+//                                              ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
-
-
-        NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
-            class dense_matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
+        template<typename ELEMENTTYPE>
+        class dense_matrix<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
             : public abstract_matrix<ELEMENTTYPE> {
             public:
                 dense_matrix() : abstract_matrix<ELEMENTTYPE>() {}
@@ -72,10 +70,16 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void ::swap<ELEMENTTYPE>(
-                    dense_matrix<ELEMENTTYPE>& a,
-                    dense_matrix<ELEMENTTYPE>& b ) noexcept;
-
+                friend void swap( dense_matrix<ELEMENTTYPE>& a,
+                                  dense_matrix<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_matrix<ELEMENTTYPE>&>( a ),
+                          static_cast<abstract_matrix<ELEMENTTYPE>&>( b ) );
+                    swap( a._contents, b._contents );
+                    swap( a._rows, b._rows );
+                    swap( a._cols, b._cols );
+                    swap( a._finalized, b._finalized );
+                }
 
                 // bring some methods in unchanged
                 using abstract_matrix<ELEMENTTYPE>::add;
@@ -90,8 +94,6 @@ namespace NCPA {
                     for (auto it = _contents.begin(); it != _contents.end();
                          ++it) {
                         *it += b;
-                        // for (size_t i = 0; i < _rows * _cols; i++) {
-                        //     _contents[ i ] += b;
                     }
                     return *this;
                 }
@@ -110,11 +112,11 @@ namespace NCPA {
                             "array" );
                     }
                     for (size_t i = 0; i < rows(); i++) {
-                        for (size_t j = 0; j < columns(); j++) {
+                        // for (size_t j = 0; j < columns(); j++) {
                             std::memcpy( vals[ i ],
                                          _contents.data() + _rc2ind( i, 0 ),
                                          _cols * sizeof( ELEMENTTYPE ) );
-                        }
+                        // }
                     }
                     return *this;
                 }
@@ -361,33 +363,9 @@ namespace NCPA {
                                  ? this->diagonal_size( 0 ) - 1
                                  : this->diagonal_size( 0 ) - 1
                                        + this->columns() - this->rows() );
-                    // int off = this->max_off_diagonal();
-                    // while (off > 0) {
-                    //     if (this->get_diagonal( off
-                    //     )->count_nonzero_indices()
-                    //         > 0) {
-                    //         return (size_t)off;
-                    //     }
-                    //     off--;
-                    // }
-                    // return 0;
                 }
 
-                // virtual dense_matrix<ELEMENTTYPE>& operator-() const
-                // override {
-                //     dense_matrix<ELEMENTTYPE> neg( this->rows(),
-                //     this->columns() ); ELEMENTTYPE one =
-                //     NCPA::math::one<ELEMENTTYPE>(); for (size_t r = 0; r <
-                //     this->rows(); ++r) {
-                //         for (size_t c = 0; c < this->columns(); ++c) {
-                //             neg.set( r, c, this->get( r, c ) * -one );
-                //         }
-                //     }
-                //     return neg;
-                // }
-
             protected:
-                // ELEMENTTYPE *_contents = nullptr;
                 std::vector<ELEMENTTYPE> _contents;
                 size_t _rows = 0, _cols = 0;
                 bool _finalized = false;
@@ -400,15 +378,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::dense_matrix<T>& a,
-                  NCPA::linear::dense_matrix<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_matrix<T>&>( a ),
-            static_cast<NCPA::linear::abstract_matrix<T>&>( b ) );
-    swap( a._contents, b._contents );
-    swap( a._rows, b._rows );
-    swap( a._cols, b._cols );
-    swap( a._finalized, b._finalized );
-}

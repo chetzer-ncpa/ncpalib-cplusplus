@@ -15,181 +15,265 @@ namespace NCPA {
         class ScalarParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public ScalarParameter<PARAMTYPE> {
+            :  // public ScalarParameter<PARAMTYPE>,
+               public Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                                ScalarParameter<PARAMTYPE>> {
             public:
-                ScalarParameterWithUnits() : ScalarParameter<PARAMTYPE>() {}
+                // using ScalarParameter<PARAMTYPE>::init;
+
+                // virtual void init( const ScalarWithUnits<PARAMTYPE>& u ) {
+                //     _uvalue = u;
+                // }
+
+                // virtual void init( const ScalarWithUnits<PARAMTYPE> *u ) {
+                //     init( *u );
+                // }
+
+                // virtual void init( const std::vector<PARAMTYPE>& defaultval
+                // ) {
+                //     init(( defaultval.empty() ? 0 : defaultval.at( 0 ) ))
+                // }
+
+                // virtual void init( const std::vector<PARAMTYPE>& defaultval,
+                //                    units_ptr_t u ) {
+                //     init( ScalarWithUnits<PARAMTYPE>(
+                //         ( defaultval.empty() ? 0 : defaultval.at( 0 ) ), u )
+                //         );
+                // }
+
+                // virtual void init(
+                //     const VectorWithUnits<PARAMTYPE>& defaultval ) {
+                //     init( defaultval.empty()
+                //               ? ScalarWithUnits<PARAMTYPE>(
+                //                     0.0, defaultval.get_units() )
+                //               : defaultval.get_scalar( 0 ) );
+                // }
+
+                ScalarParameterWithUnits() {}
 
                 ScalarParameterWithUnits( PARAMTYPE defaultval ) :
-                    ScalarParameter<PARAMTYPE>(), _uvalue { defaultval } {}
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval } {}
 
                 ScalarParameterWithUnits( PARAMTYPE defaultval,
                                           units_ptr_t u ) :
-                    ScalarParameter<PARAMTYPE>(),
                     _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     const ScalarWithUnits<PARAMTYPE>& defaultval ) :
-                    ScalarParameter<PARAMTYPE>(), _uvalue { defaultval } {}
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval ) :
-                    ScalarParameter<PARAMTYPE>(),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u ) :
-                    ScalarParameter<PARAMTYPE>(),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const VectorWithUnits<PARAMTYPE>& defaultval ) :
-                    ScalarParameter<PARAMTYPE>(),
-                    _uvalue { ( defaultval.empty()
-                                    ? ScalarWithUnits<PARAMTYPE>(
-                                          0.0, defaultval.get_units() )
-                                    : defaultval.get_scalar( 0 ) ) } {}
-
-                ScalarParameterWithUnits( const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ) {}
-
-                ScalarParameterWithUnits( const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ) {}
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval } {}
 
                 ScalarParameterWithUnits(
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ) {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { v } {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval,
-                                          const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
+                ScalarParameterWithUnits(
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { v } {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval,
-                                          const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { defaultval } {}
+                ScalarParameterWithUnits(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { ptr } {}
+
+                ScalarParameterWithUnits(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { tests } {}
 
                 ScalarParameterWithUnits(
                     PARAMTYPE defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { defaultval } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval, v } {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval, v } {}
 
-                ScalarParameterWithUnits( PARAMTYPE defaultval, units_ptr_t u,
-                                          const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval, v } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> { defaultval, v } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> {
+                        ScalarWithUnits<PARAMTYPE>( defaultval, u ), v
+                    } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>> {
+                        ScalarWithUnits<PARAMTYPE>( defaultval, u ), v
+                    } {}
+
+                ScalarParameterWithUnits(
+                    PARAMTYPE defaultval, units_ptr_t u,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
                     _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     PARAMTYPE defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( tests ),
                     _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
                     _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
                     _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     ScalarWithUnits<PARAMTYPE> defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    ScalarWithUnits<PARAMTYPE> defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( tests ),
                     _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { ( defaultval.empty() ? 0
-                                                   : defaultval.at( 0 ) ) } {}
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( tests ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
                     const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue { ScalarWithUnits<PARAMTYPE>(
-                        ( defaultval.empty() ? 0 : defaultval.at( 0 ) ),
-                        u ) } {}
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    const ValidationTest& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const std::vector<PARAMTYPE>& defaultval, units_ptr_t u,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( tests ),
+                    _uvalue { ScalarWithUnits<PARAMTYPE>( defaultval, u ) } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    const test_ptr_t& newtest ) :
-                    ScalarParameter<PARAMTYPE>( newtest ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
-                    const VectorWithUnits<PARAMTYPE>& defaultval,
-                    std::initializer_list<test_ptr_t> new_tests ) :
-                    ScalarParameter<PARAMTYPE>( new_tests ),
-                    _uvalue {
-                        ( defaultval.empty() ? 0 : defaultval.get_scalar( 0 ) )
-                    } {}
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& v ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( v ),
+                    _uvalue { defaultval } {}
+
+                ScalarParameterWithUnits(
+                    const VectorWithUnits<PARAMTYPE> defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( tests ),
+                    _uvalue { defaultval } {}
 
                 ScalarParameterWithUnits(
                     const ScalarParameterWithUnits<PARAMTYPE>& other ) :
-                    ScalarParameter<PARAMTYPE>( other ) {
+                    Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                              ScalarParameter<PARAMTYPE>>( other ) {
                     _uvalue = other._uvalue;
                 }
 
                 ScalarParameterWithUnits(
-                    ScalarParameterWithUnits<PARAMTYPE>&& other ) noexcept :
-                    ScalarParameter<PARAMTYPE>() {
+                    ScalarParameterWithUnits<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -205,11 +289,12 @@ namespace NCPA {
                     ScalarParameterWithUnits<PARAMTYPE>& a,
                     ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap(
-                        static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>(
-                            a ),
-                        static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>(
-                            b ) );
+                    swap( static_cast<
+                              Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                                        ScalarParameter<PARAMTYPE>>&>( a ),
+                          static_cast<
+                              Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
+                                        ScalarParameter<PARAMTYPE>>&>( b ) );
                     swap( a._uvalue, b._uvalue );
                 }
 
@@ -222,8 +307,8 @@ namespace NCPA {
                     }
                 }
 
-                NCPA_CLONE_METHOD( ScalarParameterWithUnits<PARAMTYPE>,
-                                   BaseParameter )
+                // NCPA_CLONE_METHOD( ScalarParameterWithUnits<PARAMTYPE>,
+                //                    BaseParameter )
 
                 virtual bool has_units() const {
                     return ( _uvalue.get_units() != nullptr );

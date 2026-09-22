@@ -13,10 +13,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-static void swap(
-    NCPA::atmos::stratified_atmospheric_property_3d& a,
-    NCPA::atmos::stratified_atmospheric_property_3d& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class stratified_atmospheric_property_3d
@@ -70,20 +66,31 @@ namespace NCPA {
                 stratified_atmospheric_property_3d(
                     stratified_atmospheric_property_3d&& source ) noexcept :
                     stratified_atmospheric_property_3d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~stratified_atmospheric_property_3d() {}
 
                 stratified_atmospheric_property_3d& operator=(
                     stratified_atmospheric_property_3d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap(
+                friend void swap(
                     stratified_atmospheric_property_3d& a,
-                    stratified_atmospheric_property_3d& b ) noexcept;
+                    stratified_atmospheric_property_3d& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<abstract_atmospheric_property_3d&>( a ),
+                        static_cast<abstract_atmospheric_property_3d&>( a ) );
+                    swap( a._z, b._z );
+                    swap( a._vals, b._vals );
+                    swap( a._spline, b._spline );
+                    swap( a._z_limits, b._z_limits );
+                    swap( a._dummy, b._dummy );
+                    swap( a._as_3d, b._as_3d );
+                }
 
                 virtual std::unique_ptr<abstract_atmospheric_property> clone()
                     const override {
@@ -439,18 +446,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap(
-    NCPA::atmos::stratified_atmospheric_property_3d& a,
-    NCPA::atmos::stratified_atmospheric_property_3d& b ) noexcept {
-    using std::swap;
-    ::swap(
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_3d&>( a ),
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_3d&>( a ) );
-    swap( a._z, b._z );
-    swap( a._vals, b._vals );
-    swap( a._spline, b._spline );
-    swap( a._z_limits, b._z_limits );
-    swap( a._dummy, b._dummy );
-    swap( a._as_3d, b._as_3d );
-}

@@ -9,9 +9,6 @@
 #include <memory>
 #include <string>
 
-static void swap( NCPA::atmos::tuple_atmosphere_1d&,
-                  NCPA::atmos::tuple_atmosphere_1d& ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class tuple_atmosphere_1d : public abstract_atmosphere_1d {
@@ -28,18 +25,26 @@ namespace NCPA {
 
                 tuple_atmosphere_1d( tuple_atmosphere_1d&& source ) noexcept :
                     tuple_atmosphere_1d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~tuple_atmosphere_1d() {}
 
                 tuple_atmosphere_1d& operator=( tuple_atmosphere_1d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap( tuple_atmosphere_1d& a,
-                                    tuple_atmosphere_1d& b ) noexcept;
+                friend void swap( tuple_atmosphere_1d& a,
+                                  tuple_atmosphere_1d& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_atmosphere_1d&>( a ),
+                          static_cast<abstract_atmosphere_1d&>( b ) );
+                    swap( a._properties, b._properties );
+                    swap( a._scalar_properties, b._scalar_properties );
+                    swap( a._z, b._z );
+                    swap( a._interpolator_type, b._interpolator_type );
+                }
 
                 virtual std::unique_ptr<abstract_atmosphere_1d> clone()
                     const override {
@@ -57,13 +62,15 @@ namespace NCPA {
                          it != _properties.end(); ++it) {
                         it->second.set_interpolator( _interpolator_type );
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual tuple_atmosphere_1d& set_axis(
                     vector_u_t z ) override {
                     _z = z;
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual tuple_atmosphere_1d& add_property(
@@ -85,14 +92,16 @@ namespace NCPA {
                     const scalar_u_t& property ) override {
                     _assert_does_not_contain( key );
                     _scalar_properties[ key ] = property;
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual tuple_atmosphere_1d& remove_property(
                     const std::string& key ) override {
                     _properties.erase( key );
                     _scalar_properties.erase( key );
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual tuple_atmosphere_1d& copy_property(
@@ -109,7 +118,8 @@ namespace NCPA {
                             "Key " + old_key
                             + " does not exist in atmosphere!" );
                     }
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual AtmosphericProperty1D& get_property(
@@ -207,7 +217,8 @@ namespace NCPA {
                         it->second.resample( new_z );
                     }
                     _z = new_z;
-                    return *this;;
+                    return *this;
+                    ;
                 }
 
                 virtual tuple_atmosphere_1d& resample(
@@ -370,14 +381,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::tuple_atmosphere_1d& a,
-                  NCPA::atmos::tuple_atmosphere_1d& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::atmos::abstract_atmosphere_1d&>( a ),
-            static_cast<NCPA::atmos::abstract_atmosphere_1d&>( b ) );
-    swap( a._properties, b._properties );
-    swap( a._scalar_properties, b._scalar_properties );
-    swap( a._z, b._z );
-    swap( a._interpolator_type, b._interpolator_type );
-}

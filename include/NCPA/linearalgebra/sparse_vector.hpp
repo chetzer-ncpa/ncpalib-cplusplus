@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/abstract_vector.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -16,14 +17,16 @@
 #include <sstream>
 #include <vector>
 
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::sparse_vector,
-                                             ELEMENTTYPE );
+// NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS( NCPA::linear::sparse_vector,
+//                                              ELEMENTTYPE );
 
 namespace NCPA {
     namespace linear {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class sparse_vector<ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_vector<ELEMENTTYPE> {
+            : // public abstract_vector<ELEMENTTYPE>,
+              public Cloneable<sparse_vector<ELEMENTTYPE>,
+                               abstract_vector<ELEMENTTYPE>> {
             public:
                 sparse_vector() {}
 
@@ -56,14 +59,19 @@ namespace NCPA {
                  */
                 sparse_vector( sparse_vector<ELEMENTTYPE>&& source ) noexcept :
                     sparse_vector<ELEMENTTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~sparse_vector() {}
 
-                friend void ::swap<ELEMENTTYPE>(
-                    sparse_vector<ELEMENTTYPE>& a,
-                    sparse_vector<ELEMENTTYPE>& b ) noexcept;
+                friend void swap( sparse_vector<ELEMENTTYPE>& a,
+                                  sparse_vector<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<abstract_vector<ELEMENTTYPE>&>( a ),
+                          static_cast<abstract_vector<ELEMENTTYPE>&>( b ) );
+                    swap( a._elements, b._elements );
+                    swap( a._capacity, b._capacity );
+                }
 
                 /**
                  * Assignment operator.
@@ -71,7 +79,7 @@ namespace NCPA {
                  */
                 sparse_vector<ELEMENTTYPE>& operator=(
                     sparse_vector<ELEMENTTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -141,12 +149,23 @@ namespace NCPA {
                     return v;
                 }
 
-                virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>> clone()
-                    override {
-                    // return std::make_unique<Implementation>(*this);
-                    return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
-                        new sparse_vector( *this ) );
-                }
+                // NCPA_CLONE_METHOD( sparse_vector<ELEMENTTYPE>,
+                //                    abstract_vector<ELEMENTTYPE> )
+
+                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                // clone()
+                //     override {
+                //     // return std::make_unique<Implementation>(*this);
+                //     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                //         new sparse_vector<ELEMENTTYPE>( *this ) );
+                // }
+
+                // virtual std::unique_ptr<abstract_vector<ELEMENTTYPE>>
+                // fresh_clone()
+                //     override {
+                //     return std::unique_ptr<abstract_vector<ELEMENTTYPE>>(
+                //         new sparse_vector<ELEMENTTYPE>() );
+                // }
 
                 virtual sparse_vector<ELEMENTTYPE>& clear() override {
                     _elements.clear();
@@ -325,8 +344,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual sparse_vector<ELEMENTTYPE>& zero(
-                    size_t n ) override {
+                virtual sparse_vector<ELEMENTTYPE>& zero( size_t n ) override {
                     _erase( n );
                     // return *dynamic_cast<abstract_vector<ELEMENTTYPE> *>(
                     //     this );
@@ -348,9 +366,10 @@ namespace NCPA {
                     return zero( std::vector<size_t>( n ) );
                 }
 
-                virtual sparse_vector<ELEMENTTYPE>& clean( ELEMENTTYPE tol ) override {
+                virtual sparse_vector<ELEMENTTYPE>& clean(
+                    ELEMENTTYPE tol ) override {
                     auto atol = std::abs( tol );
-                    for (auto it = _elements.begin(); it != _elements.end(); ) {
+                    for (auto it = _elements.begin(); it != _elements.end();) {
                         if (std::abs( it->second ) < atol) {
                             it = _elements.erase( it );
                         } else {
@@ -419,13 +438,15 @@ namespace NCPA {
                     subvector( size_t start, size_t elements ) const override {
                     size_t last_element = start + elements;
                     if (last_element > this->size()) {
-                        throw std::range_error( "Requested segment extends past end of vector" );
+                        throw std::range_error(
+                            "Requested segment extends past end of vector" );
                     }
                     std::unique_ptr<abstract_vector<ELEMENTTYPE>> newPtr(
                         new sparse_vector<ELEMENTTYPE>( elements ) );
-                    
+
                     for (auto it = _elements.begin();
-                         it != _elements.end() && it->first < last_element; ++it) {
+                         it != _elements.end() && it->first < last_element;
+                         ++it) {
                         if (it->first >= start) {
                             newPtr->set( it->first, it->second );
                         }
@@ -433,14 +454,17 @@ namespace NCPA {
                     return newPtr;
                 }
 
-                virtual sparse_vector<ELEMENTTYPE>& splice( const abstract_vector<ELEMENTTYPE>& v, size_t start, size_t elements ) override {
+                virtual sparse_vector<ELEMENTTYPE>& splice(
+                    const abstract_vector<ELEMENTTYPE>& v, size_t start,
+                    size_t elements ) override {
                     size_t last = start + elements;
                     if (last > this->size()) {
                         this->resize( last );
                     }
                     for (size_t i = 0; i < elements; ++i) {
-                        if (!v.is_zero( i ))
-                        {this->set( start + i, v.get( i ) );}
+                        if (!v.is_zero( i )) {
+                            this->set( start + i, v.get( i ) );
+                        }
                     }
                     return *this;
                 }
@@ -495,13 +519,3 @@ namespace NCPA {
         };
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::sparse_vector<T>& a,
-                  NCPA::linear::sparse_vector<T>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::linear::abstract_vector<T>&>( a ),
-            static_cast<NCPA::linear::abstract_vector<T>&>( b ) );
-    swap( a._elements, b._elements );
-    swap( a._capacity, b._capacity );
-}

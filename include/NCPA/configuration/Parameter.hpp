@@ -6,6 +6,7 @@
 #include "NCPA/configuration/ScalarParameterWithUnits.hpp"
 #include "NCPA/configuration/TypedParameter.hpp"
 #include "NCPA/configuration/VectorParameter.hpp"
+#include "NCPA/configuration/Validation.hpp"
 #include "NCPA/units.hpp"
 
 #include <memory>
@@ -80,7 +81,7 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
-                static param_ptr_t scalar( const ValidationTest& newtest ) {
+                static param_ptr_t scalar( const TypedValidation<PARAMTYPE>& newtest ) {
                     return param_ptr_t(
                         new ScalarParameter<PARAMTYPE>( newtest ) );
                 }

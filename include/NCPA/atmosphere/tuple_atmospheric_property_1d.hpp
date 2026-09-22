@@ -9,9 +9,6 @@
 #include <memory>
 #include <stdexcept>
 
-static void swap( NCPA::atmos::tuple_atmospheric_property_1d& a,
-                  NCPA::atmos::tuple_atmospheric_property_1d& b ) noexcept;
-
 namespace NCPA {
     namespace atmos {
         class tuple_atmospheric_property_1d
@@ -48,20 +45,27 @@ namespace NCPA {
                 tuple_atmospheric_property_1d(
                     tuple_atmospheric_property_1d&& source ) noexcept :
                     tuple_atmospheric_property_1d() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 virtual ~tuple_atmospheric_property_1d() {}
 
                 tuple_atmospheric_property_1d& operator=(
                     tuple_atmospheric_property_1d other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
-                friend void ::swap(
-                    tuple_atmospheric_property_1d& a,
-                    tuple_atmospheric_property_1d& b ) noexcept;
+                friend void swap( tuple_atmospheric_property_1d& a,
+                                  tuple_atmospheric_property_1d& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<abstract_atmospheric_property_1d&>( a ),
+                        static_cast<abstract_atmospheric_property_1d&>( b ) );
+                    swap( a._z, b._z );
+                    swap( a._x, b._x );
+                    swap( a._spline, b._spline );
+                }
 
                 virtual std::unique_ptr<abstract_atmospheric_property> clone()
                     const override {
@@ -214,14 +218,3 @@ namespace NCPA {
         };
     }  // namespace atmos
 }  // namespace NCPA
-
-static void swap( NCPA::atmos::tuple_atmospheric_property_1d& a,
-                  NCPA::atmos::tuple_atmospheric_property_1d& b ) noexcept {
-    using std::swap;
-    ::swap(
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_1d&>( a ),
-        dynamic_cast<NCPA::atmos::abstract_atmospheric_property_1d&>( b ) );
-    swap( a._z, b._z );
-    swap( a._x, b._x );
-    swap( a._spline, b._spline );
-}

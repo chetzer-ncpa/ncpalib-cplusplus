@@ -18,26 +18,6 @@
 
 namespace NCPA {
     namespace atmos {
-        class abstract_atmosphere_2d;
-    }  // namespace atmos
-}  // namespace NCPA
-
-/**
- * @brief 
- */
-#define RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_2D \
-    return static_cast<abstract_atmosphere_2d&>( *this );
-
-/**
- * @brief 
- * @param a 
- * @param b 
- */
-static void swap( NCPA::atmos::abstract_atmosphere_2d&,
-                  NCPA::atmos::abstract_atmosphere_2d& ) noexcept;
-
-namespace NCPA {
-    namespace atmos {
 
         /**
          * @brief 
@@ -54,8 +34,8 @@ namespace NCPA {
                  * @param a 
                  * @param b 
                  */
-                friend void ::swap( abstract_atmosphere_2d& a,
-                                    abstract_atmosphere_2d& b ) noexcept;
+                friend void swap( abstract_atmosphere_2d& a,
+                                    abstract_atmosphere_2d& b ) noexcept {}
 
                 /**
                  * @brief 
@@ -445,11 +425,3 @@ namespace NCPA {
         typedef std::unique_ptr<abstract_atmosphere_2d> _atm_2d_ptr_t;
     }  // namespace atmos
 }  // namespace NCPA
-
-/**
- * @brief 
- * @param a 
- * @param b 
- */
-static void swap( NCPA::atmos::abstract_atmosphere_2d& a,
-                  NCPA::atmos::abstract_atmosphere_2d& b ) noexcept {}

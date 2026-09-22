@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
@@ -17,42 +18,31 @@
 #include <sstream>
 #include <vector>
 
-
-NCPA_LINEARALGEBRA_DECLARE_FRIEND_FUNCTIONS(
-    NCPA::linear::abstract_linear_system_solver, ELEMENTTYPE );
-
 namespace NCPA {
     namespace linear {
 
 
         template<typename ELEMENTTYPE>
-        class abstract_linear_system_solver {
+        class abstract_linear_system_solver
+            : public CloneBase<abstract_linear_system_solver<ELEMENTTYPE>> {
             public:
                 virtual ~abstract_linear_system_solver() {}
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     abstract_linear_system_solver<ELEMENTTYPE>& a,
-                    abstract_linear_system_solver<ELEMENTTYPE>& b ) noexcept;
-
+                    abstract_linear_system_solver<ELEMENTTYPE>& b ) noexcept {}
 
                 virtual abstract_linear_system_solver<ELEMENTTYPE>&
                     set_system_matrix(
-                        const NCPA::linear::Matrix<ELEMENTTYPE>& M, bool check )
-                    = 0;
+                        const NCPA::linear::Matrix<ELEMENTTYPE>& M,
+                        bool check ) = 0;
                 virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                     = 0;
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
-                    const NCPA::linear::Matrix<ELEMENTTYPE>& RHS )
-                    = 0;
+                    const NCPA::linear::Matrix<ELEMENTTYPE>& RHS ) = 0;
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
-                    const NCPA::linear::Vector<ELEMENTTYPE>& RHS )
-                    = 0;
+                    const NCPA::linear::Vector<ELEMENTTYPE>& RHS ) = 0;
         };
 
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap(
-    NCPA::linear::abstract_linear_system_solver<T>& a,
-    NCPA::linear::abstract_linear_system_solver<T>& b ) noexcept {}

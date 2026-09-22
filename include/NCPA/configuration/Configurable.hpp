@@ -2,9 +2,9 @@
 
 /**
  * Configuration library
- * 
+ *
  * Examples:
- * 
+ *
  */
 
 #include "NCPA/configuration/BaseParameter.hpp"
@@ -54,7 +54,8 @@ namespace NCPA {
                 virtual double get_as(
                     KEYTYPE key, const NCPA::units::units_ptr_t u ) const {
                     return this->parameter( key ).get_units()->convert_to(
-                        this->parameter( key ).as_double(), *u );                }
+                        this->parameter( key ).as_double(), *u );
+                }
 
                 BaseParameter& convert_parameter(
                     KEYTYPE key, const NCPA::units::units_ptr_t uto ) {
@@ -394,6 +395,19 @@ namespace NCPA {
                     return ( _parameters.find( key ) != _parameters.cend() );
                 }
 
+                Configurable<KEYTYPE>& copy_parameter_from(
+                    const Configurable<KEYTYPE>& other, const KEYTYPE& key ) {
+                    this->copy_parameter( key,
+                                          other.parameter( key ).clone() );
+                    return *this;
+                }
+
+                const Configurable<KEYTYPE>& copy_parameter_to(
+                    Configurable<KEYTYPE>& other, const KEYTYPE& key ) const {
+                    other.copy_parameter_from( *this, key );
+                    return *this;
+                }
+
                 Configurable<KEYTYPE>& copy_parameters_from(
                     const Configurable<KEYTYPE>& other,
                     bool create_if_missing = true ) {
@@ -447,7 +461,13 @@ namespace NCPA {
                     for (std::string key : keys) {
                         longest = std::max( key.size(), longest );
                     }
+                    bool first = true;
                     for (std::string key : keys) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            os << "\n";
+                        }
                         os.width( longest );
                         os << key << " : ";
                         os.width( 0 );
@@ -456,13 +476,12 @@ namespace NCPA {
                         } catch (std::out_of_range& oor) {
                             os << "<no string>";
                         }
-                        os << std::endl;
                     }
+                    os << std::endl;
                 }
 
             private:
                 ConfigurationMap<KEYTYPE> _parameters;
-
         };
     }  // namespace config
 }  // namespace NCPA

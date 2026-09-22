@@ -14,15 +14,6 @@
 #  define LU_DECOMPOSITION_TOLERANCE 1.0e-20
 #endif
 
-template<typename ELEMENTTYPE>
-static void swap( NCPA::linear::LUDecomposition<ELEMENTTYPE>& a,
-                  NCPA::linear::LUDecomposition<ELEMENTTYPE>& b ) noexcept;
-
-template<typename ELEMENTTYPE>
-static void swap(
-    NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE>& a,
-    NCPA::linear::BandDiagonalLUDecomposition<ELEMENTTYPE>& b ) noexcept;
-
 namespace NCPA {
     namespace linear {
         template<typename ELEMENTTYPE>
@@ -40,6 +31,11 @@ namespace NCPA {
                     _permutation = other._permutation;
                 }
 
+                LUDecomposition(
+                    LUDecomposition<ELEMENTTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
                 LUDecomposition<ELEMENTTYPE>& operator=(
                     LUDecomposition<ELEMENTTYPE> other ) {
                     swap( *this, other );
@@ -53,9 +49,15 @@ namespace NCPA {
                     return *this;
                 }
 
-                friend void ::swap<ELEMENTTYPE>(
+                friend void swap(
                     LUDecomposition<ELEMENTTYPE>& a,
-                    LUDecomposition<ELEMENTTYPE>& b ) noexcept;
+                    LUDecomposition<ELEMENTTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._lower, b._lower );
+                    swap( a._upper, b._upper );
+                    swap( a._permutation, b._permutation );
+                    swap( a._tolerance, b._tolerance );
+                }
 
                 explicit operator bool() const {
                     return ( _upper && _lower && _permutation
@@ -93,11 +95,14 @@ namespace NCPA {
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
                     _permutation
                         = MatrixFactory<ELEMENTTYPE>::build( matrix_t::DENSE );
-                    // NCPA_DEBUG << "Setting LU lower matrix to size " << N << " x " << N << std::endl;
+                    // NCPA_DEBUG << "Setting LU lower matrix to size " << N <<
+                    // " x " << N << std::endl;
                     _lower.clear().resize( N, N );
-                    // NCPA_DEBUG << "Setting LU upper matrix to size " << N << " x " << N << " and copying input matrix" << std::endl;
+                    // NCPA_DEBUG << "Setting LU upper matrix to size " << N <<
+                    // " x " << N << " and copying input matrix" << std::endl;
                     _upper.clear().resize( N, N ).copy( base );
-                    // NCPA_DEBUG << "Setting permutation matrix to size " << N << " x " << N << " identity matrix" << std::endl;
+                    // NCPA_DEBUG << "Setting permutation matrix to size " << N
+                    // << " x " << N << " identity matrix" << std::endl;
                     _permutation.identity( N, N );
 
                     size_t i, j, k;
@@ -123,7 +128,8 @@ namespace NCPA {
                                     "LUDecomposition.compute(): Matrix is "
                                     "degenerate" );
                             }
-                            NCPA_DEBUG << "Pivoting rows " << k << " and " << pivotRow << std::endl;
+                            NCPA_DEBUG << "Pivoting rows " << k << " and "
+                                       << pivotRow << std::endl;
                             _upper.swap_rows( k, pivotRow );
                             _lower.swap_rows( k, pivotRow );
                             _permutation.swap_rows( k, pivotRow );
@@ -193,10 +199,21 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual BandDiagonalLUDecomposition<ELEMENTTYPE>& clear() override {
+                friend void swap(
+                    BandDiagonalLUDecomposition<ELEMENTTYPE>& a,
+                    BandDiagonalLUDecomposition<ELEMENTTYPE>& b ) {
+                    using std::swap;
+                    swap( static_cast<LUDecomposition<ELEMENTTYPE>&>( a ),
+                          static_cast<LUDecomposition<ELEMENTTYPE>&>( b ) );
+                    swap( a._A, b._A );
+                }
+
+                virtual BandDiagonalLUDecomposition<ELEMENTTYPE>& clear()
+                    override {
                     _A.clear();
                     return *this;
-                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this
+                    // );
                 }
 
                 virtual BandDiagonalLUDecomposition<ELEMENTTYPE>& decompose(
@@ -228,24 +245,33 @@ namespace NCPA {
                     if (auto bdm_ptr = dynamic_cast<
                             const band_diagonal_matrix<ELEMENTTYPE> *>(
                             Mbase.internal() )) {
-                        // NCPA_DEBUG << "Copying internal band-diagonal matrix pointer" << std::endl;
+                        // NCPA_DEBUG << "Copying internal band-diagonal matrix
+                        // pointer" << std::endl;
                         _A.copy( *bdm_ptr );
                     } else {
-                        // NCPA_DEBUG << "Copying band-diagonal matrix by diagonals" << std::endl;
+                        // NCPA_DEBUG << "Copying band-diagonal matrix by
+                        // diagonals" << std::endl;
                         _A.resize( Mbase.rows(), Mbase.columns() );
                         std::vector<int> diags = Mbase.diagonals();
-                        for (auto it = diags.begin(); it != diags.end(); ++it) {
-                            // NCPA_DEBUG << "Setting diagonal " << *it << std::endl;
-                            _A.set_diagonal( Mbase.get_diagonal( *it )->as_std(), (size_t)(*it) );
+                        for (auto it = diags.begin(); it != diags.end();
+                             ++it) {
+                            // NCPA_DEBUG << "Setting diagonal " << *it <<
+                            // std::endl;
+                            _A.set_diagonal(
+                                Mbase.get_diagonal( *it )->as_std(),
+                                (size_t)( *it ) );
                         }
                     }
 
                     size_t nrows = _A.rows();
-                    // NCPA_DEBUG << "Original vector has " << nrows << " rows" << std::endl;
+                    // NCPA_DEBUG << "Original vector has " << nrows << " rows"
+                    // << std::endl;
                     size_t lbw   = _A.lower_bandwidth();
-                    // NCPA_DEBUG << "Original vector has lower bandwidth " << lbw << std::endl;
+                    // NCPA_DEBUG << "Original vector has lower bandwidth " <<
+                    // lbw << std::endl;
                     size_t ubw   = _A.upper_bandwidth();
-                    // NCPA_DEBUG << "Original vector has upper bandwidth " << ubw << std::endl;
+                    // NCPA_DEBUG << "Original vector has upper bandwidth " <<
+                    // ubw << std::endl;
 
                     for (auto k = 1; k <= nrows - 1; k++) {
                         // NCPA_DEBUG << "Decomposing row " << k << std::endl;
@@ -268,42 +294,50 @@ namespace NCPA {
                     }
                     // NCPA_DEBUG << "LU decomposition complete" << std::endl;
                     return *this;
-                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this );
+                    // return static_cast<LUDecomposition<ELEMENTTYPE>&>( *this
+                    // );
                 }
 
-                virtual  Matrix<ELEMENTTYPE>& lower() override {
+                virtual Matrix<ELEMENTTYPE>& lower() override {
                     if (_A.is_empty()) {
-                        throw std::logic_error( "Decomposition has not yet been performed" );
+                        throw std::logic_error(
+                            "Decomposition has not yet been performed" );
                     }
                     if (_lower.is_empty()) {
-                        _lower = MatrixFactory<ELEMENTTYPE>::build(matrix_t::BAND_DIAGONAL);
+                        _lower = MatrixFactory<ELEMENTTYPE>::build(
+                            matrix_t::BAND_DIAGONAL );
                         _lower.identity( _A.rows(), _A.columns() );
                     }
                     std::vector<int> diags = _A.diagonals();
-                    for (auto it = diags.begin(); it != diags.end() && *it < 0; ++it) {
+                    for (auto it = diags.begin(); it != diags.end() && *it < 0;
+                         ++it) {
                         _lower.set_diagonal( *_A.get_diagonal( *it ), *it );
                     }
                     return _lower;
                 }
 
-                virtual  Matrix<ELEMENTTYPE>& upper() override {
+                virtual Matrix<ELEMENTTYPE>& upper() override {
                     if (_A.is_empty()) {
-                        throw std::logic_error( "Decomposition has not yet been performed" );
+                        throw std::logic_error(
+                            "Decomposition has not yet been performed" );
                     }
                     if (_upper.is_empty()) {
-                        _upper = MatrixFactory<ELEMENTTYPE>::build(matrix_t::BAND_DIAGONAL);
+                        _upper = MatrixFactory<ELEMENTTYPE>::build(
+                            matrix_t::BAND_DIAGONAL );
                         _upper.resize( _A.rows(), _A.columns() );
                     }
                     std::vector<int> diags = _A.diagonals();
-                    for (auto it = diags.rbegin(); it != diags.rend() && *it >= 0; ++it) {
+                    for (auto it = diags.rbegin();
+                         it != diags.rend() && *it >= 0; ++it) {
                         _upper.set_diagonal( *_A.get_diagonal( *it ), *it );
                     }
                     return _upper;
                 }
 
-                virtual  Matrix<ELEMENTTYPE>& permutation() override {
+                virtual Matrix<ELEMENTTYPE>& permutation() override {
                     if (_A.is_empty()) {
-                        throw std::logic_error( "Decomposition has not yet been performed" );
+                        throw std::logic_error(
+                            "Decomposition has not yet been performed" );
                     }
                     if (_permutation.is_empty()) {
                         _permutation.identity( _A.rows(), _A.columns() );
@@ -311,34 +345,12 @@ namespace NCPA {
                     return _permutation;
                 }
 
-                
 
             protected:
                 band_diagonal_matrix<ELEMENTTYPE> _A;
                 Matrix<ELEMENTTYPE> _permutation;
                 Matrix<ELEMENTTYPE> _lower, _upper;
-
-
         };
 
     }  // namespace linear
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::linear::LUDecomposition<T>& a,
-                  NCPA::linear::LUDecomposition<T>& b ) noexcept {
-    using std::swap;
-    swap( a._lower, b._lower );
-    swap( a._upper, b._upper );
-    swap( a._permutation, b._permutation );
-    swap( a._tolerance, b._tolerance );
-}
-
-template<typename T>
-static void swap( NCPA::linear::BandDiagonalLUDecomposition<T>& a,
-                  NCPA::linear::BandDiagonalLUDecomposition<T>& b ) noexcept {
-    using std::swap;
-    std::swap( static_cast<NCPA::linear::LUDecomposition<T>&>( a ),
-               static_cast<NCPA::linear::LUDecomposition<T>&>( b ) );
-    swap( a._A, b._A );
-}

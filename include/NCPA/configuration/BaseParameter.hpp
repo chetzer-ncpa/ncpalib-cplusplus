@@ -18,29 +18,11 @@ namespace NCPA {
     namespace config {
         using namespace NCPA::units;
 
-        class BaseParameter : public Cloneable<BaseParameter> {
+        class BaseParameter : public virtual CloneBase<BaseParameter> {
             public:
                 BaseParameter() {}
 
-                // BaseParameter( const ValidationTest& newtest ) :
-                //     BaseParameter() {
-                //     this->append_test( newtest );
-                // }
-
-                // BaseParameter( const test_ptr_t& newtest ) : BaseParameter()
-                // {
-                //     this->append_test( newtest );
-                // }
-
-                // BaseParameter( std::initializer_list<test_ptr_t> new_tests )
-                // :
-                //     BaseParameter() {
-                //     this->append_tests( new_tests );
-                // }
-
-                BaseParameter( const BaseParameter& other ) {
-                    
-                }
+                BaseParameter( const BaseParameter& other ) {}
 
                 BaseParameter( BaseParameter&& other ) noexcept :
                     BaseParameter() {
@@ -53,27 +35,6 @@ namespace NCPA {
                                   BaseParameter& b ) noexcept {
                     using std::swap;
                 }
-
-                // virtual BaseParameter& append_test(
-                //     const ValidationTest& newtest ) {
-                //     _tests.append( newtest );
-                //     return *this;
-                // }
-
-                // virtual BaseParameter& append_test(
-                //     const test_ptr_t& newtest ) {
-                //     _tests.append( newtest );
-                //     return *this;
-                // }
-
-                // virtual BaseParameter& append_tests(
-                //     std::initializer_list<test_ptr_t> new_tests ) {
-                //     for (auto it = new_tests.begin(); it != new_tests.end();
-                //          ++it) {
-                //         this->append_test( *it );
-                //     }
-                //     return *this;
-                // }
 
                 virtual bool as_bool() const { return this->as_bool( 0 ); }
 
@@ -124,11 +85,6 @@ namespace NCPA {
                     return ( res.result == test_result_t::FAILED );
                 }
 
-                // virtual std::vector<const ValidationTest *> failed_tests()
-                //     const {
-                //     return _tests.failed_tests();
-                // }
-
                 virtual units_ptr_t get_units() const {
                     this->_check_has_units();
                     return nullptr;
@@ -144,32 +100,11 @@ namespace NCPA {
                     return ( this->form() == parameter_form_t::VECTOR );
                 }
 
-
                 virtual bool passed() const {
                     validation_status_t res = this->validate();
                     return ( res.result == test_result_t::NONE
                              || res.result == test_result_t::PASSED );
                 }
-
-                // virtual bool pending() const {
-                //     validation_status_t res = this->validate();
-                //     return ( res.result == test_result_t::PENDING );
-                // }
-
-                // virtual BaseParameter& prepend_test(
-                //     const ValidationTest& newtest ) {
-                //     _tests.prepend( newtest );
-                //     return *this;
-                // }
-
-                // virtual BaseParameter& prepend_tests(
-                //     std::initializer_list<ValidationTest> new_tests ) {
-                //     for (auto it = new_tests.begin(); it != new_tests.end();
-                //          ++it) {
-                //         this->prepend_test( *it );
-                //     }
-                //     return *this;
-                // }
 
                 virtual void set_units( units_ptr_t u ) {
                     this->_check_has_units();
@@ -191,6 +126,7 @@ namespace NCPA {
                 virtual validation_status_t validate( bool short_circuit
                                                       = false ) const = 0;
 
+                // virtual param_ptr_t clone() const     = 0;
                 virtual parameter_form_t form() const = 0;
 
                 virtual void from_bool( bool b )                     = 0;

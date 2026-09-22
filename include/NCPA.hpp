@@ -5,6 +5,7 @@
 #include "NCPA/gtest.hpp"
 #include "NCPA/arrays.hpp"
 #include "NCPA/constants.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/linearalgebra.hpp"
 #include "NCPA/math.hpp"

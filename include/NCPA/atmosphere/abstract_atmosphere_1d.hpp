@@ -10,12 +10,6 @@
  #include <string>
  #include <vector>
  
- // #define RETURN_THIS_AS_ABSTRACT_ATMOSPHERE_1D \
- //     return static_cast<abstract_atmosphere_1d&>( *this );
- 
- static void swap( NCPA::atmos::abstract_atmosphere_1d&,
-                   NCPA::atmos::abstract_atmosphere_1d& ) noexcept;
- 
  namespace NCPA {
      namespace atmos {
  
@@ -34,8 +28,8 @@
                  * @param a
                  * @param b
                  */
-                 friend void ::swap( abstract_atmosphere_1d& a,
-                                     abstract_atmosphere_1d& b ) noexcept;
+                 friend void swap( abstract_atmosphere_1d& a,
+                                     abstract_atmosphere_1d& b ) noexcept {}
  
                 /**
                  * @brief
@@ -283,5 +277,3 @@
      }  // namespace atmos
  }  // namespace NCPA
  
- static void swap( NCPA::atmos::abstract_atmosphere_1d& a,
-                   NCPA::atmos::abstract_atmosphere_1d& b ) noexcept {}

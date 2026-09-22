@@ -119,8 +119,7 @@ namespace NCPA {
         template<typename INTYPE, typename KEYTYPE = std::string>
         using mapping_ptr_t = std::unique_ptr<Mapping<INTYPE, KEYTYPE>>;
 
-        typedef BaseParameter parameter_t;
-        typedef std::unique_ptr<parameter_t> param_ptr_t;
+        typedef std::unique_ptr<BaseParameter> param_ptr_t;
         typedef ScalarParameter<double> DoubleParameter;
         typedef ScalarParameter<int> IntegerParameter;
         typedef ScalarParameter<std::string> StringParameter;
