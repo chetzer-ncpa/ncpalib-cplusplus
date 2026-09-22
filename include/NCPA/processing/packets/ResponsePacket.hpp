@@ -5,6 +5,7 @@
 #include "NCPA/processing/packets/Packet.hpp"
 
 #include <memory>
+#include <sstream>
 #include <vector>
 
 // void swap( NCPA::processing::ResponsePacket& a,
@@ -39,7 +40,9 @@ namespace NCPA::processing {
                 swap( a._flags, b._flags );
             }
 
-            response_id_t ID() const { return _ID; }
+            response_id_t& ID() { return _ID; }
+
+            const response_id_t& ID() const { return _ID; }
 
             std::string message() const {
                 std::ostringstream oss;
@@ -63,12 +66,18 @@ namespace NCPA::processing {
 
             const std::vector<std::string>& flags() const { return _flags; }
 
-            // static response_ptr_t build( response_id_t resptype,
-            //                              const std::string& tag,
-            //                              const std::string& message ) {
-            //     return response_ptr_t(
-            //         new ResponsePacket( resptype, tag, message ) );
-            // }
+            static response_ptr_t build( response_id_t ID ) {
+                return response_ptr_t( new ResponsePacket( ID ) );
+            }
+
+            static response_ptr_t build( response_id_t ID, const std::string& tag ) {
+                return response_ptr_t( new ResponsePacket( ID, tag ) );
+            }
+
+            static response_ptr_t build( response_id_t ID, const std::string& tag,
+                            const std::string& message ) {
+                return response_ptr_t( new ResponsePacket( ID, tag, message ) );
+            }
 
         private:
             response_id_t _ID;

@@ -51,6 +51,7 @@ namespace NCPA {
 
         class ResponsePacket;
         class DummyConfigurationPacket;
+        template<typename T>
         class StatePacket;
         template<typename T>
         class ProductPacket;

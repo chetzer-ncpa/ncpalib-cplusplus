@@ -6,16 +6,21 @@
 #  define HAVE_NLOHMANN_JSON_HPP 0
 #endif
 
-#include <chrono>
-#include <memory>
-#include <string>
-#include <stdexcept>
-#include <unordered_map>
-#include <vector>
 #include "NCPA/processing/packets/declarations.hpp"
 #include "NCPA/processing/parameters/declarations.hpp"
 
+#include <chrono>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
 
+#define CHECK_PACKET_POINTER_NOT_NULL( _PTR_ )             \
+    if (_PTR_ == nullptr) {                                \
+        return packet_processing_result_t::PACKET_INVALID; \
+    }
 
 namespace NCPA {
     namespace processing {
@@ -27,7 +32,10 @@ namespace NCPA {
         class TimeInterval {
             public:
                 TimeInterval() {}
-                TimeInterval(time_point_t t, duration_t d) : time{t}, duration{d} {}
+
+                TimeInterval( time_point_t t, duration_t d ) :
+                    time { t }, duration { d } {}
+
                 virtual ~TimeInterval() {}
 
                 time_point_t time;
@@ -70,14 +78,17 @@ namespace NCPA {
             PACKET_INVALID,
             PACKET_NOT_APPLICABLE,
             SUCCESS,
-            SUCCESS_PRODUCT,        // success, product generated, continue if possible
-            SUCCESS_NO_PRODUCT,     // success, no product generated, return
+            SUCCESS_PRODUCT,     // success, product generated, continue if
+                                 // possible
+            SUCCESS_NO_PRODUCT,  // success, no product generated, return
             FAILURE,
-            FAILURE_PRODUCT,        // failure, product generated anyway, continue if possible
-            FAILURE_NO_PRODUCT      // failure, no product generated, return
+            FAILURE_PRODUCT,  // failure, product generated anyway, continue if
+                              // possible
+            FAILURE_NO_PRODUCT  // failure, no product generated, return
         };
 
-        // enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM };
+        // enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM
+        // };
 
         // enum class parameter_form_t { SCALAR, ARRAY };
 
@@ -99,7 +110,8 @@ namespace NCPA {
         // class ParameterTree;
 
         // typedef std::unique_ptr<Parameter> parameter_ptr_t;
-        // typedef std::unordered_map<std::string, std::vector<parameter_ptr_t>>
+        // typedef std::unordered_map<std::string,
+        // std::vector<parameter_ptr_t>>
         //     parameter_tree_t;
 
         class AbstractDataWrapper;
@@ -109,6 +121,8 @@ namespace NCPA {
         class AbstractProcessingStep;
         template<typename intype, typename outtype>
         class ProcessingStep;
+        template<typename this_t, typename state_t>
+        class StatefulProcessingStep;
         template<typename intype, typename outtype>
         class ProcessingChain;
 

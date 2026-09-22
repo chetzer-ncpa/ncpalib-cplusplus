@@ -41,6 +41,10 @@ namespace NCPA {
                     swap( a._description, b._description );
                 }
 
+                virtual void set_key( const std::string& newkey ) {
+                    _key = newkey;
+                }
+
                 virtual const std::string& key() const { return _key; }
 
                 virtual const std::string& description() const {
@@ -70,6 +74,12 @@ namespace NCPA {
                         }
                     }
                     return vst;
+                }
+
+                virtual std::unique_ptr<Parameter> clone_as( const std::string& new_key ) const {
+                    std::unique_ptr<Parameter> newparam = this->clone();
+                    newparam->set_key( new_key );
+                    return std::move( newparam );
                 }
 
                 virtual Parameter& clear()                              = 0;

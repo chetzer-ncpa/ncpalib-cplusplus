@@ -11,6 +11,7 @@ DataPacket
 ...
 */
 
+#include "NCPA/configuration.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/processing/AbstractDataWrapper.hpp"
 #include "NCPA/processing/DataWrapper.hpp"
@@ -29,12 +30,12 @@ DataPacket
 #include <unordered_map>
 #include <vector>
 
-#pragma push_macro( "CHECK_PACKET_POINTER_NOT_NULL" )
-#undef CHECK_PACKET_POINTER_NOT_NULL
-#define CHECK_PACKET_POINTER_NOT_NULL( _PTR_ )             \
-    if (_PTR_ == nullptr) {                                \
-        return packet_processing_result_t::PACKET_INVALID; \
-    }
+// #pragma push_macro( "CHECK_PACKET_POINTER_NOT_NULL" )
+// #undef CHECK_PACKET_POINTER_NOT_NULL
+// #define CHECK_PACKET_POINTER_NOT_NULL( _PTR_ )             \
+//     if (_PTR_ == nullptr) {                                \
+//         return packet_processing_result_t::PACKET_INVALID; \
+//     }
 
 // void swap( NCPA::processing::AbstractProcessingStep& a,
 //            NCPA::processing::AbstractProcessingStep& b ) noexcept;
@@ -250,6 +251,9 @@ namespace NCPA {
                             break;
                         case input_id_t::RESET:
                             resp = this->process_reset_packet( input );
+                            break;
+                        case input_id_t::STATE_REQUEST:
+                            resp = this->process_state_request_packet( input );
                             break;
                         default:
                             resp = this->process_other_packet( input );
@@ -664,7 +668,7 @@ namespace NCPA {
                         std::string& message ) {
                     CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
                     if (packet_ptr->tag() == this->tag()) {
-                        return packet_processing_result_t::SUCCESS_PRODUCT;
+                        return packet_processing_result_t::SUCCESS_NO_PRODUCT;
                     } else {
                         return packet_processing_result_t::
                             PACKET_NOT_APPLICABLE;
@@ -739,7 +743,9 @@ namespace NCPA {
                 }
 
                 virtual response_ptr_t _build_state_packet() const {
-                    return response_ptr_t( new StatePacket( this ) );
+                    return ResponsePacket::build(
+                        response_id_t::ERROR, this->tag(),
+                        "State requested from non-stateful step" );
                 }
 
                 // implemented in ProcessingStep
@@ -769,4 +775,4 @@ namespace NCPA {
 //     swap( a._flags, b._flags );
 // }
 
-#pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )
+// #pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )

@@ -8,3 +8,4 @@
 #include "NCPA/processing/parameters.hpp"
 #include "NCPA/processing/ProcessingChain.hpp"
 #include "NCPA/processing/ProcessingStep.hpp"
+#include "NCPA/processing/StatefulProcessingStep.hpp"

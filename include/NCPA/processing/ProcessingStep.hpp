@@ -53,7 +53,7 @@
 namespace NCPA {
     namespace processing {
         template<typename intype, typename outtype>
-        class ProcessingStep : public AbstractProcessingStep {
+        class ProcessingStep : public virtual AbstractProcessingStep {
             public:
                 using input_t   = intype;
                 using output_t  = outtype;
@@ -75,8 +75,23 @@ namespace NCPA {
                     _short_circuit   = other._short_circuit;
                     _input           = other._input;
                     _product         = other._product;
-                    _parameters      = other._parameters;
+                    // _parameters      = other._parameters;
                     _input_data_time = other._input_data_time;
+
+                    _parameters.clear();
+                    for (auto it = other._parameters.begin();
+                         it != other._parameters.end(); ++it) {
+                        const std::vector<parameter_ptr_t>& vec = it->second;
+                        std::vector<parameter_ptr_t> new_vec;
+                        new_vec.reserve( vec.size() );
+                        for (auto vit = vec.begin(); vit != vec.end(); ++vit) {
+                            if (*vit) {
+                                new_vec.push_back( ( *vit )->clone() );
+                            }
+                        }
+                        _parameters.insert( std::make_pair(
+                            it->first, std::move( new_vec ) ) );
+                    }
                 }
 
                 ProcessingStep(

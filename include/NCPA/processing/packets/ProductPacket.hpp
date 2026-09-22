@@ -8,10 +8,6 @@
 #  define RESPONSEPACKET_DEFAULT_RESPONSE_TYPE response_id_t::SUCCESS_PRODUCT
 #endif
 
-template<typename T>
-void swap( NCPA::processing::ProductPacket<T>& a,
-           NCPA::processing::ProductPacket<T>& b ) noexcept;
-
 namespace NCPA::processing {
 
     template<typename T>
@@ -123,12 +119,3 @@ namespace NCPA::processing {
         }
     }
 }  // namespace NCPA::processing
-
-// template<typename T>
-// void swap( NCPA::processing::ProductPacket<T>& a,
-//              NCPA::processing::ProductPacket<T>& b ) noexcept {
-//     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::ResponsePacket&>( a ),
-//             dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
-//     swap( a._internal, b._internal );
-// }

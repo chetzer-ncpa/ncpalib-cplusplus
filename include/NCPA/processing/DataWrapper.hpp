@@ -25,12 +25,11 @@ namespace NCPA {
                     _internal = std::make_shared<T>( in );
                 }
 
-                // DataWrapper( const DataWrapper<T>& input ) :
-                // DataWrapper<T>() {
-                //     _internal = std::make_unique<T>( input.get() );
-                // }
-
                 DataWrapper( std::shared_ptr<T>& input ) { _internal = input; }
+
+                DataWrapper( const DataWrapper<T>& other ) : AbstractDataWrapper( other ) {
+                    _internal = other._internal;
+                }
 
                 DataWrapper( DataWrapper<T>&& input ) noexcept :
                     DataWrapper<T>() {

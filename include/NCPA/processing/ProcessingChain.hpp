@@ -231,6 +231,13 @@ namespace NCPA::processing {
                 }
             }
 
+            response_id_t send_configuration( const std::string& tag,
+                                              const Parameter *param,
+                                              bool throw_on_error = false ) {
+                return this->send_configuration( tag, param->clone(),
+                                                 throw_on_error );
+            }
+
             virtual ProcessingChain<intype, outtype>& define_parameters() = 0;
 #if HAVE_NLOHMANN_JSON_HPP
             virtual ProcessingChain<intype, outtype>& from_json(
@@ -243,11 +250,45 @@ namespace NCPA::processing {
 #endif
             virtual outtype& product() = 0;
 
+            virtual ProcessingChain<intype, outtype>&
+                define_passthrough_parameter( const std::string& module_key,
+                                              const std::string& param_key_in,
+                                              const std::string& param_key_out ) {
+                _passthrough.emplace_back( module_key, param_key_in, param_key_out );
+                return *this;
+            }
+
+            virtual ProcessingChain<intype, outtype>&
+                define_passthrough_parameter( const std::string& module_key,
+                                              const std::string& param_key ) {
+                _passthrough.emplace_back( module_key, param_key, param_key );
+                return *this;
+            }
+
+            virtual ProcessingChain<intype, outtype>& pass_parameters_through(
+                bool throw_on_error = false ) {
+                for (passthrough_parameter_t& param : _passthrough) {
+                    _pass_parameter_through( param, throw_on_error );
+                }
+                return *this;
+            }
+
+        protected:
+            virtual void _pass_parameter_through(
+                const passthrough_parameter_t& param,
+                bool throw_on_error = false ) {
+                this->send_configuration(
+                    param.tag,
+                    this->parameter( param.in_key )->clone_as( param.out_key ),
+                    throw_on_error );
+            }
+
 
         private:
             AbstractProcessingStep *_firstlink = nullptr;
             DataWrapper<intype> _input;
             std::vector<parameter_ptr_t> _parameters;
+            std::vector<passthrough_parameter_t> _passthrough;
     };
 }  // namespace NCPA::processing
 
