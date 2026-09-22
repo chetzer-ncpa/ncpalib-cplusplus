@@ -12,17 +12,16 @@ namespace NCPA {
         public Cloneable<TypedValidation<T>, Validation> {
             public:
 
-                TypedValidation() : Validation() {}
+                TypedValidation() {}
 
                 virtual ~TypedValidation() {}
 
                 TypedValidation( const TypedValidation<T>& other ) :
-                    Validation( other ) {
+                    Cloneable<TypedValidation<T>, Validation> ( other ) {
                     validate = other.validate;
                 }
 
-                TypedValidation( TypedValidation<T>&& other ) noexcept :
-                    TypedValidation<T>() {
+                TypedValidation( TypedValidation<T>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -36,12 +35,10 @@ namespace NCPA {
                 friend void swap( TypedValidation<T>& a,
                                   TypedValidation<T>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<Validation&>( a ),
-                          static_cast<Validation&>( b ) );
+                    swap( static_cast<Cloneable<TypedValidation<T>, Validation> &>( a ),
+                          static_cast<Cloneable<TypedValidation<T>, Validation> &>( b ) );
                     swap( a.validate, b.validate );
                 }
-
-                // NCPA_CLONE_METHOD( TypedValidation<T>, Validation )
 
                 validation_function_t<T> validate;
         };

@@ -39,7 +39,7 @@ namespace NCPA {
                 // copy constructor
                 Solver( const Solver<ELEMENTTYPE>& other ) :
                     Solver<ELEMENTTYPE>() {
-                    _ptr = std::move( other._ptr->clone() );
+                    _ptr = other._ptr->clone();
                 }
 
                 /**

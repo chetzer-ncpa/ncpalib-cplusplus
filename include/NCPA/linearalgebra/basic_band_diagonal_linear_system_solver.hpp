@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/abstract_linear_system_solver.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
@@ -26,16 +27,19 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class basic_band_diagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_linear_system_solver<ELEMENTTYPE> {
+            : public Cloneable<
+                  basic_band_diagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>> {
             public:
-                basic_band_diagonal_linear_system_solver() :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {}
+                basic_band_diagonal_linear_system_solver() {}
 
                 // copy constructor
                 basic_band_diagonal_linear_system_solver(
                     const basic_band_diagonal_linear_system_solver<
                         ELEMENTTYPE>& other ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                    Cloneable<
+                        basic_band_diagonal_linear_system_solver<ELEMENTTYPE>,
+                        abstract_linear_system_solver<ELEMENTTYPE>>( other ) {
                     _lu = other._lu;
                 }
 
@@ -45,8 +49,7 @@ namespace NCPA {
                  */
                 basic_band_diagonal_linear_system_solver(
                     basic_band_diagonal_linear_system_solver<ELEMENTTYPE>&&
-                        source ) noexcept :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                        source ) noexcept {
                     swap( *this, source );
                 }
 
@@ -60,10 +63,14 @@ namespace NCPA {
                         b ) noexcept {
                     using std::swap;
                     swap(
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                        static_cast<Cloneable<
+                            basic_band_diagonal_linear_system_solver<
+                                ELEMENTTYPE>,
+                            abstract_linear_system_solver<ELEMENTTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            basic_band_diagonal_linear_system_solver<
+                                ELEMENTTYPE>,
+                            abstract_linear_system_solver<ELEMENTTYPE>>&>(
                             b ) );
                     // swap( a._mat, b._mat );
                     swap( a._lu, b._lu );

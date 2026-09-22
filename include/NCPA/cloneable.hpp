@@ -59,13 +59,26 @@ namespace NCPA {
     template<typename DERIVED, typename BASE_OR_INTERFACE>
     class Cloneable : public BASE_OR_INTERFACE {
         public:
-            Cloneable()                                      = default;
-            virtual ~Cloneable()                             = default;
-            Cloneable( const Cloneable<DERIVED, BASE_OR_INTERFACE>& )     = default;
-            Cloneable( Cloneable<DERIVED, BASE_OR_INTERFACE>&& ) noexcept = default;
+            using cloneable_t = Cloneable<DERIVED, BASE_OR_INTERFACE>;
 
-            friend void swap( Cloneable<DERIVED, BASE_OR_INTERFACE>& a,
-                              Cloneable<DERIVED, BASE_OR_INTERFACE>& b ) noexcept {
+            // Cloneable() {}
+            template<typename... Args>
+            explicit Cloneable( Args&&...args ) :
+                BASE_OR_INTERFACE( std::forward<Args>( args )... ) {}
+
+            virtual ~Cloneable() = default;
+
+            Cloneable( const Cloneable<DERIVED, BASE_OR_INTERFACE>& other ) :
+                BASE_OR_INTERFACE( other ) {}
+
+            Cloneable(
+                Cloneable<DERIVED, BASE_OR_INTERFACE>&& other ) noexcept {
+                swap( *this, other );
+            }
+
+            friend void swap(
+                Cloneable<DERIVED, BASE_OR_INTERFACE>& a,
+                Cloneable<DERIVED, BASE_OR_INTERFACE>& b ) noexcept {
                 using std::swap;
                 swap( static_cast<BASE_OR_INTERFACE&>( a ),
                       static_cast<BASE_OR_INTERFACE&>( b ) );
@@ -76,11 +89,6 @@ namespace NCPA {
                 return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
                     new DERIVED( *static_cast<const DERIVED *>( this ) ) );
             }
-
-            // virtual std::unique_ptr<BASE> clone() const override {
-            //     return std::unique_ptr<BASE>(
-            //         new DERIVED( *static_cast<const DERIVED *>( this ) ) );
-            // }
 
             std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>
                 default_clone() const override {

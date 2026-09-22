@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/linearalgebra/declarations.hpp"
 #include "NCPA/linearalgebra/defines.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
@@ -22,7 +23,8 @@ namespace NCPA {
 
 
         template<typename ELEMENTTYPE>
-        class abstract_linear_system_solver {
+        class abstract_linear_system_solver
+            : public CloneBase<abstract_linear_system_solver<ELEMENTTYPE>> {
             public:
                 virtual ~abstract_linear_system_solver() {}
 

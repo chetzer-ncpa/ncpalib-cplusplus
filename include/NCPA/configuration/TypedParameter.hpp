@@ -17,7 +17,23 @@ namespace NCPA {
             public:
                 using value_type = PARAMTYPE;
 
-                TypedParameter() : BaseParameter() {}
+                // init methods, one per constructor
+                // virtual void init( const TypedValidation<PARAMTYPE>& v ) {
+                //     _validations.push_back( v );
+                // }
+
+                // virtual void init( const TypedValidation<PARAMTYPE> *v ) {
+                //     init( *v );
+                // }
+
+                // virtual void init(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) { for (auto& test : tests) {
+                //         _validations.push_back( test );
+                //     }
+                // }
+
+                explicit TypedParameter() : BaseParameter() {}
 
                 TypedParameter( const TypedValidation<PARAMTYPE>& v ) :
                     TypedParameter<PARAMTYPE>() {
@@ -28,31 +44,17 @@ namespace NCPA {
                     TypedParameter<PARAMTYPE>( *v ) {}
 
                 TypedParameter(
-                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    TypedParameter<PARAMTYPE>( *ptr ) {}
-
-                TypedParameter(
-                    std::initializer_list<TypedValidation<PARAMTYPE>> tests 
-                ) : TypedParameter<PARAMTYPE>() {
-                    for (auto& test: tests) {
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    TypedParameter<PARAMTYPE>() {
+                    for (auto& test : tests) {
                         _validations.push_back( test );
                     }
                 }
 
-                // TypedParameter( const ValidationTest& newtest ) :
-                //     BaseParameter( newtest ) {}
-
-                // TypedParameter( const test_ptr_t& newtest ) :
-                //     BaseParameter( newtest ) {}
-
-                // TypedParameter( std::initializer_list<test_ptr_t> new_tests
-                // ) :
-                //     BaseParameter( new_tests ) {}
-
                 virtual ~TypedParameter() {}
 
                 TypedParameter( const TypedParameter<PARAMTYPE>& other ) :
-                    BaseParameter( *this ) {
+                    BaseParameter( other ) {
                     _validations = other._validations;
                 }
 

@@ -23,18 +23,19 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class basic_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_linear_system_solver<ELEMENTTYPE> {
+            : public Cloneable<
+                  basic_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>> {
             public:
-                basic_tridiagonal_linear_system_solver() :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {}
+                basic_tridiagonal_linear_system_solver() {}
 
                 // copy constructor
                 basic_tridiagonal_linear_system_solver(
                     const basic_tridiagonal_linear_system_solver<ELEMENTTYPE>&
-                        other ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
-                    _mat = other._mat;
-                    // _lu  = other._lu;
+                        other ) : Cloneable<
+                  basic_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>( other ) {
+                    _mat = other._mat->clone();
                 }
 
                 /**
@@ -43,8 +44,7 @@ namespace NCPA {
                  */
                 basic_tridiagonal_linear_system_solver(
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>&&
-                        source ) noexcept :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                        source ) noexcept {
                     swap( *this, source );
                 }
 
@@ -55,12 +55,12 @@ namespace NCPA {
                     basic_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                         b ) noexcept {
                     using std::swap;
-                    swap(
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>(
-                            b ) );
+                    swap( static_cast<Cloneable<
+                  basic_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( a ),
+                          static_cast<Cloneable<
+                  basic_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( b ) );
                     swap( a._mat, b._mat );
                 }
 

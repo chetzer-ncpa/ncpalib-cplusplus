@@ -8,123 +8,22 @@
 #include <regex>
 #include <vector>
 
-#define NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE                 \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;                 \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;              \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_double;               \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_int;                  \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_string;               \
-    using hidden::_base_vector_parameter<PARAMTYPE>::as_unsigned_int;         \
-    VectorParameter() : hidden::_base_vector_parameter<PARAMTYPE>() {}        \
-                                                                              \
-    VectorParameter( PARAMTYPE defaultval ) :                                 \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}            \
-                                                                              \
-    VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :             \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval ) {}            \
-                                                                              \
-    VectorParameter( const TypedValidation<PARAMTYPE>& v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( v ) {}                     \
-                                                                              \
-    VectorParameter( const TypedValidation<PARAMTYPE> *v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( v ) {}                     \
-                                                                              \
-    VectorParameter(                                                          \
-        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
-        hidden::_base_vector_parameter<PARAMTYPE>( ptr ) {}                   \
-                                                                              \
-    VectorParameter(                                                          \
-        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
-        hidden::_base_vector_parameter<PARAMTYPE>( tests ) {}                 \
-                                                                              \
-    VectorParameter( PARAMTYPE defaultval,                                    \
-                     const TypedValidation<PARAMTYPE>& v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
-                                                                              \
-    VectorParameter( PARAMTYPE defaultval,                                    \
-                     const TypedValidation<PARAMTYPE> *v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
-                                                                              \
-    VectorParameter(                                                          \
-        PARAMTYPE defaultval,                                                 \
-        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, ptr ) {}       \
-                                                                              \
-    VectorParameter(                                                          \
-        PARAMTYPE defaultval,                                                 \
-        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, tests ) {}     \
-                                                                              \
-    VectorParameter( const std::vector<PARAMTYPE>& defaultval,                \
-                     const TypedValidation<PARAMTYPE>& v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
-                                                                              \
-    VectorParameter( const std::vector<PARAMTYPE>& defaultval,                \
-                     const TypedValidation<PARAMTYPE> *v ) :                  \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, v ) {}         \
-                                                                              \
-    VectorParameter(                                                          \
-        const std::vector<PARAMTYPE>& defaultval,                             \
-        const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :            \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, ptr ) {}       \
-                                                                              \
-    VectorParameter(                                                          \
-        const std::vector<PARAMTYPE>& defaultval,                             \
-        std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :           \
-        hidden::_base_vector_parameter<PARAMTYPE>( defaultval, tests ) {}     \
-                                                                              \
-    VectorParameter( const VectorParameter<PARAMTYPE>& other ) :              \
-        hidden::_base_vector_parameter<PARAMTYPE>( other ) {}                 \
-                                                                              \
-    VectorParameter( VectorParameter<PARAMTYPE>&& other ) noexcept :          \
-        hidden::_base_vector_parameter<PARAMTYPE>() {                         \
-        swap( *this, other );                                                 \
-    }                                                                         \
-    virtual ~VectorParameter() {}                                             \
-    VectorParameter<PARAMTYPE>& operator=(                                    \
-        VectorParameter<PARAMTYPE> other ) {                                  \
-        swap( *this, other );                                                 \
-        return *this;                                                         \
-    }                                                                         \
-    friend void swap( VectorParameter<PARAMTYPE>& a,                          \
-                      VectorParameter<PARAMTYPE>& b ) noexcept {              \
-        using std::swap;                                                      \
-        swap( static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ),   \
-              static_cast<hidden::_base_vector_parameter<PARAMTYPE>&>( a ) ); \
-    }
-
-// namespace NCPA {
-//     namespace config {
-//         namespace hidden {
-//             template<typename T>
-//             class _base_vector_parameter;
-//         }
-//     }  // namespace config
-// }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
-//            NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept;
-
 namespace NCPA {
     namespace config {
 
         namespace hidden {
             template<typename PARAMTYPE>
             class _base_vector_parameter
-                :  // public TypedParameter<PARAMTYPE>,
-                   public Cloneable<_base_vector_parameter<PARAMTYPE>,
-                                    TypedParameter<PARAMTYPE>> {
+                : public TypedParameter<PARAMTYPE> {
                 public:
-                    _base_vector_parameter() : TypedParameter<PARAMTYPE>() {}
+                    _base_vector_parameter() {}
 
                     _base_vector_parameter( PARAMTYPE defaultval ) :
-                        TypedParameter<PARAMTYPE>(),
                         _value { std::vector<PARAMTYPE> { defaultval } } {}
 
                     _base_vector_parameter(
                         const std::vector<PARAMTYPE>& defaultval ) :
-                        TypedParameter<PARAMTYPE>(), _value { defaultval } {}
+                        _value { defaultval } {}
 
                     _base_vector_parameter(
                         const TypedValidation<PARAMTYPE>& v ) :
@@ -205,8 +104,7 @@ namespace NCPA {
                     }
 
                     _base_vector_parameter(
-                        _base_vector_parameter<PARAMTYPE>&& other ) noexcept :
-                        TypedParameter<PARAMTYPE>() {
+                        _base_vector_parameter<PARAMTYPE>&& other ) noexcept {
                         swap( *this, other );
                     }
 
@@ -222,10 +120,11 @@ namespace NCPA {
                         using std::swap;
                         swap(
                             static_cast<
-                                NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
+                                Cloneable<_base_vector_parameter<PARAMTYPE>,
+                                          TypedParameter<PARAMTYPE>>&>( a ),
                             static_cast<
-                                NCPA::config::TypedParameter<PARAMTYPE>&>(
-                                b ) );
+                                Cloneable<_base_vector_parameter<PARAMTYPE>,
+                                          TypedParameter<PARAMTYPE>>&>( b ) );
                         swap( a._value, b._value );
                     }
 
@@ -281,31 +180,6 @@ namespace NCPA {
                         return oss.str();
                     }
 
-                    // template<typename T = PARAMTYPE>
-                    // typename std::enable_if<
-                    //     NCPA::types::has_to_string<T>::value,
-                    //     std::string>::type
-                    //     _as_string() const {
-                    //     std::ostringstream oss;
-                    //     oss << "{ ";
-                    //     if (this->size() > 5) {
-                    //         size_t nmax = this->size() - 1;
-                    //         oss << this->get( 0 ).to_string() << ", "
-                    //             << this->get( 1 ).to_string() << ", ... , "
-                    //             << this->get( nmax - 1 ).to_string() << ", "
-                    //             << this->get( nmax ).to_string() << " }";
-                    //     } else {
-                    //         for (size_t i = 0; i < this->size(); ++i) {
-                    //             if (i > 0) {
-                    //                 oss << ", ";
-                    //             }
-                    //             oss << this->get( i ).to_string();
-                    //         }
-                    //         oss << " }";
-                    //     }
-                    //     return oss.str();
-                    // }
-
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<std::is_same<T, bool>::value,
                                             std::string>::type
@@ -331,35 +205,6 @@ namespace NCPA {
                         return this->get( n ).to_string();
                     }
 
-                    // template<typename T = PARAMTYPE>
-                    // typename std::enable_if<
-                    //     ( !( NCPA::types::has_to_string<T>::value )
-                    //       && NCPA::types::can_use_std_to_string<T>::value ),
-                    //     std::string>::type
-                    //     _as_string() const {
-                    //     std::ostringstream oss;
-                    //     oss << "{ ";
-                    //     if (this->size() > 5) {
-                    //         size_t nmax = this->size() - 1;
-                    //         oss << std::to_string(this->get( 0 )) << ", "
-                    //             << std::to_string(this->get( 1 )) << ", ...
-                    //             , "
-                    //             << std::to_string(this->get( nmax - 1 )) <<
-                    //             ", "
-                    //             << std::to_string(this->get( nmax )) << "
-                    //             }";
-                    //     } else {
-                    //         for (size_t i = 0; i < this->size(); ++i) {
-                    //             if (i > 0) {
-                    //                 oss << ", ";
-                    //             }
-                    //             oss << std::to_string(this->get( i ));
-                    //         }
-                    //         oss << " }";
-                    //     }
-                    //     return oss.str();
-                    // }
-
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
                         ( !( std::is_same<T, bool>::value )
@@ -370,33 +215,6 @@ namespace NCPA {
                         _as_string( size_t n ) const {
                         return std::to_string( this->get( n ) );
                     }
-
-                    // template<typename T = PARAMTYPE>
-                    // typename std::enable_if<
-                    //     ( !( NCPA::types::can_use_std_to_string<T>::value
-                    //          || NCPA::types::has_to_string<T>::value )
-                    //       && NCPA::types::can_use_to_string<T>::value ),
-                    //     std::string>::type
-                    //     _as_string() const {
-                    //     std::ostringstream oss;
-                    //     oss << "{ ";
-                    //     if (this->size() > 5) {
-                    //         size_t nmax = this->size() - 1;
-                    //         oss << to_string(this->get( 0 )) << ", "
-                    //             << to_string(this->get( 1 )) << ", ... , "
-                    //             << to_string(this->get( nmax - 1 )) << ", "
-                    //             << to_string(this->get( nmax )) << " }";
-                    //     } else {
-                    //         for (size_t i = 0; i < this->size(); ++i) {
-                    //             if (i > 0) {
-                    //                 oss << ", ";
-                    //             }
-                    //             oss << to_string(this->get( i ));
-                    //         }
-                    //         oss << " }";
-                    //     }
-                    //     return oss.str();
-                    // }
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
@@ -431,11 +249,133 @@ namespace NCPA {
         class VectorParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
+            : public Cloneable<VectorParameter<PARAMTYPE>,
                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>(
@@ -555,11 +495,134 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>( this->get( n ) );
@@ -680,11 +743,134 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return static_cast<long long>( this->get( n ) );
@@ -802,11 +988,134 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class VectorParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return this->get( n );
@@ -929,11 +1238,134 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     std::string s = this->get( n );
@@ -1065,11 +1497,134 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
@@ -1205,11 +1760,134 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : // public hidden::_base_vector_parameter<PARAMTYPE>,
-              public Cloneable<VectorParameter<PARAMTYPE>,
-                               hidden::_base_vector_parameter<PARAMTYPE>> {
+            :  // public hidden::_base_vector_parameter<PARAMTYPE>,
+               public Cloneable<VectorParameter<PARAMTYPE>,
+                                hidden::_base_vector_parameter<PARAMTYPE>> {
             public:
-                NCPA_CONFIGURATION_VECTORPARAMETER_PUBLIC_BOILERPLATE
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_vector_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_vector_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                VectorParameter() {}
+
+                VectorParameter( PARAMTYPE defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval ) {}
+
+                VectorParameter( const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter( const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>( v ) {
+                }
+
+                VectorParameter(
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        ptr ) {}
+
+                VectorParameter(
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        tests ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( PARAMTYPE defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    PARAMTYPE defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE>& v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter( const std::vector<PARAMTYPE>& defaultval,
+                                 const TypedValidation<PARAMTYPE> *v ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, v ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, ptr ) {}
+
+                VectorParameter(
+                    const std::vector<PARAMTYPE>& defaultval,
+                    std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        defaultval, tests ) {}
+
+                VectorParameter( const VectorParameter<PARAMTYPE>& other ) :
+                    Cloneable<VectorParameter<PARAMTYPE>,
+                              hidden::_base_vector_parameter<PARAMTYPE>>(
+                        other ) {}
+
+                VectorParameter(
+                    VectorParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~VectorParameter() {}
+
+                VectorParameter<PARAMTYPE>& operator=(
+                    VectorParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( VectorParameter<PARAMTYPE>& a,
+                                  VectorParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            VectorParameter<PARAMTYPE>,
+                            hidden::_base_vector_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
 
                 virtual bool as_bool( size_t n = 0 ) const override {
                     throw std::out_of_range(
@@ -1325,22 +2003,3 @@ namespace NCPA {
 
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_vector_parameter<T>& a,
-//            NCPA::config::hidden::_base_vector_parameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::TypedParameter<T>&>( a ),
-//           static_cast<NCPA::config::TypedParameter<T>&>( b ) );
-//     swap( a._value, b._value );
-// }
-
-// template<typename T>
-// void swap( NCPA::config::VectorParameter<T>& a,
-//            NCPA::config::VectorParameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( a
-//     ),
-//           static_cast<NCPA::config::hidden::_base_vector_parameter<T>&>( b )
-//           );
-// }

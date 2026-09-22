@@ -24,15 +24,15 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class block_tridiagonal_linear_system_solver<
                 ELEMENTTYPE, _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_linear_system_solver<ELEMENTTYPE> {
+            : public Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>> {
                 friend class block_outrigger_linear_system_solver<ELEMENTTYPE>;
 
             public:
-                block_tridiagonal_linear_system_solver() :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {}
+                block_tridiagonal_linear_system_solver() {}
 
-                block_tridiagonal_linear_system_solver( matrix_t blocktype ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                block_tridiagonal_linear_system_solver( matrix_t blocktype ) {
                     _blocktype = blocktype;
                     this->init();
                 }
@@ -41,7 +41,9 @@ namespace NCPA {
                 block_tridiagonal_linear_system_solver(
                     const block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                         other ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                    Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>( other ) {
                     _mat->copy( other._mat );
                     // _lu  = other._lu;
                 }
@@ -52,8 +54,7 @@ namespace NCPA {
                  */
                 block_tridiagonal_linear_system_solver(
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>&&
-                        source ) noexcept :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                        source ) noexcept {
                     swap( *this, source );
                 }
 
@@ -64,12 +65,12 @@ namespace NCPA {
                     block_tridiagonal_linear_system_solver<ELEMENTTYPE>&
                         b ) noexcept {
                     using std::swap;
-                    ::swap(
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>(
-                            b ) );
+                    ::swap( static_cast<Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( a ),
+                            static_cast<Cloneable<
+                  block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
+                  abstract_linear_system_solver<ELEMENTTYPE>>&>( b ) );
                     swap( a._mat, b._mat );
                 }
 
