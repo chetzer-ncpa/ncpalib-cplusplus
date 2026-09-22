@@ -26,16 +26,18 @@ namespace NCPA {
         NCPA_LINEARALGEBRA_DECLARE_SPECIALIZED_TEMPLATE  //
             class basic_linear_system_solver<ELEMENTTYPE,
                                              _ENABLE_IF_ELEMENTTYPE_IS_NUMERIC>
-            : public abstract_linear_system_solver<ELEMENTTYPE> {
+            : public Cloneable<basic_linear_system_solver<ELEMENTTYPE>,
+                               abstract_linear_system_solver<ELEMENTTYPE>> {
             public:
-                basic_linear_system_solver() :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {}
+                basic_linear_system_solver() {}
 
                 // copy constructor
                 basic_linear_system_solver(
                     const basic_linear_system_solver<ELEMENTTYPE>& other ) :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
-                    _mat = other._mat;
+                    Cloneable<basic_linear_system_solver<ELEMENTTYPE>,
+                              abstract_linear_system_solver<ELEMENTTYPE>>(
+                        other ) {
+                    _mat = other._mat->clone();
                     _lu  = other._lu;
                 }
 
@@ -44,9 +46,8 @@ namespace NCPA {
                  * @param source The vector to assimilate.
                  */
                 basic_linear_system_solver(
-                    basic_linear_system_solver<ELEMENTTYPE>&& source ) noexcept
-                    :
-                    abstract_linear_system_solver<ELEMENTTYPE>() {
+                    basic_linear_system_solver<ELEMENTTYPE>&&
+                        source ) noexcept {
                     swap( *this, source );
                 }
 
@@ -57,10 +58,12 @@ namespace NCPA {
                     basic_linear_system_solver<ELEMENTTYPE>& b ) noexcept {
                     using std::swap;
                     swap(
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>( a ),
-                        static_cast<
-                            abstract_linear_system_solver<ELEMENTTYPE>&>(
+                        static_cast<Cloneable<
+                            basic_linear_system_solver<ELEMENTTYPE>,
+                            abstract_linear_system_solver<ELEMENTTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            basic_linear_system_solver<ELEMENTTYPE>,
+                            abstract_linear_system_solver<ELEMENTTYPE>>&>(
                             b ) );
                     swap( a._mat, b._mat );
                     swap( a._lu, b._lu );
@@ -79,7 +82,7 @@ namespace NCPA {
                 virtual abstract_linear_system_solver<ELEMENTTYPE>& clear()
                     override {
                     _mat.reset();
-                    _lu.reset();
+                    _lu.clear();
                     return *static_cast<
                         abstract_linear_system_solver<ELEMENTTYPE> *>( this );
                 }
@@ -145,19 +148,7 @@ namespace NCPA {
                             << "] and input vector size " << b.size();
                         throw std::logic_error( oss.str() );
                     }
-                    // if ( !_lu ) {
-                    //     _build_lu();
-                    //     // std::cout << "Decompose():" << std::endl;
-                    //     _lu->decompose( *_mat, false );
-                    //     // std::cout << "OK" << std::endl;
-                    // }
-                    // try {
                     return _solve_using_lu( b );
-                    // } catch ( std::invalid_argument& e1 ) {
-                    //     _lu->clear();
-                    //     _lu->decompose( *_mat, true );
-                    //     return _solve_using_lu( b );
-                    // }
                 }
 
                 virtual NCPA::linear::Vector<ELEMENTTYPE> solve(
@@ -173,17 +164,10 @@ namespace NCPA {
                     }
                 }
 
-            protected:
-                // void _build_lu() {
-                //     _lu = std::unique_ptr<
-                //         NCPA::linear::LUDecomposition<ELEMENTTYPE>>(
-                //         new NCPA::linear::LUDecomposition<ELEMENTTYPE>() );
-                // }
 
             private:
                 std::unique_ptr<NCPA::linear::Matrix<ELEMENTTYPE>> _mat;
-                std::unique_ptr<NCPA::linear::LUDecomposition<ELEMENTTYPE>>
-                    _lu;
+                LUDecomposition<ELEMENTTYPE> _lu;
         };
     }  // namespace linear
 }  // namespace NCPA

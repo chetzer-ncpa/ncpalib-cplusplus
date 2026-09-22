@@ -31,7 +31,7 @@ namespace NCPA {
     namespace config {
 
         template<typename INTYPE, typename KEYTYPE>
-        class Mapping : public Cloneable<Mapping<INTYPE, KEYTYPE>> {
+        class Mapping : public virtual CloneBase<Mapping<INTYPE, KEYTYPE>> {
             public:
                 Mapping() {}
 
@@ -56,7 +56,10 @@ namespace NCPA {
 
         template<typename INTYPE, typename OUTTYPE,
                  typename KEYTYPE = std::string>
-        class ConfigurationMapping : public Mapping<INTYPE, KEYTYPE> {
+        class ConfigurationMapping
+            : // public Mapping<INTYPE, KEYTYPE>,
+              public Cloneable<ConfigurationMapping<INTYPE, OUTTYPE>,
+                               Mapping<INTYPE, OUTTYPE>> {
             public:
                 typedef Mapping<INTYPE, KEYTYPE> parent_t;
                 typedef ConfigurationMapping<INTYPE, OUTTYPE, KEYTYPE> this_t;
@@ -78,7 +81,7 @@ namespace NCPA {
 
                 virtual ~ConfigurationMapping() {}
 
-                NCPA_CLONE_METHOD( this_t, parent_t )
+                // NCPA_CLONE_METHOD( this_t, parent_t )
 
                 virtual void apply( const INTYPE& in ) override {
                     // std::cout << "Applying value of " << this->convert( in )

@@ -9,26 +9,67 @@
 
 namespace NCPA {
     namespace config {
-        namespace hidden {
-            template<typename T>
-            class _base_scalar_parameter;
-        }
-    }  // namespace config
-}  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::hidden::_base_scalar_parameter<T>& a,
-//            NCPA::config::hidden::_base_scalar_parameter<T>& b ) noexcept;
-
-namespace NCPA {
-    namespace config {
 
         namespace hidden {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
-                    _base_scalar_parameter() :
-                        TypedParameter<PARAMTYPE>() {}
+                    // using TypedParameter<PARAMTYPE>::init;
+
+                    // virtual void init( PARAMTYPE defaultval ) {
+                    //     _value = defaultval;
+                    // }
+
+                    // virtual void init(
+                    //     const std::vector<PARAMTYPE>& defaultval ) {
+                    //     _get_first_value_from_vector( defaultval );
+                    // }
+
+                    // virtual void init( PARAMTYPE defaultval,
+                    //                    const TypedValidation<PARAMTYPE>& v )
+                    //                    {
+                    //     init( v );
+                    //     init( defaultval );
+                    // }
+
+                    // virtual void init( PARAMTYPE defaultval,
+                    //                    const TypedValidation<PARAMTYPE> *v )
+                    //                    {
+                    //     init( v );
+                    //     init( defaultval );
+                    // }
+
+                    // virtual void init(
+                    //     PARAMTYPE defaultval,
+                    //     std::initializer_list<TypedValidation<PARAMTYPE>>
+                    //         tests ) {
+                    //     init( tests );
+                    //     init( defaultval );
+                    // }
+
+                    // virtual void init(
+                    //     const std::vector<PARAMTYPE>& defaultval,
+                    //     const TypedValidation<PARAMTYPE>& v ) {
+                    //     init( v );
+                    //     init( defaultval );
+                    // }
+
+                    // virtual void init(
+                    //     const std::vector<PARAMTYPE>& defaultval,
+                    //     const TypedValidation<PARAMTYPE> *v ) {
+                    //     init( v );
+                    //     init( defaultval );
+                    // }
+
+                    // virtual void init(
+                    //     const std::vector<PARAMTYPE>& defaultval,
+                    //     std::initializer_list<TypedValidation<PARAMTYPE>>
+                    //         tests ) {
+                    //     init( tests );
+                    //     init( defaultval );
+                    // }
+
+                    _base_scalar_parameter() : TypedParameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
                         TypedParameter<PARAMTYPE>(), _value { defaultval } {}
@@ -50,7 +91,7 @@ namespace NCPA {
                     _base_scalar_parameter(
                         const std::unique_ptr<TypedValidation<PARAMTYPE>>&
                             ptr ) :
-                        TypedParameter<PARAMTYPE>( ptr ) {}
+                        TypedParameter<PARAMTYPE>( ptr.get() ) {}
 
                     _base_scalar_parameter(
                         std::initializer_list<TypedValidation<PARAMTYPE>>
@@ -73,7 +114,7 @@ namespace NCPA {
                         PARAMTYPE defaultval,
                         const std::unique_ptr<TypedValidation<PARAMTYPE>>&
                             ptr ) :
-                        TypedParameter<PARAMTYPE>( ptr ),
+                        TypedParameter<PARAMTYPE>( ptr.get() ),
                         _value { defaultval } {}
 
                     _base_scalar_parameter(
@@ -101,7 +142,7 @@ namespace NCPA {
                         const std::vector<PARAMTYPE>& defaultval,
                         const std::unique_ptr<TypedValidation<PARAMTYPE>>&
                             ptr ) :
-                        TypedParameter<PARAMTYPE>( ptr ) {
+                        TypedParameter<PARAMTYPE>( ptr.get() ) {
                         _get_first_value_from_vector( defaultval );
                     }
 
@@ -161,6 +202,13 @@ namespace NCPA {
                         return std::vector<PARAMTYPE> { this->_value };
                     }
 
+                    virtual void set_value( PARAMTYPE v ) { _value = v; }
+
+                    virtual void set_value(
+                        const std::vector<PARAMTYPE>& defaultval ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
                 protected:
                     PARAMTYPE _value;
 
@@ -217,7 +265,9 @@ namespace NCPA {
         class ScalarParameter<
             PARAMTYPE, typename std::enable_if<
                            std::is_floating_point<PARAMTYPE>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -227,102 +277,56 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( 0.0 ) {}
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter() { this->set_value( 0.0 ); }
+
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                    cloneable_t { defaultval } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -337,15 +341,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual long long as_int( size_t n ) const override {
                     return static_cast<long long>(
@@ -453,7 +457,9 @@ namespace NCPA {
                                   std::is_integral<PARAMTYPE>::value
                                   && !( std::is_same<PARAMTYPE, bool>::value )
                                   && std::is_signed<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -462,103 +468,57 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
+                ScalarParameter() { this->set_value( 0 ); }
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) {
+                    init( defaultval );
+                }
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -573,15 +533,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -685,7 +645,9 @@ namespace NCPA {
                            std::is_integral<PARAMTYPE>::value
                            && !( std::is_same<PARAMTYPE, bool>::value )
                            && std::is_unsigned<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -694,103 +656,57 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( (PARAMTYPE)0 ) {}
+                ScalarParameter() { this->set_value( 0 ); }
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) {
+                    init( defaultval );
+                }
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -805,15 +721,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( this->get( n ) != 0 );
@@ -914,7 +830,9 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
                                              PARAMTYPE, bool>::value>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -923,103 +841,57 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( false ) {}
+                ScalarParameter() { this->set_value( false ); }
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) {
+                    init( defaultval );
+                }
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -1034,15 +906,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return this->get( n );
@@ -1147,7 +1019,9 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_arithmetic<PARAMTYPE>::value )
                 && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1156,103 +1030,57 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( "" ) {}
+                ScalarParameter() { this->set_value( "" ); }
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) {
+                    init( defaultval );
+                }
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -1267,15 +1095,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     std::string s = this->get( n );
@@ -1386,7 +1214,9 @@ namespace NCPA {
             typename std::enable_if<(
                 !( std::is_scalar<PARAMTYPE>::value )
                 && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1395,104 +1225,58 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>(
-                        PARAMTYPE { 0, 0 } ) {}
+                ScalarParameter() {
+                    this->set_value( PARAMTYPE { 0.0, 0.0 } );
+                }
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
                 ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                    cloneable_t { defaultval } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -1507,15 +1291,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
@@ -1631,7 +1415,9 @@ namespace NCPA {
                 || std::is_convertible<PARAMTYPE, std::string>::value
                 || ( !( std::is_scalar<PARAMTYPE>::value )
                      && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
-            : public hidden::_base_scalar_parameter<PARAMTYPE> {
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
             public:
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
@@ -1640,103 +1426,57 @@ namespace NCPA {
                 using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
                 using hidden::_base_scalar_parameter<
                     PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
 
-                ScalarParameter() :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {}
+                ScalarParameter() {}
 
-                ScalarParameter( PARAMTYPE defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( PARAMTYPE defaultval ) {
+                    this->set_value( defaultval );
+                }
 
-                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval ) {}
+                ScalarParameter( const std::vector<PARAMTYPE>& defaultval ) {
+                    init( defaultval );
+                }
 
                 ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( v ) {}
+                    cloneable_t { v } {}
 
                 ScalarParameter(
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( ptr ) {}
+                    cloneable_t { ptr } {}
 
                 ScalarParameter(
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( tests ) {}
+                    cloneable_t { tests } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE>& v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter( PARAMTYPE defaultval,
                                  const TypedValidation<PARAMTYPE> *v ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               v ) {}
+                    cloneable_t { defaultval, v } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               ptr ) {}
+                    cloneable_t { defaultval, ptr } {}
 
                 ScalarParameter(
                     PARAMTYPE defaultval,
                     std::initializer_list<TypedValidation<PARAMTYPE>> tests ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                                                               tests ) {}
-
-                // ScalarParameter( const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter( const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( newtest ) {}
-
-                // ScalarParameter(
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( new_tests )
-                //     {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( PARAMTYPE defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     PARAMTYPE defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const ValidationTest& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval,
-                //                  const test_ptr_t& newtest ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                newtest ) {}
-
-                // ScalarParameter(
-                //     const std::vector<PARAMTYPE>& defaultval,
-                //     std::initializer_list<test_ptr_t> new_tests ) :
-                //     hidden::_base_scalar_parameter<PARAMTYPE>( defaultval,
-                //                                                new_tests )
-                //                                                {}
+                    cloneable_t { defaultval, tests } {}
 
                 ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
-                    hidden::_base_scalar_parameter<PARAMTYPE>( other ) {}
+                    cloneable_t( other ) {}
 
-                ScalarParameter( ScalarParameter<PARAMTYPE>&& other ) noexcept
-                    :
-                    hidden::_base_scalar_parameter<PARAMTYPE>() {
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -1751,15 +1491,15 @@ namespace NCPA {
                 friend void swap( ScalarParameter<PARAMTYPE>& a,
                                   ScalarParameter<PARAMTYPE>& b ) noexcept {
                     using std::swap;
-                    swap( static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              a ),
-                          static_cast<NCPA::config::hidden::
-                                          _base_scalar_parameter<PARAMTYPE>&>(
-                              b ) );
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
                 }
-
-                NCPA_CLONE_METHOD( ScalarParameter<PARAMTYPE>, BaseParameter )
 
                 virtual bool as_bool( size_t n ) const override {
                     throw std::out_of_range(

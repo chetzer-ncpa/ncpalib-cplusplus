@@ -59,7 +59,7 @@ namespace NCPA {
                         bool fresh = false ) :
                     Vector<ELEMENTTYPE>() {
                     if (fresh) {
-                        _ptr = std::move( other._ptr->fresh_clone() );
+                        _ptr = std::move( other._ptr->default_clone() );
                     } else {
                         _ptr = std::move( other._ptr->clone() );
                     }

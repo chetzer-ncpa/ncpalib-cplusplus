@@ -20,7 +20,7 @@ namespace NCPA {
     namespace linear {
         template<typename ELEMENTTYPE>
         class abstract_vector
-            : public Cloneable<abstract_vector<ELEMENTTYPE>> {
+            : public virtual CloneBase<abstract_vector<ELEMENTTYPE>> {
             public:
                 virtual ~abstract_vector() = default;
 

@@ -471,6 +471,11 @@ namespace NCPA {
                         _ptr->left_multiply( *( other._ptr ) ) );
                 }
 
+                virtual Matrix<ELEMENTTYPE>& like(
+                    const Matrix<ELEMENTTYPE>& other ) {
+                    return this->resize( other.rows(), other.columns() );
+                }
+
                 virtual size_t lower_bandwidth() const {
                     return ( _ptr ? _ptr->lower_bandwidth() : 0 );
                 }

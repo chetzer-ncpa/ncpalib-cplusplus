@@ -12,40 +12,93 @@
 #include <type_traits>
 #include <utility>
 
-#define NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )               \
-    virtual std::unique_ptr<PARENTTYPE> clone() const override {     \
-        return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
-    }
+// #define NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )               \
+//     virtual std::unique_ptr<PARENTTYPE> clone() const override {     \
+//         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
+//     }
 
-#define NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )           \
-    virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override { \
-        return std::unique_ptr<PARENTTYPE>( new THISTYPE() );          \
-    }
+// #define NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )           \
+//     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override { \
+//         return std::unique_ptr<PARENTTYPE>( new THISTYPE() );          \
+//     }
 
-#define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )  \
-    NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE ) \
-    NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )
+// #define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )  \
+//     NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE ) \
+//     NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )
 
-#define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )       \
-    virtual std::unique_ptr<PARENTTYPE> clone() const override; \
-    virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override;
+// #define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )       \
+//     virtual std::unique_ptr<PARENTTYPE> clone() const override; \
+//     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override;
 
-#define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )             \
-    std::unique_ptr<PARENTTYPE> THISTYPE::clone() const {            \
-        return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
-    }                                                                \
-    std::unique_ptr<PARENTTYPE> THISTYPE::fresh_clone() const {      \
-        return std::unique_ptr<PARENTTYPE>( new THISTYPE() );        \
-    }
+// #define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )             \
+//     std::unique_ptr<PARENTTYPE> THISTYPE::clone() const {            \
+//         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
+//     }                                                                \
+//     std::unique_ptr<PARENTTYPE> THISTYPE::fresh_clone() const {      \
+//         return std::unique_ptr<PARENTTYPE>( new THISTYPE() );        \
+//     }
 
 namespace NCPA {
-    template<typename BASE>
-    class Cloneable {
-        public:
-            virtual ~Cloneable() {}
 
-            virtual std::unique_ptr<BASE> clone() const       = 0;
-            virtual std::unique_ptr<BASE> fresh_clone() const = 0;
+    template<typename BASE>
+    class CloneBase {
+        public:
+            using BaseType = BASE;
+
+            CloneBase()                             = default;
+            virtual ~CloneBase()                    = default;
+            CloneBase( const CloneBase<BASE>& )     = default;
+            CloneBase( CloneBase<BASE>&& ) noexcept = default;
+
+            virtual std::unique_ptr<BASE> clone() const         = 0;
+            virtual std::unique_ptr<BASE> default_clone() const = 0;
+
+            void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
+    };
+
+    template<typename DERIVED, typename BASE_OR_INTERFACE>
+    class Cloneable : public BASE_OR_INTERFACE {
+        public:
+            using cloneable_t = Cloneable<DERIVED, BASE_OR_INTERFACE>;
+
+            // Cloneable() {}
+            template<typename... Args>
+            explicit Cloneable( Args&&...args ) :
+                BASE_OR_INTERFACE( std::forward<Args>( args )... ) {}
+
+            virtual ~Cloneable() = default;
+
+            Cloneable( const Cloneable<DERIVED, BASE_OR_INTERFACE>& other ) :
+                BASE_OR_INTERFACE( other ) {}
+
+            Cloneable(
+                Cloneable<DERIVED, BASE_OR_INTERFACE>&& other ) noexcept {
+                swap( *this, other );
+            }
+
+            friend void swap(
+                Cloneable<DERIVED, BASE_OR_INTERFACE>& a,
+                Cloneable<DERIVED, BASE_OR_INTERFACE>& b ) noexcept {
+                using std::swap;
+                swap( static_cast<BASE_OR_INTERFACE&>( a ),
+                      static_cast<BASE_OR_INTERFACE&>( b ) );
+            }
+
+            std::unique_ptr<typename BASE_OR_INTERFACE::BaseType> clone()
+                const override {
+                return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
+                    new DERIVED( *static_cast<const DERIVED *>( this ) ) );
+            }
+
+            std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>
+                default_clone() const override {
+                static_assert(
+                    std::is_default_constructible<DERIVED>::value,
+                    "Cloneable classes must have a default constructor" );
+                return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
+                    new DERIVED() );
+                // return std::unique_ptr<BASE>( new DERIVED() );
+            }
     };
 
     template<typename U, typename Base>

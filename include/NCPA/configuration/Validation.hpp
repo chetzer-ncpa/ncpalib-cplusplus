@@ -11,9 +11,10 @@ namespace NCPA {
     namespace config {
 
         // template<typename T>
-        // using validation_function_t = std::function<validation_status_t( T )>;
+        // using validation_function_t = std::function<validation_status_t( T
+        // )>;
 
-        class Validation : public Cloneable<Validation> {
+        class Validation : public virtual CloneBase<Validation> {
             public:
                 Validation() {}
 
@@ -34,16 +35,17 @@ namespace NCPA {
                 //     validation_status_t _status;
         };
 
-        
-
         // template<typename T>
-        // validation_function_t<T>& _binary_comparison( const std::function<bool( T, T )>& cmp,
+        // validation_function_t<T>& _binary_comparison( const
+        // std::function<bool( T, T )>& cmp,
         //                                const T& a, std::string msg ) {
         //     using std::to_string;
         //     static validation_function_t<T> func
         //         = [ cmp, a, msg ]( T d ) -> validation_status_t {
-        //         return cmp( d, a ) ? validation_status_t { test_result_t::PASSED, "" }
-        //                            : validation_status_t { test_result_t::FAILED, msg };
+        //         return cmp( d, a ) ? validation_status_t {
+        //         test_result_t::PASSED, "" }
+        //                            : validation_status_t {
+        //                            test_result_t::FAILED, msg };
         //     };
         //     return func;
         // }
@@ -68,7 +70,8 @@ namespace NCPA {
         //                                 std::string errmsg = "" ) {
         //     using std::to_string;
         //     if (errmsg.empty()) {
-        //         errmsg = "Supplied value must be equal to " + to_string( val );
+        //         errmsg = "Supplied value must be equal to " + to_string( val
+        //         );
         //     }
         //     return std::move( TypedValidation<T>( _binary_comparison<T>(
         //         []( T x, T y ) { return x == y; }, val, errmsg ) ) );
@@ -79,14 +82,16 @@ namespace NCPA {
         //                                     std::string errmsg = "" ) {
         //     using std::to_string;
         //     if (errmsg.empty()) {
-        //         errmsg = "Supplied value must be equal to " + to_string( val );
+        //         errmsg = "Supplied value must be equal to " + to_string( val
+        //         );
         //     }
         //     return std::move( TypedValidation<T>( _binary_comparison<T>(
         //         []( T x, T y ) { return x != y; }, val, errmsg ) ) );
         // }
 
         // template<typename T>
-        // TypedValidation<T> is_greater_than( const T& val, bool equalok = false,
+        // TypedValidation<T> is_greater_than( const T& val, bool equalok =
+        // false,
         //                                     std::string errmsg = "" ) {
         //     using std::to_string;
         //     if (errmsg.empty()) {
@@ -94,8 +99,10 @@ namespace NCPA {
         //                + to_string( val );
         //     }
         //     return std::move( TypedValidation<T>( _binary_comparison<T>(
-        //                 ( equalok ? []( T x, T y ) { std::cout << x << " >= " << y << std::endl; return x >= y; }
-        //                           : []( T x, T y ) { std::cout << x << " > " << y << std::endl; return x > y; } ),
+        //                 ( equalok ? []( T x, T y ) { std::cout << x << " >=
+        //                 " << y << std::endl; return x >= y; }
+        //                           : []( T x, T y ) { std::cout << x << " > "
+        //                           << y << std::endl; return x > y; } ),
         //                 val, errmsg ) ) );
         // };
 
@@ -116,7 +123,8 @@ namespace NCPA {
         // template<typename T>
         // TypedValidation<T> is_zero() {
         //     return std::move( is_equal_to( static_cast<T>( 0 ),
-        //                                    "Supplied value must be zero" ) );
+        //                                    "Supplied value must be zero" )
+        //                                    );
         // }
 
         // template<typename T>
@@ -131,7 +139,8 @@ namespace NCPA {
 // template<typename T>
 // class PredefinedValidation {
 //     public:
-//         using validation_function_t = std::function<validation_status_t( T )>;
+//         using validation_function_t = std::function<validation_status_t( T
+//         )>;
 
 //         static validation_function_t& _binary_comparison(
 //             const std::function<bool( T, T )>& cmp, const T& a,
