@@ -26,7 +26,7 @@ namespace NCPA {
             virtual std::unique_ptr<BASE> clone() const         = 0;
             virtual std::unique_ptr<BASE> default_clone() const = 0;
 
-            void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
+            friend void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
     };
 
     template<typename BASE>
@@ -46,7 +46,7 @@ namespace NCPA {
                 return std::unique_ptr<BASE>( new BASE() );
             }
 
-            void swap( ConcreteCloneBase<BASE>& a,
+            friend void swap( ConcreteCloneBase<BASE>& a,
                        ConcreteCloneBase<BASE>& b ) noexcept {
                 using std::swap;
                 swap( static_cast<CloneBase<BASE>&>( a ),
