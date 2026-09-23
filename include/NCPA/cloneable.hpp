@@ -12,34 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-// #define NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )               \
-//     virtual std::unique_ptr<PARENTTYPE> clone() const override {     \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
-//     }
-
-// #define NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )           \
-//     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override { \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE() );          \
-//     }
-
-// #define NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )  \
-//     NCPA_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE ) \
-//     NCPA_FRESH_CLONE_METHOD_ONLY( THISTYPE, PARENTTYPE )
-
-// #define DECLARE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )       \
-//     virtual std::unique_ptr<PARENTTYPE> clone() const override; \
-//     virtual std::unique_ptr<PARENTTYPE> fresh_clone() const override;
-
-// #define DEFINE_NCPA_CLONE_METHOD( THISTYPE, PARENTTYPE )             \
-//     std::unique_ptr<PARENTTYPE> THISTYPE::clone() const {            \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE( *this ) ); \
-//     }                                                                \
-//     std::unique_ptr<PARENTTYPE> THISTYPE::fresh_clone() const {      \
-//         return std::unique_ptr<PARENTTYPE>( new THISTYPE() );        \
-//     }
-
 namespace NCPA {
-
     template<typename BASE>
     class CloneBase {
         public:
@@ -54,6 +27,31 @@ namespace NCPA {
             virtual std::unique_ptr<BASE> default_clone() const = 0;
 
             void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
+    };
+
+    template<typename BASE>
+    class ConcreteCloneBase : public CloneBase<BASE> {
+        public:
+            ConcreteCloneBase()                                     = default;
+            virtual ~ConcreteCloneBase()                            = default;
+            ConcreteCloneBase( const ConcreteCloneBase<BASE>& )     = default;
+            ConcreteCloneBase( ConcreteCloneBase<BASE>&& ) noexcept = default;
+
+            std::unique_ptr<BASE> clone() const override {
+                return std::unique_ptr<BASE>(
+                    new BASE( static_cast<const BASE&>( *this ) ) );
+            }
+
+            std::unique_ptr<BASE> default_clone() const override {
+                return std::unique_ptr<BASE>( new BASE() );
+            }
+
+            void swap( ConcreteCloneBase<BASE>& a,
+                       ConcreteCloneBase<BASE>& b ) noexcept {
+                using std::swap;
+                swap( static_cast<CloneBase<BASE>&>( a ),
+                      static_cast<CloneBase<BASE>&>( b ) );
+            }
     };
 
     template<typename DERIVED, typename BASE_OR_INTERFACE>
