@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/processing/declarations.hpp"
+#include "NCPA.hpp"
 
 #include <limits>
 #include <memory>
@@ -15,7 +16,7 @@
 
 namespace NCPA {
     namespace processing {
-        class Parameter {
+        class Parameter : public CloneBase<Parameter> {
             public:
                 Parameter() : _key { "" }, _description { "" } {}
 
@@ -76,14 +77,15 @@ namespace NCPA {
                     return vst;
                 }
 
-                virtual std::unique_ptr<Parameter> clone_as( const std::string& new_key ) const {
+                virtual std::unique_ptr<Parameter> clone_as(
+                    const std::string& new_key ) const {
                     std::unique_ptr<Parameter> newparam = this->clone();
                     newparam->set_key( new_key );
                     return std::move( newparam );
                 }
 
                 virtual Parameter& clear()                              = 0;
-                virtual std::unique_ptr<Parameter> clone() const        = 0;
+                // virtual std::unique_ptr<Parameter> clone() const        = 0;
                 virtual bool is_scalar() const                          = 0;
                 virtual parameter_form_t data_form() const              = 0;
                 virtual std::string data_form_str() const               = 0;
@@ -98,6 +100,9 @@ namespace NCPA {
                 virtual std::vector<int> asIntVector() const            = 0;
                 virtual std::vector<double> asDoubleVector() const      = 0;
                 virtual std::vector<std::string> asStringVector() const = 0;
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) = 0;
+#endif
 
                 template<typename T>
                 ScalarParameter<T>& as_scalar() {
@@ -209,34 +214,13 @@ namespace NCPA {
                     return json.str();
                 }
 #endif
+
             private:
                 std::string _key;
                 std::string _description;
         };
 
-        
 
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
     }  // namespace processing
 }  // namespace NCPA
 
@@ -280,8 +264,10 @@ namespace NCPA {
 // void swap( NCPA::processing::StringParameter& a,
 //            NCPA::processing::StringParameter& b ) noexcept {
 //     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::ScalarParameter<std::string>&>( a ),
-//           dynamic_cast<NCPA::processing::ScalarParameter<std::string>&>( b ) );
+//     swap( dynamic_cast<NCPA::processing::ScalarParameter<std::string>&>( a
+//     ),
+//           dynamic_cast<NCPA::processing::ScalarParameter<std::string>&>( b )
+//           );
 // }
 
 // void swap( NCPA::processing::BooleanParameter& a,
@@ -308,8 +294,10 @@ namespace NCPA {
 // void swap( NCPA::processing::StringVectorParameter& a,
 //            NCPA::processing::StringVectorParameter& b ) noexcept {
 //     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::VectorParameter<std::string>&>( a ),
-//           dynamic_cast<NCPA::processing::VectorParameter<std::string>&>( b ) );
+//     swap( dynamic_cast<NCPA::processing::VectorParameter<std::string>&>( a
+//     ),
+//           dynamic_cast<NCPA::processing::VectorParameter<std::string>&>( b )
+//           );
 // }
 
 // void swap( NCPA::processing::BooleanVectorParameter& a,

@@ -44,75 +44,19 @@ namespace NCPA {
 
         typedef TimeInterval time_interval_t;
 
-        // enum class input_id_t {
-        //     INVALID,
-        //     OTHER,
-        //     DATA,
-        //     CONFIGURATION,
-        //     CONFIGURATION_COMPLETE,
-        //     CONFIGURATION_QUERY,
-        //     COMMAND,
-        //     DATA_REQUEST,
-        //     STATE_REQUEST,
-        //     RESET
-        // };
-
-        // enum class response_id_t {
-        //     OTHER,
-        //     NO_RESPONSE,
-        //     ACKNOWLEDGE,
-        //     SUCCESS_NO_PRODUCT,
-        //     SUCCESS_PRODUCT,
-        //     WARNING,
-        //     ERROR,
-        //     ERROR_STOP,
-        //     RECONFIGURATION_REQUESTED,
-        //     DUMMY_CONFIGURATION,
-        //     CONFIGURATION_SUCCESS,
-        //     CONFIGURATION_FAILURE,
-        //     STATE
-        // };
-
         enum class packet_processing_result_t {
             ERROR,
             PACKET_INVALID,
             PACKET_NOT_APPLICABLE,
             SUCCESS,
-            SUCCESS_PRODUCT,     // success, product generated, continue if
-                                 // possible
-            SUCCESS_NO_PRODUCT,  // success, no product generated, return
+            SUCCESS_PRODUCT,  // success, product generated, continue if
+                              // possible
+            SUCCESS_NO_PRODUCT,      // success, no product generated, return
             FAILURE,
             FAILURE_PRODUCT,  // failure, product generated anyway, continue if
                               // possible
             FAILURE_NO_PRODUCT  // failure, no product generated, return
         };
-
-        // enum class parameter_type_t { INTEGER, FLOAT, STRING, BOOLEAN, ENUM
-        // };
-
-        // enum class parameter_form_t { SCALAR, ARRAY };
-
-        // class Parameter;
-        // template<typename T>
-        // class ScalarParameter;
-        // template<typename T>
-        // class VectorParameter;
-
-        // class IntegerParameter;
-        // class DoubleParameter;
-        // class StringParameter;
-        // class BooleanParameter;
-        // class IntegerVectorParameter;
-        // class DoubleVectorParameter;
-        // class StringVectorParameter;
-        // class BooleanVectorParameter;
-
-        // class ParameterTree;
-
-        // typedef std::unique_ptr<Parameter> parameter_ptr_t;
-        // typedef std::unordered_map<std::string,
-        // std::vector<parameter_ptr_t>>
-        //     parameter_tree_t;
 
         class AbstractDataWrapper;
         template<typename T>
@@ -121,10 +65,16 @@ namespace NCPA {
         class AbstractProcessingStep;
         template<typename intype, typename outtype>
         class ProcessingStep;
-        template<typename this_t, typename state_t>
-        class StatefulProcessingStep;
+        template<typename inouttype, typename state_t>
+        class StatefulStep;
+        template<typename inouttype>
+        class BufferStep;
+        template<typename inouttype>
+        class PassThroughStep;
         template<typename intype, typename outtype>
         class ProcessingChain;
+
+        typedef std::unique_ptr<AbstractProcessingStep> processing_step_ptr_t;
 
         std::string to_string( response_id_t t ) {
             switch (t) {

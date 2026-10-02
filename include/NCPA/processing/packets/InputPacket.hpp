@@ -7,9 +7,6 @@
 #include <iostream>
 #include <memory>
 
-// void swap( NCPA::processing::InputPacket& a,
-//            NCPA::processing::InputPacket& b ) noexcept;
-
 namespace NCPA::processing {
     class InputPacket : public Packet {
         public:
@@ -31,8 +28,8 @@ namespace NCPA::processing {
 
             friend void swap( InputPacket& a, InputPacket& b ) noexcept {
                 using std::swap;
-                swap( dynamic_cast<NCPA::processing::Packet&>( a ),
-                      dynamic_cast<NCPA::processing::Packet&>( b ) );
+                swap( dynamic_cast<Packet&>( a ),
+                      dynamic_cast<Packet&>( b ) );
                 swap( a._ID, b._ID );
             }
 
@@ -42,11 +39,3 @@ namespace NCPA::processing {
             input_id_t _ID;
     };
 }  // namespace NCPA::processing
-
-// inline void swap( NCPA::processing::InputPacket& a,
-//                   NCPA::processing::InputPacket& b ) noexcept {
-//     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::Packet&>( a ),
-//             dynamic_cast<NCPA::processing::Packet&>( b ) );
-//     swap( a._ID, b._ID );
-// }

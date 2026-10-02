@@ -9,8 +9,6 @@
 #include <memory>
 #include <string>
 
-// void swap( NCPA::processing::Packet& a, NCPA::processing::Packet& b ) noexcept;
-
 namespace NCPA::processing {
     class Packet {
         public:

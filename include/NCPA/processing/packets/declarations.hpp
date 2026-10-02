@@ -16,7 +16,8 @@ namespace NCPA {
             COMMAND,
             DATA_REQUEST,
             STATE_REQUEST,
-            RESET
+            RESET,
+            RUN_TESTS
         };
 
          enum class response_id_t {
@@ -26,23 +27,28 @@ namespace NCPA {
             SUCCESS_NO_PRODUCT,
             SUCCESS_PRODUCT,
             WARNING,
+            FAILURE,
             ERROR,
             ERROR_STOP,
             RECONFIGURATION_REQUESTED,
             DUMMY_CONFIGURATION,
             CONFIGURATION_SUCCESS,
             CONFIGURATION_FAILURE,
-            STATE
+            STATE,
+            TESTS_PASSED,
+            TESTS_FAILED
         };
 
         class Packet;
 
         class InputPacket;
+        class CommandPacket;
         class ConfigurationPacket;
         class ConfigurationCompletePacket;
         class ConfigurationQueryPacket;
         class DataRequestPacket;
         class ResetPacket;
+        class RunTestsPacket;
         class StateRequestPacket;
         template<typename T>
         class DataPacket;

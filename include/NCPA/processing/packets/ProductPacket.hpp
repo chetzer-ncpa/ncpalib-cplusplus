@@ -64,11 +64,6 @@ namespace NCPA::processing {
                 swap( a._internal, b._internal );
             }
 
-            // ProductPacket<T>& operator=( ProductPacket<T> other ) {
-            //     swap( *this, other );
-            //     return *this;
-            // }
-
             ProductPacket<T>& set( const T& input ) {
                 _internal.set( input );
                 return *this;

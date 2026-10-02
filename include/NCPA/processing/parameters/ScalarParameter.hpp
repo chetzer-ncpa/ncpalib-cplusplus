@@ -20,18 +20,21 @@ namespace NCPA {
         template<typename T>
         class ScalarParameter : public Parameter {
             public:
+                using value_t = T;
+
+                ScalarParameter() = default;
+
                 ScalarParameter( const std::string& key, const T& value,
                                  const std::string& description = "" ) :
                     Parameter( key, description ), _value { value } {}
 
                 virtual ~ScalarParameter() {}
 
-                friend void swap(
-                    NCPA::processing::ScalarParameter<T>& a,
-                    NCPA::processing::ScalarParameter<T>& b ) noexcept {
+                friend void swap( ScalarParameter<T>& a,
+                                  ScalarParameter<T>& b ) noexcept {
                     using std::swap;
-                    swap( dynamic_cast<NCPA::processing::Parameter&>( a ),
-                          dynamic_cast<NCPA::processing::Parameter&>( b ) );
+                    swap( static_cast<Parameter&>( a ),
+                          static_cast<Parameter&>( b ) );
                 }
 
                 virtual const T& value() const { return _value; }

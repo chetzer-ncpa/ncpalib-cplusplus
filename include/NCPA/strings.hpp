@@ -58,6 +58,19 @@ namespace NCPA {
             return str.substr( strBegin, strRange );
         }
 
+        static inline std::string join( const std::vector<std::string>& tokens,
+                                        const std::string& joinstr = "\n" ) {
+            std::ostringstream oss;
+            size_t counter = 0;
+            for (auto& token : tokens) {
+                if (counter++ > 0) {
+                    oss << joinstr;
+                }
+                oss << token;
+            }
+            return oss.str();
+        }
+
         /**
         Splits a string into tokens using supplied delimiter characters.
         Similar to the Perl split() function.

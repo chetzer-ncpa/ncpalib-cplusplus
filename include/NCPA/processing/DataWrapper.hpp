@@ -27,7 +27,8 @@ namespace NCPA {
 
                 DataWrapper( std::shared_ptr<T>& input ) { _internal = input; }
 
-                DataWrapper( const DataWrapper<T>& other ) : AbstractDataWrapper( other ) {
+                DataWrapper( const DataWrapper<T>& other ) :
+                    AbstractDataWrapper( other ) {
                     _internal = other._internal;
                 }
 
@@ -52,6 +53,10 @@ namespace NCPA {
                     swap( *this, other );
                     return *this;
                 }
+
+                T& contents() { return *_internal; }
+
+                const T& contents() const { return *_internal; }
 
                 DataWrapper<T>& set( const T& input ) {
                     _internal = std::make_shared<T>( input );

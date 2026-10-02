@@ -30,26 +30,26 @@ DataPacket
 #include <unordered_map>
 #include <vector>
 
-// #pragma push_macro( "CHECK_PACKET_POINTER_NOT_NULL" )
-// #undef CHECK_PACKET_POINTER_NOT_NULL
-// #define CHECK_PACKET_POINTER_NOT_NULL( _PTR_ )             \
-//     if (_PTR_ == nullptr) {                                \
-//         return packet_processing_result_t::PACKET_INVALID; \
-//     }
-
-// void swap( NCPA::processing::AbstractProcessingStep& a,
-//            NCPA::processing::AbstractProcessingStep& b ) noexcept;
-
 namespace NCPA {
     namespace processing {
         class AbstractProcessingStep {
             public:
                 // must be implemented
-                virtual bool apply_configuration( std::string& message ) = 0;
-                virtual bool product_available() const                   = 0;
+                virtual bool apply_configuration(
+                    std::vector<std::string>& message ) = 0;
+                virtual bool product_available() const  = 0;
 
                 // implemented in ProcessingStep
-                virtual AbstractDataWrapper& product()  = 0;
+                virtual AbstractDataWrapper& product() = 0;
+                virtual AbstractDataWrapper& input() = 0;
+
+                virtual const AbstractDataWrapper& product() const {
+                    return this->product();
+                }
+                virtual const AbstractDataWrapper& input() const {
+                    return this->input();
+                }
+
                 virtual AbstractProcessingStep& reset() = 0;
 
             protected:
@@ -70,7 +70,7 @@ namespace NCPA {
                 AbstractProcessingStep( const std::string& tag ) :
                     _tag { tag } {}
 
-                virtual ~AbstractProcessingStep() {}
+                virtual ~AbstractProcessingStep() = default;
 
                 AbstractProcessingStep( const AbstractProcessingStep& other ) :
                     AbstractProcessingStep() {
@@ -84,8 +84,7 @@ namespace NCPA {
                 }
 
                 AbstractProcessingStep(
-                    AbstractProcessingStep&& other ) noexcept :
-                    AbstractProcessingStep() {
+                    AbstractProcessingStep&& other ) noexcept {
                     swap( *this, other );
                 }
 
@@ -109,14 +108,12 @@ namespace NCPA {
                 virtual AbstractProcessingStep& add_parameter(
                     Parameter& param ) {
                     _parameters.emplace_back( param.clone() );
-                    // _parameters.emplace(param.key(), param.clone());
-                    // _parameters[ param.key() ] = std::move(param.clone());
                     return *this;
                 }
 
                 virtual bool apply_configuration() {
-                    std::string msg;
-                    return apply_configuration( msg );
+                    std::vector<std::string> messages;
+                    return apply_configuration( messages );
                 }
 
                 virtual bool apply_parameter(
@@ -135,6 +132,16 @@ namespace NCPA {
                     }
                     return false;
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                nlohmann::json as_json() const {
+                    nlohmann::json base_json;
+                    for (auto& param : this->_parameters) {
+                        base_json[ param->key() ] = param->as_json();
+                    }
+                    return base_json;
+                }
+#endif
 
                 virtual bool has_next() const {
                     NCPA_DEBUG << this->tag()
@@ -165,13 +172,10 @@ namespace NCPA {
                               "indicates a coding error." );
                 }
 
-                // virtual std::unordered_map<std::string, parameter_ptr_t>&
                 virtual std::vector<parameter_ptr_t>& parameters() {
                     return _parameters;
                 }
 
-                // virtual const std::unordered_map<std::string,
-                // parameter_ptr_t>&
                 virtual const std::vector<parameter_ptr_t>& parameters()
                     const {
                     return _parameters;
@@ -212,10 +216,6 @@ namespace NCPA {
                                    << std::endl;
                         return std::move( response_if_no_next );
                     }
-                    // return this->has_next() ? this->next()->process( packet
-                    // )
-                    //                         : std::move( response_if_no_next
-                    //                         );
                 }
 
                 virtual response_ptr_t pass_to_next( InputPacket& packet ) {
@@ -232,6 +232,9 @@ namespace NCPA {
                     }
                     response_ptr_t resp;
                     switch (input.ID()) {
+                        case input_id_t::COMMAND:
+                            resp = this->process_command_packet( input );
+                            break;
                         case input_id_t::DATA:
                             resp = this->process_data_packet( input );
                             break;
@@ -252,12 +255,16 @@ namespace NCPA {
                         case input_id_t::RESET:
                             resp = this->process_reset_packet( input );
                             break;
+                        case input_id_t::RUN_TESTS:
+                            resp = this->process_run_tests_packet( input );
+                            break;
                         case input_id_t::STATE_REQUEST:
                             resp = this->process_state_request_packet( input );
                             break;
                         default:
                             resp = this->process_other_packet( input );
                     }
+                    this->_postprocess_packet( resp );
                     this->_add_flags_to_packet( resp );
                     return std::move( resp );
                 }
@@ -271,13 +278,41 @@ namespace NCPA {
                     return this->process( *packet_ptr );
                 }
 
+                virtual response_ptr_t process_command_packet(
+                    InputPacket& packet ) {
+                    NCPA_DEBUG << this->tag() << ": processing command packet"
+                               << std::endl;
+                    std::vector<std::string> msg;
+                    switch (this->_process_command_packet(
+                        _cast_packet<CommandPacket>( packet ), msg )) {
+                        case packet_processing_result_t::PACKET_NOT_APPLICABLE:
+                            return this->pass_to_next(
+                                packet,
+                                this->response( response_id_t::ERROR,
+                                                "No matching tag found for "
+                                                    + packet.tag() ) );
+                        case packet_processing_result_t::SUCCESS_NO_PRODUCT:
+                        case packet_processing_result_t::SUCCESS_PRODUCT:
+                            return response_ptr_t( new ResponsePacket(
+                                response_id_t::SUCCESS_NO_PRODUCT, this->tag(),
+                                msg ) );
+                        case packet_processing_result_t::FAILURE_NO_PRODUCT:
+                        case packet_processing_result_t::FAILURE_PRODUCT:
+                            return response_ptr_t( new ResponsePacket(
+                                response_id_t::FAILURE, this->tag(), msg ) );
+                        default:
+                            return return_code_unsupported(
+                                "process_command_packet" );
+                    }
+                }
+
                 virtual response_ptr_t process_configuration_complete_packet(
                     InputPacket& packet ) {
                     NCPA_DEBUG << this->tag()
                                << ": processing configuration complete packet"
                                << std::endl;
 
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_configuration_complete_packet(
                         _cast_packet<ConfigurationCompletePacket>( packet ),
                         msg )) {
@@ -312,7 +347,7 @@ namespace NCPA {
                                << ": processing configuration packet"
                                << std::endl;
 
-                    std::string msg;
+                    std::vector<std::string> msg;
                     if (this->parameters().size() == 0) {
                         this->_define_parameters();
                     }
@@ -352,7 +387,7 @@ namespace NCPA {
                                << ": processing configuration query packet"
                                << std::endl;
 
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_configuration_query_packet(
                         _cast_packet<ConfigurationQueryPacket>( packet ),
                         msg )) {
@@ -390,7 +425,7 @@ namespace NCPA {
                     InputPacket& packet ) {
                     NCPA_DEBUG << this->tag() << ": processing data packet"
                                << std::endl;
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_data_packet( packet, msg )) {
                         case packet_processing_result_t::PACKET_NOT_APPLICABLE:
                             return this->pass_to_next(
@@ -427,7 +462,7 @@ namespace NCPA {
                     NCPA_DEBUG << this->tag()
                                << ": processing data request packet"
                                << std::endl;
-                    std::string msg;
+                    std::vector<std::string> msg;
                     packet_processing_result_t result
                         = this->_process_data_request_packet(
                             _cast_packet<DataRequestPacket>( packet ), msg );
@@ -465,7 +500,7 @@ namespace NCPA {
                     InputPacket& packet ) {
                     NCPA_DEBUG << this->tag() << ": processing other packet"
                                << std::endl;
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_other_packet( packet, msg )) {
                         case packet_processing_result_t::PACKET_NOT_APPLICABLE:
                             return this->pass_to_next(
@@ -483,8 +518,8 @@ namespace NCPA {
                             break;
                         case packet_processing_result_t::FAILURE_NO_PRODUCT:
                         case packet_processing_result_t::FAILURE_PRODUCT:
-                            return response_ptr_t( new ResponsePacket(
-                                response_id_t::ERROR, msg ) );
+                            return response_ptr_t(
+                                this->response( response_id_t::ERROR, msg ) );
                             break;
                         default:
                             return return_code_unsupported(
@@ -496,7 +531,7 @@ namespace NCPA {
                     InputPacket& packet ) {
                     NCPA_DEBUG << this->tag() << ": processing reset packet"
                                << std::endl;
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_reset_packet(
                         _cast_packet<ResetPacket>( packet ), msg )) {
                         case packet_processing_result_t::ERROR:
@@ -514,12 +549,40 @@ namespace NCPA {
                     }
                 }
 
+                virtual response_ptr_t process_run_tests_packet(
+                    InputPacket& packet ) {
+                    NCPA_DEBUG << this->tag()
+                               << ": processing run tests packet" << std::endl;
+                    std::vector<std::string> msg;
+                    packet_processing_result_t result
+                        = this->_process_run_tests_packet(
+                            _cast_packet<RunTestsPacket>( packet ), msg );
+                    switch (result) {
+                        case packet_processing_result_t::PACKET_NOT_APPLICABLE:
+                            return this->pass_to_next(
+                                packet,
+                                this->response( response_id_t::TESTS_PASSED,
+                                                msg ) );
+                        case packet_processing_result_t::SUCCESS_NO_PRODUCT:
+                        case packet_processing_result_t::SUCCESS_PRODUCT:
+                            return response_ptr_t( this->response(
+                                response_id_t::TESTS_PASSED, msg ) );
+                        case packet_processing_result_t::FAILURE_NO_PRODUCT:
+                        case packet_processing_result_t::FAILURE_PRODUCT:
+                            return response_ptr_t( this->response(
+                                response_id_t::TESTS_FAILED, msg ) );
+                        default:
+                            return return_code_unsupported(
+                                "process_run_tests_packet" );
+                    }
+                }
+
                 virtual response_ptr_t process_state_request_packet(
                     InputPacket& packet ) {
                     NCPA_DEBUG << this->tag()
                                << ": processing state request packet"
                                << std::endl;
-                    std::string msg;
+                    std::vector<std::string> msg;
                     switch (this->_process_state_request_packet(
                         _cast_packet<StateRequestPacket>( packet ), msg )) {
                         case packet_processing_result_t::SUCCESS_PRODUCT:
@@ -533,11 +596,6 @@ namespace NCPA {
                                     "State request packet reached last step "
                                     "without being handled!" ) );
                             break;
-                        case packet_processing_result_t::SUCCESS_NO_PRODUCT:
-                            return this->response(
-                                response_id_t::ERROR,
-                                "State request returned successful but no "
-                                "state to return!" );
                         case packet_processing_result_t::PACKET_INVALID:
                             return packet_invalid(
                                 "process_state_request_packet" );
@@ -551,42 +609,34 @@ namespace NCPA {
                     }
                 }
 
-                virtual response_ptr_t response( response_id_t resptype,
-                                                 const std::string& msg
-                                                 = "" ) const {
+                virtual response_ptr_t response(
+                    response_id_t resptype,
+                    const std::string& message ) const {
+                    return this->response(
+                        resptype, std::vector<std::string>( 1, message ) );
+                }
+
+                virtual response_ptr_t response(
+                    response_id_t resptype,
+                    const std::vector<std::string>& msg = {} ) const {
                     return response_ptr_t(
                         new ResponsePacket( resptype, this->tag(), msg ) );
                 }
-
-                // virtual void throw_packet_invalid(
-                //     const std::string& method ) const {
-                //     throw std::out_of_range( "Invalid packet passed to "
-                //                             + method
-                //                             + ". This should never happen
-                //                             and "
-                //                               "indicates a coding error." );
-                // }
 
                 virtual response_ptr_t return_code_unsupported(
                     const std::string& method ) const {
                     return this->response(
                         response_id_t::ERROR,
-                        "Unrecognized or unsupported return code returned to "
+                        "Unrecognized or unsupported return code "
+                        "returned to "
                             + method
                             + ". This should never happen and "
                               "indicates a coding error." );
                 }
 
-                // virtual void throw_unsupported_return_code(
-                //     const std::string& method ) const {
-                //     throw std::out_of_range(
-                //         "Unrecognized or unsupported return code returned to
-                //         "
-                //         + method
-                //         + ". This should never happen and "
-                //           "indicates a coding error." );
-                // }
-
+                virtual bool run_tests( std::vector<std::string>& messages ) {
+                    return true;
+                }
 
                 virtual AbstractProcessingStep& set_next(
                     AbstractProcessingStep *nextstep ) {
@@ -609,10 +659,18 @@ namespace NCPA {
                         return false;
                     }
                 }
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) {
+                    for (auto& param : _parameters) {
+                        param->from_json( json.at( param->key() ) );
+                    }
+                }
+#endif
 
             protected:
-                virtual void _add_flags_to_packet(
-                    const response_ptr_t& resp ) {
+                virtual void _postprocess_packet( response_ptr_t& resp ) {}
+
+                virtual void _add_flags_to_packet( response_ptr_t& resp ) {
                     for (auto flag : _flags) {
                         NCPA_DEBUG << this->tag() << ": adding flag " << flag
                                    << std::endl;
@@ -630,55 +688,39 @@ namespace NCPA {
                     }
                 }
 
+                virtual packet_processing_result_t _process_command_packet(
+                    const CommandPacket *packet_ptr,
+                    std::vector<std::string>& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        message.push_back(
+                            this->tag() + " does not process any commands." );
+                        return packet_processing_result_t::FAILURE_NO_PRODUCT;
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
+                }
+
                 virtual packet_processing_result_t
                     _process_configuration_complete_packet(
                         const ConfigurationCompletePacket *packet_ptr,
-                        std::string& message ) {
+                        std::vector<std::string>& message ) {
                     CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
-                    if (this->apply_configuration()) {
+                    if (this->apply_configuration( message )) {
                         return packet_processing_result_t::SUCCESS_NO_PRODUCT;
                     } else {
                         std::ostringstream oss;
                         oss << "Configuration failure in " << this->tag();
-                        message = oss.str();
+                        message.push_back( oss.str() );
                         return packet_processing_result_t::FAILURE_NO_PRODUCT;
-                    }
-                }
-
-                virtual packet_processing_result_t
-                    _process_data_request_packet(
-                        const DataRequestPacket *packet_ptr,
-                        std::string& message ) {
-                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
-                    if (packet_ptr->tag() == this->tag()) {
-                        return (
-                            this->product_available()
-                                ? packet_processing_result_t::SUCCESS_PRODUCT
-                                : packet_processing_result_t::
-                                      FAILURE_NO_PRODUCT );
-                    } else {
-                        return packet_processing_result_t::
-                            PACKET_NOT_APPLICABLE;
-                    }
-                }
-
-                virtual packet_processing_result_t
-                    _process_state_request_packet(
-                        const StateRequestPacket *packet_ptr,
-                        std::string& message ) {
-                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
-                    if (packet_ptr->tag() == this->tag()) {
-                        return packet_processing_result_t::SUCCESS_NO_PRODUCT;
-                    } else {
-                        return packet_processing_result_t::
-                            PACKET_NOT_APPLICABLE;
                     }
                 }
 
                 virtual packet_processing_result_t
                     _process_configuration_packet(
                         const ConfigurationPacket *packet_ptr,
-                        std::string& message ) {
+                        std::vector<std::string>& message ) {
                     CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
                     if (packet_ptr->tag() != this->tag()) {
                         return packet_processing_result_t::
@@ -698,32 +740,14 @@ namespace NCPA {
                     std::ostringstream oss;
                     oss << "No parameter " << packet_ptr->parameter().key()
                         << " found in " << packet_ptr->tag() << "!";
-                    message = oss.str();
+                    message.push_back( oss.str() );
                     return packet_processing_result_t::FAILURE_NO_PRODUCT;
-                }
-
-                virtual packet_processing_result_t _process_other_packet(
-                    InputPacket& packet, std::string& message ) {
-                    return packet_processing_result_t::PACKET_NOT_APPLICABLE;
-                }
-
-                virtual packet_processing_result_t _process_reset_packet(
-                    const ResetPacket *packet_ptr, std::string& message ) {
-                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr );
-                    if (packet_ptr->tag() == ""
-                        || packet_ptr->tag() == this->tag()) {
-                        this->reset();
-                        return packet_processing_result_t::SUCCESS;
-                    } else {
-                        return packet_processing_result_t::
-                            PACKET_NOT_APPLICABLE;
-                    }
                 }
 
                 virtual packet_processing_result_t
                     _process_configuration_query_packet(
                         const ConfigurationQueryPacket *packet_ptr,
-                        std::string& message ) {
+                        std::vector<std::string>& message ) {
                     CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
                     ParameterTree tree = packet_ptr->parameters();
                     std::vector<parameter_ptr_t> paramset;
@@ -736,23 +760,93 @@ namespace NCPA {
                     return packet_processing_result_t::SUCCESS_PRODUCT;
                 }
 
-                virtual response_ptr_t _build_error_packet(
-                    const std::string& msg ) const {
-                    return response_ptr_t(
-                        new ErrorPacket( this->tag(), msg ) );
+                virtual packet_processing_result_t
+                    _process_data_request_packet(
+                        const DataRequestPacket *packet_ptr,
+                        std::vector<std::string>& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        return (
+                            this->product_available()
+                                ? packet_processing_result_t::SUCCESS_PRODUCT
+                                : packet_processing_result_t::
+                                      FAILURE_NO_PRODUCT );
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
                 }
 
+                virtual packet_processing_result_t _process_other_packet(
+                    InputPacket& packet, std::vector<std::string>& message ) {
+                    return packet_processing_result_t::PACKET_NOT_APPLICABLE;
+                }
+
+                virtual packet_processing_result_t _process_reset_packet(
+                    const ResetPacket *packet_ptr,
+                    std::vector<std::string>& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr );
+                    if (packet_ptr->tag() == ""
+                        || packet_ptr->tag() == this->tag()) {
+                        this->reset();
+                        return packet_processing_result_t::SUCCESS;
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
+                }
+
+                virtual packet_processing_result_t _process_run_tests_packet(
+                    const RunTestsPacket *packet_ptr,
+                    std::vector<std::string>& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        return ( this->run_tests( message )
+                                     ? packet_processing_result_t::
+                                           SUCCESS_NO_PRODUCT
+                                     : packet_processing_result_t::
+                                           FAILURE_NO_PRODUCT );
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
+                }
+
+                virtual packet_processing_result_t
+                    _process_state_request_packet(
+                        const StateRequestPacket *packet_ptr,
+                        std::vector<std::string>& message ) {
+                    CHECK_PACKET_POINTER_NOT_NULL( packet_ptr )
+                    if (packet_ptr->tag() == this->tag()) {
+                        return packet_processing_result_t::SUCCESS_NO_PRODUCT;
+                    } else {
+                        return packet_processing_result_t::
+                            PACKET_NOT_APPLICABLE;
+                    }
+                }
+
+                virtual response_ptr_t _build_error_packet(
+                    const std::vector<std::string>& msg ) const {
+                    return response_ptr_t(
+                        new ErrorPacket( this->tag(), NCPA::strings::join(msg) ) );
+                }
+
+                // override if stateful
                 virtual response_ptr_t _build_state_packet() const {
-                    return ResponsePacket::build(
-                        response_id_t::ERROR, this->tag(),
+                    return this->response(
+                        response_id_t::ERROR,
                         "State requested from non-stateful step" );
                 }
 
                 // implemented in ProcessingStep
                 virtual response_ptr_t _build_product_packet() const = 0;
+                virtual response_ptr_t _build_product_packet_from_input() const
+                    = 0;
                 virtual input_ptr_t _build_next_input_packet() const = 0;
+                virtual input_ptr_t _ditto_input_packet() const      = 0;
                 virtual packet_processing_result_t _process_data_packet(
-                    InputPacket& packet, std::string& message ) = 0;
+                    InputPacket& packet, std::vector<std::string>& message )
+                    = 0;
 
                 std::vector<parameter_ptr_t> _parameters;
                 std::string _tag;
@@ -763,16 +857,3 @@ namespace NCPA {
         };
     }  // namespace processing
 }  // namespace NCPA
-
-// void swap( NCPA::processing::AbstractProcessingStep& a,
-//            NCPA::processing::AbstractProcessingStep& b ) noexcept {
-//     using std::swap;
-//     swap( a._next, b._next );
-//     swap( a._parameters, b._parameters );
-//     swap( a._tag, b._tag );
-//     swap( a._configuration_changed, b._configuration_changed );
-//     swap( a._treat_as_last, b._treat_as_last );
-//     swap( a._flags, b._flags );
-// }
-
-// #pragma pop_macro( "CHECK_PACKET_POINTER_NOT_NULL" )

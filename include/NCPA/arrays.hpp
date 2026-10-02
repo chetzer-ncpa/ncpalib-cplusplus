@@ -183,6 +183,11 @@ static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
 namespace NCPA {
     namespace arrays {
 
+        template<typename T>
+        std::vector<T> vectorify( const T& val ) {
+            return std::vector<T>( 1, val );
+        }
+
         /**
          * @class vector2d_t
          * @brief A resizable 2D vector class.

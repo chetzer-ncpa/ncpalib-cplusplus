@@ -3,6 +3,7 @@
 #include "NCPA/processing/DataWrapper.hpp"
 #include "NCPA/processing/declarations.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
+#include "NCPA/strings.hpp"
 
 #include <memory>
 #include <sstream>
@@ -17,16 +18,16 @@ namespace NCPA::processing {
             ResponsePacket( response_id_t id ) : Packet(), _ID { id } {}
 
             ResponsePacket( response_id_t id, const std::string& tag ) :
-                Packet( tag ), _ID { id }, _message { "" } {}
+                Packet( tag ), _ID { id }, _messages { "" } {}
 
             ResponsePacket( response_id_t id, const std::string& tag,
-                            const std::string& message ) :
-                Packet( tag ), _ID { id }, _message { message } {}
+                            const std::vector<std::string>& message ) :
+                Packet( tag ), _ID { id }, _messages { message } {}
 
             ResponsePacket( const ResponsePacket& other ) :
                 Packet( other ),
                 _ID { other._ID },
-                _message { other._message },
+                _messages { other._messages },
                 _flags { other._flags } {}
 
             virtual ~ResponsePacket() {}
@@ -34,9 +35,9 @@ namespace NCPA::processing {
             friend void swap( ResponsePacket& a, ResponsePacket& b ) noexcept {
                 using std::swap;
                 swap( dynamic_cast<NCPA::processing::Packet&>( a ),
-                        dynamic_cast<NCPA::processing::Packet&>( b ) );
+                      dynamic_cast<NCPA::processing::Packet&>( b ) );
                 swap( a._ID, b._ID );
-                swap( a._message, b._message );
+                swap( a._messages, b._messages );
                 swap( a._flags, b._flags );
             }
 
@@ -46,11 +47,10 @@ namespace NCPA::processing {
 
             std::string message() const {
                 std::ostringstream oss;
-                oss << _message << "\n" << "Flags:" << "\n";
-                for (auto f : _flags) {
-                    oss << f << std::endl;
+                oss << NCPA::strings::join( _messages, "\n" );
+                if (!_flags.empty()) {
+                    oss << "\nFlags:\n" << NCPA::strings::join( _flags, "\n" );
                 }
-
                 return oss.str();
             }
 
@@ -70,28 +70,21 @@ namespace NCPA::processing {
                 return response_ptr_t( new ResponsePacket( ID ) );
             }
 
-            static response_ptr_t build( response_id_t ID, const std::string& tag ) {
+            static response_ptr_t build( response_id_t ID,
+                                         const std::string& tag ) {
                 return response_ptr_t( new ResponsePacket( ID, tag ) );
             }
 
-            static response_ptr_t build( response_id_t ID, const std::string& tag,
-                            const std::string& message ) {
-                return response_ptr_t( new ResponsePacket( ID, tag, message ) );
+            static response_ptr_t build( response_id_t ID,
+                                         const std::string& tag,
+                                         const std::vector<std::string>& message ) {
+                return response_ptr_t(
+                    new ResponsePacket( ID, tag, message ) );
             }
 
         private:
             response_id_t _ID;
-            std::string _message;
+            std::vector<std::string> _messages;
             std::vector<std::string> _flags;
     };
 }  // namespace NCPA::processing
-
-// inline void swap( NCPA::processing::ResponsePacket& a,
-//                   NCPA::processing::ResponsePacket& b ) noexcept {
-//     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::Packet&>( a ),
-//             dynamic_cast<NCPA::processing::Packet&>( b ) );
-//     swap( a._ID, b._ID );
-//     swap( a._message, b._message );
-//     swap( a._flags, b._flags );
-// }

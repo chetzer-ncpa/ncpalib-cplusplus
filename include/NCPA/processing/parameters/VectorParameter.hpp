@@ -20,6 +20,8 @@ namespace NCPA {
         template<typename T>
         class VectorParameter : public Parameter {
             public:
+                VectorParameter() = default;
+
                 VectorParameter( const std::string& key,
                                  const std::vector<T>& value,
                                  const std::string& description = "" ) :
@@ -33,12 +35,11 @@ namespace NCPA {
 
                 virtual ~VectorParameter() {}
 
-                friend void swap(
-                    NCPA::processing::VectorParameter<T>& a,
-                    NCPA::processing::VectorParameter<T>& b ) noexcept {
+                friend void swap( VectorParameter<T>& a,
+                                  VectorParameter<T>& b ) noexcept {
                     using std::swap;
-                    swap( dynamic_cast<NCPA::processing::Parameter&>( a ),
-                          dynamic_cast<NCPA::processing::Parameter&>( b ) );
+                    swap( static_cast<Parameter&>( a ),
+                          static_cast<Parameter&>( b ) );
                 }
 
                 virtual Parameter& clear() override {

@@ -14,17 +14,13 @@ namespace NCPA {
             : public ProductPacket<T>,
               public std::enable_shared_from_this<StatePacket<T>> {
             public:
-                StatePacket() : ProductPacket<T>() {
+                StatePacket() {
                     this->id() = response_id_t::STATE;
                 }
 
                 StatePacket( const T& in ) : ProductPacket<T>( in ) {}
 
                 StatePacket( const Stateful<T>& s ) : StatePacket<T>( s.state() ) {}
-
-                // StatePacket( const AbstractProcessingStep& in ) :
-                //     ResponsePacket( response_id_t::STATE, in.tag() ),
-                //     _ptr { &in } {}
 
                 StatePacket( const StatePacket<T>& other ) :
                     ProductPacket<T>( other ) {}
