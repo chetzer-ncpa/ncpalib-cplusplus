@@ -18,36 +18,37 @@
 
 namespace NCPA {
     namespace processing {
-        class DoubleVectorParameter : public VectorParameter<double> {
+        class DoubleVectorParameter
+            : public Cloneable<DoubleVectorParameter,
+                               VectorParameter<double>> {
             public:
+                DoubleVectorParameter() = default;
+
                 DoubleVectorParameter( const std::string& key,
                                        const std::vector<double>& value,
                                        const std::string& description = "" ) :
-                    VectorParameter<double>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 DoubleVectorParameter( const std::string& key,
                                        std::initializer_list<double>& value,
                                        const std::string& description = "" ) :
-                    VectorParameter<double>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 virtual ~DoubleVectorParameter() {}
 
-                friend void swap(
-                    NCPA::processing::DoubleVectorParameter& a,
-                    NCPA::processing::DoubleVectorParameter& b ) noexcept {
+                friend void swap( DoubleVectorParameter& a,
+                                  DoubleVectorParameter& b ) noexcept {
                     using std::swap;
-                    swap(
-                        dynamic_cast<
-                            NCPA::processing::VectorParameter<double>&>( a ),
-                        dynamic_cast<
-                            NCPA::processing::VectorParameter<double>&>( b ) );
+                    swap( static_cast<cloneable_t&>( a ),
+                          static_cast<cloneable_t&>( b ) );
                 }
 
-                virtual std::unique_ptr<Parameter> clone() const override {
-                    return std::unique_ptr<Parameter>(
-                        new DoubleVectorParameter( this->key(), this->value(),
-                                                   this->description() ) );
-                }
+                // virtual std::unique_ptr<Parameter> clone() const override {
+                //     return std::unique_ptr<Parameter>(
+                //         new DoubleVectorParameter( this->key(),
+                //         this->value(),
+                //                                    this->description() ) );
+                // }
 
                 virtual parameter_type_t data_type() const override {
                     return parameter_type_t::FLOAT;
@@ -119,6 +120,12 @@ namespace NCPA {
                     return std::unique_ptr<Parameter>(
                         new DoubleVectorParameter( key, value ) );
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) override {
+                    this->set( json.at( "value" ).get<std::vector<double>>() );
+                }
+#endif
         };
     }  // namespace processing
 }  // namespace NCPA

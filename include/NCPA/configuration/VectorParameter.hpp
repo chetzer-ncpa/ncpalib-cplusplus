@@ -13,8 +13,7 @@ namespace NCPA {
 
         namespace hidden {
             template<typename PARAMTYPE>
-            class _base_vector_parameter
-                : public TypedParameter<PARAMTYPE> {
+            class _base_vector_parameter : public TypedParameter<PARAMTYPE> {
                 public:
                     _base_vector_parameter() {}
 
@@ -128,12 +127,15 @@ namespace NCPA {
                         swap( a._value, b._value );
                     }
 
-                    virtual std::string as_string() const override {
-                        return this->_as_string();
+                    virtual std::string as_string( bool throw_on_error
+                                                   = false ) const override {
+                        return this->_as_string( throw_on_error );
                     }
 
-                    virtual std::string as_string( size_t n ) const override {
-                        return this->_as_string( n );
+                    virtual std::string as_string( size_t n,
+                                                   bool throw_on_error
+                                                   = false ) const override {
+                        return this->_as_string( n, throw_on_error );
                     }
 
                     virtual parameter_form_t form() const override {
@@ -183,7 +185,8 @@ namespace NCPA {
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<std::is_same<T, bool>::value,
                                             std::string>::type
-                        _as_string( size_t n ) const {
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
                         return ( this->get( n ) ? "true" : false );
                     }
 
@@ -191,7 +194,8 @@ namespace NCPA {
                     typename std::enable_if<
                         std::is_convertible<T, std::string>::value,
                         std::string>::type
-                        _as_string( size_t n ) const {
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
                         std::string s = this->get( n );
                         return s;
                     }
@@ -201,7 +205,8 @@ namespace NCPA {
                         ( !( std::is_convertible<T, std::string>::value )
                           && NCPA::types::has_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n ) const {
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
                         return this->get( n ).to_string();
                     }
 
@@ -212,7 +217,8 @@ namespace NCPA {
                           && !( NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n ) const {
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
                         return std::to_string( this->get( n ) );
                     }
 
@@ -224,7 +230,8 @@ namespace NCPA {
                                 || NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n ) const {
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
                         return to_string( this->get( n ) );
                     }
 
@@ -236,10 +243,14 @@ namespace NCPA {
                            || NCPA::types::has_to_string<T>::value
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
-                        return "<no string conversion defined>";
-                        // throw std::out_of_range(
-                        //     "No as_string() conversion defined!" );
+                        _as_string( size_t n            = 0,
+                                    bool throw_on_error = false ) const {
+                        if (throw_on_error) {
+                            throw std::out_of_range(
+                                "No as_string() conversion defined!" );
+                        } else {
+                            return "<no string conversion defined>";
+                        }
                     }
             };
         }  // namespace hidden
@@ -394,14 +405,17 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual double as_double( size_t n ) const override {
@@ -637,19 +651,17 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return std::to_string( this->get( n ) );
-                // }
-
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -885,19 +897,17 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return std::to_string( this->get( n ) );
-                // }
-
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual double as_double( size_t n = 0 ) const override {
@@ -1121,19 +1131,17 @@ namespace NCPA {
                     return this->get( n );
                 }
 
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     return ( this->get( n ) ? "true" : "false" );
-                // }
-
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual long long as_int( size_t n = 0 ) const override {
@@ -1377,21 +1385,18 @@ namespace NCPA {
                     return ( s == "true" );
                 }
 
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
-
-                // virtual std::string as_string( size_t n = 0 ) const override
-                // {
-                //     std::string s = this->get( n );
-                //     return s;
-                // }
 
                 virtual long long as_int( size_t n = 0 ) const override {
                     return std::stoll( this->get( n ) );
@@ -1630,12 +1635,15 @@ namespace NCPA {
                     return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     std::ostringstream oss;
                     oss << std::to_string( this->get( n ).real() ) << " "
                         << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
@@ -1894,14 +1902,17 @@ namespace NCPA {
                         "No as_bool() conversion defined!" );
                 }
 
-                virtual std::string as_string() const override {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string();
+                    return this->_as_string( throw_on_error );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
                     // return std::to_string( this->get( n ) );
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual long long as_int( size_t n = 0 ) const override {

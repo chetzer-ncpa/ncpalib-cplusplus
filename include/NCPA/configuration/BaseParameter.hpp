@@ -4,6 +4,7 @@
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/ValidationTest.hpp"
 #include "NCPA/configuration/ValidationTestSuite.hpp"
+// #include "NCPA/json.hpp"
 #include "NCPA/units.hpp"
 
 #include <string>
@@ -56,8 +57,8 @@ namespace NCPA {
 
                 virtual long long as_int() const { return this->as_int( 0 ); }
 
-                virtual std::string as_string() const {
-                    return this->as_string( 0 );
+                virtual std::string as_string(bool throw_on_error = false) const {
+                    return this->as_string( 0, throw_on_error );
                 }
 
                 virtual unsigned long long as_unsigned_int() const {
@@ -112,14 +113,56 @@ namespace NCPA {
 
                 virtual bool was_set() const { return true; }
 
+// #if HAVE_NCPA_JSON
+//                 virtual NCPA::json::JSONItem as_json( const std::string& key, const std::string& comment = "" ) const {
+//                     if (this->is_scalar()) {
+//                     switch (this->json_type()) {
+//                         case NCPA::json::json_type_t::BOOLEAN:
+//                             return NCPA::json::JSONItem( key, this->as_bool(), this->json_form(), this->json_type(), comment );
+//                     }
+//                 }
+//                 }
+
+//                 virtual NCPA::json::json_form_t json_form() const {
+//                     switch (this->form()) {
+//                         case parameter_form_t::SCALAR:
+//                             return NCPA::json::json_form_t::SCALAR;
+//                         case parameter_form_t::VECTOR:
+//                             return NCPA::json::json_form_t::VECTOR;
+//                         default:
+//                             throw std::out_of_range(
+//                                 "Parameter form not set" );
+//                     }
+//                 }
+
+//                 virtual NCPA::json::json_type_t json_type() const {
+//                     switch (this->type()) {
+//                         case parameter_type_t::BOOLEAN:
+//                             return NCPA::json::json_type_t::BOOLEAN;
+//                         case parameter_type_t::FLOAT:
+//                             return NCPA::json::json_type_t::FLOAT;
+//                         case parameter_type_t::INTEGER:
+//                             return NCPA::json::json_type_t::INTEGER;
+//                         case parameter_type_t::STRING:
+//                             return NCPA::json::json_type_t::STRING;
+//                         default:
+//                             // this will throw if it can't be done
+//                             std::string s = this->as_string( true );
+//                             return NCPA::json::json_type_t::STRING;
+//                     }
+//                 }
+// #endif
+
                 // abstract API
                 virtual bool as_bool( size_t n ) const                    = 0;
                 virtual std::complex<double> as_complex( size_t n ) const = 0;
                 virtual double as_double( size_t n ) const                = 0;
                 virtual long long as_int( size_t n ) const                = 0;
-                virtual std::string as_string( size_t n ) const           = 0;
+                virtual std::string as_string( size_t n, bool throw_on_error
+                                                         = false ) const  = 0;
                 virtual unsigned long long as_unsigned_int( size_t n ) const
                     = 0;
+
 
                 virtual BaseParameter& add_test( Validation& v )      = 0;
                 virtual BaseParameter& add_test( Validation&& v )     = 0;

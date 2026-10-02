@@ -47,6 +47,38 @@ namespace NCPA {
                                     NCPA::constants::one<T>() );
         }
 
+        static std::vector<double> sinewave( size_t N, double freq,
+                                             double samprate,
+                                             double amplitude = 1.0,
+                                             double phase     = 0.0 ) {
+            std::vector<double> wave( N );
+            for (size_t i = 0; i < N; ++i) {
+                wave[ i ] = amplitude
+                          * std::sin( 2.0 * pi<double>() * freq * (double)i
+                                          / samprate
+                                      + phase );
+            }
+            return wave;
+        }
+
+        static std::vector<double> cosinewave( size_t N, double freq,
+                                               double samprate,
+                                               double amplitude = 1.0,
+                                               double phase     = 0.0 ) {
+            std::vector<double> wave( N );
+            for (size_t i = 0; i < N; ++i) {
+                wave[ i ] = amplitude
+                          * std::cos( 2.0 * pi<double>() * freq * (double)i
+                                          / samprate
+                                      + phase );
+            }
+            return wave;
+        }
+
+        static int round( double d ) {
+            return static_cast<int>( d + 0.50000000000001 );
+        }
+
         template<typename T>
         bool equals( T x, T y, size_t n = 1,
                      ENABLE_FUNCTION_IF_ARITHMETIC( T ) ) {
@@ -126,18 +158,19 @@ namespace NCPA {
             return n * n;
         }
 
-        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
         T inverse( T val ) {
-            return ((T)1.0) / val;
+            return ( (T)1.0 ) / val;
         }
 
         template<typename T>
         std::complex<T> inverse( std::complex<T> val ) {
-            T denominator = val.real() * val.real() + val.imag()*val.imag();
-            return std::complex<T>( val.real() / denominator, -val.imag() / denominator );
+            T denominator = val.real() * val.real() + val.imag() * val.imag();
+            return std::complex<T>( val.real() / denominator,
+                                    -val.imag() / denominator );
         }
 
-        template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
+        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
         bool within( const T& val1, const T& val2, const T& tol ) {
             return ( std::abs( val1 - val2 ) <= std::abs( tol ) );
         }
@@ -149,10 +182,10 @@ namespace NCPA {
         bool within( const std::complex<T>& val1, const std::complex<T>& val2,
                      const T& tol ) {
             return ( std::abs( val1.real() - val2.real() ) <= std::abs( tol )
-                     && std::abs( val1.imag() - val2.imag() ) <= std::abs( tol ) );
+                     && std::abs( val1.imag() - val2.imag() )
+                            <= std::abs( tol ) );
         }
 
-        
         /**
          * Finds and returns the indices of the array elements before and after
          * the supplied value.
@@ -1160,7 +1193,7 @@ namespace NCPA {
                         // Initial use a simple upperbound for EPS until we get
                         // closer to the root
                         eps    = 6 * n * f0
-                            * std::pow( (double)_DBL_RADIX, -DBL_MANT_DIG );
+                               * std::pow( (double)_DBL_RADIX, -DBL_MANT_DIG );
                         // Start the iteration
                         while (z + dz != z && f > eps) {
                             f1z = horner( n - 1, a1, z );
@@ -1179,7 +1212,7 @@ namespace NCPA {
                                 if (r > r0) {
                                     dz *= std::complex<double>( 0.6, 0.8 )
                                         * ( r0 / r );
-                                    r = std::abs( dz );
+                                    r   = std::abs( dz );
                                 }
                                 r0 = 5 * r;
                             }

@@ -195,7 +195,8 @@ namespace NCPA {
                          typename std::enable_if<
                              NCPA::types::has_to_string<T>::value, int>::type
                          = 0>
-                std::string _as_string( size_t n = 0 ) const {
+                std::string _as_string( size_t n            = 0,
+                                        bool throw_on_error = false ) const {
                     return to_string( this->get( n ) );
                 }
 
@@ -203,9 +204,14 @@ namespace NCPA {
                          typename std::enable_if<
                              !( NCPA::types::has_to_string<T>::value ),
                              int>::type = 0>
-                std::string _as_string( size_t n = 0 ) const {
-                    throw std::out_of_range(
-                        "No as_string() conversion defined!" );
+                std::string _as_string( size_t n            = 0,
+                                        bool throw_on_error = false ) const {
+                    if (throw_on_error) {
+                        throw std::out_of_range(
+                            "No as_string() conversion defined!" );
+                    } else {
+                        return "<no string conversion defined>";
+                    }
                 }
         };
     }  // namespace config

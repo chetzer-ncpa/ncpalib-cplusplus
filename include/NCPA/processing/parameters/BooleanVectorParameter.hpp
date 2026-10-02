@@ -18,36 +18,34 @@
 
 namespace NCPA {
     namespace processing {
-        class BooleanVectorParameter : public VectorParameter<bool> {
+        class BooleanVectorParameter
+            : public Cloneable<BooleanVectorParameter, VectorParameter<bool>> {
             public:
+            BooleanVectorParameter() = default;
                 BooleanVectorParameter( const std::string& key,
                                         const std::vector<bool>& value,
                                         const std::string& description = "" ) :
-                    VectorParameter<bool>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 BooleanVectorParameter( const std::string& key,
                                         std::initializer_list<bool>& value,
                                         const std::string& description = "" ) :
-                    VectorParameter<bool>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 virtual ~BooleanVectorParameter() {}
 
-                friend void swap(
-                    NCPA::processing::BooleanVectorParameter& a,
-                    NCPA::processing::BooleanVectorParameter& b ) noexcept {
+                friend void swap( BooleanVectorParameter& a,
+                                  BooleanVectorParameter& b ) noexcept {
                     using std::swap;
-                    swap(
-                        dynamic_cast<NCPA::processing::VectorParameter<bool>&>(
-                            a ),
-                        dynamic_cast<NCPA::processing::VectorParameter<bool>&>(
-                            b ) );
+                    swap( static_cast<cloneable_t&>( a ),
+                          static_cast<cloneable_t&>( b ) );
                 }
 
-                virtual std::unique_ptr<Parameter> clone() const override {
-                    return std::unique_ptr<Parameter>(
-                        new BooleanVectorParameter( this->key(), this->value(),
-                                                    this->description() ) );
-                }
+                // virtual std::unique_ptr<Parameter> clone() const override {
+                //     return std::unique_ptr<Parameter>(
+                //         new BooleanVectorParameter( this->key(), this->value(),
+                //                                     this->description() ) );
+                // }
 
                 virtual parameter_type_t data_type() const override {
                     return parameter_type_t::BOOLEAN;
@@ -115,6 +113,12 @@ namespace NCPA {
                     return std::unique_ptr<Parameter>(
                         new BooleanVectorParameter( key, value ) );
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) override {
+                    this->set( json.at( "value" ).get<std::vector<bool>>() );
+                }
+#endif
         };
     }  // namespace processing
 }  // namespace NCPA

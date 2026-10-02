@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA/arrays.hpp"
 #include "NCPA/processing/declarations.hpp"
 // #include "NCPA/processing/packets.hpp"
 #include "NCPA/processing/packets/ResponsePacket.hpp"
@@ -18,7 +19,8 @@ namespace NCPA {
 
                 ErrorPacket( const std::string& tag,
                              const std::string& message ) :
-                    ResponsePacket( response_id_t::WARNING, tag, message ) {}
+                    ResponsePacket( response_id_t::WARNING, tag,
+                                    NCPA::arrays::vectorify( message ) ) {}
 
                 ErrorPacket( const ErrorPacket& other ) :
                     ResponsePacket( other ), _ptr { other._ptr } {}

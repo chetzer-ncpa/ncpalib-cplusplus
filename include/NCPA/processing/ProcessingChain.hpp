@@ -3,10 +3,7 @@
 #include "NCPA/processing/AbstractProcessingStep.hpp"
 #include "NCPA/processing/DataWrapper.hpp"
 #include "NCPA/processing/declarations.hpp"
-
-template<typename intype, typename outtype>
-void swap( NCPA::processing::ProcessingChain<intype, outtype>& a,
-           NCPA::processing::ProcessingChain<intype, outtype>& b ) noexcept;
+#include "NCPA/processing/packets/RunTestsPacket.hpp"
 
 namespace NCPA::processing {
     template<typename intype, typename outtype>
@@ -28,17 +25,15 @@ namespace NCPA::processing {
 
             ProcessingChain( ProcessingChain&& other ) noexcept :
                 ProcessingChain() {
-                ::swap( *this, other );
+                swap( *this, other );
             }
 
-            friend void ::swap<>(
-                ProcessingChain<intype, outtype>& a,
-                ProcessingChain<intype, outtype>& b ) noexcept;
-
-            // ProcessingChain& operator=( ProcessingChain other ) {
-            //     ::swap( *this, other );
-            //     return *this;
-            // }
+            friend void swap( ProcessingChain<intype, outtype>& a,
+                              ProcessingChain<intype, outtype>& b ) noexcept {
+                using std::swap;
+                swap( a._firstlink, b._firstlink );
+                swap( a._input, b._input );
+            }
 
             ProcessingChain& add_link( AbstractProcessingStep *link,
                                        const std::string& tag = "" ) {
@@ -50,6 +45,7 @@ namespace NCPA::processing {
                 } else {
                     _firstlink->last()->set_next( link );
                 }
+                _links[ tag ] = link;
                 return *this;
             }
 
@@ -57,21 +53,6 @@ namespace NCPA::processing {
                                        const std::string& tag = "" ) {
                 return this->add_link( &link, tag );
             }
-
-            // ProcessingChain& add_link( AbstractProcessingStep& link,
-            //                            const std::string_view& str ) {
-            //     return this->add_link( &link, std::string( str ) );
-            // }
-
-            // virtual std::string as_json_str( bool pretty  = false,
-            //                                  int n_indent = 1,
-            //                                  char tab     = '\t' ) {
-            //     if (pretty) {
-            //         return this->as_json_str_pretty( n_indent, tab );
-            //     } else {
-            //         return this->as_json_str_plain();
-            //     }
-            // }
 
             virtual std::string as_json( bool pretty   = false,
                                          size_t indent = 1, char tab = '\t' ) {
@@ -99,12 +80,22 @@ namespace NCPA::processing {
                      it != this->parameters().end(); ++it) {
                     out[ ( *it )->key() ] = ( *it )->as_json();
                 }
+                for (auto& it : _links) {
+                    out[ it.first ] = it.second->as_json();
+                }
                 return out;
             }
 
             virtual ProcessingChain<intype, outtype>& from_json(
                 nlohmann::json& json ) {
-                return this->from_json( json.dump( -1, 0, true ) );
+                // return this->from_json( json.dump( -1, 0, true ) );
+                for (auto& linkpair : _links) {
+                    linkpair.second->from_json( json.at( linkpair.first ) );
+                }
+                for (auto& param : _parameters) {
+                    param->from_json( json.at( param->key() ) );
+                }
+                return *this;
             }
 #else
             virtual std::string as_json_str_pretty( size_t n_indent = 0,
@@ -216,6 +207,23 @@ namespace NCPA::processing {
                 return this->process( *ResetPacket::build() )->ID();
             }
 
+            virtual bool run_tests( std::string& message, bool message_if_passed = true ) {
+                bool passed = true;
+                std::ostringstream oss;
+                for (auto& linkpair : _links) {
+                    response_ptr_t response = this->process(
+                        *RunTestsPacket::build( linkpair.first ) );
+                    if (response->ID() != response_id_t::TESTS_PASSED) {
+                        oss << linkpair.first << ": " << response->message() << "\n";
+                        passed = false;
+                    } else if (message_if_passed) {
+                        oss << linkpair.first << ": All tests passed.\n";
+                    }
+                }
+                message = oss.str();
+                return passed;
+            }
+
             response_id_t send_configuration( const std::string& tag,
                                               const parameter_ptr_t& param,
                                               bool throw_on_error = false ) {
@@ -231,6 +239,13 @@ namespace NCPA::processing {
                 }
             }
 
+            response_id_t send_configuration( const std::string& tag,
+                                              const Parameter *param,
+                                              bool throw_on_error = false ) {
+                return this->send_configuration( tag, param->clone(),
+                                                 throw_on_error );
+            }
+
             virtual ProcessingChain<intype, outtype>& define_parameters() = 0;
 #if HAVE_NLOHMANN_JSON_HPP
             virtual ProcessingChain<intype, outtype>& from_json(
@@ -243,18 +258,47 @@ namespace NCPA::processing {
 #endif
             virtual outtype& product() = 0;
 
+            virtual ProcessingChain<intype, outtype>&
+                define_passthrough_parameter(
+                    const std::string& module_key,
+                    const std::string& param_key_in,
+                    const std::string& param_key_out ) {
+                _passthrough.emplace_back( module_key, param_key_in,
+                                           param_key_out );
+                return *this;
+            }
 
-        private:
+            virtual ProcessingChain<intype, outtype>&
+                define_passthrough_parameter( const std::string& module_key,
+                                              const std::string& param_key ) {
+                _passthrough.emplace_back( module_key, param_key, param_key );
+                return *this;
+            }
+
+            virtual ProcessingChain<intype, outtype>& pass_parameters_through(
+                bool throw_on_error = false ) {
+                for (passthrough_parameter_t& param : _passthrough) {
+                    _pass_parameter_through( param, throw_on_error );
+                }
+                return *this;
+            }
+
+        protected:
+            virtual void _pass_parameter_through(
+                const passthrough_parameter_t& param,
+                bool throw_on_error = false ) {
+                this->send_configuration(
+                    param.tag,
+                    this->parameter( param.in_key )->clone_as( param.out_key ),
+                    throw_on_error );
+            }
+
+
+        protected:
             AbstractProcessingStep *_firstlink = nullptr;
             DataWrapper<intype> _input;
             std::vector<parameter_ptr_t> _parameters;
+            std::vector<passthrough_parameter_t> _passthrough;
+            std::unordered_map<std::string, AbstractProcessingStep *> _links;
     };
 }  // namespace NCPA::processing
-
-template<typename intype, typename outtype>
-void swap( NCPA::processing::ProcessingChain<intype, outtype>& a,
-           NCPA::processing::ProcessingChain<intype, outtype>& b ) noexcept {
-    using std::swap;
-    swap( a._firstlink, b._firstlink );
-    swap( a._input, b._input );
-}
