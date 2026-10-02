@@ -1,10 +1,38 @@
 /**
- * NCPA pointers library
+ * NCPA Cloneable interface
  * @version 1.0.0
  * @author Claus Hetzer
- * @date 2026-04-14
+ * @date 2026-09-29
  *
  * Implements a generic base for cloneable members.
+ *
+ * Conceptually, this library is used when you have a pure virtual base class
+ * and a number of derived classes that you want to be polymorphic with that
+ * class.  The base class should inherit from CloneBase thus:
+ *
+ * class AbstractBase : public CloneBase<AbstractBase> {};
+ *
+ * If it so happens that the base class is not pure virtual, use
+ * ConcreteCloneBase instead of CloneBase.
+ *
+ * Concrete derived classes should then inherit from Cloneable (pure virtual
+ * derived classes do not need to do anything special):
+ *
+ * class Derived : public Cloneable<Derived,Parent> {}
+ *
+ * where Parent is the immediate parent class, not the overall base class. This
+ * allows for all necessary constructor arguments, methods, etc. to be
+ * inherited properly.  Derived classes will have two methods available through
+ * the interface:
+ *
+ * std::unique_ptr<AbstractBase> clone() const;
+ * std::unique_ptr<AbstractBase> default_clone() const;
+ *
+ * The clone() method returns a unique_ptr to the base class containing a new
+ * instance of the derived class (using its copy constructor). The
+ * default_clone does the same except it uses the default constructor to create
+ * the copy.  All Cloneable and CloneBase classes must be default-constructible
+ * to enable this.
  */
 #pragma once
 
@@ -26,7 +54,8 @@ namespace NCPA {
             virtual std::unique_ptr<BASE> clone() const         = 0;
             virtual std::unique_ptr<BASE> default_clone() const = 0;
 
-            friend void swap( CloneBase<BASE>& a, CloneBase<BASE>& b ) noexcept {}
+            friend void swap( CloneBase<BASE>& a,
+                              CloneBase<BASE>& b ) noexcept {}
     };
 
     template<typename BASE>
@@ -47,7 +76,7 @@ namespace NCPA {
             }
 
             friend void swap( ConcreteCloneBase<BASE>& a,
-                       ConcreteCloneBase<BASE>& b ) noexcept {
+                              ConcreteCloneBase<BASE>& b ) noexcept {
                 using std::swap;
                 swap( static_cast<CloneBase<BASE>&>( a ),
                       static_cast<CloneBase<BASE>&>( b ) );
@@ -95,7 +124,6 @@ namespace NCPA {
                     "Cloneable classes must have a default constructor" );
                 return std::unique_ptr<typename BASE_OR_INTERFACE::BaseType>(
                     new DERIVED() );
-                // return std::unique_ptr<BASE>( new DERIVED() );
             }
     };
 

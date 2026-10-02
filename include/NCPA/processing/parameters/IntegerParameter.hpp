@@ -18,23 +18,22 @@
 
 namespace NCPA {
     namespace processing {
-        class IntegerParameter : public ScalarParameter<int> {
+        class IntegerParameter
+            : public Cloneable<IntegerParameter, ScalarParameter<int>> {
             public:
+                IntegerParameter() = default;
+
                 IntegerParameter( const std::string& key, int value,
                                   const std::string& description = "" ) :
-                    ScalarParameter<int>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 virtual ~IntegerParameter() {}
 
-                friend void swap(
-                    NCPA::processing::IntegerParameter& a,
-                    NCPA::processing::IntegerParameter& b ) noexcept {
+                friend void swap( IntegerParameter& a,
+                                  IntegerParameter& b ) noexcept {
                     using std::swap;
-                    swap(
-                        dynamic_cast<NCPA::processing::ScalarParameter<int>&>(
-                            a ),
-                        dynamic_cast<NCPA::processing::ScalarParameter<int>&>(
-                            b ) );
+                    swap( static_cast<cloneable_t&>( a ),
+                          static_cast<cloneable_t&>( b ) );
                 }
 
                 virtual Parameter& clear() override {
@@ -42,10 +41,11 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual std::unique_ptr<Parameter> clone() const override {
-                    return std::unique_ptr<Parameter>(
-                        new IntegerParameter( this->key(), this->value() ) );
-                }
+                // virtual std::unique_ptr<Parameter> clone() const override {
+                //     return std::unique_ptr<Parameter>(
+                //         new IntegerParameter( this->key(), this->value() )
+                //         );
+                // }
 
                 virtual parameter_type_t data_type() const override {
                     return parameter_type_t::INTEGER;
@@ -83,6 +83,12 @@ namespace NCPA {
                 virtual std::string data_type_str() const override {
                     return "integer";
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) override {
+                    this->set( json.at( "value" ).get<int>() );
+                }
+#endif
         };
     }  // namespace processing
 }  // namespace NCPA

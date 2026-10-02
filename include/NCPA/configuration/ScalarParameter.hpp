@@ -14,61 +14,6 @@ namespace NCPA {
             template<typename PARAMTYPE>
             class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
                 public:
-                    // using TypedParameter<PARAMTYPE>::init;
-
-                    // virtual void init( PARAMTYPE defaultval ) {
-                    //     _value = defaultval;
-                    // }
-
-                    // virtual void init(
-                    //     const std::vector<PARAMTYPE>& defaultval ) {
-                    //     _get_first_value_from_vector( defaultval );
-                    // }
-
-                    // virtual void init( PARAMTYPE defaultval,
-                    //                    const TypedValidation<PARAMTYPE>& v )
-                    //                    {
-                    //     init( v );
-                    //     init( defaultval );
-                    // }
-
-                    // virtual void init( PARAMTYPE defaultval,
-                    //                    const TypedValidation<PARAMTYPE> *v )
-                    //                    {
-                    //     init( v );
-                    //     init( defaultval );
-                    // }
-
-                    // virtual void init(
-                    //     PARAMTYPE defaultval,
-                    //     std::initializer_list<TypedValidation<PARAMTYPE>>
-                    //         tests ) {
-                    //     init( tests );
-                    //     init( defaultval );
-                    // }
-
-                    // virtual void init(
-                    //     const std::vector<PARAMTYPE>& defaultval,
-                    //     const TypedValidation<PARAMTYPE>& v ) {
-                    //     init( v );
-                    //     init( defaultval );
-                    // }
-
-                    // virtual void init(
-                    //     const std::vector<PARAMTYPE>& defaultval,
-                    //     const TypedValidation<PARAMTYPE> *v ) {
-                    //     init( v );
-                    //     init( defaultval );
-                    // }
-
-                    // virtual void init(
-                    //     const std::vector<PARAMTYPE>& defaultval,
-                    //     std::initializer_list<TypedValidation<PARAMTYPE>>
-                    //         tests ) {
-                    //     init( tests );
-                    //     init( defaultval );
-                    // }
-
                     _base_scalar_parameter() : TypedParameter<PARAMTYPE>() {}
 
                     _base_scalar_parameter( PARAMTYPE defaultval ) :
@@ -223,7 +168,7 @@ namespace NCPA {
                     typename std::enable_if<
                         NCPA::types::has_to_string<T>::value,
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
+                        _as_string( size_t n = 0, bool throw_on_error = false ) const {
                         return this->get( n ).to_string();
                     }
 
@@ -232,7 +177,7 @@ namespace NCPA {
                         ( !( NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
+                        _as_string( size_t n = 0, bool throw_on_error = false ) const {
                         return std::to_string( this->get( n ) );
                     }
 
@@ -242,7 +187,7 @@ namespace NCPA {
                              || NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
+                        _as_string( size_t n = 0, bool throw_on_error = false ) const {
                         return to_string( this->get( n ) );
                     }
 
@@ -252,10 +197,13 @@ namespace NCPA {
                            || NCPA::types::has_to_string<T>::value
                            || NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
-                        _as_string( size_t n = 0 ) const {
-                        return "<no string conversion defined>";
-                        // throw std::out_of_range(
-                        //     "No as_string() conversion defined!" );
+                        _as_string( size_t n = 0, bool throw_on_error = false ) const {
+                        if (throw_on_error) {
+                            throw std::out_of_range(
+                                "No as_string() conversion defined!" );
+                        } else {
+                            return "<no string conversion defined>";
+                        }
                     }
             };
         }  // namespace hidden
@@ -368,7 +316,7 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     return std::to_string( this->get( n ) );
                 }
 
@@ -547,7 +495,7 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     return std::to_string( this->get( n ) );
                 }
 
@@ -735,7 +683,7 @@ namespace NCPA {
                     return ( this->get( n ) != 0 );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     return std::to_string( this->get( n ) );
                 }
 
@@ -920,7 +868,7 @@ namespace NCPA {
                     return this->get( n );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     return ( this->get( n ) ? "true" : "false" );
                 }
 
@@ -1115,7 +1063,7 @@ namespace NCPA {
                     return ( s == "true" );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     std::string s = this->get( n );
                     return s;
                 }
@@ -1305,7 +1253,7 @@ namespace NCPA {
                     return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     std::ostringstream oss;
                     oss << std::to_string( this->get( n ).real() ) << " "
                         << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
@@ -1506,10 +1454,10 @@ namespace NCPA {
                         "No as_bool() conversion defined!" );
                 }
 
-                virtual std::string as_string( size_t n ) const override {
+                virtual std::string as_string( size_t n, bool throw_on_error = false ) const override {
                     // throw std::out_of_range("No as_string() conversion
                     // defined!");
-                    return this->_as_string( n );
+                    return this->_as_string( n, throw_on_error );
                 }
 
                 virtual long long as_int( size_t n ) const override {

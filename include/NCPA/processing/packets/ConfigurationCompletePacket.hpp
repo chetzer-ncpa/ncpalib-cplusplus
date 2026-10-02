@@ -2,10 +2,6 @@
 
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
-// #include "NCPA/processing/parameters.hpp"
-
-// void swap( NCPA::processing::ConfigurationCompletePacket& a,
-//            NCPA::processing::ConfigurationCompletePacket& b ) noexcept;
 
 namespace NCPA::processing {
     class ConfigurationCompletePacket : public InputPacket {
@@ -58,10 +54,3 @@ namespace NCPA::processing {
             }
     };
 }  // namespace NCPA::processing
-
-// void swap( NCPA::processing::ConfigurationCompletePacket& a,
-//            NCPA::processing::ConfigurationCompletePacket& b ) noexcept {
-//     using std::swap;
-//     ::swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-// }

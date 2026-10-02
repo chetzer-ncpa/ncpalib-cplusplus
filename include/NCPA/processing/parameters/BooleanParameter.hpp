@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA.hpp"
 #include "NCPA/processing/declarations.hpp"
 #include "NCPA/processing/parameters/declarations.hpp"
 #include "NCPA/processing/parameters/Parameter.hpp"
@@ -18,11 +19,14 @@
 
 namespace NCPA {
     namespace processing {
-        class BooleanParameter : public ScalarParameter<bool> {
+        class BooleanParameter
+            : public Cloneable<BooleanParameter, ScalarParameter<bool>> {
             public:
+                BooleanParameter() = default;
+
                 BooleanParameter( const std::string& key, bool value,
                                   const std::string& description = "" ) :
-                    ScalarParameter<bool>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 virtual ~BooleanParameter() {}
 
@@ -30,11 +34,8 @@ namespace NCPA {
                     NCPA::processing::BooleanParameter& a,
                     NCPA::processing::BooleanParameter& b ) noexcept {
                     using std::swap;
-                    swap(
-                        dynamic_cast<NCPA::processing::ScalarParameter<bool>&>(
-                            a ),
-                        dynamic_cast<NCPA::processing::ScalarParameter<bool>&>(
-                            b ) );
+                    swap( static_cast<cloneable_t&>( a ),
+                          static_cast<cloneable_t&>( b ) );
                 }
 
                 virtual Parameter& clear() override {
@@ -42,10 +43,10 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual std::unique_ptr<Parameter> clone() const override {
-                    return std::unique_ptr<Parameter>(
-                        new BooleanParameter( this->key(), this->value() ) );
-                }
+                // virtual std::unique_ptr<Parameter> clone() const override {
+                //     return std::unique_ptr<Parameter>(
+                //         new BooleanParameter( this->key(), this->value() ) );
+                // }
 
                 virtual parameter_type_t data_type() const override {
                     return parameter_type_t::BOOLEAN;
@@ -81,6 +82,12 @@ namespace NCPA {
                 virtual std::string data_type_str() const override {
                     return "boolean";
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) override {
+                    this->set( json.at( "value" ).get<bool>() );
+                }
+#endif
         };
     }  // namespace processing
 }  // namespace NCPA

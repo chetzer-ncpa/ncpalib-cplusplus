@@ -111,14 +111,9 @@ namespace NCPA::processing {
                 _internal.set( in.ptr() );
             }
 
-            // DataPacket( const DataPacket<T>& input ) : DataPacket<T>() {
-            //     _internal = input.ptr();
-            // }
-
             DataPacket( const DataPacket<T>& other ) : InputPacket( other ) {
                 _internal  = other._internal;
                 _data_time = other._data_time;
-                // _duration  = other._duration;
             }
 
             DataPacket( DataPacket<T>&& input ) noexcept : DataPacket<T>() {
@@ -129,11 +124,10 @@ namespace NCPA::processing {
 
             friend void swap( DataPacket<T>& a, DataPacket<T>& b ) noexcept {
                 using std::swap;
-                swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-                      dynamic_cast<NCPA::processing::InputPacket&>( b ) );
+                swap( dynamic_cast<InputPacket&>( a ),
+                      dynamic_cast<InputPacket&>( b ) );
                 swap( a._internal, b._internal );
                 swap( a._data_time, b._data_time );
-                // swap( a._duration, b._duration );
             }
 
             DataPacket<T>& operator=( DataPacket<T> other ) {
@@ -200,21 +194,7 @@ namespace NCPA::processing {
             }
 
         private:
-            // std::shared_ptr<T> _internal;
             DataWrapper<T> _internal;
             time_interval_t _data_time;
-            // duration_t _duration = duration_t::zero();
-            // time_point_t _data_time;
     };
 }  // namespace NCPA::processing
-
-// template<typename T>
-// void swap( NCPA::processing::DataPacket<T>& a,
-//              NCPA::processing::DataPacket<T>& b ) noexcept {
-//     using std::swap;
-//     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
-//             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
-//     swap( a._internal, b._internal );
-//     swap( a._data_time, b._data_time );
-//     // swap( a._duration, b._duration );
-// }

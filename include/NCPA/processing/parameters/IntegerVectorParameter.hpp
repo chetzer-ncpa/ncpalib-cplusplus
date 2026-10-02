@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NCPA.hpp"
 #include "NCPA/processing/declarations.hpp"
 #include "NCPA/processing/parameters/declarations.hpp"
 #include "NCPA/processing/parameters/Parameter.hpp"
@@ -18,36 +19,36 @@
 
 namespace NCPA {
     namespace processing {
-        class IntegerVectorParameter : public VectorParameter<int> {
+        class IntegerVectorParameter
+            : public Cloneable<IntegerVectorParameter, VectorParameter<int>> {
             public:
+                IntegerVectorParameter() = default;
+
                 IntegerVectorParameter( const std::string& key,
                                         const std::vector<int>& value,
                                         const std::string& description = "" ) :
-                    VectorParameter<int>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 IntegerVectorParameter( const std::string& key,
                                         std::initializer_list<int>& value,
                                         const std::string& description = "" ) :
-                    VectorParameter<int>( key, value, description ) {}
+                    cloneable_t( key, value, description ) {}
 
                 virtual ~IntegerVectorParameter() {}
 
-                friend void swap(
-                    NCPA::processing::IntegerVectorParameter& a,
-                    NCPA::processing::IntegerVectorParameter& b ) noexcept {
+                friend void swap( IntegerVectorParameter& a,
+                                  IntegerVectorParameter& b ) noexcept {
                     using std::swap;
-                    swap(
-                        dynamic_cast<NCPA::processing::VectorParameter<int>&>(
-                            a ),
-                        dynamic_cast<NCPA::processing::VectorParameter<int>&>(
-                            b ) );
+                    swap( static_cast<cloneable_t&>( a ),
+                          static_cast<cloneable_t&>( b ) );
                 }
 
-                virtual std::unique_ptr<Parameter> clone() const override {
-                    return std::unique_ptr<Parameter>(
-                        new IntegerVectorParameter( this->key(), this->value(),
-                                                    this->description() ) );
-                }
+                // virtual std::unique_ptr<Parameter> clone() const override {
+                //     return std::unique_ptr<Parameter>(
+                //         new IntegerVectorParameter( this->key(),
+                //         this->value(),
+                //                                     this->description() ) );
+                // }
 
                 virtual parameter_type_t data_type() const override {
                     return parameter_type_t::INTEGER;
@@ -119,6 +120,12 @@ namespace NCPA {
                     return std::unique_ptr<Parameter>(
                         new IntegerVectorParameter( key, value ) );
                 }
+
+#if HAVE_NLOHMANN_JSON_HPP
+                virtual void from_json( nlohmann::json& json ) override {
+                    this->set( json.at( "value" ).get<std::vector<int>>() );
+                }
+#endif
         };
     }  // namespace processing
 }  // namespace NCPA
