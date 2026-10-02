@@ -21,20 +21,21 @@ namespace NCPA {
 
         class BaseParameter : public virtual CloneBase<BaseParameter> {
             public:
-                BaseParameter() {}
+                BaseParameter( const std::string& tag         = "",
+                               const std::string& description = "" ) :
+                    _tag { tag }, _description { description } {}
 
-                BaseParameter( const BaseParameter& other ) {}
+                BaseParameter( const BaseParameter& other ) = default;
 
-                BaseParameter( BaseParameter&& other ) noexcept :
-                    BaseParameter() {
-                    swap( *this, other );
-                }
+                BaseParameter( BaseParameter&& other ) noexcept = default;
 
-                virtual ~BaseParameter() {}
+                virtual ~BaseParameter() = default;
 
                 friend void swap( BaseParameter& a,
                                   BaseParameter& b ) noexcept {
                     using std::swap;
+                    swap( a._tag, b._tag );
+                    swap( a._description, b._description );
                 }
 
                 virtual bool as_bool() const { return this->as_bool( 0 ); }
@@ -57,7 +58,8 @@ namespace NCPA {
 
                 virtual long long as_int() const { return this->as_int( 0 ); }
 
-                virtual std::string as_string(bool throw_on_error = false) const {
+                virtual std::string as_string( bool throw_on_error
+                                               = false ) const {
                     return this->as_string( 0, throw_on_error );
                 }
 
@@ -74,6 +76,8 @@ namespace NCPA {
                     return this->convert_units(
                         NCPA::units::Units::from_string( s ) );
                 }
+
+                std::string description() const { return _description; }
 
                 virtual double diff() const {
                     return ( this->size() > 1
@@ -107,51 +111,19 @@ namespace NCPA {
                              || res.result == test_result_t::PASSED );
                 }
 
+                virtual void set_description( const std::string& d ) {
+                    _description = d;
+                }
+
+                virtual void set_tag( const std::string& t ) { _tag = t; }
+
                 virtual void set_units( units_ptr_t u ) {
                     this->_check_has_units();
                 }
 
+                std::string tag() const { return _tag; }
+
                 virtual bool was_set() const { return true; }
-
-// #if HAVE_NCPA_JSON
-//                 virtual NCPA::json::JSONItem as_json( const std::string& key, const std::string& comment = "" ) const {
-//                     if (this->is_scalar()) {
-//                     switch (this->json_type()) {
-//                         case NCPA::json::json_type_t::BOOLEAN:
-//                             return NCPA::json::JSONItem( key, this->as_bool(), this->json_form(), this->json_type(), comment );
-//                     }
-//                 }
-//                 }
-
-//                 virtual NCPA::json::json_form_t json_form() const {
-//                     switch (this->form()) {
-//                         case parameter_form_t::SCALAR:
-//                             return NCPA::json::json_form_t::SCALAR;
-//                         case parameter_form_t::VECTOR:
-//                             return NCPA::json::json_form_t::VECTOR;
-//                         default:
-//                             throw std::out_of_range(
-//                                 "Parameter form not set" );
-//                     }
-//                 }
-
-//                 virtual NCPA::json::json_type_t json_type() const {
-//                     switch (this->type()) {
-//                         case parameter_type_t::BOOLEAN:
-//                             return NCPA::json::json_type_t::BOOLEAN;
-//                         case parameter_type_t::FLOAT:
-//                             return NCPA::json::json_type_t::FLOAT;
-//                         case parameter_type_t::INTEGER:
-//                             return NCPA::json::json_type_t::INTEGER;
-//                         case parameter_type_t::STRING:
-//                             return NCPA::json::json_type_t::STRING;
-//                         default:
-//                             // this will throw if it can't be done
-//                             std::string s = this->as_string( true );
-//                             return NCPA::json::json_type_t::STRING;
-//                     }
-//                 }
-// #endif
 
                 // abstract API
                 virtual bool as_bool( size_t n ) const                    = 0;
@@ -199,6 +171,9 @@ namespace NCPA {
                 virtual parameter_type_t type() const = 0;
 
             protected:
+                std::string _tag;
+                std::string _description;
+
                 virtual void _check_has_units() const {
                     if (NCPA_CONFIG_USE_STRICT_UNITS && !this->has_units()) {
                         throw std::logic_error(

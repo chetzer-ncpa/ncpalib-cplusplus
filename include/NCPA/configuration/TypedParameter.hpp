@@ -17,23 +17,11 @@ namespace NCPA {
             public:
                 using value_type = PARAMTYPE;
 
-                // init methods, one per constructor
-                // virtual void init( const TypedValidation<PARAMTYPE>& v ) {
-                //     _validations.push_back( v );
-                // }
-
-                // virtual void init( const TypedValidation<PARAMTYPE> *v ) {
-                //     init( *v );
-                // }
-
-                // virtual void init(
-                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
-                //     ) { for (auto& test : tests) {
-                //         _validations.push_back( test );
-                //     }
-                // }
-
                 explicit TypedParameter() : BaseParameter() {}
+
+                TypedParameter( const std::string& tag         = "",
+                                const std::string& description = "" ) :
+                    BaseParameter( tag, description ) {}
 
                 TypedParameter( const TypedValidation<PARAMTYPE>& v ) :
                     TypedParameter<PARAMTYPE>() {
@@ -81,23 +69,9 @@ namespace NCPA {
                     return parameter_type<PARAMTYPE>();
                 }
 
-                // virtual PARAMTYPE& value( size_t n = 0 )             = 0;
-                // virtual const PARAMTYPE& value( size_t n = 0 ) const = 0;
                 virtual PARAMTYPE get( size_t n = 0 ) const = 0;
 
-                // virtual ScalarWithUnits<PARAMTYPE> get_with_units(
-                //     size_t n = 0 ) const {
-                //     throw std::logic_error( "Parameter has no units defined"
-                //     );
-                // }
-
                 virtual std::vector<PARAMTYPE> get_vector() const = 0;
-
-                // virtual VectorWithUnits<PARAMTYPE> get_vector_with_units()
-                //     const {
-                //     throw std::logic_error( "Parameter has no units defined"
-                //     );
-                // }
 
                 template<typename ASTYPE,
                          typename std::enable_if<
@@ -216,11 +190,3 @@ namespace NCPA {
         };
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename T>
-// void swap( NCPA::config::TypedParameter<T>& a,
-//            NCPA::config::TypedParameter<T>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::BaseParameter&>( a ),
-//             static_cast<NCPA::config::BaseParameter&>( b ) );
-// }

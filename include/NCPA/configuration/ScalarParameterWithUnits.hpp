@@ -14,41 +14,10 @@ namespace NCPA {
         template<typename PARAMTYPE>
         class ScalarParameterWithUnits<
             PARAMTYPE, typename std::enable_if<
-                           std::is_floating_point<PARAMTYPE>::value>::type>
-            :  // public ScalarParameter<PARAMTYPE>,
+                           std::is_floating_point<PARAMTYPE>::value>::type> : 
                public Cloneable<ScalarParameterWithUnits<PARAMTYPE>,
                                 ScalarParameter<PARAMTYPE>> {
             public:
-                // using ScalarParameter<PARAMTYPE>::init;
-
-                // virtual void init( const ScalarWithUnits<PARAMTYPE>& u ) {
-                //     _uvalue = u;
-                // }
-
-                // virtual void init( const ScalarWithUnits<PARAMTYPE> *u ) {
-                //     init( *u );
-                // }
-
-                // virtual void init( const std::vector<PARAMTYPE>& defaultval
-                // ) {
-                //     init(( defaultval.empty() ? 0 : defaultval.at( 0 ) ))
-                // }
-
-                // virtual void init( const std::vector<PARAMTYPE>& defaultval,
-                //                    units_ptr_t u ) {
-                //     init( ScalarWithUnits<PARAMTYPE>(
-                //         ( defaultval.empty() ? 0 : defaultval.at( 0 ) ), u )
-                //         );
-                // }
-
-                // virtual void init(
-                //     const VectorWithUnits<PARAMTYPE>& defaultval ) {
-                //     init( defaultval.empty()
-                //               ? ScalarWithUnits<PARAMTYPE>(
-                //                     0.0, defaultval.get_units() )
-                //               : defaultval.get_scalar( 0 ) );
-                // }
-
                 ScalarParameterWithUnits() {}
 
                 ScalarParameterWithUnits( PARAMTYPE defaultval ) :
@@ -363,12 +332,3 @@ namespace NCPA {
         };
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename PARAMTYPE>
-// void swap( NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& a,
-//            NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( a ),
-//             static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( b ) );
-//     swap( a._uvalue, b._uvalue );
-// }

@@ -74,11 +74,5 @@ namespace NCPA {
                     return "false";
                 }
         };
-
-        // void swap( FlagArgument& a, FlagArgument& b ) noexcept {
-        //     using std::swap;
-        //     swap( static_cast<TypedArgument<bool>&>( a ),
-        //           static_cast<TypedArgument<bool>&>( b ) );
-        // }
     }  // namespace config
 }  // namespace NCPA

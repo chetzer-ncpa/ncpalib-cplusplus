@@ -1,6 +1,8 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/Parameter.hpp"
+#include "NCPA/extern.hpp"
 
 #include <memory>
 #include <string>
@@ -9,24 +11,20 @@
 namespace NCPA {
     namespace config {
 
-        class Argument {
+        class Argument : public StringParameter {
             public:
-                Argument() : Argument( "", "" ) {}
+                Argument() : Argument( "", "", false ) {}
 
-                // Argument( const std::string& tag ) : Argument( tag, "" ) {}
+                Argument( const std::string& tag, const std::string helptext,
+                          bool required = false ) : StringParameter( tag, helptext ),
+                    _required { required } {}
 
-                Argument( const std::string& tag,
-                          const std::string helptext ) :
-                    _tag { tag }, _help_text { helptext } {}
-
-                Argument( const Argument& other ) :
-                    _tag { other._tag },
-                    _help_text { other._help_text },
+                Argument( const Argument& other ) : StringParameter(other),
                     _required { other._required } {}
 
                 Argument( Argument&& other ) noexcept { swap( *this, other ); }
 
-                virtual ~Argument() {}
+                virtual ~Argument() = default;
 
                 friend void swap( Argument& a, Argument& b ) noexcept {
                     using std::swap;
@@ -76,16 +74,7 @@ namespace NCPA {
                 virtual std::string default_string() const = 0;
 
             protected:
-                std::string _tag;
-                std::string _help_text;
                 bool _required;
         };
-
-        // void swap( Argument& a, Argument& b ) noexcept {
-        //     using std::swap;
-        //     swap( a._tag, b._tag );
-        //     swap( a._help_text, b._help_text );
-        //     swap( a._required, b._required );
-        // }
     }  // namespace config
 }  // namespace NCPA

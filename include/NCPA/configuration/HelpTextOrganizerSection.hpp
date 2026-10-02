@@ -10,21 +10,18 @@ namespace NCPA {
     namespace config {
         class HelpTextOrganizerSection : public HelpTextSection {
             public:
-                HelpTextOrganizerSection() : HelpTextSection() {}
+                HelpTextOrganizerSection() = default;
 
                 HelpTextOrganizerSection( const std::string& title ) :
                     HelpTextSection( title ) {}
 
                 HelpTextOrganizerSection(
-                    const HelpTextOrganizerSection& other ) :
-                    HelpTextSection( other ) {}
+                    const HelpTextOrganizerSection& other ) = default;
 
                 HelpTextOrganizerSection(
-                    HelpTextOrganizerSection&& other ) noexcept {
-                    swap( *this, other );
-                }
+                    HelpTextOrganizerSection&& other ) noexcept = default;
 
-                virtual ~HelpTextOrganizerSection() {}
+                virtual ~HelpTextOrganizerSection() = default;
 
                 HelpTextOrganizerSection& operator=(
                     HelpTextOrganizerSection other ) {
@@ -51,12 +48,5 @@ namespace NCPA {
                     return *this;
                 }
         };
-
-        // inline void swap( HelpTextOrganizerSection& a,
-        //                   HelpTextOrganizerSection& b ) noexcept {
-        //     using std::swap;
-        //     swap( static_cast<HelpTextSection&>( a ),
-        //           static_cast<HelpTextSection&>( b ) );
-        // }
     }  // namespace config
 }  // namespace NCPA
