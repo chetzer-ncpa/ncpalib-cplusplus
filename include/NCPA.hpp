@@ -19,4 +19,4 @@
 #include "NCPA/atmosphere.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/configuration.hpp"
-// #include "NCPA/debug.hpp"
+#include "NCPA/extern.hpp"
