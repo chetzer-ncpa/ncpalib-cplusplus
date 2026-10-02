@@ -1,3 +1,3 @@
-[submodule "include/NCPA/extern/nlohmann"]
-	path = include/NCPA/extern/nlohmann
+[submodule "extern/nlohmann"]
+	path = extern/nlohmann
 	url = https://github.com/nlohmann/json.git
