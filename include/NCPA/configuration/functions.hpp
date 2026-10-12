@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/validation/ValidationStatus.hpp"
 #include "NCPA/types.hpp"
 
 #include <string>
@@ -29,10 +30,11 @@ namespace NCPA {
             std::string msg ) {
             using std::to_string;
             validation_function_t<T> func
-                = [ cmp, a, msg ]( T d ) -> validation_status_t {
+                = [ cmp, a, msg ]( T d ) -> ValidationStatus {
                 return cmp( d, a )
-                         ? validation_status_t { test_result_t::PASSED, "" }
-                         : validation_status_t { test_result_t::FAILED, msg };
+                         ? ValidationStatus { test_result_t::PASSED }
+                         : ValidationStatus { test_result_t::FAILED,
+                                                 { msg } };
             };
             return func;
         }

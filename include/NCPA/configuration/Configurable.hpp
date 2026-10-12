@@ -7,14 +7,14 @@
  *
  */
 
-#include "NCPA/configuration/BaseParameter.hpp"
 #include "NCPA/configuration/ConfigurationMap.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/Parameter.hpp"
-#include "NCPA/configuration/ScalarParameter.hpp"
-#include "NCPA/configuration/ScalarParameterWithUnits.hpp"
-#include "NCPA/configuration/VectorParameter.hpp"
-#include "NCPA/configuration/VectorParameterWithUnits.hpp"
+#include "NCPA/configuration/parameters/BaseParameter.hpp"
+#include "NCPA/configuration/parameters/Parameter.hpp"
+#include "NCPA/configuration/parameters/ScalarParameter.hpp"
+#include "NCPA/configuration/parameters/ScalarParameterWithUnits.hpp"
+#include "NCPA/configuration/parameters/VectorParameter.hpp"
+#include "NCPA/configuration/parameters/VectorParameterWithUnits.hpp"
 #include "NCPA/logging.hpp"
 #include "NCPA/units.hpp"
 
@@ -64,48 +64,58 @@ namespace NCPA {
                 }
 
                 template<typename PARAMTYPE>
-                BaseParameter *add_empty_parameter( KEYTYPE key ) {
-                    _parameters[ key ] = Parameter::scalar<PARAMTYPE>();
-                    // = param_ptr_t( new ScalarParameter<PARAMTYPE>() );
+                BaseParameter *add_empty_parameter( const std::string& tag,
+                                                    KEYTYPE key ) {
+                    _parameters[ key ] = Parameter::scalar<PARAMTYPE>( tag );
                     return _parameters[ key ].get();
                 }
 
                 template<typename PARAMTYPE>
                 BaseParameter *add_empty_parameter(
-                    KEYTYPE key, const NCPA::units::units_ptr_t units ) {
-                    _parameters[ key ] = Parameter::scalar<PARAMTYPE>( units );
-                    return _parameters[ key ].get();
-                }
-
-                template<typename PARAMTYPE>
-                BaseParameter *add_empty_vector_parameter( KEYTYPE key ) {
-                    _parameters[ key ] = Parameter::vector<PARAMTYPE>();
+                    const std::string& tag, KEYTYPE key,
+                    const NCPA::units::units_ptr_t units ) {
+                    _parameters[ key ]
+                        = Parameter::scalar<PARAMTYPE>( tag, units );
                     return _parameters[ key ].get();
                 }
 
                 template<typename PARAMTYPE>
                 BaseParameter *add_empty_vector_parameter(
-                    KEYTYPE key, const NCPA::units::units_ptr_t units ) {
-                    _parameters[ key ] = Parameter::vector<PARAMTYPE>( units );
+                    const std::string& tag, KEYTYPE key ) {
+                    _parameters[ key ] = Parameter::vector<PARAMTYPE>( tag );
                     return _parameters[ key ].get();
                 }
 
-                BaseParameter *add_parameter( KEYTYPE key,
-                                              const BaseParameter *param ) {
-                    _parameters[ key ] = param->clone();
+                template<typename PARAMTYPE>
+                BaseParameter *add_empty_vector_parameter(
+                    const std::string& tag, KEYTYPE key,
+                    const NCPA::units::units_ptr_t units ) {
+                    _parameters[ key ]
+                        = Parameter::vector<PARAMTYPE>( tag, units );
                     return _parameters[ key ].get();
                 }
 
-                BaseParameter *add_parameter( KEYTYPE key,
-                                              const param_ptr_t param ) {
-                    _parameters[ key ] = param->clone();
-                    return _parameters[ key ].get();
+                BaseParameter *add_parameter( const BaseParameter *param ) {
+                    if (param != nullptr) {
+                        _parameters[ param->tag() ] = param->clone();
+                        return _parameters[ param->tag() ].get();
+                    } else {
+                        return nullptr;
+                    }
                 }
 
-                BaseParameter *add_parameter( KEYTYPE key,
-                                              const BaseParameter& param ) {
-                    _parameters[ key ] = param.clone();
-                    return _parameters[ key ].get();
+                BaseParameter *add_parameter( const param_ptr_t& param ) {
+                    if (param) {
+                        _parameters[ param->tag() ] = param->clone();
+                        return _parameters[ param->tag() ].get();
+                    } else {
+                        return nullptr;
+                    }
+                }
+
+                BaseParameter *add_parameter( const BaseParameter& param ) {
+                    _parameters[ param.tag() ] = param.clone();
+                    return _parameters[ param.tag() ].get();
                 }
 
                 BaseParameter& parameter( KEYTYPE key ) {
@@ -117,13 +127,13 @@ namespace NCPA {
                 }
 
                 Configurable<KEYTYPE>& copy_parameter(
-                    const KEYTYPE& key, const param_ptr_t& ptr ) {
-                    return this->copy_parameter( key, *ptr );
+                    const param_ptr_t& ptr ) {
+                    return this->copy_parameter( *ptr );
                 }
 
                 Configurable<KEYTYPE>& copy_parameter(
-                    const KEYTYPE& key, const BaseParameter& ptr ) {
-                    _parameters[ key ] = ptr.clone();
+                    const BaseParameter& ptr ) {
+                    _parameters[ ptr.tag() ] = ptr.clone();
                     return *this;
                 }
 
@@ -328,8 +338,8 @@ namespace NCPA {
                                || NCPA::types::is_complex<PARAMTYPE>::value ),
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
-                    this->add_parameter( key,
-                                         Parameter::scalar<PARAMTYPE>( val ) );
+                    this->add_parameter(
+                        key, Parameter::scalar<PARAMTYPE>( key, val ) );
                     return *this;
                 }
 
@@ -342,7 +352,7 @@ namespace NCPA {
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
-                        key, Parameter::scalar<std::string>( val ) );
+                        key, Parameter::scalar<std::string>( key, val ) );
                     return *this;
                 }
 
@@ -358,7 +368,7 @@ namespace NCPA {
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
                     this->add_parameter(
                         key, Parameter::vector<typename PARAMTYPE::value_type>(
-                                 val ) );
+                                 key, val ) );
                     return *this;
                 }
 
@@ -369,7 +379,7 @@ namespace NCPA {
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
                     this->add_parameter(
-                        key, Parameter::scalar<PARAMTYPE>( val, units ) );
+                        key, Parameter::scalar<PARAMTYPE>( key, val, units ) );
                     return *this;
                 }
 
@@ -387,7 +397,7 @@ namespace NCPA {
                                             NCPA::units::units_ptr_t units ) {
                     this->add_parameter(
                         key, Parameter::vector<typename PARAMTYPE::value_type>(
-                                 val, units ) );
+                                 key, val, units ) );
                     return *this;
                 }
 
@@ -416,10 +426,7 @@ namespace NCPA {
                          it != other.parameters().cend(); ++it) {
                         if (create_if_missing
                             || this->has_parameter( it->first )) {
-                            // std::cout << "Setting parameter " << it->first
-                            //           << std::endl;
-                            this->copy_parameter( it->first,
-                                                  it->second->clone() );
+                            this->copy_parameter( it->second->clone() );
                         }
                     }
                     return *this;

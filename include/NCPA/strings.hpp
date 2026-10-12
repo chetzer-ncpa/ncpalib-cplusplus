@@ -4,12 +4,17 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace NCPA {
     namespace strings {
+
+        const std::string WHITESPACE           = " \t\n\r\f\v";
+        const std::string NEWLINE_REGEX_STRING = R"(\r?\n)";
+        const std::regex NEWLINE_REGEX = std::regex( NEWLINE_REGEX_STRING );
 
         template<typename T>
         std::string to_string( const std::vector<T>& v,
@@ -46,7 +51,7 @@ namespace NCPA {
         */
         static inline std::string deblank( const std::string& str,
                                            const std::string& whitespace
-                                           = " \t\n\r" ) {
+                                           = WHITESPACE ) {
             const size_t strBegin = str.find_first_not_of( whitespace );
             if (strBegin == std::string::npos) {
                 return "";
@@ -56,6 +61,18 @@ namespace NCPA {
             const size_t strRange = strEnd - strBegin + 1;
 
             return str.substr( strBegin, strRange );
+        }
+
+        static inline std::string escape_regex( const std::string& input ) {
+            // Matches all regular expression metacharacters
+            // We use a C++11 Raw String Literal R"(...)" to make the pattern
+            // readable
+            static const std::regex special_chars(
+                R"([-[\]{}()*+?.,\^$|#\s])" );
+
+            // Replace each match with a backslash followed by the character
+            // itself ( represented by $& )
+            return std::regex_replace( input, special_chars, R"(\$&)" );
         }
 
         static inline std::string join( const std::vector<std::string>& tokens,
@@ -146,6 +163,30 @@ namespace NCPA {
                 return true;
             }
             return false;
+        }
+
+        static inline bool starts_with( const std::string& s1,
+                                        const std::string& s2 ) {
+#if __cplusplus >= 202002L
+            return s1.starts_with( s2 );
+#else
+            return equals_up_to( s1, s2, s2.size() );
+#endif
+        }
+
+        static inline bool ends_with( const std::string& s1,
+                                      const std::string& s2 ) {
+#if __cplusplus >= 202002L
+            return s1.ends_with( s2 );
+#else
+            if (s1.size() < s2.size()) {
+                return false;
+            }
+            if (s1.substr( s1.size() - s2.size() ) == s2) {
+                return true;
+            }
+            return false;
+#endif
         }
     }  // namespace strings
 }  // namespace NCPA
