@@ -119,7 +119,7 @@ namespace NCPA {
                         NCPA::units::Units::from_string( s ) );
                 }
 
-                std::string description() const { return _description; }
+                // std::string description() const { return _description; }
 
                 virtual double diff() const {
                     return ( this->size() > 1

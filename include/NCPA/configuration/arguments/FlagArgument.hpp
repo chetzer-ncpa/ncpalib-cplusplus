@@ -41,6 +41,10 @@ namespace NCPA {
                           static_cast<parent_t&>( b ) );
                 }
 
+                virtual bool as_bool() const override {
+                    return _was_set;
+                }
+
                 virtual void set_value(
                     const std::vector<bool>& val ) override {
                     if (val.size() > 1) {
