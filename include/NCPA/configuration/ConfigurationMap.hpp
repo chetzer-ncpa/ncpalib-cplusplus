@@ -1,9 +1,9 @@
 #pragma once
 
 
-#include "NCPA/configuration/BaseParameter.hpp"
+#include "NCPA/configuration/parameters/BaseParameter.hpp"
 #include "NCPA/configuration/declarations.hpp"
-#include "NCPA/configuration/TypedParameter.hpp"
+#include "NCPA/configuration/parameters/TypedParameter.hpp"
 
 #include <unordered_map>
 

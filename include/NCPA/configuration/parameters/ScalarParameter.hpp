@@ -1,0 +1,1640 @@
+#pragma once
+
+#include "NCPA/configuration/declarations.hpp"
+#include "NCPA/configuration/parameters/BaseParameter.hpp"
+#include "NCPA/configuration/parameters/TypedParameter.hpp"
+
+#include <regex>
+#include <vector>
+
+namespace NCPA {
+    namespace config {
+
+        namespace hidden {
+            template<typename PARAMTYPE>
+            class _base_scalar_parameter : public TypedParameter<PARAMTYPE> {
+                public:
+                    _base_scalar_parameter( const std::string& tag = "" ) :
+                        TypedParameter<PARAMTYPE>( tag ), _value {} {}
+
+                    _base_scalar_parameter( const std::string& tag,
+                                            PARAMTYPE defaultval ) :
+                        TypedParameter<PARAMTYPE>( tag ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::vector<PARAMTYPE>& defaultval ) :
+                        TypedParameter<PARAMTYPE>( tag ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ) {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ) {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( tag, ptr.get() ) {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tag, tests ) {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag, PARAMTYPE defaultval,
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag, PARAMTYPE defaultval,
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag, PARAMTYPE defaultval,
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( tag, ptr.get() ),
+                        _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag, PARAMTYPE defaultval,
+                        const std::vector<TypedValidation<PARAMTYPE>>&
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tag, tests ),
+                        _value { defaultval } {}
+
+                    // _base_scalar_parameter(
+                    // const std::string& tag, PARAMTYPE defaultval,
+                    // std::initializer_list<TypedValidation<PARAMTYPE>>
+                    //     tests ) :
+                    // TypedParameter<PARAMTYPE>( tag, tests ),
+                    // _value { defaultval } {}
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const TypedValidation<PARAMTYPE>& v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const TypedValidation<PARAMTYPE> *v ) :
+                        TypedParameter<PARAMTYPE>( tag, v ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::vector<PARAMTYPE>& defaultval,
+                        const std::unique_ptr<TypedValidation<PARAMTYPE>>&
+                            ptr ) :
+                        TypedParameter<PARAMTYPE>( tag, ptr.get() ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    _base_scalar_parameter(
+                        const std::string& tag,
+                        const std::vector<PARAMTYPE>& defaultval,
+                        std::initializer_list<TypedValidation<PARAMTYPE>>
+                            tests ) :
+                        TypedParameter<PARAMTYPE>( tag, tests ) {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                    virtual ~_base_scalar_parameter() {}
+
+                    _base_scalar_parameter(
+                        const _base_scalar_parameter<PARAMTYPE>& other ) :
+                        TypedParameter<PARAMTYPE>( other ) {
+                        set_value( other._value );
+                    }
+
+                    _base_scalar_parameter(
+                        _base_scalar_parameter<PARAMTYPE>&& other ) noexcept :
+                        TypedParameter<PARAMTYPE>() {
+                        swap( *this, other );
+                    }
+
+                    _base_scalar_parameter<PARAMTYPE>& operator=(
+                        _base_scalar_parameter<PARAMTYPE> other ) {
+                        swap( *this, other );
+                        return *this;
+                    }
+
+                    friend void swap(
+                        _base_scalar_parameter<PARAMTYPE>& a,
+                        _base_scalar_parameter<PARAMTYPE>& b ) noexcept {
+                        using std::swap;
+                        swap(
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>( a ),
+                            static_cast<
+                                NCPA::config::TypedParameter<PARAMTYPE>&>(
+                                b ) );
+                        swap( a._value, b._value );
+                    }
+
+                    virtual void add_value( const PARAMTYPE& v ) override {
+                        throw TooManyValues(
+                            "Can't add value to a scalar parameter!" );
+                    }
+
+                    virtual parameter_form_t form() const override {
+                        return parameter_form_t::SCALAR;
+                    }
+
+                    virtual size_t size() const override { return 1; }
+
+                    virtual PARAMTYPE get( size_t n = 0 ) const override {
+                        return this->_value;
+                    }
+
+                    virtual std::vector<PARAMTYPE> get_vector()
+                        const override {
+                        return std::vector<PARAMTYPE> { this->_value };
+                    }
+
+                    virtual void set_value( const PARAMTYPE& v ) override {
+                        _value = v;
+                    }
+
+                    virtual void set_value(
+                        const std::vector<PARAMTYPE>& defaultval ) override {
+                        _get_first_value_from_vector( defaultval );
+                    }
+
+                protected:
+                    PARAMTYPE _value;
+
+                    void _get_first_value_from_vector(
+                        const std::vector<PARAMTYPE>& defaultval ) {
+                        if (defaultval.size() > 0) {
+                            this->set_value( defaultval.front() );
+                        }
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        NCPA::types::has_to_string<T>::value,
+                        std::string>::type
+                        _as_string( size_t n            = 0,
+                                    bool throw_on_error = false ) const {
+                        return this->get( n ).to_string();
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n            = 0,
+                                    bool throw_on_error = false ) const {
+                        return std::to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        ( !( NCPA::types::can_use_std_to_string<T>::value
+                             || NCPA::types::has_to_string<T>::value )
+                          && NCPA::types::can_use_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n            = 0,
+                                    bool throw_on_error = false ) const {
+                        return to_string( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
+                        !( NCPA::types::can_use_to_string<T>::value
+                           || NCPA::types::has_to_string<T>::value
+                           || NCPA::types::can_use_std_to_string<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n            = 0,
+                                    bool throw_on_error = false ) const {
+                        if (throw_on_error) {
+                            throw NoConversionDefined(
+                                "No as_string() conversion defined!" );
+                        } else {
+                            return "<no string conversion defined>";
+                        }
+                    }
+            };
+        }  // namespace hidden
+
+        // floating point
+        template<typename PARAMTYPE>
+        class ScalarParameter<
+            PARAMTYPE, typename std::enable_if<
+                           std::is_floating_point<PARAMTYPE>::value>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() { this->set_value( 0.0 ); }
+
+                // ScalarParameter( PARAMTYPE defaultval ) :
+                //     cloneable_t( defaultval ) {}
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // :
+                //     cloneable_t( defaultval ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( defaultval, tests ) {
+                //     // for (const auto& test : tests) {
+                //     //     this->add_test( test );
+                //     // }
+                // }
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>(
+                        this->get( n )
+                        + std::numeric_limits<PARAMTYPE>::epsilon() );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return static_cast<unsigned long long>(
+                        this->get( n )
+                        + std::numeric_limits<PARAMTYPE>::epsilon() );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
+                }
+
+                virtual std::string as_string( size_t n = 0,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    return std::to_string( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->set_value(
+                        static_cast<PARAMTYPE>( std::stod( x ) ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( std::abs( x ) ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // signed integer
+        template<typename PARAMTYPE>
+        class ScalarParameter<PARAMTYPE,
+                              typename std::enable_if<(
+                                  std::is_integral<PARAMTYPE>::value
+                                  && !( std::is_same<PARAMTYPE, bool>::value )
+                                  && std::is_signed<PARAMTYPE>::value )>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() { this->set_value( 0 ); }
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // {
+                //     init( defaultval );
+                // }
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    return std::to_string( this->get( n ) );
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->set_value(
+                        static_cast<PARAMTYPE>( std::stol( x ) ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( std::abs( x ) ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // unsigned integer
+        template<typename PARAMTYPE>
+        class ScalarParameter<
+            PARAMTYPE, typename std::enable_if<(
+                           std::is_integral<PARAMTYPE>::value
+                           && !( std::is_same<PARAMTYPE, bool>::value )
+                           && std::is_unsigned<PARAMTYPE>::value )>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() { this->set_value( 0 ); }
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // {
+                //     init( defaultval );
+                // }
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    return ( this->get( n ) != 0 );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    return std::to_string( this->get( n ) );
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double(), 0.0 );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->set_value(
+                        static_cast<PARAMTYPE>( std::stoull( x ) ) );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( std::abs( x ) ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // // boolean
+        template<typename PARAMTYPE>
+        class ScalarParameter<PARAMTYPE, typename std::enable_if<std::is_same<
+                                             PARAMTYPE, bool>::value>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() { this->set_value( false ); }
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // {
+                //     init( defaultval );
+                // }
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    return this->get( n );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    return ( this->get( n ) ? "true" : "false" );
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>( this->get( n ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return static_cast<unsigned long long>( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value( x );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->set_value(( x == "true" ));
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( std::abs( x ) ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+
+                //    private:
+                //     PARAMTYPE _value;
+        };
+
+        // string
+        template<typename PARAMTYPE>
+        class ScalarParameter<
+            PARAMTYPE,
+            typename std::enable_if<(
+                !( std::is_arithmetic<PARAMTYPE>::value )
+                && std::is_convertible<PARAMTYPE, std::string>::value )>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() { this->set_value( "" ); }
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // {
+                //     init( defaultval );
+                // }
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    std::string s = this->get( n );
+                    std::transform( s.begin(), s.end(), s.begin(),
+                                    []( unsigned char c ) {
+                                        return std::tolower( c );
+                                    }  // correct
+                    );
+                    return ( s == "true" );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    std::string s = this->get( n );
+                    return s;
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return std::stoll( this->get( n ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return std::stoull( this->get( n ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return std::stod( this->get( n ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->as_double( n ), 0.0 );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value(( x ? "true" : "false" ));
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    this->set_value( x );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( std::to_string( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( std::to_string( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( std::to_string( x ) );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->set_value( std::to_string( std::abs( x ) ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // complex
+        template<typename PARAMTYPE>
+        class ScalarParameter<
+            PARAMTYPE,
+            typename std::enable_if<(
+                !( std::is_scalar<PARAMTYPE>::value )
+                && NCPA::types::is_complex<PARAMTYPE>::value )>::type>
+            :  // public hidden::_base_scalar_parameter<PARAMTYPE>,
+               public Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() {
+                //     this->set_value( PARAMTYPE { 0.0, 0.0 } );
+                // }
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // :
+                //     cloneable_t( defaultval ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    return ( std::abs( this->get( n ) ) != 0.0 );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    std::ostringstream oss;
+                    oss << std::to_string( this->get( n ).real() ) << " "
+                        << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
+                        << std::to_string( this->get( n ).imag() );
+                    return oss.str();
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    return static_cast<long long>(
+                        std::abs( this->get( n ) ) );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    return static_cast<unsigned long long>(
+                        std::abs( this->get( n ) ) );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    return static_cast<double>( std::abs( this->get( n ) ) );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    return std::complex<double>( this->get( n ).real(),
+                                                 this->get( n ).imag() );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    throw NoConversionDefined(
+                        "from_string() not yet implemented for complex "
+                        "numbers" );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    this->get().real( x.real() );
+                    this->get().imag( x.imag() );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_int( long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_double( double x ) override {
+                    this->set_value( static_cast<PARAMTYPE>( x ) );
+                }
+
+                virtual void from_bool(
+                    const std::vector<bool>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_bool( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_unsigned_int( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_double( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& vec ) override {
+                    if (vec.size() > 0) {
+                        this->from_complex( vec.at( 0 ) );
+                    }
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& vec ) override {
+                    if (vec.size() > 0) {
+                        std::string s = vec.at( 0 );
+                        this->from_string( s );
+                    }
+                }
+        };
+
+        // everything else
+        template<typename PARAMTYPE>
+        class ScalarParameter<
+            PARAMTYPE,
+            typename std::enable_if<( !(
+                std::is_arithmetic<PARAMTYPE>::value
+                || std::is_convertible<PARAMTYPE, std::string>::value
+                || ( !( std::is_scalar<PARAMTYPE>::value )
+                     && NCPA::types::is_complex<PARAMTYPE>::value ) ) )>::type>
+            : public Cloneable<ScalarParameter<PARAMTYPE>,
+                               hidden::_base_scalar_parameter<PARAMTYPE>> {
+            public:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_bool;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_complex;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_double;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_int;
+                using hidden::_base_scalar_parameter<PARAMTYPE>::as_string;
+                using hidden::_base_scalar_parameter<
+                    PARAMTYPE>::as_unsigned_int;
+                using cloneable_t
+                    = Cloneable<ScalarParameter<PARAMTYPE>,
+                                hidden::_base_scalar_parameter<PARAMTYPE>>;
+
+                template<typename... Args>
+                explicit ScalarParameter( Args&&...args ) :
+                    cloneable_t( std::forward<Args>( args )... ) {}
+
+                // ScalarParameter() {}
+
+                // ScalarParameter( PARAMTYPE defaultval ) {
+                //     this->set_value( defaultval );
+                // }
+
+                // ScalarParameter( const std::vector<PARAMTYPE>& defaultval )
+                // {
+                //     init( defaultval );
+                // }
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter( const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( v ) {}
+
+                // ScalarParameter(
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( ptr ) {}
+
+                // ScalarParameter(
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t( tests ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE>& v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter( PARAMTYPE defaultval,
+                //                  const TypedValidation<PARAMTYPE> *v ) :
+                //     cloneable_t( defaultval, v ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     const std::unique_ptr<TypedValidation<PARAMTYPE>>& ptr )
+                //     : cloneable_t( defaultval, ptr ) {}
+
+                // ScalarParameter(
+                //     PARAMTYPE defaultval,
+                //     std::initializer_list<TypedValidation<PARAMTYPE>> tests
+                //     ) : cloneable_t { defaultval, tests } {}
+
+                ScalarParameter( const ScalarParameter<PARAMTYPE>& other ) :
+                    cloneable_t( other ) {}
+
+                ScalarParameter(
+                    ScalarParameter<PARAMTYPE>&& other ) noexcept {
+                    swap( *this, other );
+                }
+
+                virtual ~ScalarParameter() {}
+
+                ScalarParameter<PARAMTYPE>& operator=(
+                    ScalarParameter<PARAMTYPE> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                friend void swap( ScalarParameter<PARAMTYPE>& a,
+                                  ScalarParameter<PARAMTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap(
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>( a ),
+                        static_cast<Cloneable<
+                            ScalarParameter<PARAMTYPE>,
+                            hidden::_base_scalar_parameter<PARAMTYPE>>&>(
+                            b ) );
+                }
+
+                virtual bool as_bool( size_t n ) const override {
+                    throw NoConversionDefined(
+                        "No as_bool() conversion defined!" );
+                }
+
+                virtual std::string as_string( size_t n,
+                                               bool throw_on_error
+                                               = false ) const override {
+                    return this->_as_string( n, throw_on_error );
+                }
+
+                virtual long long as_int( size_t n ) const override {
+                    throw NoConversionDefined(
+                        "No as_int() conversion defined!" );
+                }
+
+                virtual unsigned long long as_unsigned_int(
+                    size_t n ) const override {
+                    throw NoConversionDefined(
+                        "No as_unsigned_int() conversion defined!" );
+                }
+
+                virtual double as_double( size_t n ) const override {
+                    throw NoConversionDefined(
+                        "No as_double() conversion defined!" );
+                }
+
+                virtual std::complex<double> as_complex(
+                    size_t n ) const override {
+                    throw NoConversionDefined(
+                        "No as_complex() conversion defined!" );
+                }
+
+                virtual void from_bool( bool x ) override {
+                    throw NoConversionDefined(
+                        "No from_bool() conversion defined!" );
+                }
+
+                virtual void from_string( const std::string& x ) override {
+                    throw NoConversionDefined(
+                        "No from_string() conversion defined!" );
+                }
+
+                virtual void from_int( long long x ) override {
+                    throw NoConversionDefined(
+                        "No from_int() conversion defined!" );
+                }
+
+                virtual void from_unsigned_int(
+                    unsigned long long x ) override {
+                    throw NoConversionDefined(
+                        "No from_unsigned_int() conversion defined!" );
+                }
+
+                virtual void from_double( double x ) override {
+                    throw NoConversionDefined(
+                        "No from_double() conversion defined!" );
+                }
+
+                virtual void from_complex( std::complex<double> x ) override {
+                    throw NoConversionDefined(
+                        "No from_complex() conversion defined!" );
+                }
+
+                virtual void from_bool( const std::vector<bool>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_bool() conversion defined!" );
+                }
+
+                virtual void from_string(
+                    const std::vector<std::string>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_string() conversion defined!" );
+                }
+
+                virtual void from_int(
+                    const std::vector<long long>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_int() conversion defined!" );
+                }
+
+                virtual void from_unsigned_int(
+                    const std::vector<unsigned long long>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_unsigned_int() conversion defined!" );
+                }
+
+                virtual void from_double(
+                    const std::vector<double>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_double() conversion defined!" );
+                }
+
+                virtual void from_complex(
+                    const std::vector<std::complex<double>>& x ) override {
+                    throw NoConversionDefined(
+                        "No from_complex() conversion defined!" );
+                }
+
+            protected:
+                using hidden::_base_scalar_parameter<PARAMTYPE>::_as_string;
+        };
+
+    }  // namespace config
+}  // namespace NCPA
