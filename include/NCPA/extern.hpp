@@ -1,12 +1,12 @@
 #pragma once
 
-#ifdef HAVE_NLOHMANN_JSON
-#undef HAVE_NLOHMANN_JSON
+#ifdef HAVE_NLOHMANN_JSON_HPP
+#  undef HAVE_NLOHMANN_JSON_HPP
 #endif
 
-#if __has_include("NCPA/extern/nlohmann/include/nlohmann/json.hpp")
-#include "NCPA/extern/nlohmann/include/nlohmann/json.hpp"
-#define HAVE_NLOHMANN_JSON true
+#if __has_include( "nlohmann/json.hpp" )
+#  include "nlohmann/json.hpp"
+#  define HAVE_NLOHMANN_JSON_HPP true
 #else
-#define HAVE_NLOHMANN_JSON false
+#  define HAVE_NLOHMANN_JSON_HPP false
 #endif

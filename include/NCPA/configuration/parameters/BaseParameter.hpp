@@ -119,6 +119,8 @@ namespace NCPA {
                         NCPA::units::Units::from_string( s ) );
                 }
 
+                std::string description() const { return _description; }
+
                 virtual double diff() const {
                     return ( this->size() > 1
                                  ? this->as_double( 1 ) - this->as_double( 0 )

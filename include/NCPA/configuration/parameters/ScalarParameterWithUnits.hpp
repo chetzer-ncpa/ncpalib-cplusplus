@@ -320,12 +320,3 @@ namespace NCPA {
         };
     }  // namespace config
 }  // namespace NCPA
-
-// template<typename PARAMTYPE>
-// void swap( NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& a,
-//            NCPA::config::ScalarParameterWithUnits<PARAMTYPE>& b ) noexcept {
-//     using std::swap;
-//     swap( static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( a ),
-//             static_cast<NCPA::config::ScalarParameter<PARAMTYPE>&>( b ) );
-//     swap( a._uvalue, b._uvalue );
-// }
