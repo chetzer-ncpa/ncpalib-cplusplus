@@ -1,9 +1,12 @@
 #pragma once
 
+#include "NCPA/math.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <ctime>
+#include <iomanip>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -163,6 +166,33 @@ namespace NCPA {
                 return true;
             }
             return false;
+        }
+
+        static inline std::string smart_decimal( double d,
+                                                 int maxdigits = 6 ) {
+            std::ostringstream oss;
+            int places
+                = std::min( maxdigits, NCPA::math::decimal_places( d, 15 ) );
+            double logd = std::log10( d );
+            int sig     = NCPA::math::sigfigs( d );
+            int decplac = NCPA::math::decimal_places( d );
+            // case 1: |d| >= 1
+
+            if (logd >= (double)maxdigits) {
+                oss << std::scientific << std::setprecision( sig );
+            } else if (logd >= 0.0) {
+                oss << std::fixed << std::setprecision( std::max(decplac-sig,0) );
+            } else if (logd > -(double)maxdigits) {
+                int precision = std::max( places - sig, 0 );
+                oss << std::fixed << std::setprecision( precision );
+            } else {
+                oss << std::scientific
+                    << std::setprecision( std::min( places - 1, sig ) );
+            }
+
+
+            oss << d;
+            return oss.str();
         }
 
         static inline bool starts_with( const std::string& s1,

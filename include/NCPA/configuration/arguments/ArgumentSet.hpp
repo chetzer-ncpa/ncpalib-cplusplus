@@ -87,6 +87,10 @@ namespace NCPA {
                         std::forward<Args>( args )... );
                 }
 
+                Argument& add_help_flag( const std::string& tag = "help" ) {
+                    return this->add_flag( tag, "Display help text and exit" );
+                }
+
                 template<typename ARGTYPE, typename... Args>
                 Argument& add_multivalue_argument(
                     const std::string& tag, const std::string& description,
@@ -144,6 +148,17 @@ namespace NCPA {
                 const argument_map_t& arguments() const { return _args; }
 
                 size_t count() const { return _args.size(); }
+
+                ValidationStatus validate() const {
+                    ValidationStatus status;
+                    for (auto& arg : _args) {
+                        if (arg.second->required() && !arg.second->was_set()) {
+                            status.fail( arg.first + ": Required argument not found");
+                        }
+                        status &= arg.second->validate();
+                    }
+                    return status;
+                }
 
             protected:
                 argument_map_t _args;

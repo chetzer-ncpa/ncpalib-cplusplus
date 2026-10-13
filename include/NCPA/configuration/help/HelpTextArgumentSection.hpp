@@ -299,6 +299,7 @@ namespace NCPA {
                     switch (arg.value_count()) {
                         case value_count_t::ZERO:
                             return options.flag_argument_indicator;
+                        case value_count_t::ZERO_OR_ONE:
                         case value_count_t::ONE:
                             return options.required_argument_indicator;
                         case value_count_t::ANY:

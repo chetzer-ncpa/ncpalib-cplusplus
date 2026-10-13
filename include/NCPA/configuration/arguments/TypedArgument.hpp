@@ -13,8 +13,11 @@
 namespace NCPA {
     namespace config {
         template<typename BASETYPE>
-        class TypedArgument : public Cloneable<TypedArgument<BASETYPE>,Argument> {
-            using cloneable_t = Cloneable<TypedArgument<BASETYPE>,Argument>;
+        class TypedArgument
+            : public Cloneable<TypedArgument<BASETYPE>, Argument> {
+                using cloneable_t
+                    = Cloneable<TypedArgument<BASETYPE>, Argument>;
+
             public:
                 TypedArgument() = default;
 
@@ -25,34 +28,37 @@ namespace NCPA {
                     _default {} {}
 
                 TypedArgument( const std::string& tag,
-                               const std::string& description, value_count_t count ) :
+                               const std::string& description,
+                               value_count_t count ) :
                     cloneable_t( tag, description, count ),
                     _underlying { tag },
                     _default {} {}
 
                 TypedArgument( const std::string& tag,
-                               const std::string& description, value_count_t count,
+                               const std::string& description,
+                               value_count_t count,
                                const BASETYPE& defaultval ) :
                     cloneable_t( tag, description, count ),
                     _underlying { tag, defaultval },
-                    _default { 1, defaultval } {}
+                    _default { defaultval } {}
 
                 TypedArgument( const std::string& tag,
-                               const std::string& description, value_count_t count,
+                               const std::string& description,
+                               value_count_t count,
                                const std::vector<BASETYPE>& defaultval ) :
                     cloneable_t( tag, description, count ),
                     _underlying { tag, defaultval },
                     _default { defaultval } {}
 
-                    TypedArgument( const std::string& tag,
+                TypedArgument( const std::string& tag,
                                const std::string& description,
                                const BASETYPE& defaultval ) :
                     cloneable_t( tag, description ),
                     _underlying { tag, defaultval },
-                    _default { 1, defaultval } {}
+                    _default { defaultval } {}
 
                 TypedArgument( const std::string& tag,
-                               const std::string& description, 
+                               const std::string& description,
                                const std::vector<BASETYPE>& defaultval ) :
                     cloneable_t( tag, description ),
                     _underlying { tag, defaultval },
@@ -71,7 +77,7 @@ namespace NCPA {
                                const TypedValidation<BASETYPE>& v ) :
                     cloneable_t( tag, description ),
                     _underlying { tag, defaultval, v },
-                    _default { 1, defaultval } {}
+                    _default { defaultval } {}
 
                 TypedArgument( const std::string& tag,
                                const std::string& description,
@@ -89,7 +95,8 @@ namespace NCPA {
                     _default {} {}
 
                 TypedArgument( const std::string& tag,
-                               const std::string& description, value_count_t required,
+                               const std::string& description,
+                               value_count_t required,
                                const TypedValidation<BASETYPE> *v ) :
                     cloneable_t( tag, description, required ),
                     _underlying { tag, v },
@@ -101,13 +108,31 @@ namespace NCPA {
                                const TypedValidation<BASETYPE> *v ) :
                     cloneable_t( tag, description ),
                     _underlying { tag, defaultval, v },
-                    _default { 1, defaultval } {}
+                    _default { defaultval } {}
 
                 TypedArgument( const std::string& tag,
                                const std::string& description,
                                const std::vector<BASETYPE>& defaultval,
                                const TypedValidation<BASETYPE> *v ) :
                     cloneable_t( tag, description ),
+                    _underlying { tag, defaultval, v },
+                    _default { defaultval } {}
+
+                TypedArgument( const std::string& tag,
+                               const std::string& description,
+                               const BASETYPE& defaultval,
+                               value_count_t required,
+                               const TypedValidation<BASETYPE> *v ) :
+                    cloneable_t( tag, description, required ),
+                    _underlying { tag, defaultval, v },
+                    _default { defaultval } {}
+
+                TypedArgument( const std::string& tag,
+                               const std::string& description,
+                               value_count_t required,
+                               const std::vector<BASETYPE>& defaultval,
+                               const TypedValidation<BASETYPE> *v ) :
+                    cloneable_t( tag, description, required ),
                     _underlying { tag, defaultval, v },
                     _default { defaultval } {}
 
@@ -132,7 +157,7 @@ namespace NCPA {
                     const std::unique_ptr<TypedValidation<BASETYPE>>& v ) :
                     cloneable_t( tag, description ),
                     _underlying { tag, defaultval, v },
-                    _default { 1, defaultval } {}
+                    _default { defaultval } {}
 
                 TypedArgument(
                     const std::string& tag, const std::string& description,
@@ -298,8 +323,8 @@ namespace NCPA {
                 VectorParameter<BASETYPE> _underlying;
                 std::vector<BASETYPE> _default;
 
-                using Argument::_was_set;
                 using Argument::_tag;
+                using Argument::_was_set;
         };
     }  // namespace config
 }  // namespace NCPA

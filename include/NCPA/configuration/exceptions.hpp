@@ -21,5 +21,6 @@ namespace NCPA {
         NCPA_DEFINE_EXCEPTION( TooManyValues, std::invalid_argument )
         NCPA_DEFINE_EXCEPTION( UnknownMarker, std::out_of_range )
         NCPA_DEFINE_EXCEPTION( UnknownMarkerType, std::out_of_range )
+        NCPA_DEFINE_EXCEPTION( ValidationFailed, std::out_of_range )
     }  // namespace config
 }  // namespace NCPA

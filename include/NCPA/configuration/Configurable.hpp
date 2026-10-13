@@ -338,8 +338,7 @@ namespace NCPA {
                                || NCPA::types::is_complex<PARAMTYPE>::value ),
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
-                    this->add_parameter(
-                        key, Parameter::scalar<PARAMTYPE>( key, val ) );
+                    this->add_parameter(Parameter::scalar<PARAMTYPE>( key, val ) );
                     return *this;
                 }
 
@@ -351,8 +350,7 @@ namespace NCPA {
                                                       std::string>::value ),
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
-                    this->add_parameter(
-                        key, Parameter::scalar<std::string>( key, val ) );
+                    this->add_parameter(Parameter::scalar<std::string>( key, val ) );
                     return *this;
                 }
 
@@ -366,8 +364,7 @@ namespace NCPA {
                                       PARAMTYPE, std::string>::value ) ),
                              int>::type = 0>
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val ) {
-                    this->add_parameter(
-                        key, Parameter::vector<typename PARAMTYPE::value_type>(
+                    this->add_parameter(Parameter::vector<typename PARAMTYPE::value_type>(
                                  key, val ) );
                     return *this;
                 }
@@ -379,7 +376,7 @@ namespace NCPA {
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
                     this->add_parameter(
-                        key, Parameter::scalar<PARAMTYPE>( key, val, units ) );
+                     Parameter::scalar<PARAMTYPE>( key, val, units ) );
                     return *this;
                 }
 
@@ -396,7 +393,7 @@ namespace NCPA {
                 Configurable<KEYTYPE>& set( KEYTYPE key, PARAMTYPE val,
                                             NCPA::units::units_ptr_t units ) {
                     this->add_parameter(
-                        key, Parameter::vector<typename PARAMTYPE::value_type>(
+                        Parameter::vector<typename PARAMTYPE::value_type>(
                                  key, val, units ) );
                     return *this;
                 }

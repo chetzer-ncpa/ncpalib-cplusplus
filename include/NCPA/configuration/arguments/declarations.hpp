@@ -18,19 +18,7 @@ namespace NCPA {
             HELP_REQUESTED
         };
 
-        struct ArgumentParseResult {
-                ArgumentParseResult( parse_result_t res,
-                                     const std::string& msg ) :
-                    result { res }, messages { 1, msg } {}
-
-                ArgumentParseResult( parse_result_t res,
-                                     const std::vector<std::string>& msg
-                                     = {} ) :
-                    result { res }, messages { msg } {}
-
-                parse_result_t result;
-                std::vector<std::string> messages;
-        };
+        struct ArgumentParseResult;
         class Argument;
 
         template<typename T>

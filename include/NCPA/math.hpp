@@ -75,8 +75,32 @@ namespace NCPA {
             return wave;
         }
 
-        static int round( double d ) {
-            return static_cast<int>( d + 0.50000000000001 );
+        static long round( double d ) {
+            // return static_cast<int>( d + 0.50000000000001 );
+            return std::lround( d );
+        }
+
+        static int decimal_places( double d, int maxplaces = 12 ) {
+            if (maxplaces <= 0) {
+                return 0;
+            }
+            double tol = std::pow( 10, -(double)maxplaces );
+            int power  = 0;
+            double diff;
+            do {
+                double factor = std::pow( 10, (double)( power ) );
+                diff = std::abs( d * factor - std::round( d * factor ) );
+            } while (power++ <= maxplaces && diff >= tol);
+            return power - 1;
+        }
+
+        static int sigfigs( double d, int maxfigs = 12 ) {
+            double start = std::log10(d);
+            if (start >= 0) {
+                return decimal_places( d * std::pow(10.0,-std::ceil(start)), maxfigs );
+            } else {
+                return decimal_places( d * std::pow(10.0,-std::ceil(start)), maxfigs );
+            }
         }
 
         template<typename T>

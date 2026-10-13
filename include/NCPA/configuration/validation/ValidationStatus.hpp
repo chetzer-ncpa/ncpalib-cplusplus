@@ -27,6 +27,29 @@ namespace NCPA {
                     result { res }, messages { 1, msg } {}
 
                 ValidationStatus( const ValidationStatus& other ) = default;
+                ValidationStatus( ValidationStatus&& other ) noexcept
+                    = default;
+                ValidationStatus& operator=( ValidationStatus status ) {
+                    swap(*this,status);
+                    return *this;
+                }
+
+                friend void swap( ValidationStatus& a,
+                                  ValidationStatus& b ) noexcept {
+                    using std::swap;
+                    swap( a.result, b.result );
+                    swap( a.messages, b.messages );
+                }
+
+                ValidationStatus& add_message( const std::string& msg ) {
+                    messages.push_back( msg );
+                    return *this;
+                }
+
+                void fail( const std::string& msg ) {
+                    result = test_result_t::FAILED;
+                    this->add_message( msg );
+                }
 
                 const std::string message() const {
                     std::ostringstream oss;
@@ -39,6 +62,12 @@ namespace NCPA {
                         oss << s;
                     }
                     return oss.str();
+                }
+
+                ValidationStatus& operator&=( const ValidationStatus& other ) {
+                    ValidationStatus status = *this && other;
+                    swap( *this, status );
+                    return *this;
                 }
 
                 ValidationStatus operator&&(

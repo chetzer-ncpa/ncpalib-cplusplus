@@ -32,5 +32,7 @@ namespace NCPA {
         typedef std::unique_ptr<HelpTextSection> help_text_ptr_t;
         class HelpTextMarkers;
 
+        typedef HelpTextOrganizerSection HelpText;
+
     }  // namespace config
 }  // namespace NCPA

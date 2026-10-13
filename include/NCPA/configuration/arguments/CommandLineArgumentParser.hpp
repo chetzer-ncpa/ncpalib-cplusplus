@@ -3,6 +3,7 @@
 #include "NCPA/cloneable.hpp"
 #include "NCPA/configuration/arguments/Argument.hpp"
 #include "NCPA/configuration/arguments/ArgumentParser.hpp"
+#include "NCPA/configuration/arguments/ArgumentParseResult.hpp"
 #include "NCPA/configuration/arguments/ArgumentSet.hpp"
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/exceptions.hpp"
@@ -44,7 +45,7 @@ namespace NCPA {
                     this->load( tokens );
                 }
 
-                CommandLineArgumentParser( int argc, const char **argv ) :
+                CommandLineArgumentParser( int argc, char **argv ) :
                     CommandLineArgumentParser() {
                     this->load( argc, argv );
                 }
@@ -75,11 +76,10 @@ namespace NCPA {
                 }
 
                 virtual CommandLineArgumentParser& load( int argc,
-                                                         const char **argv ) {
+                                                         char **argv ) {
                     _tokens.clear();
-                    _tokens.resize( argc );
-                    for (int i = 0; i < argc; ++i) {
-                        _tokens[ i ] = argv[ i ];
+                    for (int i = 1; i < argc; ++i) {
+                        _tokens.push_back( argv[ i ] );
                     }
                     return *this;
                 }
@@ -88,7 +88,8 @@ namespace NCPA {
                     ArgumentSet& argset ) const override {
                     if (_tokens.empty()) {
                         return ArgumentParseResult(
-                            parse_result_t::NO_ARGUMENTS );
+                            parse_result_t::NO_ARGUMENTS,
+                            "No arguments found" );
                     }
 
                     parser_expecting_t expecting = parser_expecting_t::EITHER;

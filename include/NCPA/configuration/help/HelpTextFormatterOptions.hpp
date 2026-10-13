@@ -32,10 +32,10 @@ namespace NCPA {
                 std::string optional_multiple_argument_indicator
                     = "[val1 ...]";
                 bool print_argument_hyphens             = true;
-                std::string required_argument_indicator = "val";
+                std::string required_argument_indicator = "[val]";
                 std::string required_argument_suffix    = "required";
                 std::string required_multiple_argument_indicator
-                    = "val1 [val2 ...]";
+                    = "[val1 ...]";
                 bool reset_indent_after_newline                = false;
                 bool separate_required_from_optional_arguments = true;
                 std::string suffix_end                         = "]";
