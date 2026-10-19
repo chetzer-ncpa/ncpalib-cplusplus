@@ -14,6 +14,11 @@ namespace NCPA {
         using NCPA::strings::starts_with;
 
         struct HelpTextFormatterOptions {
+                bool block_quote                      = false;
+                std::string box_side                  = "|";
+                bool box_side_pad                     = true;
+                help_text_box_t box_style             = help_text_box_t::OFF;
+                char box_top                          = '-';
                 bool break_after_tag                  = false;
                 std::string default_value_suffix      = "default=";
                 bool double_explicit_newlines         = true;
@@ -40,8 +45,10 @@ namespace NCPA {
                 bool separate_required_from_optional_arguments = true;
                 std::string suffix_end                         = "]";
                 std::string suffix_start                       = "[";
-                size_t title_indent                            = 0;
-                std::string word_regex                         = "([^\\s]+)";
+                help_text_align_t text_align  = help_text_align_t::LEFT;
+                help_text_align_t title_align = help_text_align_t::LEFT;
+                size_t title_indent           = 0;
+                std::string word_regex        = "([^\\s]+)";
 
                 virtual std::string build_suffix(
                     const std::string& body ) const {
@@ -59,7 +66,8 @@ namespace NCPA {
                     return NCPA::strings::split( replaced );
                 }
 
-                virtual std::vector<std::string> tokenize( const std::vector<std::string> sections ) const {
+                virtual std::vector<std::string> tokenize(
+                    const std::vector<std::string> sections ) const {
                     std::vector<std::string> tokens;
                     for (auto& str : sections) {
                         this->tokenize( str, tokens );

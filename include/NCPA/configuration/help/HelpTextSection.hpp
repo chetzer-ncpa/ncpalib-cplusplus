@@ -18,11 +18,6 @@ namespace NCPA {
     namespace config {
         class HelpTextSection : public CloneBase<HelpTextSection> {
             public:
-                // virtual HelpTextSection& add_tokens(
-                //     const std::vector<std::string>& text ) = 0;
-                // virtual std::vector<std::string> title_tokens(
-                //     const HelpTextFormatterOptions& options ) const = 0;
-
                 virtual HelpTextSection& add_text( const std::string& text )
                     = 0;
                 virtual std::vector<std::string> tokens(
@@ -31,7 +26,7 @@ namespace NCPA {
                 HelpTextSection() : HelpTextSection( "" ) {}
 
                 HelpTextSection( const std::string& title ) :
-                    _title { title } {}
+                    _title { title }, _subsections {} {}
 
                 HelpTextSection( const HelpTextSection& other ) {
                     _title = other._title;
@@ -57,9 +52,14 @@ namespace NCPA {
                 }
 
                 virtual HelpTextSection& add_subsection(
-                    const HelpTextSection& sub ) {
+                    const HelpTextSection& sub,
+                    bool inherit_format_options = true ) {
                     _subsections.push_back( sub.clone() );
                     _subsections.back()->increase_depth();
+                    if (inherit_format_options) {
+                        _subsections.back()->options() = this->options();
+                    }
+                    _subsections.back()->override_options();
                     return *_subsections.back();
                 }
 
@@ -75,32 +75,13 @@ namespace NCPA {
                     }
                 }
 
-                // virtual std::string make_marker(
-                //     const std::string& contents ) const {
-                //     std::ostringstream oss;
-                //     oss << this->options().marker_start << contents
-                //         << this->options().marker_end;
-                //     return oss.str();
-                // }
+                HelpTextFormatterOptions& options() { return _options; }
 
-                // virtual HelpTextFormatterOptions& options() {
-                //     return _options;
-                // }
+                const HelpTextFormatterOptions& options() const {
+                    return _options;
+                }
 
-                // virtual const HelpTextFormatterOptions& options() const {
-                //     return _options;
-                // }
-
-                // virtual HelpTextSection& set_text(
-                //     const std::vector<std::string>& text ) {
-                //     this->add_tokens( text );
-                //     return *this;
-                // }
-
-                // virtual HelpTextSection& set_text( const std::string& text )
-                // {
-                //     return this->set_text( _split_text( text ) );
-                // }
+                virtual void override_options() {}
 
                 virtual HelpTextSection& set_title(
                     const std::string& title ) {
@@ -131,62 +112,12 @@ namespace NCPA {
 
                 virtual std::string title() const { return _title; }
 
-                // virtual std::vector<std::string> tokenize(
-                //     const std::string& input ) const {
-                //     // mostly this is to deal with strings already containing
-                //     // newlines
-                //     std::string replaced = std::regex_replace(
-                //         input, NCPA::strings::NEWLINE_REGEX,
-                //         HelpTextMarkers::marker( help_text_marker_t::NEWLINE,
-                //                                  true ) );
-                //     return NCPA::strings::split( replaced );
-                // }
-
-                // virtual std::vector<std::string> tokenize_title() const {
-                //     // mostly this is to deal with strings already containing
-                //     // newlines
-                //     return this->tokenize( this->title() );
-                // }
-
-                
-
-                // virtual std::vector<std::string> title_tokens() const {
-                //     return this->tokenize( this->title() );
-                // }
-
-                // virtual std::vector<std::string> tokenize(
-                //     const std::string& input ) const {
-                //     // mostly this is to deal with strings already
-                //     containing
-                //     // newlines
-                //     std::string replaced = std::regex_replace(
-                //         input, NCPA::strings::NEWLINE_REGEX,
-                //         _options.marker( help_text_marker_t::NEWLINE, true )
-                //         );
-                //     return NCPA::strings::split( replaced );
-                // }
-
-                // virtual void tokenize(
-                //     const std::string& input,
-                //     std::vector<std::string>& output ) const {
-                //     std::vector<std::string> tokens = this->tokenize( input
-                //     ); output.insert( output.end(), tokens.begin(),
-                //                    tokens.end() );
-                // }
-
-
             protected:
                 std::string _title;
-                // HelpTextFormatterOptions _options;
-
-                // std::vector<std::string> _tokens;
                 std::vector<std::unique_ptr<HelpTextSection>> _subsections;
                 size_t _depth = 0;
 
-                // std::vector<std::string> _split_text(
-                //     const std::string& str ) const {
-                //     return NCPA::strings::split( str );
-                // }
+                HelpTextFormatterOptions _options;
         };
     }  // namespace config
 }  // namespace NCPA

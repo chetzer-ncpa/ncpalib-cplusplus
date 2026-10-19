@@ -168,6 +168,9 @@ namespace NCPA {
                         help_text_marker_t::SET_HANGING_INDENT,
                         (int)hanging ) );
                     if (options.separate_required_from_optional_arguments) {
+                        tok.push_back( "[Required]" );
+                        tok.push_back( HelpTextMarkers::marker(
+                            help_text_marker_t::NEWLINE ) );
                         for (auto it = _arguments.begin();
                              it != _arguments.end(); ++it) {
                             if (( *it )->required()) {
@@ -175,6 +178,11 @@ namespace NCPA {
                                     tok, **it, options, hanging );
                             }
                         }
+                        tok.push_back( HelpTextMarkers::marker(
+                            help_text_marker_t::NEWLINE ) );
+                        tok.push_back( "[Optional]" );
+                        tok.push_back( HelpTextMarkers::marker(
+                            help_text_marker_t::NEWLINE ) );
                         for (auto it = _arguments.begin();
                              it != _arguments.end(); ++it) {
                             if (!( *it )->required()) {

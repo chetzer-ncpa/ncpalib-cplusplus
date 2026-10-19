@@ -13,9 +13,7 @@ namespace NCPA {
     namespace config {
         class HelpTextFormatter {
             public:
-                HelpTextFormatter() {
-                    _buffer = &std::cout;
-                }
+                HelpTextFormatter() { _buffer = &std::cout; }
 
                 HelpTextFormatter( std::ostream& stream ) {
                     _buffer = &stream;
@@ -23,8 +21,8 @@ namespace NCPA {
 
                 HelpTextFormatter( std::ostream& stream,
                                    HelpTextFormatterOptions options ) {
-                    _buffer  = &stream;
-                    _options = options;
+                    _buffer = &stream;
+                    // _options = options;
                 }
 
                 HelpTextFormatter( const HelpTextFormatter& other ) :
@@ -32,8 +30,9 @@ namespace NCPA {
                     _buffer { other._buffer },
                     _section { other._section },
                     _first_line { other._first_line },
-                    _title_active { other._title_active },
-                    _options { other._options } {}
+                    _title_on { other._title_on } {}
+
+                // _options { other._options } {}
 
                 HelpTextFormatter( HelpTextFormatter&& other ) noexcept {
                     swap( *this, other );
@@ -53,8 +52,26 @@ namespace NCPA {
                     swap( a._section, b._section );
                     swap( a._linepos, b._linepos );
                     swap( a._first_line, b._first_line );
-                    swap( a._title_active, b._title_active );
-                    swap( a._options, b._options );
+                    swap( a._title_on, b._title_on );
+                    // swap( a._options, b._options );
+                }
+
+                std::string box_left() const {
+                    std::ostringstream oss;
+                    oss << options().box_side;
+                    if (options().box_side_pad) {
+                        oss << " ";
+                    }
+                    return oss.str();
+                }
+
+                std::string box_right() const {
+                    std::ostringstream oss;
+                    if (options().box_side_pad) {
+                        oss << " ";
+                    }
+                    oss << options().box_side;
+                    return oss.str();
                 }
 
                 virtual bool process_marker( std::string word ) {
@@ -89,10 +106,8 @@ namespace NCPA {
                         return;
                     }
 
-                    // std::string space = " ";
                     if (_linepos == 0) {
                         _start_line();
-                        // space = "";
                     }
 
                     if (word.size() > _remaining_in_line()) {
@@ -100,77 +115,169 @@ namespace NCPA {
                         this->process_token( word );
                     } else {
                         if (!_last_insert_whitespace) {
-                            _insert_space();
+                            _insert_space( 1 );
                         }
                         _insert( word );
                     }
                 }
 
-                void set_options( const HelpTextFormatterOptions& options ) {
-                    _options = options;
-                }
-
-                // virtual std::vector<std::string> tokenize(
-                //     const std::string& input ) const {
-                //     // mostly this is to deal with strings already
-                //     containing
-                //     // newlines
-                //     std::string replaced = std::regex_replace(
-                //         input, std::regex( this->options().newline_regex ),
-                //         HelpTextMarkers::marker(
-                //         help_text_marker_t::NEWLINE,
-                //                                  true ) );
-                //     return NCPA::strings::split( replaced );
-                // }
-
-                // virtual void tokenize(
-                //     const std::string& input,
-                //     std::vector<std::string>& output ) const {
-                //     std::vector<std::string> tokens = this->tokenize( input
-                //     ); output.insert( output.end(), tokens.begin(),
-                //                    tokens.end() );
-                // }
-
-                // void write( HelpTextSection& section, std::ostream& buffer )
+                // void set_options( const HelpTextFormatterOptions& options )
                 // {
-                //     _buffer = &buffer;
-                //     this->write( section );
+                //     _options = options;
                 // }
 
                 void format( const HelpTextSection& section,
-                             const HelpTextFormatterOptions& options,
-                             std::ostream& buffer = std::cout ) {
-                    set_options( options );
+                             //  const HelpTextFormatterOptions& options,
+                             std::ostream& buffer ) {
+                    // set_options( options );
                     _buffer = &buffer;
                     this->format( section );
                 }
 
-                void format( const HelpTextSection& section ) {
-                    _set_section( section );
-                    _first_line = true;
+                // void format( const HelpTextSection& section,
+                //              std::ostream& buffer = std::cout ) {
+                //     this->format( section, section.options(), buffer );
+                // }
 
+                void insert_left_indent() {
+                    size_t b, a;
+                    left_indent( b, a );
+                    _insert_space( b );
+                    if (_box_on) {
+                        _insert( box_left() );
+                    }
+                    _insert_space( a );
+                }
+
+                void left_indent( size_t& before_box,
+                                  size_t& after_box ) const {
+                    before_box = _base_indent();
+                    if (_title_on) {
+                        after_box = options().title_indent;
+                    } else if (_first_line) {
+                        after_box = this->options().first_line_indent;
+                    } else {
+                        after_box = _hanging_indent();
+                    }
+                }
+
+                size_t left_indent() const {
+                    size_t b, a;
+                    left_indent( b, a );
+                    return b + a;
+                }
+
+                size_t right_indent() const {
+                    return options().block_quote ? _base_indent() : 0;
+                }
+
+                size_t useable_space( bool include_box_sides = true ) const {
+                    size_t left_space  = this->left_indent();
+                    size_t right_space = this->right_indent();
+                    size_t box_space   = include_box_sides && _box_on
+                                           ? this->box_left().size()
+                                                 + this->box_right().size()
+                                           : 0;
+                    size_t reserved    = left_space + right_space + box_space;
+                    return ( reserved >= options().max_width )
+                             ? 0
+                             : options().max_width - reserved;
+                }
+
+                std::string box_lid() {
+                    size_t lid_size = this->useable_space( false );
+                    size_t total    = 0;
+                    std::ostringstream os;
+                    while (total++ < lid_size) {
+                        os << options().box_top;
+                    }
+                    return os.str();
+                }
+
+                void start_section() {
+                    if (options().box_style == help_text_box_t::ON) {
+                        start_box();
+                    }
+                }
+
+                void end_section() {
+                    if (options().box_style == help_text_box_t::ON) {
+                        end_box();
+                    }
+                }
+
+                void end_box() {
+                    _box_on = false;
+                    _start_line();
+                    *_buffer << box_lid();
+                    _end_line();
+                }
+
+                void start_box() {
+                    _box_on = false;
+                    _start_line();
+                    _insert( box_lid() );
+                    _end_line();
+                    _box_on = true;
+                }
+
+                void make_title() {
                     if (!_section->title().empty()) {
-                        _title_active = true;
-                        std::vector<std::string> titlewords = this->options().tokenize( _section->title() );
-                            // = _section->tokenize_title();
-                        // = _section->title_tokens( _options );
+                        _title_on = true;
                         if (this->options().newline_before_title) {
-                            titlewords.insert(
-                                titlewords.begin(),
-                                HelpTextMarkers::marker(
-                                    help_text_marker_t::NEWLINE ) );
+                            _insert_newline();
                         }
+                        if (options().box_style
+                            == help_text_box_t::TITLE_ONLY) {
+                            start_box();
+                        }
+                        std::vector<std::string> titlewords
+                            = this->options().tokenize( _section->title() );
+                        
                         titlewords.push_back( HelpTextMarkers::marker(
                             help_text_marker_t::NEWLINE ) );
-                        if (this->options().newline_after_title) {
-                            titlewords.push_back( HelpTextMarkers::marker(
-                                help_text_marker_t::NEWLINE ) );
-                        }
+                        
                         for (auto word : titlewords) {
                             this->process_token( word );
                         }
-                        _title_active = false;
+                        if (options().box_style
+                            == help_text_box_t::TITLE_ONLY) {
+                            end_box();
+                        }
+                        if (this->options().newline_after_title) {
+                            _insert_newline();
+                        }
+                        _title_on = false;
                     }
+                }
+
+                void format( const HelpTextSection& section ) {
+                    _set_section( section );
+                    start_section();
+                    make_title();
+
+                    _first_line = true;
+                    // if (!_section->title().empty()) {
+                    //     _title_on = true;
+                    //     std::vector<std::string> titlewords
+                    //         = this->options().tokenize( _section->title() );
+                    //     if (this->options().newline_before_title) {
+                    //         titlewords.insert(
+                    //             titlewords.begin(),
+                    //             HelpTextMarkers::marker(
+                    //                 help_text_marker_t::NEWLINE ) );
+                    //     }
+                    //     titlewords.push_back( HelpTextMarkers::marker(
+                    //         help_text_marker_t::NEWLINE ) );
+                    //     if (this->options().newline_after_title) {
+                    //         titlewords.push_back( HelpTextMarkers::marker(
+                    //             help_text_marker_t::NEWLINE ) );
+                    //     }
+                    //     for (auto word : titlewords) {
+                    //         this->process_token( word );
+                    //     }
+                    //     _title_on = false;
+                    // }
 
                     for (auto& token : _section->tokens( options() )) {
                         this->process_token( token );
@@ -180,71 +287,30 @@ namespace NCPA {
 
                     for (auto it = section.subsections().begin();
                          it != section.subsections().end(); ++it) {
-                        this->format( **it );
+                        this->format( **it, *_buffer );
                     }
+                    end_section();
                 }
 
-                // void write( HelpTextSection& section ) {
-                //     if (_buffer == nullptr) {
-                //         throw std::logic_error( "HelpTextFormatter.stream():
-                //         "
-                //                                 "No stream has been set!" );
-                //     }
-
-                //     _set_section( section );
-                //     _first_line = true;
-
-                //     // title
-                //     if (!_section->title().empty()) {
-                //         _title_active = true;
-                //         std::vector<std::string> titlewords
-                //             = tokenize( _section->title() );
-                //         if (this->options().newline_before_title) {
-                //             titlewords.insert(
-                //                 titlewords.begin(),
-                //                 HelpTextMarkers::marker(
-                //                     help_text_marker_t::NEWLINE ) );
-                //         }
-                //         titlewords.push_back( HelpTextMarkers::marker(
-                //             help_text_marker_t::NEWLINE ) );
-                //         if (this->options().newline_after_title) {
-                //             titlewords.push_back( HelpTextMarkers::marker(
-                //                 help_text_marker_t::NEWLINE ) );
-                //         }
-                //         for (auto word : titlewords) {
-                //             this->process_token( word );
-                //         }
-                //         _title_active = false;
-                //     }
-
-                //     for (auto& token : _section->tokens(_options)) {
-                //         this->process_token( token );
-                //     }
-                //     _end_line();
-                //     _section = nullptr;
-
-                //     for (auto it = section.subsections().begin();
-                //          it != section.subsections().end(); ++it) {
-                //         this->write( **it );
-                //     }
-                // }
-
-                HelpTextFormatterOptions& options() { return _options; }
+                // HelpTextFormatterOptions& options() { return
+                // _section->options(); }
 
                 const HelpTextFormatterOptions& options() const {
-                    return _options;
+                    return ( _section == nullptr ? _default_options
+                                                 : _section->options() );
                 }
 
             protected:
                 size_t _linepos              = 0;
                 size_t _hanging              = 0;
                 bool _first_line             = true;
-                bool _title_active           = false;
+                bool _title_on               = false;
                 bool _last_insert_whitespace = true;
+                bool _box_on                 = false;
 
-                std::ostream *_buffer           = nullptr;
+                std::ostream *_buffer           = &std::cout;
                 const HelpTextSection *_section = nullptr;
-                HelpTextFormatterOptions _options;
+                HelpTextFormatterOptions _default_options;
 
                 std::string _adjust_word( const std::string& inword ) {
                     std::string word = inword;
@@ -258,13 +324,22 @@ namespace NCPA {
                     return word;
                 }
 
-                size_t _base_indent( size_t depth ) const {
-                    return options().indent_spaces * depth;
+                size_t _base_indent() const {
+                    return ( _section == nullptr ? 0
+                                                 : options().indent_spaces
+                                                       * _section->depth() );
                 }
 
                 void _end_line( bool hard = false ) {
+                    if (_box_on) {
+                        if (_linepos == 0) {
+                            _start_line();
+                        }
+                        _insert_space( _remaining_in_line() );
+                        _insert( box_right() );
+                    }
                     _insert_newline();
-                    if (hard || _title_active
+                    if (hard || _title_on
                         || options().reset_indent_after_newline) {
                         _first_line = true;
                     } else {
@@ -281,9 +356,10 @@ namespace NCPA {
                 }
 
                 void _insert_indent( size_t n ) {
-                    for (size_t i = 0; i < n; ++i) {
-                        _insert_space();
-                    }
+                    _insert_space( n );
+                    // for (size_t i = 0; i < n; ++i) {
+                    //     _insert_space();
+                    // }
                 }
 
                 void _insert( const std::string& s ) {
@@ -298,7 +374,7 @@ namespace NCPA {
                     _last_insert_whitespace = true;
                 }
 
-                void _insert_space( size_t n = 1 ) {
+                void _insert_space( size_t n ) {
                     n = std::min( n, _remaining_in_line() );
                     for (size_t i = 0; i < n; ++i) {
                         _insert( " " );
@@ -307,9 +383,11 @@ namespace NCPA {
                 }
 
                 size_t _remaining_in_line() const {
-                    return ( _linepos <= options().max_width
-                                 ? options().max_width - _linepos
-                                 : 0 );
+                    size_t remaining = options().max_width
+                                     - ( _box_on ? box_right().size() : 0 )
+                                     - right_indent();
+                    return ( _linepos <= remaining ? remaining - _linepos
+                                                   : 0 );
                 }
 
                 void _set_section( const HelpTextSection& section ) {
@@ -317,16 +395,26 @@ namespace NCPA {
                 }
 
                 void _start_line() {
-                    if (_title_active) {
-                        _insert_indent( _base_indent( _section->depth() )
-                                        + options().title_indent );
-                    } else if (_first_line) {
-                        _insert_indent( this->_base_indent( _section->depth() )
-                                        + this->options().first_line_indent );
-                    } else {
-                        _insert_indent( this->_base_indent( _section->depth() )
-                                        + _hanging_indent() );
-                    }
+                    // if (_title_on) {
+                    //     _insert_indent( _base_indent( _section->depth() )
+                    //                     + options().title_indent );
+                    // } else if (_first_line) {
+                    //     _insert_indent( this->_base_indent(
+                    //     _section->depth() )
+                    //                     + this->options().first_line_indent
+                    //                     );
+                    // } else {
+                    //     _insert_indent( this->_base_indent(
+                    //     _section->depth() )
+                    //                     + _hanging_indent() );
+                    // }
+
+                    insert_left_indent();
+
+                    // _insert_indent( left_indent() );
+                    // if (_box_on) {
+                    //     _insert( box_left() );
+                    // }
                 }
         };
     }  // namespace config

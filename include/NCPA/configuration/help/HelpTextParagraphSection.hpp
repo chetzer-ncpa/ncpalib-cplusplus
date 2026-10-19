@@ -68,8 +68,14 @@ namespace NCPA {
 
                 virtual std::vector<std::string> tokens(const HelpTextFormatterOptions& options) const override {
                     std::vector<std::string> tok;
+                    bool first = true;
                     for (auto& par : _paragraphs) {
-                        options.tokenize( par, tok );
+                        if (first) {
+                            first = false;
+                        } else {
+                            tok.push_back(HelpTextMarkers::marker( help_text_marker_t::NEWLINE ) );
+                        }
+                        options.tokenize( par, tok );   
                     }
                     return tok;
                 }
