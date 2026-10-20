@@ -93,19 +93,6 @@ namespace NCPA {
 
                 virtual void add_argument( const Argument& arg ) {
                     _arguments.push_back( arg.clone() );
-                    // std::string flagname  = arg.tag();
-                    // std::string indicator = _indicator( arg );
-                    // _hanging_indent       = std::max(
-                    //     _hanging_indent,
-                    //     std::min(
-                    //         flagname.size()
-                    //             + ( indicator.empty() ? 1
-                    //                                   : indicator.size() + 2
-                    //                                   ),
-                    //         this->options().max_tag_length_without_newline )
-                    //         );
-                    // NCPA_DEBUG << "Setting hanging indent to "
-                    //            << _hanging_indent << std::endl;
                 }
 
                 virtual void add_argument( const Argument *arg ) {
@@ -123,9 +110,10 @@ namespace NCPA {
                 }
 
                 virtual void add_arguments( const ArgumentSet& argset ) {
-                    for (auto& argpair : argset.arguments()) {
-                        this->add_argument( argpair.second );
-                    }
+                    this->add_arguments( argset, argset.keys() );
+                    // for (auto& argpair : argset.arguments()) {
+                    //     this->add_argument( argpair.second );
+                    // }
                 }
 
                 virtual void add_arguments(
@@ -135,19 +123,6 @@ namespace NCPA {
                         this->add_argument( argset.argument( tag ) );
                     }
                 }
-
-                // virtual HelpTextSection& add_tokens(
-                //     const std::vector<std::string>& text ) override {
-                //     _preface.insert( _preface.end(), text.begin(),
-                //                      text.end() );
-                //     return *this;
-                // }
-
-                // virtual HelpTextArgumentSection& set_text(
-                //     const std::string& text ) override {
-                //     _preface = tokenize( text );
-                //     return *this;
-                // }
 
                 virtual HelpTextArgumentSection& add_text(
                     const std::string& text ) override {
@@ -234,9 +209,6 @@ namespace NCPA {
                     std::string argtag = _argument_tag( arg, options );
                     tok.push_back( argtag );
                     size_t total_size = argtag.size() + 1;
-                    // tok.push_back( this->options().marker(
-                    //     help_text_marker_t::SET_HANGING_INDENT,
-                    //     (int)_hanging_indent ) );
 
                     if (options.break_after_tag
                         || ( total_size
@@ -256,15 +228,6 @@ namespace NCPA {
 
                     options.tokenize( arg.description(), tok );
                     _add_suffixes( tok, arg, options );
-                    // if (arg.has_default_value()) {
-                    //     tok.push_back( std::string(
-                    //         "[" + this->options().default_value_suffix
-                    //         + arg.default_as_string() + "]" ) );
-                    // }
-                    // if (arg.required()) {
-                    //     tok.push_back(
-                    //         this->options().required_argument_suffix );
-                    // }
                     tok.push_back( HelpTextMarkers::marker(
                         help_text_marker_t::NEWLINE ) );
                 }
@@ -319,30 +282,6 @@ namespace NCPA {
                     }
                     return "";
                 }
-
-                // void _set_options() {
-                //     this->options().first_line_indent          = 0;
-                //     this->options().indent_subsections         = true;
-                //     this->options().reset_indent_after_newline = true;
-                // }
-
-                // std::vector<std::string> _tokenize_preface(
-                //     std::vector<std::string>& tok ) const {
-                //     // std::vector<std::string> tok;
-                //     if (this->options().newline_before_title) {
-                //         tok.push_back( this->options().marker(
-                //             help_text_marker_t::NEWLINE ) );
-                //     }
-                //     tok.insert( tok.begin(), _preface.begin(),
-                //                 _preface.end() );
-                //     tok.push_back( this->options().marker(
-                //         help_text_marker_t::NEWLINE ) );
-                //     if (this->options().newline_after_title) {
-                //         tok.push_back( this->options().marker(
-                //             help_text_marker_t::NEWLINE ) );
-                //     }
-                //     return tok;
-                // }
         };
 
     }  // namespace config

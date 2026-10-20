@@ -34,80 +34,7 @@ namespace NCPA {
                  * @param b
                  */
                 friend void swap( abstract_atmosphere_3d& a,
-                                    abstract_atmosphere_3d& b ) noexcept {}
-
-                /**
-                 * @brief
-                 * @param atmos1d
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set(
-                    abstract_atmosphere_1d& atmos1d ) = 0;
-
-                /**
-                 * @brief
-                 * @param components
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set(
-                    NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
-                        components ) = 0;
-
-                /**
-                 * @brief
-                 * @param ax1
-                 * @param ax2
-                 * @param components
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set(
-                    const vector_u_t& ax1, const vector_u_t& ax2,
-                    NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
-                        components ) = 0;
-
-                /**
-                 * @brief
-                 * @param dim
-                 * @return size_t
-                 */
-                virtual size_t size( size_t dim ) const = 0;
-
-                /**
-                 * @brief
-                 * @param interp_type
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set_interpolator(
-                    NCPA::interpolation::interpolator_3d_type_t interp_type )
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param interp_type
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set_interpolator(
-                    NCPA::interpolation::interpolator_2d_type_t interp_type )
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param interp_type
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set_interpolator(
-                    NCPA::interpolation::interpolator_1d_type_t interp_type )
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param axis
-                 * @param vals
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& set_axis( size_t axis,
-                                                          vector_u_t vals )
-                    = 0;
+                                  abstract_atmosphere_3d& b ) noexcept {}
 
                 /**
                  * @brief
@@ -148,11 +75,54 @@ namespace NCPA {
 
                 /**
                  * @brief
+                 * @return std::unique_ptr<abstract_atmosphere_3d>
+                 */
+                virtual std::unique_ptr<abstract_atmosphere_3d> clone() const
+                    = 0;
+                /**
+                 * @brief
                  * @param key
+                 * @return true
+                 * @return false
+                 */
+                virtual bool contains_key( const std::string& key ) const = 0;
+
+                /**
+                 * @brief
+                 * @param key
+                 * @return true
+                 * @return false
+                 */
+                virtual bool contains_scalar( const std::string& key ) const
+                    = 0;
+
+                /**
+                 * @brief
+                 * @param key
+                 * @return true
+                 * @return false
+                 */
+                virtual bool contains_vector( const std::string& key ) const
+                    = 0;
+
+
+                /**
+                 * @brief
+                 * @param n
+                 * @param new_units
                  * @return abstract_atmosphere_3d&
                  */
-                virtual abstract_atmosphere_3d& remove_property(
-                    const std::string& key ) = 0;
+                virtual abstract_atmosphere_3d& convert_axis_units(
+                    size_t n, units_ptr_t new_units ) = 0;
+
+                /**
+                 * @brief
+                 * @param key
+                 * @param new_units
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& convert_units(
+                    const std::string& key, units_ptr_t new_units ) = 0;
 
                 /**
                  * @brief
@@ -163,43 +133,6 @@ namespace NCPA {
                 virtual abstract_atmosphere_3d& copy_property(
                     const std::string& old_key, const std::string& new_key )
                     = 0;
-
-                /**
-                 * @brief
-                 * @return std::unique_ptr<abstract_atmosphere_3d>
-                 */
-                virtual std::unique_ptr<abstract_atmosphere_3d> clone() const
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param n
-                 * @return vector_u_t
-                 */
-                virtual vector_u_t get_axis_vector( size_t n ) = 0;
-
-                /**
-                 * @brief
-                 * @param n
-                 * @return vector_u_t
-                 */
-                virtual vector_u_t get_axis_vector( size_t n ) const = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @return vector3d_u_t
-                 */
-                virtual vector3d_u_t get_values( const std::string& key ) = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @return vector3d_u_t
-                 */
-                virtual vector3d_u_t get_values( const std::string& key ) const
-                    = 0;
-
                 /**
                  * @brief
                  * @param key
@@ -226,32 +159,6 @@ namespace NCPA {
                  * @param key
                  * @param x1
                  * @param x2
-                 * @param wrt
-                 * @return double
-                 */
-                virtual double get_first_derivative( const std::string& key,
-                                                     double x1, double x2,
-                                                     size_t wrt ) = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @param x1
-                 * @param x2
-                 * @param wrt1
-                 * @param wrt2
-                 * @return double
-                 */
-                virtual double get_second_derivative( const std::string& key,
-                                                      double x1, double x2,
-                                                      size_t wrt1,
-                                                      size_t wrt2 ) = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @param x1
-                 * @param x2
                  * @param x3
                  * @return double
                  */
@@ -270,7 +177,39 @@ namespace NCPA {
                                           const std::vector<double>& v1,
                                           const std::vector<double>& v2,
                                           const std::vector<double>& v3 ) = 0;
+                /**
+                 * @brief
+                 * @param n
+                 * @return units_ptr_t
+                 */
+                virtual units_ptr_t get_axis_units( size_t n ) const      = 0;
 
+                /**
+                 * @brief
+                 * @param n
+                 * @return vector_u_t
+                 */
+                virtual vector_u_t get_axis_vector( size_t n ) = 0;
+
+                /**
+                 * @brief
+                 * @param n
+                 * @return vector_u_t
+                 */
+                virtual vector_u_t get_axis_vector( size_t n ) const = 0;
+
+
+                /**
+                 * @brief
+                 * @param key
+                 * @param x1
+                 * @param x2
+                 * @param wrt
+                 * @return double
+                 */
+                virtual double get_first_derivative( const std::string& key,
+                                                     double x1, double x2,
+                                                     size_t wrt ) = 0;
                 /**
                  * @brief
                  * @param key
@@ -287,6 +226,43 @@ namespace NCPA {
 
                 /**
                  * @brief
+                 * @return std::vector<std::string>
+                 */
+                virtual std::vector<std::string> get_keys() const = 0;
+
+                /**
+                 * @brief
+                 * @param n
+                 * @return double
+                 */
+                virtual double get_maximum_axis( size_t n ) const        = 0;
+                /**
+                 * @brief
+                 * @param n
+                 * @return double
+                 */
+                virtual double get_minimum_axis( size_t n ) const        = 0;
+                /**
+                 * @brief
+                 * @return std::vector<std::string>
+                 */
+                virtual std::vector<std::string> get_scalar_keys() const = 0;
+                /**
+                 * @brief
+                 * @param key
+                 * @param x1
+                 * @param x2
+                 * @param wrt1
+                 * @param wrt2
+                 * @return double
+                 */
+                virtual double get_second_derivative( const std::string& key,
+                                                      double x1, double x2,
+                                                      size_t wrt1,
+                                                      size_t wrt2 )      = 0;
+
+                /**
+                 * @brief
                  * @param key
                  * @param x1
                  * @param x2
@@ -299,14 +275,6 @@ namespace NCPA {
                                                       double x1, double x2,
                                                       double x3, size_t wrt1,
                                                       size_t wrt2 ) = 0;
-
-                /**
-                 * @brief
-                 * @param n
-                 * @return units_ptr_t
-                 */
-                virtual units_ptr_t get_axis_units( size_t n ) const = 0;
-
                 /**
                  * @brief
                  * @param key
@@ -317,35 +285,42 @@ namespace NCPA {
 
                 /**
                  * @brief
-                 * @param n
-                 * @return double
+                 * @param key
+                 * @return vector3d_u_t
                  */
-                virtual double get_minimum_axis( size_t n ) const = 0;
-
-                /**
-                 * @brief
-                 * @param n
-                 * @return double
-                 */
-                virtual double get_maximum_axis( size_t n ) const = 0;
-
-                /**
-                 * @brief
-                 * @param n
-                 * @param new_units
-                 * @return abstract_atmosphere_3d&
-                 */
-                virtual abstract_atmosphere_3d& convert_axis_units(
-                    size_t n, units_ptr_t new_units ) = 0;
+                virtual vector3d_u_t get_values( const std::string& key ) = 0;
 
                 /**
                  * @brief
                  * @param key
-                 * @param new_units
+                 * @return vector3d_u_t
+                 */
+                virtual vector3d_u_t get_values( const std::string& key ) const
+                    = 0;
+
+                /**
+                 * @brief
+                 * @return std::vector<std::string>
+                 */
+                virtual std::vector<std::string> get_vector_keys() const = 0;
+                /**
+                 * @brief
+                 * @return true
+                 * @return false
+                 */
+                virtual bool is_stratified() const                       = 0;
+                /**
+                 * @brief
+                 * @param os
+                 */
+                virtual void print( std::ostream& os )                   = 0;
+                /**
+                 * @brief
+                 * @param key
                  * @return abstract_atmosphere_3d&
                  */
-                virtual abstract_atmosphere_3d& convert_units(
-                    const std::string& key, units_ptr_t new_units ) = 0;
+                virtual abstract_atmosphere_3d& remove_property(
+                    const std::string& key ) = 0;
 
                 /**
                  * @brief
@@ -377,51 +352,6 @@ namespace NCPA {
                                                           vector_u_t new_ax2,
                                                           vector_u_t new_ax3 )
                     = 0;
-
-                /**
-                 * @brief
-                 * @return std::vector<std::string>
-                 */
-                virtual std::vector<std::string> get_keys() const = 0;
-
-                /**
-                 * @brief
-                 * @return std::vector<std::string>
-                 */
-                virtual std::vector<std::string> get_vector_keys() const = 0;
-
-                /**
-                 * @brief
-                 * @return std::vector<std::string>
-                 */
-                virtual std::vector<std::string> get_scalar_keys() const = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @return true
-                 * @return false
-                 */
-                virtual bool contains_scalar( const std::string& key ) const
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @return true
-                 * @return false
-                 */
-                virtual bool contains_vector( const std::string& key ) const
-                    = 0;
-
-                /**
-                 * @brief
-                 * @param key
-                 * @return true
-                 * @return false
-                 */
-                virtual bool contains_key( const std::string& key ) const = 0;
-
                 /**
                  * @brief
                  * @param x1_1
@@ -446,20 +376,78 @@ namespace NCPA {
                  */
                 virtual bool same( double x1_1, double x2_1, double x1_2,
                                    double x2_2 ) const = 0;
+                /**
+                 * @brief
+                 * @param atmos1d
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set(
+                    abstract_atmosphere_1d& atmos1d ) = 0;
 
                 /**
                  * @brief
-                 * @return true
-                 * @return false
+                 * @param components
+                 * @return abstract_atmosphere_3d&
                  */
-                virtual bool is_stratified() const = 0;
+                virtual abstract_atmosphere_3d& set(
+                    NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
+                        components ) = 0;
+
+                /**
+                 * @brief
+                 * @param ax1
+                 * @param ax2
+                 * @param components
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set(
+                    const vector_u_t& ax1, const vector_u_t& ax2,
+                    NCPA::arrays::ndvector<2, abstract_atmosphere_1d *>&
+                        components ) = 0;
+
+                /**
+                 * @brief
+                 * @param axis
+                 * @param vals
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set_axis( size_t axis,
+                                                          vector_u_t vals )
+                    = 0;
+                /**
+                 * @brief
+                 * @param interp_type
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set_interpolator(
+                    NCPA::interpolation::interpolator_3d_type_t interp_type )
+                    = 0;
+
+                /**
+                 * @brief
+                 * @param interp_type
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set_interpolator(
+                    NCPA::interpolation::interpolator_2d_type_t interp_type )
+                    = 0;
+
+                /**
+                 * @brief
+                 * @param interp_type
+                 * @return abstract_atmosphere_3d&
+                 */
+                virtual abstract_atmosphere_3d& set_interpolator(
+                    NCPA::interpolation::interpolator_1d_type_t interp_type )
+                    = 0;
 
 
                 /**
                  * @brief
-                 * @param os
+                 * @param dim
+                 * @return size_t
                  */
-                virtual void print( std::ostream& os ) = 0;
+                virtual size_t size( size_t dim ) const = 0;
 
                 /**
                  * @brief

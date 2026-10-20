@@ -8,8 +8,10 @@
 #include "NCPA/configuration/declarations.hpp"
 #include "NCPA/configuration/exceptions.hpp"
 #include "NCPA/strings.hpp"
+#include "NCPA/units.hpp"
 
 #include <deque>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -17,16 +19,20 @@ namespace NCPA {
     namespace config {
         class CommandLineArgumentParser
             : public Cloneable<CommandLineArgumentParser, ArgumentParser> {
-                enum class parser_expecting_t { TAG, VALUE, EITHER };
-                enum class token_t { NONE, TAG, VALUE };
+                // enum class parser_expecting_t { TAG, VALUE, EITHER };
+                // enum class token_t { NONE, TAG, VALUE, VALUE_WITH_UNITS };
 
-                struct Token {
-                        token_t token_type;
-                        std::string text;
-                };
+                // struct Token {
+                //         token_t token_type;
+                //         std::string text;
+                // };
 
-                typedef std::pair<std::string, std::vector<std::string>>
-                    arg_value_set_t;
+                // typedef std::pair<std::string, std::vector<std::string>>
+                //     arg_value_set_t;
+
+                const std::regex VALUE_WITH_UNITS_REGEX
+                    = std::regex( R"(^(\-?\d?\.?\d+)(\D\w*)$)" );
+                const std::regex TAG_REGEX = std::regex( R"(^\-\-(\w+)$)" );
 
             public:
                 using parent_t
@@ -179,14 +185,18 @@ namespace NCPA {
 
                 Token _parse_token( const std::string& token ) const {
                     Token t;
+                    std::smatch matches;
                     t.text = NCPA::strings::deblank( token );
                     if (t.text.empty()) {
                         t.token_type = token_t::NONE;
                         return t;
-                    } else if (t.text.size() >= 2
-                               && t.text.compare( 0, 2, "--" ) == 0) {
+                    } else if (std::regex_search( token, matches,
+                                                  TAG_REGEX )) {
                         t.token_type = token_t::TAG;
-                        t.text       = NCPA::strings::deblank( t.text, "-" );
+                        t.text       = matches[ 1 ].str();
+                    } else if (std::regex_search( token, matches,
+                                                  VALUE_WITH_UNITS_REGEX )) {
+                        t.token_type = token_t::VALUE_WITH_UNITS;
                     } else {
                         t.token_type = token_t::VALUE;
                     }

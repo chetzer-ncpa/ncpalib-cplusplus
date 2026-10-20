@@ -41,18 +41,28 @@ namespace NCPA {
                 }
 
                 Argument& add_argument( const Argument *arg ) {
-                    _args.insert( std::make_pair( arg->tag(), arg->clone() ) );
-                    return *_args.at( arg->tag() );
+                    return this->add_argument( arg->clone() );
+                    // _args.insert( std::make_pair( arg->tag(), arg->clone() )
+                    // ); return *_args.at( arg->tag() );
                 }
 
                 Argument& add_argument( const Argument& arg ) {
-                    _args.insert( std::make_pair( arg.tag(), arg.clone() ) );
-                    return *_args.at( arg.tag() );
+                    return this->add_argument( arg.clone() );
+                    // _args.insert( std::make_pair( arg.tag(), arg.clone() )
+                    // ); return *_args.at( arg.tag() );
                 }
 
                 Argument& add_argument(
                     const std::unique_ptr<Argument>& arg ) {
-                    return this->add_argument( arg.get() );
+                    return this->add_argument( arg->clone() );
+                }
+
+                Argument& add_argument( std::unique_ptr<Argument>&& arg ) {
+                    std::string key = arg->tag();
+                    _args.insert( std::make_pair( key, std::move( arg ) ) );
+                    _key_order.push_back( key );
+                    return *_args.at( key );
+                    // return this->add_argument( arg.get() );
                 }
 
                 template<typename ARGTYPE = int, typename... Args>
@@ -60,13 +70,18 @@ namespace NCPA {
                                         const std::string& tag,
                                         const std::string& description,
                                         Args&&...args ) {
-                    _args.insert( std::make_pair(
-                        tag,
+                    return this->add_argument(
                         std::unique_ptr<Argument>( new TypedArgument<ARGTYPE>(
                             tag, description, valcount,
-                            std::forward<Args>( args )... ) ) ) );
+                            std::forward<Args>( args )... ) ) );
+                    // _args.insert( std::make_pair(
+                    //     tag,
+                    //     std::unique_ptr<Argument>( new
+                    //     TypedArgument<ARGTYPE>(
+                    //         tag, description, valcount,
+                    //         std::forward<Args>( args )... ) ) ) );
 
-                    return this->argument( tag );
+                    // return this->argument( tag );
                 }
 
                 template<typename ARGTYPE, typename... Args>
@@ -149,11 +164,16 @@ namespace NCPA {
 
                 size_t count() const { return _args.size(); }
 
+                const std::vector<std::string>& keys() const {
+                    return _key_order;
+                }
+
                 ValidationStatus validate() const {
                     ValidationStatus status;
                     for (auto& arg : _args) {
                         if (arg.second->required() && !arg.second->was_set()) {
-                            status.fail( arg.first + ": Required argument not found");
+                            status.fail( arg.first
+                                         + ": Required argument not found" );
                         }
                         status &= arg.second->validate();
                     }
@@ -162,6 +182,7 @@ namespace NCPA {
 
             protected:
                 argument_map_t _args;
+                std::vector<std::string> _key_order;
         };
     }  // namespace config
 }  // namespace NCPA

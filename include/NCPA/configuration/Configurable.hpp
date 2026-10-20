@@ -27,8 +27,6 @@ namespace NCPA {
     namespace config {
         using NCPA::units::units_ptr_t;
 
-        // using UnitsParameter = ScalarParameter<units_ptr_t>;
-
         template<typename KEYTYPE>
         class Configurable {
             public:

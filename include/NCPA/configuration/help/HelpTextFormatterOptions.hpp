@@ -79,10 +79,6 @@ namespace NCPA {
                     const std::string& input,
                     std::vector<std::string>& output ) const {
                     std::vector<std::string> tokens = this->tokenize( input );
-                    // if (!output.empty()) {
-                    //     output.push_back( HelpTextMarkers::marker(
-                    //         help_text_marker_t::NEWLINE ) );
-                    // }
                     output.insert( output.end(), tokens.begin(),
                                    tokens.end() );
                 }

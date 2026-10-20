@@ -48,6 +48,315 @@ namespace NCPA {
                     return *this;
                 }
 
+                // friend binary operators
+                friend std::ostream& operator<<( std::ostream& os,
+                                                 const Atmosphere3D& atm ) {
+                    if (atm) {
+                        atm._ptr->print( os );
+                    }
+                    return os;
+                }
+
+                explicit operator bool() const {
+                    return ( _ptr ? true : false );
+                }
+
+                virtual Atmosphere3D& add_property(
+                    const std::string& key,
+                    const AtmosphericProperty3D& property ) {
+                    check_pointer();
+                    _ptr->add_property( key, property );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& add_property(
+                    const std::string& key, const vector3d_u_t& property ) {
+                    check_pointer();
+                    _ptr->add_property( key, property );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& add_property(
+                    const std::string& key, const vector2d_u_t& property ) {
+                    check_pointer();
+                    _ptr->add_property( key, property );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& add_property(
+                    const std::string& key, const scalar_u_t& property ) {
+                    check_pointer();
+                    _ptr->add_property( key, property );
+                    return *this;
+                }
+
+                virtual void check_pointer() const {
+                    if (!_ptr) {
+                        throw std::logic_error(
+                            "Atmosphere3D: Internal pointer not set!" );
+                    }
+                }
+
+                virtual bool contains_key( const std::string& key ) const {
+                    check_pointer();
+                    return _ptr->contains_key( key );
+                }
+
+                virtual bool contains_scalar( const std::string& key ) const {
+                    check_pointer();
+                    return _ptr->contains_scalar( key );
+                }
+
+                virtual bool contains_vector( const std::string& key ) const {
+                    check_pointer();
+                    return _ptr->contains_vector( key );
+                }
+
+                virtual Atmosphere3D& convert_axis_units(
+                    size_t dim, units_ptr_t new_units ) {
+                    check_pointer();
+                    _ptr->convert_axis_units( dim, new_units );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& convert_units( const std::string& key,
+                                                     units_ptr_t new_units ) {
+                    check_pointer();
+                    _ptr->convert_units( key, new_units );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& copy_property(
+                    const std::string& old_key, const std::string& new_key ) {
+                    check_pointer();
+                    _ptr->copy_property( old_key, new_key );
+                    return *this;
+                }
+
+                virtual double get( const std::string& key ) {
+                    check_pointer();
+                    return _ptr->get( key, 0.0, 0.0 );
+                }
+
+                virtual double get( const std::string& key, double x1,
+                                    double x2 ) {
+                    check_pointer();
+                    return _ptr->get( key, x1, x2 );
+                }
+
+                virtual double get( const std::string& key, double x1,
+                                    double x2, double x3 ) {
+                    check_pointer();
+                    return _ptr->get( key, x1, x2, x3 );
+                }
+
+                virtual vector3d_u_t get( const std::string& key,
+                                          const std::vector<double>& v1,
+                                          const std::vector<double>& v2,
+                                          const std::vector<double>& v3 ) {
+                    check_pointer();
+                    return _ptr->get( key, v1, v2, v3 );
+                }
+
+                virtual vector2d_u_t get( const std::string& key,
+                                          const std::vector<double>& v1,
+                                          const std::vector<double>& v2 ) {
+                    check_pointer();
+                    return _ptr->get( key, v1, v2 );
+                }
+
+                virtual double get(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2 ) {
+                    check_pointer();
+                    return _ptr->get( key,
+                                      x1.get_as( this->get_axis_units( 0 ) ),
+                                      x2.get_as( this->get_axis_units( 1 ) ) );
+                }
+
+                virtual double get(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2,
+                    const NCPA::units::ScalarWithUnits<double>& x3 ) {
+                    check_pointer();
+                    return _ptr->get( key,
+                                      x1.get_as( this->get_axis_units( 0 ) ),
+                                      x2.get_as( this->get_axis_units( 1 ) ),
+                                      x3.get_as( this->get_axis_units( 2 ) ) );
+                }
+
+                virtual units_ptr_t get_axis_units( size_t dim ) {
+                    check_pointer();
+                    return _ptr->get_axis_units( dim );
+                }
+
+                virtual vector_u_t get_axis_vector( size_t dim ) {
+                    check_pointer();
+                    return _ptr->get_axis_vector( dim );
+                }
+
+                virtual double get_first_derivative( const std::string& key,
+                                                     double x1, double x2,
+                                                     size_t wrt1 ) {
+                    check_pointer();
+                    return _ptr->get_first_derivative( key, x1, x2, wrt1 );
+                }
+
+                virtual double get_first_derivative( const std::string& key,
+                                                     double x1, double x2,
+                                                     double x3, size_t wrt1 ) {
+                    check_pointer();
+                    return _ptr->get_first_derivative( key, x1, x2, x3, wrt1 );
+                }
+
+                virtual double get_first_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2,
+                    size_t wrt1 ) {
+                    check_pointer();
+                    return _ptr->get_first_derivative(
+                        key, x1.get_as( this->get_axis_units( 0 ) ),
+                        x2.get_as( this->get_axis_units( 1 ) ), wrt1 );
+                }
+
+                virtual double get_first_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2,
+                    const NCPA::units::ScalarWithUnits<double>& x3,
+                    size_t wrt1 ) {
+                    check_pointer();
+                    return _ptr->get_first_derivative(
+                        key, x1.get_as( this->get_axis_units( 0 ) ),
+                        x2.get_as( this->get_axis_units( 1 ) ),
+                        x3.get_as( this->get_axis_units( 2 ) ), wrt1 );
+                }
+
+                virtual std::vector<std::string> get_keys() const {
+                    check_pointer();
+                    return _ptr->get_keys();
+                }
+
+                virtual double get_maximum_axis( size_t dim ) const {
+                    check_pointer();
+                    return _ptr->get_maximum_axis( dim );
+                }
+
+                virtual double get_minimum_axis( size_t dim ) const {
+                    check_pointer();
+                    return _ptr->get_minimum_axis( dim );
+                }
+
+                virtual std::vector<std::string> get_scalar_keys() const {
+                    check_pointer();
+                    return _ptr->get_scalar_keys();
+                }
+
+                virtual double get_second_derivative( const std::string& key,
+                                                      double x1, double x2,
+                                                      size_t wrt1,
+                                                      size_t wrt2 ) {
+                    check_pointer();
+                    return _ptr->get_second_derivative( key, x1, x2, wrt1,
+                                                        wrt2 );
+                }
+
+                virtual double get_second_derivative( const std::string& key,
+                                                      double x1, double x2,
+                                                      double x3, size_t wrt1,
+                                                      size_t wrt2 ) {
+                    check_pointer();
+                    return _ptr->get_second_derivative( key, x1, x2, x3, wrt1,
+                                                        wrt2 );
+                }
+
+                virtual double get_second_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2,
+                    size_t wrt1, size_t wrt2 ) {
+                    check_pointer();
+                    return _ptr->get_second_derivative(
+                        key, x1.get_as( this->get_axis_units( 0 ) ),
+                        x2.get_as( this->get_axis_units( 1 ) ), wrt1, wrt2 );
+                }
+
+                virtual double get_second_derivative(
+                    const std::string& key,
+                    const NCPA::units::ScalarWithUnits<double>& x1,
+                    const NCPA::units::ScalarWithUnits<double>& x2,
+                    const NCPA::units::ScalarWithUnits<double>& x3,
+                    size_t wrt1, size_t wrt2 ) {
+                    check_pointer();
+                    return _ptr->get_second_derivative(
+                        key, x1.get_as( this->get_axis_units( 0 ) ),
+                        x2.get_as( this->get_axis_units( 1 ) ),
+                        x3.get_as( this->get_axis_units( 2 ) ), wrt1, wrt2 );
+                }
+
+                virtual units_ptr_t get_units( const std::string& key ) {
+                    check_pointer();
+                    return _ptr->get_units( key );
+                }
+
+                virtual vector3d_u_t get_values( const std::string& key ) {
+                    check_pointer();
+                    return _ptr->get_values( key );
+                }
+
+                virtual std::vector<std::string> get_vector_keys() const {
+                    check_pointer();
+                    return _ptr->get_vector_keys();
+                }
+
+                virtual bool is_stratified() const override {
+                    check_pointer();
+                    return _ptr->is_stratified();
+                }
+
+                virtual Atmosphere3D remove_property(
+                    const std::string& key ) {
+                    check_pointer();
+                    _ptr->remove_property( key );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& resample( size_t dim, double new_dz ) {
+                    check_pointer();
+                    _ptr->resample( dim, new_dz );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& resample( size_t dim,
+                                                vector_u_t new_z ) {
+                    check_pointer();
+                    _ptr->resample( dim, new_z );
+                    return *this;
+                }
+
+                virtual Atmosphere3D& resample( vector_u_t new_ax1,
+                                                vector_u_t new_ax2,
+                                                vector_u_t new_ax3 ) {
+                    check_pointer();
+                    _ptr->resample( new_ax1, new_ax2, new_ax3 );
+                    return *this;
+                }
+
+                virtual bool same( scalar_u_t x1_1, scalar_u_t x2_1,
+                                   scalar_u_t x1_2, scalar_u_t x2_2 ) const {
+                    check_pointer();
+                    return _ptr->same( x1_1, x2_1, x1_2, x2_2 );
+                }
+
+                virtual bool same( double x1_1, double x2_1, double x1_2,
+                                   double x2_2 ) const {
+                    check_pointer();
+                    return _ptr->same( x1_1, x2_1, x1_2, x2_2 );
+                }
+
                 Atmosphere3D& set( Atmosphere1D& atmos1d ) {
                     check_pointer();
                     _ptr->set( *atmos1d.internal() );
@@ -128,314 +437,6 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Atmosphere3D& add_property(
-                    const std::string& key,
-                    const AtmosphericProperty3D& property ) {
-                    check_pointer();
-                    _ptr->add_property( key, property );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& add_property(
-                    const std::string& key, const vector3d_u_t& property ) {
-                    check_pointer();
-                    _ptr->add_property( key, property );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& add_property(
-                    const std::string& key, const vector2d_u_t& property ) {
-                    check_pointer();
-                    _ptr->add_property( key, property );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& add_property(
-                    const std::string& key, const scalar_u_t& property ) {
-                    check_pointer();
-                    _ptr->add_property( key, property );
-                    return *this;
-                }
-
-                virtual Atmosphere3D remove_property(
-                    const std::string& key ) {
-                    check_pointer();
-                    _ptr->remove_property( key );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& copy_property(
-                    const std::string& old_key, const std::string& new_key ) {
-                    check_pointer();
-                    _ptr->copy_property( old_key, new_key );
-                    return *this;
-                }
-
-                virtual vector_u_t get_axis_vector( size_t dim ) {
-                    check_pointer();
-                    return _ptr->get_axis_vector( dim );
-                }
-
-                virtual vector3d_u_t get_values( const std::string& key ) {
-                    check_pointer();
-                    return _ptr->get_values( key );
-                }
-
-                virtual double get( const std::string& key ) {
-                    check_pointer();
-                    return _ptr->get( key, 0.0, 0.0 );
-                }
-
-                virtual double get( const std::string& key, double x1,
-                                    double x2 ) {
-                    check_pointer();
-                    return _ptr->get( key, x1, x2 );
-                }
-
-                virtual double get( const std::string& key, double x1,
-                                    double x2, double x3 ) {
-                    check_pointer();
-                    return _ptr->get( key, x1, x2, x3 );
-                }
-
-                virtual vector3d_u_t get( const std::string& key,
-                                          const std::vector<double>& v1,
-                                          const std::vector<double>& v2,
-                                          const std::vector<double>& v3 ) {
-                    check_pointer();
-                    return _ptr->get( key, v1, v2, v3 );
-                }
-
-                virtual vector2d_u_t get( const std::string& key,
-                                          const std::vector<double>& v1,
-                                          const std::vector<double>& v2 ) {
-                    check_pointer();
-                    return _ptr->get( key, v1, v2 );
-                }
-
-                virtual double get(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2 ) {
-                    check_pointer();
-                    return _ptr->get( key,
-                                      x1.get_as( this->get_axis_units( 0 ) ),
-                                      x2.get_as( this->get_axis_units( 1 ) ) );
-                }
-
-                virtual double get(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2,
-                    const NCPA::units::ScalarWithUnits<double>& x3 ) {
-                    check_pointer();
-                    return _ptr->get( key,
-                                      x1.get_as( this->get_axis_units( 0 ) ),
-                                      x2.get_as( this->get_axis_units( 1 ) ),
-                                      x3.get_as( this->get_axis_units( 2 ) ) );
-                }
-
-                virtual double get_first_derivative( const std::string& key,
-                                                     double x1, double x2,
-                                                     size_t wrt1 ) {
-                    check_pointer();
-                    return _ptr->get_first_derivative( key, x1, x2, wrt1 );
-                }
-
-                virtual double get_first_derivative( const std::string& key,
-                                                     double x1, double x2,
-                                                     double x3, size_t wrt1 ) {
-                    check_pointer();
-                    return _ptr->get_first_derivative( key, x1, x2, x3, wrt1 );
-                }
-
-                virtual double get_first_derivative(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2,
-                    size_t wrt1 ) {
-                    check_pointer();
-                    return _ptr->get_first_derivative(
-                        key, x1.get_as( this->get_axis_units( 0 ) ),
-                        x2.get_as( this->get_axis_units( 1 ) ), wrt1 );
-                }
-
-                virtual double get_first_derivative(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2,
-                    const NCPA::units::ScalarWithUnits<double>& x3,
-                    size_t wrt1 ) {
-                    check_pointer();
-                    return _ptr->get_first_derivative(
-                        key, x1.get_as( this->get_axis_units( 0 ) ),
-                        x2.get_as( this->get_axis_units( 1 ) ),
-                        x3.get_as( this->get_axis_units( 2 ) ), wrt1 );
-                }
-
-                virtual double get_second_derivative( const std::string& key,
-                                                      double x1, double x2,
-                                                      size_t wrt1,
-                                                      size_t wrt2 ) {
-                    check_pointer();
-                    return _ptr->get_second_derivative( key, x1, x2, wrt1,
-                                                        wrt2 );
-                }
-
-                virtual double get_second_derivative( const std::string& key,
-                                                      double x1, double x2,
-                                                      double x3, size_t wrt1,
-                                                      size_t wrt2 ) {
-                    check_pointer();
-                    return _ptr->get_second_derivative( key, x1, x2, x3, wrt1,
-                                                        wrt2 );
-                }
-
-                virtual double get_second_derivative(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2,
-                    size_t wrt1, size_t wrt2 ) {
-                    check_pointer();
-                    return _ptr->get_second_derivative(
-                        key, x1.get_as( this->get_axis_units( 0 ) ),
-                        x2.get_as( this->get_axis_units( 1 ) ), wrt1, wrt2 );
-                }
-
-                virtual double get_second_derivative(
-                    const std::string& key,
-                    const NCPA::units::ScalarWithUnits<double>& x1,
-                    const NCPA::units::ScalarWithUnits<double>& x2,
-                    const NCPA::units::ScalarWithUnits<double>& x3,
-                    size_t wrt1, size_t wrt2 ) {
-                    check_pointer();
-                    return _ptr->get_second_derivative(
-                        key, x1.get_as( this->get_axis_units( 0 ) ),
-                        x2.get_as( this->get_axis_units( 1 ) ),
-                        x3.get_as( this->get_axis_units( 2 ) ), wrt1, wrt2 );
-                }
-
-                virtual units_ptr_t get_axis_units( size_t dim ) {
-                    check_pointer();
-                    return _ptr->get_axis_units( dim );
-                }
-
-                virtual units_ptr_t get_units( const std::string& key ) {
-                    check_pointer();
-                    return _ptr->get_units( key );
-                }
-
-                virtual double get_minimum_axis( size_t dim ) const {
-                    check_pointer();
-                    return _ptr->get_minimum_axis( dim );
-                }
-
-                virtual double get_maximum_axis( size_t dim ) const {
-                    check_pointer();
-                    return _ptr->get_maximum_axis( dim );
-                }
-
-                virtual Atmosphere3D& convert_axis_units(
-                    size_t dim, units_ptr_t new_units ) {
-                    check_pointer();
-                    _ptr->convert_axis_units( dim, new_units );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& convert_units( const std::string& key,
-                                                     units_ptr_t new_units ) {
-                    check_pointer();
-                    _ptr->convert_units( key, new_units );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& resample( size_t dim, double new_dz ) {
-                    check_pointer();
-                    _ptr->resample( dim, new_dz );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& resample( size_t dim,
-                                                vector_u_t new_z ) {
-                    check_pointer();
-                    _ptr->resample( dim, new_z );
-                    return *this;
-                }
-
-                virtual Atmosphere3D& resample( vector_u_t new_ax1,
-                                                vector_u_t new_ax2,
-                                                vector_u_t new_ax3 ) {
-                    check_pointer();
-                    _ptr->resample( new_ax1, new_ax2, new_ax3 );
-                    return *this;
-                }
-
-                virtual std::vector<std::string> get_keys() const {
-                    check_pointer();
-                    return _ptr->get_keys();
-                }
-
-                virtual std::vector<std::string> get_vector_keys() const {
-                    check_pointer();
-                    return _ptr->get_vector_keys();
-                }
-
-                virtual std::vector<std::string> get_scalar_keys() const {
-                    check_pointer();
-                    return _ptr->get_scalar_keys();
-                }
-
-                virtual bool contains_scalar( const std::string& key ) const {
-                    check_pointer();
-                    return _ptr->contains_scalar( key );
-                }
-
-                virtual bool contains_vector( const std::string& key ) const {
-                    check_pointer();
-                    return _ptr->contains_vector( key );
-                }
-
-                virtual bool contains_key( const std::string& key ) const {
-                    check_pointer();
-                    return _ptr->contains_key( key );
-                }
-
-                virtual bool is_stratified() const override {
-                    check_pointer();
-                    return _ptr->is_stratified();
-                }
-
-                virtual bool same( scalar_u_t x1_1, scalar_u_t x2_1,
-                                   scalar_u_t x1_2, scalar_u_t x2_2 ) const {
-                    check_pointer();
-                    return _ptr->same( x1_1, x2_1, x1_2, x2_2 );
-                }
-
-                virtual bool same( double x1_1, double x2_1, double x1_2,
-                                   double x2_2 ) const {
-                    check_pointer();
-                    return _ptr->same( x1_1, x2_1, x1_2, x2_2 );
-                }
-
-                virtual void check_pointer() const {
-                    if (!_ptr) {
-                        throw std::logic_error(
-                            "Atmosphere3D: Internal pointer not set!" );
-                    }
-                }
-
-                // friend binary operators
-                friend std::ostream& operator<<( std::ostream& os,
-                                                 const Atmosphere3D& atm ) {
-                    if (atm) {
-                        atm._ptr->print( os );
-                    }
-                    return os;
-                }
-
-                explicit operator bool() const {
-                    return ( _ptr ? true : false );
-                }
 
             private:
                 std::unique_ptr<abstract_atmosphere_3d> _ptr;
