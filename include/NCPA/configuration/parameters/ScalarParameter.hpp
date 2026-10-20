@@ -357,7 +357,8 @@ namespace NCPA {
                 virtual std::string as_string( size_t n = 0,
                                                bool throw_on_error
                                                = false ) const override {
-                    return std::to_string( this->get( n ) );
+                    // return std::to_string( this->get( n ) );
+                    return NCPA::strings::smart_decimal( this->get( n ) );
                 }
 
                 virtual double as_double( size_t n ) const override {
@@ -544,7 +545,8 @@ namespace NCPA {
                 virtual std::string as_string( size_t n,
                                                bool throw_on_error
                                                = false ) const override {
-                    return std::to_string( this->get( n ) );
+                    // return std::to_string( this->get( n ) );
+                    return NCPA::strings::smart_decimal( this->get( n ) );
                 }
 
                 virtual long long as_int( size_t n ) const override {
@@ -740,7 +742,8 @@ namespace NCPA {
                 virtual std::string as_string( size_t n,
                                                bool throw_on_error
                                                = false ) const override {
-                    return std::to_string( this->get( n ) );
+                    // return std::to_string( this->get( n ) );
+                    return NCPA::strings::smart_decimal( this->get( n ) );
                 }
 
                 virtual long long as_int( size_t n ) const override {
@@ -1335,9 +1338,9 @@ namespace NCPA {
                                                bool throw_on_error
                                                = false ) const override {
                     std::ostringstream oss;
-                    oss << std::to_string( this->get( n ).real() ) << " "
+                    oss << NCPA::strings::smart_decimal( this->get( n ).real() ) << " "
                         << ( this->get( n ).imag() < 0.0 ? "- " : "+ " )
-                        << std::to_string( this->get( n ).imag() );
+                        << NCPA::strings::smart_decimal( this->get( n ).imag() );
                     return oss.str();
                 }
 

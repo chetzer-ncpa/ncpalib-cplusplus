@@ -169,7 +169,10 @@ namespace NCPA {
         }
 
         static inline std::string smart_decimal( double d,
-                                                 int maxdigits = 6 ) {
+                                                 int maxdigits = 5 ) {
+            if (d == 0.0) {
+                return "0";
+            }
             std::ostringstream oss;
             int places
                 = std::min( maxdigits, NCPA::math::decimal_places( d, 15 ) );
@@ -179,15 +182,16 @@ namespace NCPA {
             // case 1: |d| >= 1
 
             if (logd >= (double)maxdigits) {
-                oss << std::scientific << std::setprecision( sig );
+                oss << std::scientific << std::setprecision( sig - 1 );
             } else if (logd >= 0.0) {
-                oss << std::fixed << std::setprecision( std::max(decplac-sig,0) );
-            } else if (logd > -(double)maxdigits) {
-                int precision = std::max( places - sig, 0 );
-                oss << std::fixed << std::setprecision( precision );
-            } else {
+                oss << std::fixed
+                    << std::setprecision( std::min( decplac, maxdigits - 1 ) );
+            } else if (-logd > (double)( maxdigits - 1 )) {
                 oss << std::scientific
-                    << std::setprecision( std::min( places - 1, sig ) );
+                    << std::setprecision( std::min( sig - 1, maxdigits - 1 ) );
+            } else {
+                oss << std::fixed
+                    << std::setprecision( std::min( places, maxdigits ) );
             }
 
 

@@ -223,7 +223,18 @@ namespace NCPA {
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
+                        ( !( std::is_same<T, bool>::value )
+                          && std::is_arithmetic<T>::value ),
+                        std::string>::type
+                        _as_string( size_t n,
+                                    bool throw_on_error = false ) const {
+                        return NCPA::strings::smart_decimal( this->get( n ) );
+                    }
+
+                    template<typename T = PARAMTYPE>
+                    typename std::enable_if<
                         ( !( std::is_convertible<T, std::string>::value )
+                          && !( std::is_arithmetic<T>::value )
                           && NCPA::types::has_to_string<T>::value ),
                         std::string>::type
                         _as_string( size_t n,
@@ -233,8 +244,8 @@ namespace NCPA {
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        ( !( std::is_same<T, bool>::value )
-                          && !( std::is_convertible<T, std::string>::value )
+                        ( !( std::is_convertible<T, std::string>::value )
+                          && !( std::is_arithmetic<T>::value )
                           && !( NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_std_to_string<T>::value ),
                         std::string>::type
@@ -245,8 +256,8 @@ namespace NCPA {
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        ( !( std::is_same<T, bool>::value )
-                          && !( std::is_convertible<T, std::string>::value )
+                        ( !( std::is_convertible<T, std::string>::value )
+                          && !( std::is_arithmetic<T>::value )
                           && !( NCPA::types::can_use_std_to_string<T>::value
                                 || NCPA::types::has_to_string<T>::value )
                           && NCPA::types::can_use_to_string<T>::value ),
@@ -258,7 +269,7 @@ namespace NCPA {
 
                     template<typename T = PARAMTYPE>
                     typename std::enable_if<
-                        !( std::is_same<T, bool>::value
+                        !( std::is_arithmetic<T>::value
                            || NCPA::types::can_use_to_string<T>::value
                            || std::is_convertible<T, std::string>::value
                            || NCPA::types::has_to_string<T>::value

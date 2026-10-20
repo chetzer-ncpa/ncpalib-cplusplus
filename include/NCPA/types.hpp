@@ -170,7 +170,6 @@
             static constexpr bool value = decltype( test<T>( 0 ) )::value; \
     };
 
-
 // #define ENABLE_IF( CONDITION ) \
 //     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
 // #define ENABLE_AND( CONDITION1, CONDITION2 ) \
@@ -231,6 +230,18 @@ namespace NCPA {
         struct is_complex<T, void_t<decltype( std::declval<T>().real() )>,
                           void_t<decltype( std::declval<T>().imag() )>>
             : std::true_type {};
+
+        template<typename T, typename = void>
+        struct has_output_operator : std::false_type {};
+
+        template<typename T>
+        struct has_output_operator<
+            T, typename std::enable_if<
+                   std::is_convertible<decltype( std::declval<std::ostream&>()
+                                                 << std::declval<const T&>() ),
+                                       std::ostream&>::value>::type>
+            : std::true_type {
+        };
 
         // Tester for deleteable: destructible and not a fundamental type.
         // Good example of a simple compound trait.
