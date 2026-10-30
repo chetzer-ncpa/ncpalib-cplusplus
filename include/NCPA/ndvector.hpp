@@ -1,462 +1,498 @@
 #pragma once
 
-// #include "NCPA/arrays.hpp"
-
-// #include <array>
-#include <algorithm>
-#include <initializer_list>
+#include <array>
 #include <iostream>
-#include <iterator>
-#include <sstream>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
 namespace NCPA {
-    namespace arrays {
+    namespace NDVector {
         template<typename T>
-        class _as;
-
-        template<size_t N>
-        class _dimarray;
-
-        template<size_t N, typename T>
-        class ndvector;
-    }  // namespace arrays
-}  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::arrays::_as<T>& a, NCPA::arrays::_as<T>& b ) noexcept;
-
-template<size_t N>
-static void swap( NCPA::arrays::_dimarray<N>& a,
-                  NCPA::arrays::_dimarray<N>& b ) noexcept;
-
-template<size_t N, typename T>
-static void swap( NCPA::arrays::ndvector<N, T>& a,
-                  NCPA::arrays::ndvector<N, T>& b ) noexcept;
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<1, T>& a,
-                  NCPA::arrays::ndvector<1, T>& b ) noexcept;
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<0, T>& a,
-                  NCPA::arrays::ndvector<0, T>& b ) noexcept;
-
-namespace NCPA {
-    namespace arrays {
-        template<typename T>
-        class _as {
-            public:
-                _as() : _val { 0 } {};
-
-                _as( const T& rhs ) : _val( rhs ) {}
-
-                virtual ~_as() {}
-
-                operator T() const { return _val; }
-
-                friend void ::swap<>( NCPA::arrays::_as<T>& a,
-                                    NCPA::arrays::_as<T>& b ) noexcept;
-
-
-            protected:
-                T _val;
-        };
-
-        template<size_t N>
-        class _dimarray : public std::vector<size_t> {
-            public:
-                _dimarray() : std::vector<size_t>( N ) {}
-
-                _dimarray( const _dimarray<N>& v ) :
-                    std::vector<size_t>( v ) {}
-
-                _dimarray( const std::vector<size_t>& v ) :
-                    std::vector<size_t>( v ) {
-                    if (v.size() != N) {
-                        std::ostringstream oss;
-                        oss << "_dimarray(): For dimensionality " << N
-                            << ", expected dimension vector of size " << N
-                            << ", got size " << v.size();
-                        throw std::invalid_argument( oss.str() );
-                    }
-                }
-
-                _dimarray( _dimarray<N>&& source ) noexcept : _dimarray<N>() {
-                    ::swap( *this, source );
-                }
-
-                _dimarray<N>& operator=( _dimarray<N> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                _dimarray<N>& operator=( std::vector<size_t> other ) {
-                    if (other.size() != this->size()) {
-                        throw std::invalid_argument(
-                            "_dimarray.operator=(): Dimension vectors must be "
-                            "the same size!" );
-                    }
-                    std::swap( static_cast<std::vector<size_t>&>( *this ),
-                               other );
-                    return *this;
-                }
-
-                virtual ~_dimarray() {}
-
-                friend void ::swap<N>(
-                    NCPA::arrays::_dimarray<N>& a,
-                    NCPA::arrays::_dimarray<N>& b ) noexcept;
-
-                _dimarray<N - 1> subdims() const {
-                    _dimarray<N - 1> sub;
-                    for (size_t i = 1; i < this->size(); ++i) {
-                        sub[ i - 1 ] = this->at( i );
-                    }
-                    return sub;
-                }
+        struct _ndstorage {
+                std::vector<T> data;
         };
 
         template<size_t N, typename T>
-        class ndvector : public std::vector<ndvector<N - 1, T>> {
-                typedef ndvector<N - 1, T> _subvector;
+        class NDArrayView;
 
+        template<size_t N, typename T>
+        class NDArray {
             public:
-                using std::vector<ndvector<N - 1, T>>::operator[];
+                template<typename... Dims>
+                explicit NDArray( Dims... dims ) {
+                    static_assert( sizeof...( Dims ) == N,
+                                   "Wrong number of dimensions" );
 
-                ndvector() {}
+                    size_t tmp[ N ] = { static_cast<size_t>( dims )... };
 
-                ndvector( const _dimarray<N>& dims ) {
-                    _subvector sv( dims.subdims() );
-                    this->assign( dims[ 0 ], sv );
-                }
+                    size_t total = 1;
 
-                ndvector( const std::initializer_list<size_t>& dims ) :
-                    ndvector<N, T>( _dimarray<N>{ dims } ) {}
-
-                ndvector( const std::vector<_subvector>& v ) {
-                    // _v = v;
-                    this->assign( v.cbegin(), v.cend() );
-                }
-
-                ndvector( const std::initializer_list<_subvector>& ls ) :
-                    ndvector( std::vector<_subvector>( ls ) ) {}
-
-                ndvector( const ndvector<N,T>& other ) :
-                    std::vector<_subvector>( other ) {}
-                
-                template<typename U>
-                ndvector( const ndvector<N,U>& other ) : std::vector<_subvector>( other.size() ) {
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at( i ) = _subvector( other.at(i) );
+                    for (size_t i = 0; i < N; ++i) {
+                        _shape[ i ]  = tmp[ i ];
+                        total       *= tmp[ i ];
                     }
+
+                    compute_strides();
+
+                    _storage.reset( new _ndstorage<T> );
+                    _storage->data.resize( total );
                 }
 
-                ndvector<N, T>& operator=(
-                    const std::initializer_list<_subvector>& other ) {
-                    ndvector<N, T> othervec( other );
-                    ::swap( *this, othervec );
-                    return *this;
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at( linear_index( idx ) );
                 }
 
-                virtual ~ndvector() {}
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
 
-                friend void ::swap<N, T>(
-                    NCPA::arrays::ndvector<N, T>& a,
-                    NCPA::arrays::ndvector<N, T>& b ) noexcept;
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
 
-                T& operator[]( const std::initializer_list<size_t> inds ) {
-                    return ( *this )[ _dimarray<N>( inds ) ];
+                    return _storage->data.at( linear_index( idx ) );
                 }
 
-                const T& operator[](
-                    const std::initializer_list<size_t> inds ) const {
-                    return ( *this )[ _dimarray<N>( inds ) ];
-                }
+                NDArrayView<N - 1, T> slice( size_t dim, size_t fixed_index ) {
+                    if (dim >= N) throw std::out_of_range( "bad dimension" );
 
-                T& operator[]( const _dimarray<N>& inds ) {
-                    if (inds[ 0 ] > this->size()) {
-                        _dimarray<N> dims = this->shape();
-                        dims[ 0 ]         = inds[ 0 ];
-                        this->reshape( dims );
-                    }
-                    return this->at( inds[ 0 ] )[ inds.subdims() ];
-                }
+                    if (fixed_index >= _shape[ dim ])
+                        throw std::out_of_range( "bad index" );
 
-                const T& operator[]( const _dimarray<N>& inds ) const {
-                    return this->at( inds[ 0 ] )[ inds.subdims() ];
-                }
+                    std::array<size_t, N - 1> shape;
+                    std::array<size_t, N - 1> strides;
 
-                _subvector& operator[]( size_t n ) {
-                    return this->at(n);
-                }
+                    size_t slice_ind = 0;
 
-                const _subvector& operator[]( size_t n ) const {
-                    return this->at(n);
-                }
-
-                void set( const T& val ) {
-                    for (auto it = this->begin(); it != this->end(); ++it) {
-                        it->set( val );
-                    }
-                    // this->assign( this->size(), val );
-                }
-
-                void reshape( const _dimarray<N>& newshape ) {
-                    this->resize( newshape[ 0 ] );
-                    // _v.resize( newshape[ 0 ] );
-                    for (size_t i = 0; i < newshape[ 0 ]; ++i) {
-                        this->at( i ).reshape( newshape.subdims() );
-                        // _v[ i ].reshape( newshape.subdims() );
-                    }
-                }
-
-                void reshape( const _dimarray<N>& newshape, const T& val ) {
-                    this->resize( newshape[ 0 ] );
-                    // _v.resize( newshape[ 0 ] );
-                    for (size_t i = 0; i < newshape[ 0 ]; ++i) {
-                        // _v[ i ].reshape( newshape.subdims(), val );
-                        this->at( i ).reshape( newshape.subdims(), val );
-                    }
-                }
-
-                void reshape( const std::initializer_list<size_t>& newshape ) {
-                    this->reshape( _dimarray<N>( newshape ) );
-                }
-
-                void reshape( const std::initializer_list<size_t>& newshape,
-                              const T& val ) {
-                    this->reshape( _dimarray<N>( newshape ), val );
-                }
-
-                _dimarray<N> shape() const {
-                    _dimarray<N> dims;
-                    if (this->size() > 0) {
-                        dims[ 0 ]                 = this->size();
-                        // dims[ 0 ]                 = _v.size();
-                        _dimarray<N - 1> subshape = this->front().shape();
-                        // _dimarray<N - 1> subshape = _v[ 0 ].shape();
-                        for (size_t i = 1; i < N; ++i) {
-                            dims[ i ] = subshape[ i - 1 ];
+                    for (size_t i = 0; i < N; ++i) {
+                        if (i != dim) {
+                            shape[ slice_ind ]   = _shape[ i ];
+                            strides[ slice_ind ] = _strides[ i ];
+                            ++slice_ind;
                         }
                     }
-                    return dims;
+
+                    size_t offset = fixed_index * _strides[ dim ];
+
+                    return NDArrayView<N - 1, T>( _storage, offset, shape,
+                                                  strides );
                 }
 
-                void copy( const ndvector<N,T>& other ) {
-                    *this = ndvector<N,T>( other );
-                }
+            private:
+                friend class NDArrayView<N, T>;
 
-                template<typename U>
-                void copy( const ndvector<N,U>& other ) {
-                    this->resize( other.size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i).copy( other.at( i ) );
+                std::shared_ptr<_ndstorage<T>> _storage;
+
+                std::array<size_t, N> _shape;
+                std::array<size_t, N> _strides;
+
+                void compute_strides() {
+                    _strides[ N - 1 ] = 1;
+
+                    for (int i = (int)N - 2; i >= 0; --i) {
+                        _strides[ i ] = _strides[ i + 1 ] * _shape[ i + 1 ];
                     }
                 }
 
-                // size_t size() const { return _v.size(); }
+                size_t linear_index( const std::array<size_t, N>& idx ) const {
+                    size_t result = 0;
 
-                // protected:
-                // std::vector<_subvector> _v;
+                    for (size_t i = 0; i < N; ++i) {
+                        if (idx[ i ] >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+                        result += idx[ i ] * _strides[ i ];
+                    }
+
+                    return result;
+                }
         };
 
-        template<typename T>
-        class ndvector<1, T> : public std::vector<T> {
+        template<size_t N, typename T>
+        class NDArrayView {
             public:
-                using std::vector<T>::operator[];
-                using std::vector<T>::size;
+                NDArrayView( std::shared_ptr<_ndstorage<T>> storage,
+                             size_t offset, const std::array<size_t, N>& shape,
+                             const std::array<size_t, N>& strides ) :
+                    _storage( storage ),
+                    _offset( offset ),
+                    _shape( shape ),
+                    _strides( strides ) {}
 
-                ndvector() : std::vector<T>() {}
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
 
-                ndvector( size_t n ) : std::vector<T>( n ) {}
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
 
-                ndvector( const ndvector<1, T>& other ) :
-                    std::vector<T>( other ) {}
+                    return _storage->data.at( linear_index( idx ) );
+                }
 
-                template<typename U>
-                ndvector( const ndvector<1, U>& other ) : std::vector<T>( other.size() ) {
-                    for (size_t i = 0; i < other.size(); ++i) {
-                        this->at( i ) = static_cast<T>( other.at( i ) );
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at( linear_index( idx ) );
+                }
+
+                NDArrayView<N - 1, T> slice( size_t dim, size_t fixed_index ) {
+                    if (dim >= N) {
+                        throw std::out_of_range( "bad dimension" );
                     }
-                }
 
-                ndvector( ndvector<1, T>&& source ) noexcept :
-                    ndvector<1, T>() {
-                    ::swap( *this, source );
-                }
-
-                ndvector( const _dimarray<1>& dims ) :
-                    ndvector<1, T>( dims[ 0 ] ) {}
-
-                    ndvector( const std::initializer_list<size_t>& dims ) :
-                    ndvector<1, T>( _dimarray<1>{dims}[ 0 ] ) {}
-
-                ndvector<1, T>& operator=( ndvector<1, T> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                ndvector<1, T>& operator=( const std::vector<T>& other ) {
-                    this->assign( other.cbegin(), other.cend() );
-                    return *this;
-                }
-
-                virtual ~ndvector() {}
-
-                friend void ::swap<T>(
-                    NCPA::arrays::ndvector<1, T>& a,
-                    NCPA::arrays::ndvector<1, T>& b ) noexcept;
-
-                void set( const T& val ) { this->assign( this->size(), val ); }
-
-                _dimarray<1> shape() const {
-                    _dimarray<1> dims;
-                    dims[ 0 ] = this->size();
-                    return dims;
-                }
-
-                void reshape( const std::vector<size_t> newsize ) {
-                    if (newsize.size() != 1) {
-                        throw std::invalid_argument(
-                            "ndvector<1>.reshape(): dimension vector must be "
-                            "size 1" );
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
                     }
-                    this->resize( newsize[ 0 ] );
-                }
 
-                void reshape( const std::vector<size_t> newsize,
-                              const T& val ) {
-                    if (newsize.size() != 1) {
-                        throw std::invalid_argument(
-                            "ndvector<1>.reshape(): dimension vector must be "
-                            "size 1" );
+                    std::array<size_t, N - 1> shape;
+                    std::array<size_t, N - 1> strides;
+
+                    size_t slice_ind = 0;
+
+                    for (size_t i = 0; i < N; ++i) {
+                        if (i != dim) {
+                            shape[ slice_ind ]   = _shape[ i ];
+                            strides[ slice_ind ] = _strides[ i ];
+                            ++slice_ind;
+                        }
                     }
-                    this->assign( newsize[ 0 ], val );
+
+                    return NDArrayView<N - 1, T>(
+                        _storage, _offset + fixed_index * _strides[ dim ],
+                        shape, strides );
                 }
 
-                T& operator[]( size_t n ) {
-                    if (n > this->size()) {
-                        this->resize( n );
+            private:
+                std::shared_ptr<_ndstorage<T>> _storage;
+
+                size_t _offset;
+
+                std::array<size_t, N> _shape;
+                std::array<size_t, N> _strides;
+
+                size_t linear_index( const std::array<size_t, N>& idx ) const {
+                    size_t result = _offset;
+
+                    for (size_t i = 0; i < N; ++i) {
+                        if (idx[ i ] >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+
+                        result += idx[ i ] * _strides[ i ];
                     }
-                    return ( static_cast<std::vector<T>&>( *this )[ n ] );
-                }
 
-                const T& operator[]( size_t n ) const {
-                    return (
-                        static_cast<const std::vector<T>&>( *this )[ n ] );
-                }
-
-                T& operator[]( const std::vector<size_t>& inds ) {
-                    return ( *this )[ inds[ 0 ] ];
-                    // return ( static_cast<std::vector<T>&>( *this )[ inds[0]
-                    // ] );
-                }
-
-                const T& operator[]( const std::vector<size_t>& inds ) const {
-                    return ( *this )[ inds[ 0 ] ];
-                    // return ( static_cast<const std::vector<T>&>( *this )[
-                    // inds[0] ] );
-                }
-
-                void copy( const ndvector<1,T>& other ) {
-                    *this = ndvector<1,T>( other );
-                }
-
-                template<typename U>
-                void copy( const ndvector<1,U>& other ) {
-                    this->resize( other.size() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at(i) = static_cast<T>( other.at(i) );
-                    }
+                    return result;
                 }
         };
 
         template<typename T>
-        class ndvector<0, T> : public _as<T> {
+        class NDArrayView<1, T> {
             public:
-                ndvector() : _as<T>() {}
+                NDArrayView( std::shared_ptr<_ndstorage<T>> storage,
+                             size_t offset, const std::array<size_t, 1>& shape,
+                             const std::array<size_t, 1>& strides ) :
+                    _storage( storage ),
+                    _offset( offset ),
+                    _shape( shape ),
+                    _strides( strides ) {}
 
-                ndvector( T v ) : _as<T>( v ) {}
-
-                ndvector( const ndvector<0, T>& other ) :
-                    _as<T>( other._val ) {}
-
-                template<typename U>
-                ndvector( const ndvector<0, U>& other ) :
-                    _as<T>( static_cast<T>( other._val ) ) {}
-
-                ndvector( ndvector<1, T>&& source ) noexcept :
-                    ndvector<0, T>() {
-                    ::swap( *this, source );
+                T& at( size_t i ) {
+                    if (i >= _shape[ 0 ]) {
+                        throw std::out_of_range( "index" );
+                    }
+                    return _storage->data.at( _offset + i * _strides[ 0 ] );
                 }
 
-                ndvector<0, T>& operator=( ndvector<0, T> other ) {
-                    ::swap( *this, other );
-                    return *this;
+                const T& at( size_t i ) const {
+                    if (i >= _shape[ 0 ]) {
+                        throw std::out_of_range( "index" );
+                    }
+
+                    return _storage->data.at( _offset + i * _strides[ 0 ] );
                 }
 
-                ndvector<0, T>& operator=( T other ) {
-                    this->_val = other;
-                    return *this;
+            private:
+                std::shared_ptr<_ndstorage<T>> _storage;
+
+                size_t _offset;
+
+                std::array<size_t, 1> _shape;
+                std::array<size_t, 1> _strides;
+        };
+
+        template<typename T>
+        class NDVectorView {
+            public:
+                NDVectorView( std::shared_ptr<_ndstorage<T>> storage,
+                              size_t offset, std::vector<size_t> shape,
+                              std::vector<size_t> strides ) :
+                    _storage( std::move( storage ) ),
+                    _offset( offset ),
+                    _shape( std::move( shape ) ),
+                    _strides( std::move( strides ) ) {}
+
+                size_t rank() const { return _shape.size(); }
+
+                T& at( std::initializer_list<size_t> indices ) {
+                    return _storage->data.at( linear_index( indices ) );
                 }
 
-                virtual ~ndvector() {}
-
-                friend void ::swap<T>(
-                    NCPA::arrays::ndvector<0, T>& a,
-                    NCPA::arrays::ndvector<0, T>& b ) noexcept;
-
-                void copy( const ndvector<0,T>& other ) {
-                    this->_val = other._val;
+                const T& at( std::initializer_list<size_t> indices ) const {
+                    return _storage->data.at( linear_index( indices ) );
                 }
 
-                template<typename U>
-                void copy( const ndvector<0,U>& other ) {
-                    this->_val = static_cast<T>( other._val );
+                T& at( const std::vector<size_t>& indices ) {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                const T& at( const std::vector<size_t>& indices ) const {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                NDVectorView slice( size_t dim, size_t fixed_index ) const {
+                    if (dim >= rank()) {
+                        throw std::out_of_range( "bad dimension" );
+                    }
+
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
+                    }
+
+                    std::vector<size_t> new_shape;
+                    std::vector<size_t> new_strides;
+
+                    new_shape.reserve( rank() - 1 );
+                    new_strides.reserve( rank() - 1 );
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (i != dim) {
+                            new_shape.push_back( _shape[ i ] );
+                            new_strides.push_back( _strides[ i ] );
+                        }
+                    }
+
+                    return NDVectorView(
+                        _storage, _offset + fixed_index * _strides[ dim ],
+                        std::move( new_shape ), std::move( new_strides ) );
+                }
+
+                const std::vector<size_t>& shape() const { return _shape; }
+
+            private:
+                std::shared_ptr<_ndstorage<T>> _storage;
+
+                size_t _offset;
+
+                std::vector<size_t> _shape;
+                std::vector<size_t> _strides;
+
+                size_t linear_index(
+                    std::initializer_list<size_t> idx ) const {
+                    if (idx.size() != rank()) {
+                        throw std::invalid_argument(
+                            "wrong number of indices" );
+                    }
+
+                    size_t result = _offset;
+
+                    size_t i = 0;
+                    for (size_t v : idx) {
+                        if (v >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+
+                        result += v * _strides[ i ];
+                        ++i;
+                    }
+
+                    return result;
+                }
+
+                size_t linear_index( const std::vector<size_t>& idx ) const {
+                    if (idx.size() != rank()) {
+                        throw std::invalid_argument(
+                            "wrong number of indices" );
+                    }
+
+                    size_t result = _offset;
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (idx[ i ] >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+
+                        result += idx[ i ] * _strides[ i ];
+                    }
+
+                    return result;
                 }
         };
+
+        template<typename T>
+        class NDVector {
+            public:
+                explicit NDVector( std::vector<size_t> shape ) :
+                    _shape( std::move( shape ) ) {
+                    if (_shape.empty()) {
+                        throw std::invalid_argument( "rank must be > 0" );
+                    }
+
+                    compute_strides();
+
+                    size_t total = 1;
+
+                    for (size_t d : _shape) {
+                        total *= d;
+                    }
+
+                    _storage = std::make_shared<_ndstorage<T>>();
+                    _storage->data.resize( total );
+                }
+
+                NDVector( std::initializer_list<size_t> shape ) :
+                    NDVector<T>( std::vector<size_t>( shape ) ) {}
+
+                size_t rank() const { return _shape.size(); }
+
+                T& at( std::initializer_list<size_t> indices ) {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                const T& at( std::initializer_list<size_t> indices ) const {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                T& at( const std::vector<size_t>& indices ) {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                const T& at( const std::vector<size_t>& indices ) const {
+                    return _storage->data.at( linear_index( indices ) );
+                }
+
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return _storage->data.at( linear_index( idx ) );
+                }
+
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return _storage->data.at( linear_index( idx ) );
+                }
+
+                NDVectorView<T> slice( size_t dim, size_t fixed_index ) const {
+                    if (dim >= rank()) {
+                        throw std::out_of_range( "bad dimension" );
+                    }
+
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
+                    }
+
+                    std::vector<size_t> shape;
+                    std::vector<size_t> strides;
+
+                    shape.reserve( rank() - 1 );
+                    strides.reserve( rank() - 1 );
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (i != dim) {
+                            shape.push_back( _shape[ i ] );
+                            strides.push_back( _strides[ i ] );
+                        }
+                    }
+
+                    return NDVectorView<T>(
+                        _storage, fixed_index * _strides[ dim ],
+                        std::move( shape ), std::move( strides ) );
+                }
+
+                const std::vector<size_t>& shape() const { return _shape; }
+
+                T* data() {
+                    return _storage->data.data();
+                }
+
+                const T* data() const {
+                    return _storage->data.data();
+                }
+
+            private:
+                std::shared_ptr<_ndstorage<T>> _storage;
+
+                std::vector<size_t> _shape;
+                std::vector<size_t> _strides;
+
+                void compute_strides() {
+                    _strides.resize( rank() );
+
+                    _strides.back() = 1;
+
+                    for (int i = static_cast<int>( rank() ) - 2; i >= 0; --i) {
+                        _strides[ i ] = _strides[ i + 1 ] * _shape[ i + 1 ];
+                    }
+                }
+
+                size_t linear_index(
+                    std::initializer_list<size_t> idx ) const {
+                    if (idx.size() != rank()) {
+                        throw std::invalid_argument(
+                            "wrong number of indices" );
+                    }
+
+                    size_t result = 0;
+
+                    size_t i = 0;
+                    for (size_t v : idx) {
+                        if (v >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+
+                        result += v * _strides[ i ];
+                        ++i;
+                    }
+
+                    return result;
+                }
+
+                size_t linear_index( const std::vector<size_t>& idx ) const {
+                    if (idx.size() != rank()) {
+                        throw std::invalid_argument(
+                            "wrong number of indices" );
+                    }
+
+                    size_t result = 0;
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (idx[ i ] >= _shape[ i ]) {
+                            throw std::out_of_range( "index" );
+                        }
+
+                        result += idx[ i ] * _strides[ i ];
+                    }
+
+                    return result;
+                }
+        };
+
 
     }  // namespace arrays
 }  // namespace NCPA
-
-template<typename T>
-static void swap( NCPA::arrays::_as<T>& a, NCPA::arrays::_as<T>& b ) noexcept {
-    using std::swap;
-    swap( a._val, b._val );
-}
-
-template<size_t N>
-static void swap( NCPA::arrays::_dimarray<N>& a,
-                  NCPA::arrays::_dimarray<N>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<size_t>&>( a ),
-          dynamic_cast<std::vector<size_t>&>( b ) );
-}
-
-template<size_t N, typename T>
-static void swap( NCPA::arrays::ndvector<N, T>& a,
-                  NCPA::arrays::ndvector<N, T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<NCPA::arrays::ndvector<N - 1, T>>&>( a ),
-          dynamic_cast<std::vector<NCPA::arrays::ndvector<N - 1, T>>&>( b ) );
-
-    // swap( a._v, b._v );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<1, T>& a,
-                  NCPA::arrays::ndvector<1, T>& b ) noexcept {
-    using std::swap;
-    swap( dynamic_cast<std::vector<T>&>( a ),
-          dynamic_cast<std::vector<T>&>( b ) );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ndvector<0, T>& a,
-                  NCPA::arrays::ndvector<0, T>& b ) noexcept {
-    using std::swap;
-    ::swap( dynamic_cast<NCPA::arrays::_as<T>&>( a ),
-            dynamic_cast<NCPA::arrays::_as<T>&>( b ) );
-}

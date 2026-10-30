@@ -75,8 +75,9 @@ namespace NCPA {
             return std::regex_replace( input, special_chars, R"(\$&)" );
         }
 
-        static inline std::string join( const std::vector<std::string>& tokens,
-                                        const std::string& joinstr = "\n" ) {
+        template<typename T>
+        std::string join( const std::vector<T>& tokens,
+                          const std::string& joinstr = "\n" ) {
             std::ostringstream oss;
             size_t counter = 0;
             for (auto& token : tokens) {
