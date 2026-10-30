@@ -13,138 +13,130 @@
 #include <unordered_map>
 #include <vector>
 
-// forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class Vector3DWithUnits;
-    }  // namespace units
-}  // namespace NCPA
-
-template<typename T>
-void swap( NCPA::units::Vector3DWithUnits<T>&,
-           NCPA::units::Vector3DWithUnits<T>& ) noexcept;
-
 namespace NCPA {
     namespace units {
 
         /**
          * Vector3DWithUnits class
          */
-        template<typename T = double,
-                 typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
-        class Vector3DWithUnits : public NCPA::arrays::vector3d_t<T> {
+        template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+        class Vector3DWithUnits : public NCPA::arrays::ndarray<3, T> {
             public:
-                using NCPA::arrays::vector3d_t<T>::dim;
+                using NCPA::arrays::ndarray<3, T>::dim;
 
                 // constructors
                 Vector3DWithUnits() :
-                    NCPA::arrays::vector3d_t<T>(), _units { nullptr } {}
+                    NCPA::arrays::ndarray<3, T>(), _units { nullptr } {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3 ) :
-                    NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3 ),
+                    NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3 ),
                     _units { nullptr } {}
 
                 // Construct with no values
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    const Unit *units ) :
-                    NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3 ),
+                    NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3 ),
                     _units { units } {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    const Unit& units ) :
-                    NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3 ),
+                    NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3 ),
                     _units { &units } {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    const char *units ) :
                     Vector3DWithUnits<T>(
-                        NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3 ),
+                        NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3 ),
                         Units::from_string( units ) ) {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    const std::string& units ) :
                     Vector3DWithUnits<T>(
-                        NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3 ),
+                        NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3 ),
                         Units::from_string( units ) ) {}
 
                 // construct with values from a vector3d_t
-                Vector3DWithUnits( const NCPA::arrays::vector3d_t<T>& values,
+                Vector3DWithUnits( const NCPA::arrays::ndarray<3, T>& values,
                                    const Unit *units ) :
-                    NCPA::arrays::vector3d_t<T>( values ), _units { units } {}
+                    NCPA::arrays::ndarray<3, T>( values ), _units { units } {}
 
-                Vector3DWithUnits( const NCPA::arrays::vector3d_t<T>& values,
+                Vector3DWithUnits( const NCPA::arrays::ndarray<3, T>& values,
                                    const Unit& units ) :
                     Vector3DWithUnits<T>( values, &units ) {}
 
-                Vector3DWithUnits( const NCPA::arrays::vector3d_t<T>& values,
+                Vector3DWithUnits( const NCPA::arrays::ndarray<3, T>& values,
                                    const std::string& units ) :
                     Vector3DWithUnits<T>( values,
                                           Units::from_string( units ) ) {}
 
-                Vector3DWithUnits( const NCPA::arrays::vector3d_t<T>& values,
+                Vector3DWithUnits( const NCPA::arrays::ndarray<3, T>& values,
                                    const char *units ) :
                     Vector3DWithUnits<T>( values,
                                           Units::from_string( units ) ) {}
 
-                Vector3DWithUnits( const NCPA::arrays::ndvector<3, T>& values,
-                                   const Unit *units ) :
-                    NCPA::arrays::vector3d_t<T>( values ), _units { units } {}
+                // Vector3DWithUnits( const NCPA::arrays::ndvector<T>& values,
+                //                    const Unit *units ) :
+                //     NCPA::arrays::ndarray<3, T>( values ), _units { units }
+                //     {}
 
                 // construct with a constant value
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    const ScalarWithUnits<T>& singlevalue ) :
                     Vector3DWithUnits<T>(
-                        NCPA::arrays::vector3d_t<T>( dim1, dim2, dim3,
+                        NCPA::arrays::ndarray<3, T>( dim1, dim2, dim3,
                                                      singlevalue.get() ),
                         singlevalue.get_units() ) {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    T singleValue, const Unit& units ) :
-                    Vector3DWithUnits<T>( NCPA::arrays::vector3d_t<T>(
+                    Vector3DWithUnits<T>( NCPA::arrays::ndarray<3, T>(
                                               dim1, dim2, dim3, singleValue ),
                                           &units ) {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    T singleValue, const Unit *units ) :
-                    Vector3DWithUnits<T>( NCPA::arrays::vector3d_t<T>(
+                    Vector3DWithUnits<T>( NCPA::arrays::ndarray<3, T>(
                                               dim1, dim2, dim3, singleValue ),
                                           units ) {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    T singleValue, const std::string& units ) :
-                    Vector3DWithUnits<T>( NCPA::arrays::vector3d_t<T>(
+                    Vector3DWithUnits<T>( NCPA::arrays::ndarray<3, T>(
                                               dim1, dim2, dim3, singleValue ),
                                           Units::from_string( units ) ) {}
 
                 Vector3DWithUnits( size_t dim1, size_t dim2, size_t dim3,
                                    T singleValue, const char *units ) :
-                    Vector3DWithUnits<T>( NCPA::arrays::vector3d_t<T>(
+                    Vector3DWithUnits<T>( NCPA::arrays::ndarray<3, T>(
                                               dim1, dim2, dim3, singleValue ),
                                           Units::from_string( units ) ) {}
 
                 // copy constructor
                 Vector3DWithUnits( const Vector3DWithUnits<T>& source ) :
-                    NCPA::arrays::vector3d_t<T>( source ) {
+                    NCPA::arrays::ndarray<3, T>( source ) {
                     _units = source._units;
                 }
 
                 // move constructor
                 Vector3DWithUnits( Vector3DWithUnits<T>&& source ) noexcept :
                     Vector3DWithUnits<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // destructor
                 virtual ~Vector3DWithUnits() {}
 
                 // assignment and swapping
-                friend void ::swap<>( Vector3DWithUnits<T>& first,
-                                      Vector3DWithUnits<T>& second ) noexcept;
+                friend void swap( Vector3DWithUnits<T>& a,
+                                  Vector3DWithUnits<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::arrays::ndarray<3, T>&>( a ),
+                          static_cast<NCPA::arrays::ndarray<3, T>&>( b ) );
+                    swap( a._units, b._units );
+                }
 
                 Vector3DWithUnits& operator=( Vector3DWithUnits<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -159,9 +151,8 @@ namespace NCPA {
                     for (size_t i = 0; i < dim0; ++i) {
                         for (size_t j = 0; j < dim1; ++j) {
                             for (size_t k = 0; k < dim2; ++k) {
-                                buffer[ i ][ j ][ k ].set(
-                                    this->at( i ).at( j ).at( k ),
-                                    this->get_units() );
+                                buffer[ i ][ j ][ k ].set( this->at( i, j, k ),
+                                                           this->get_units() );
                             }
                         }
                     }
@@ -182,12 +173,15 @@ namespace NCPA {
                     const Unit *oldunits = this->get_units();
                     if (!new_units.equals( *oldunits )) {
                         Vector3DWithUnits<T> buffer( *this );
-                        for (size_t i = 0; i < this->dim( 0 ); ++i) {
-                            for (size_t j = 0; j < this->dim( 1 ); ++j) {
-                                buffer.at( i ).at( j ) = oldunits->convert_to(
-                                    this->at( i ).at( j ), new_units );
-                            }
-                        }
+                        buffer.vector() = oldunits->convert_to( this->vector(),
+                                                                new_units );
+                        // for (size_t i = 0; i < this->dim( 0 ); ++i) {
+                        //     for (size_t j = 0; j < this->dim( 1 ); ++j) {
+                        //         buffer.at( i ).at( j ) =
+                        //         oldunits->convert_to(
+                        //             this->at( i ).at( j ), new_units );
+                        //     }
+                        // }
                         buffer.set_units( new_units );
                         std::swap( *this, buffer );
                     }
@@ -249,7 +243,8 @@ namespace NCPA {
                         for (size_t j = 0; j < n2; ++j) {
                             for (size_t k = 0; k < n3; ++k) {
                                 buffer[ i ][ j ][ k ]
-                                    = this->at( i ).at( j ).at( k );
+                                    // = this->at( i ).at( j ).at( k );
+                                    = this->at( i, j, k );
                             }
                         }
                     }
@@ -296,7 +291,8 @@ namespace NCPA {
                 }
 
                 virtual T get( size_t n1, size_t n2, size_t n3 ) const {
-                    return this->at( n1 ).at( n2 ).at( n3 );
+                    // return this->at( n1 ).at( n2 ).at( n3 );
+                    return this->at( n1, n2, n3 );
                 }
 
                 virtual ScalarWithUnits<T> get_scalar( size_t n1, size_t n2,
@@ -324,7 +320,8 @@ namespace NCPA {
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3, T value ) {
-                    this->at( n1 ).at( n2 ).at( n3 ) = value;
+                    // this->at( n1 ).at( n2 ).at( n3 ) = value;
+                    this->at( n1, n2, n3 ) = value;
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3,
@@ -332,24 +329,24 @@ namespace NCPA {
                     this->set( n1, n2, n3, value.get_as( this->get_units() ) );
                 }
 
-                virtual void set( const NCPA::arrays::vector3d_t<T>& values,
+                virtual void set( const NCPA::arrays::ndarray<3, T>& values,
                                   const Unit *units ) {
                     this->assign( values.cbegin(), values.cend() );
                     _units = units;
                 }
 
-                virtual void set( const NCPA::arrays::vector3d_t<T>& values,
+                virtual void set( const NCPA::arrays::ndarray<3, T>& values,
                                   const Unit& units ) {
                     this->assign( values.cbegin(), values.cend() );
                     _units = &units;
                 }
 
-                virtual void set( const NCPA::arrays::vector3d_t<T>& values,
+                virtual void set( const NCPA::arrays::ndarray<3, T>& values,
                                   const std::string& units ) {
                     this->set( values, Units::from_string( units ) );
                 }
 
-                virtual void set( const NCPA::arrays::vector3d_t<T>& values,
+                virtual void set( const NCPA::arrays::ndarray<3, T>& values,
                                   const char *units ) {
                     this->set( values, Units::from_string( units ) );
                 }
@@ -358,34 +355,34 @@ namespace NCPA {
                                   const T ***values,
                                   const std::string& units ) {
                     this->set(
-                        NCPA::arrays::vector3d_t<T>( n1, n2, n3, values ),
+                        NCPA::arrays::ndarray<3, T>( n1, n2, n3, values ),
                         Units::from_string( units ) );
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3,
                                   const T ***values, const char *& units ) {
                     this->set(
-                        NCPA::arrays::vector3d_t<T>( n1, n2, n3, values ),
+                        NCPA::arrays::ndarray<3, T>( n1, n2, n3, values ),
                         Units::from_string( units ) );
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3,
                                   const T ***values, const Unit *units ) {
                     this->set(
-                        NCPA::arrays::vector3d_t<T>( n1, n2, n3, values ),
+                        NCPA::arrays::ndarray<3, T>( n1, n2, n3, values ),
                         units );
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3,
                                   const T ***values, const Unit& units ) {
                     this->set(
-                        NCPA::arrays::vector3d_t<T>( n1, n2, n3, values ),
+                        NCPA::arrays::ndarray<3, T>( n1, n2, n3, values ),
                         &units );
                 }
 
                 virtual void set( size_t n1, size_t n2, size_t n3,
                                   const ScalarWithUnits<T> ***values ) {
-                    NCPA::arrays::vector3d_t<T> v( n1, n2, n3 );
+                    NCPA::arrays::ndarray<3, T> v( n1, n2, n3 );
                     for (size_t i = 0; i < n1; i++) {
                         for (size_t j = 0; j < n2; ++j) {
                             for (size_t k = 0; k < n3; ++k) {
@@ -438,15 +435,3 @@ namespace NCPA {
         };
     }  // namespace units
 }  // namespace NCPA
-
-/*
- * Friends
- */
-template<typename T>
-void swap( NCPA::units::Vector3DWithUnits<T>& a,
-           NCPA::units::Vector3DWithUnits<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::arrays::vector3d_t<T>&>( a ),
-          static_cast<NCPA::arrays::vector3d_t<T>&>( b ) );
-    swap( a._units, b._units );
-}

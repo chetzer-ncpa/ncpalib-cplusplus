@@ -7,20 +7,20 @@
 #include <vector>
 
 namespace NCPA {
-    namespace NDVector {
+    namespace arrays {
         template<typename T>
         struct _ndstorage {
                 std::vector<T> data;
         };
 
         template<size_t N, typename T>
-        class NDArrayView;
+        class ndarrayview;
 
         template<size_t N, typename T>
-        class NDArray {
+        class ndarray {
             public:
                 template<typename... Dims>
-                explicit NDArray( Dims... dims ) {
+                explicit ndarray( Dims... dims ) {
                     static_assert( sizeof...( Dims ) == N,
                                    "Wrong number of dimensions" );
 
@@ -61,7 +61,7 @@ namespace NCPA {
                     return _storage->data.at( linear_index( idx ) );
                 }
 
-                NDArrayView<N - 1, T> slice( size_t dim, size_t fixed_index ) {
+                ndarrayview<N - 1, T> slice( size_t dim, size_t fixed_index ) {
                     if (dim >= N) throw std::out_of_range( "bad dimension" );
 
                     if (fixed_index >= _shape[ dim ])
@@ -82,12 +82,21 @@ namespace NCPA {
 
                     size_t offset = fixed_index * _strides[ dim ];
 
-                    return NDArrayView<N - 1, T>( _storage, offset, shape,
+                    return ndarrayview<N - 1, T>( _storage, offset, shape,
                                                   strides );
                 }
 
+                // std::vector<T>& vector() { return _storage->data; }
+
+                // const std::vector<T>& vector() const { return _storage->data; }
+
+                // T *data() { return _storage->data.data(); }
+
+                // const T *data() const { return _storage->data.data(); }
+
+
             private:
-                friend class NDArrayView<N, T>;
+                friend class ndarrayview<N, T>;
 
                 std::shared_ptr<_ndstorage<T>> _storage;
 
@@ -117,9 +126,9 @@ namespace NCPA {
         };
 
         template<size_t N, typename T>
-        class NDArrayView {
+        class ndarrayview {
             public:
-                NDArrayView( std::shared_ptr<_ndstorage<T>> storage,
+                ndarrayview( std::shared_ptr<_ndstorage<T>> storage,
                              size_t offset, const std::array<size_t, N>& shape,
                              const std::array<size_t, N>& strides ) :
                     _storage( storage ),
@@ -149,7 +158,7 @@ namespace NCPA {
                     return _storage->data.at( linear_index( idx ) );
                 }
 
-                NDArrayView<N - 1, T> slice( size_t dim, size_t fixed_index ) {
+                ndarrayview<N - 1, T> slice( size_t dim, size_t fixed_index ) {
                     if (dim >= N) {
                         throw std::out_of_range( "bad dimension" );
                     }
@@ -171,10 +180,19 @@ namespace NCPA {
                         }
                     }
 
-                    return NDArrayView<N - 1, T>(
+                    return ndarrayview<N - 1, T>(
                         _storage, _offset + fixed_index * _strides[ dim ],
                         shape, strides );
                 }
+
+                std::vector<T>& vector() { return _storage->data; }
+
+                const std::vector<T>& vector() const { return _storage->data; }
+
+                T *data() { return _storage->data.data(); }
+
+                const T *data() const { return _storage->data.data(); }
+
 
             private:
                 std::shared_ptr<_ndstorage<T>> _storage;
@@ -200,9 +218,9 @@ namespace NCPA {
         };
 
         template<typename T>
-        class NDArrayView<1, T> {
+        class ndarrayview<1, T> {
             public:
-                NDArrayView( std::shared_ptr<_ndstorage<T>> storage,
+                ndarrayview( std::shared_ptr<_ndstorage<T>> storage,
                              size_t offset, const std::array<size_t, 1>& shape,
                              const std::array<size_t, 1>& strides ) :
                     _storage( storage ),
@@ -225,6 +243,15 @@ namespace NCPA {
                     return _storage->data.at( _offset + i * _strides[ 0 ] );
                 }
 
+                // std::vector<T>& vector() { return _storage->data; }
+
+                // const std::vector<T>& vector() const { return _storage->data; }
+
+                // T *data() { return _storage->data.data(); }
+
+                // const T *data() const { return _storage->data.data(); }
+
+
             private:
                 std::shared_ptr<_ndstorage<T>> _storage;
 
@@ -235,9 +262,9 @@ namespace NCPA {
         };
 
         template<typename T>
-        class NDVectorView {
+        class ndvectorview {
             public:
-                NDVectorView( std::shared_ptr<_ndstorage<T>> storage,
+                ndvectorview( std::shared_ptr<_ndstorage<T>> storage,
                               size_t offset, std::vector<size_t> shape,
                               std::vector<size_t> strides ) :
                     _storage( std::move( storage ) ),
@@ -263,7 +290,7 @@ namespace NCPA {
                     return _storage->data.at( linear_index( indices ) );
                 }
 
-                NDVectorView slice( size_t dim, size_t fixed_index ) const {
+                ndvectorview slice( size_t dim, size_t fixed_index ) const {
                     if (dim >= rank()) {
                         throw std::out_of_range( "bad dimension" );
                     }
@@ -285,12 +312,21 @@ namespace NCPA {
                         }
                     }
 
-                    return NDVectorView(
+                    return ndvectorview(
                         _storage, _offset + fixed_index * _strides[ dim ],
                         std::move( new_shape ), std::move( new_strides ) );
                 }
 
                 const std::vector<size_t>& shape() const { return _shape; }
+
+                // std::vector<T>& vector() { return _storage->data; }
+
+                // const std::vector<T>& vector() const { return _storage->data; }
+
+                // T *data() { return _storage->data.data(); }
+
+                // const T *data() const { return _storage->data.data(); }
+
 
             private:
                 std::shared_ptr<_ndstorage<T>> _storage;
@@ -343,9 +379,9 @@ namespace NCPA {
         };
 
         template<typename T>
-        class NDVector {
+        class ndvector {
             public:
-                explicit NDVector( std::vector<size_t> shape ) :
+                explicit ndvector( std::vector<size_t> shape ) :
                     _shape( std::move( shape ) ) {
                     if (_shape.empty()) {
                         throw std::invalid_argument( "rank must be > 0" );
@@ -363,8 +399,8 @@ namespace NCPA {
                     _storage->data.resize( total );
                 }
 
-                NDVector( std::initializer_list<size_t> shape ) :
-                    NDVector<T>( std::vector<size_t>( shape ) ) {}
+                ndvector( std::initializer_list<size_t> shape ) :
+                    ndvector<T>( std::vector<size_t>( shape ) ) {}
 
                 size_t rank() const { return _shape.size(); }
 
@@ -398,7 +434,7 @@ namespace NCPA {
                     return _storage->data.at( linear_index( idx ) );
                 }
 
-                NDVectorView<T> slice( size_t dim, size_t fixed_index ) const {
+                ndvectorview<T> slice( size_t dim, size_t fixed_index ) const {
                     if (dim >= rank()) {
                         throw std::out_of_range( "bad dimension" );
                     }
@@ -420,20 +456,20 @@ namespace NCPA {
                         }
                     }
 
-                    return NDVectorView<T>(
+                    return ndvectorview<T>(
                         _storage, fixed_index * _strides[ dim ],
                         std::move( shape ), std::move( strides ) );
                 }
 
                 const std::vector<size_t>& shape() const { return _shape; }
 
-                T* data() {
-                    return _storage->data.data();
-                }
+                std::vector<T>& vector() { return _storage->data; }
 
-                const T* data() const {
-                    return _storage->data.data();
-                }
+                const std::vector<T>& vector() const { return _storage->data; }
+
+                T *data() { return _storage->data.data(); }
+
+                const T *data() const { return _storage->data.data(); }
 
             private:
                 std::shared_ptr<_ndstorage<T>> _storage;
@@ -493,6 +529,10 @@ namespace NCPA {
                 }
         };
 
+        template<typename T>
+        using vector3d_t = ndarray<3, T>;
 
+        template<typename T>
+        using vector2d_t = ndarray<2, T>;
     }  // namespace arrays
 }  // namespace NCPA
