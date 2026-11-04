@@ -119,7 +119,6 @@ namespace NCPA {
                 }
 
                 template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                //  ENABLE_FUNCTION_IF_REAL(T)>
                 T convert_to( T value, const Unit& target ) const {
                     if (!this->is_convertible_to( target )) {
                         throw invalid_conversion<>( *this, target );
@@ -135,13 +134,10 @@ namespace NCPA {
                 }
 
                 template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                //  ENABLE_FUNCTION_IF_REAL(T)>
                 T convert_to( T value, const Unit *target ) const {
                     return this->convert_to( value, *target );
                 }
 
-                // template<typename T, ENABLE_IF( NCPA::types::is_iterable<T>
-                // )>
                 template<typename T, ENABLE_FUNCTION_IF_ITERABLE( T )>
                 T convert_to( const T& values, const Unit& target ) const {
                     T converted;

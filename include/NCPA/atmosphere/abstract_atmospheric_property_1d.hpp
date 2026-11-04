@@ -1,10 +1,5 @@
 #pragma once
 
-/**
- * @file
- * @brief
- */
-
 #include "NCPA/atmosphere/abstract_atmospheric_property.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/defines.hpp"
@@ -16,9 +11,6 @@
 namespace NCPA {
     namespace atmos {
 
-        /**
-         * @brief
-         */
         class abstract_atmospheric_property_1d
             : public abstract_atmospheric_property {
             public:

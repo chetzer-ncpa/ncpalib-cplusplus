@@ -14,15 +14,17 @@
 
 #include "NCPA/constants.hpp"
 #include "NCPA/defines.hpp"
-#include "NCPA/ndvector.hpp"
 #include "NCPA/types.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <numeric>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -31,336 +33,141 @@
  * @brief The primary namespace for NCPA software components.
  */
 namespace NCPA {
-    /**
-     * @namespace NCPA::arrays
-     * @brief Contains specialized array containers, views, and memory
-     * management utilities.
-     */
     namespace arrays {
-        template<typename T>
-        class vector2d_t;
+        template<typename>
+        class NDVector;
+        template<typename>
+        class NDVectorView;
+        template<size_t, typename>
+        class NDArray;
+        template<size_t, typename>
+        class NDArrayView;
+
+        class InvalidRank : public std::invalid_argument {
+            public:
+                InvalidRank( const std::string& msg = "" ) :
+                    std::invalid_argument( std::string( "InvalidRank" ) + ": "
+                                           + msg ) {}
+        };
 
         template<typename T>
-        class vector3d_t;
-
-        template<typename T, size_t N>
-        class _abstract_arraylike;
-
-        template<typename T, size_t N>
-        class ArrayLike;
-
-        template<typename T, size_t N>
-        class ArrayView;
-
-        template<typename T, size_t N>
-        class NDimensionalArray;
-
-        template<typename T>
-        class TwoDimensionalArray;
-
-        template<typename T>
-        class ThreeDimensionalArray;
-
-        /**
-         * @typedef view_t
-         * @brief Alias for an ArrayView of one lower dimension.
-         */
-        template<typename T, size_t N>
-        using view_t = ArrayView<T, N - 1>;
-
-        /**
-         * @typedef local_registry_t
-         * @brief Mapping of dimension/index pairs to specific local array
-         * views.
-         */
-        template<typename T, size_t N>
-        using local_registry_t
-            = std::map<std::pair<size_t, size_t>, view_t<T, N>>;
-
-        /**
-         * @typedef global_registry_entry_t
-         * @brief Map type for storing view entries within a global registry.
-         */
-        template<typename T, size_t N>
-        using global_registry_entry_t
-            = std::map<std::pair<size_t, size_t>, view_t<T, N>>;
-
-        /**
-         * @typedef global_registry_t
-         * @brief Global registry mapping ArrayLike pointers to their
-         * respective view entries.
-         */
-        template<typename T, size_t N>
-        using global_registry_t
-            = std::map<const ArrayLike<T, N> *, global_registry_entry_t<T, N>>;
-    }  // namespace arrays
-}  // namespace NCPA
-
-/**
- * @brief Global swap specialization for _abstract_arraylike objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::_abstract_arraylike<T, N>& a,
-                  NCPA::arrays::_abstract_arraylike<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ArrayLike objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLike<T, N>& a,
-                  NCPA::arrays::ArrayLike<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for 1D ArrayLike objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
-                  NCPA::arrays::ArrayLike<T, 1>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ArrayView objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first view.
- * @param b The second view.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, N>& a,
-                  NCPA::arrays::ArrayView<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for 0D (scalar) ArrayView objects.
- * @tparam T The element type.
- * @param a The first view.
- * @param b The second view.
- */
-template<typename T>
-static void swap( NCPA::arrays::ArrayView<T, 0>& a,
-                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for NDimensionalArray objects.
- * @tparam T The element type.
- * @tparam N The number of dimensions.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T, size_t N>
-static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
-                  NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for ThreeDimensionalArray objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
-                  NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept;
-
-/**
- * @brief Global swap specialization for TwoDimensionalArray objects.
- * @tparam T The element type.
- * @param a The first array.
- * @param b The second array.
- */
-template<typename T>
-static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
-                  NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept;
-
-namespace NCPA {
-    namespace arrays {
-
-        template<typename T>
-        std::vector<T> vectorify( const T& val ) {
-            return std::vector<T>( 1, val );
+        bool operator==( const std::vector<T>& a, const std::vector<T>& b ) {
+            if (a.size() != b.size()) return false;
+            auto ait = a.begin();
+            auto bit = b.begin();
+            while (ait != a.end() && bit != b.end()) {
+                if (*ait != *bit) return false;
+                ++ait;
+                ++bit;
+            }
+            return true;
         }
 
-        /**
-         * @class vector2d_t
-         * @brief A resizable 2D vector class.
-         * @tparam T The type of data stored in the vector.
-         */
         template<typename T>
-        class vector2d_t : public ndvector<2, T> {
-            public:
-                using ndvector<2, T>::set;
+        bool operator!=( const std::vector<T>& a, const std::vector<T>& b ) {
+            return !( a == b );
+        }
 
-                /**
-                 * @brief Default constructor.
-                 */
-                vector2d_t() : ndvector<2, T>() {}
+        namespace details {
+            template<typename T>
+            struct _ndstorage {
+                    std::vector<T> data;
+            };
 
-                /**
-                 * @brief Constructor that initializes dimensions and optional
-                 * default value.
-                 * @param nx1 Size of the first dimension.
-                 * @param nx2 Size of the second dimension.
-                 * @param val Initial value for all elements.
-                 */
-                vector2d_t( size_t nx1, size_t nx2, const T& val = (T)0 ) :
-                    ndvector<2, T>() {
-                    this->resize2d( nx1, nx2, val );
+            template<typename Shape>
+            size_t total_size( const Shape& shape ) {
+                size_t n = 1;
+                for (size_t d : shape) {
+                    n *= d;
+                }
+                return n;
+            }
+
+            template<typename Shape>
+            void compute_strides( const Shape& shape, Shape& strides ) {
+                strides                     = shape;
+                strides[ shape.size() - 1 ] = 1;
+
+                for (int i = static_cast<int>( shape.size() ) - 2; i >= 0;
+                     --i) {
+                    strides[ i ] = strides[ i + 1 ] * shape[ i + 1 ];
+                }
+            }
+
+            template<typename ShapeA, typename ShapeB>
+            size_t linear_index( const ShapeA& indices, const ShapeB& shape,
+                                 const ShapeB& strides, size_t offset = 0 ) {
+                size_t result = offset;
+
+                if (indices.size() != shape.size()) {
+                    throw std::invalid_argument( "wrong number of indices" );
                 }
 
-                /**
-                 * @brief Constructor that initializes from a raw 2D array.
-                 * @param nx1 Size of the first dimension.
-                 * @param nx2 Size of the second dimension.
-                 * @param vals Pointer to pointer of values to copy.
-                 */
-                vector2d_t( size_t nx1, size_t nx2, const T **vals ) :
-                    vector2d_t( nx1, nx2 ) {
-                    for (size_t i = 0; i < nx1; ++i) {
-                        this->at( i ).assign( vals[ i ], vals[ i ] + nx2 );
+                for (size_t i = 0; i < shape.size(); ++i) {
+                    if (indices[ i ] >= shape[ i ]) {
+                        throw std::out_of_range( "index" );
                     }
+
+                    result += indices[ i ] * strides[ i ];
                 }
 
-                /**
-                 * @brief Resizes the 2D vector.
-                 * @param nx1 New size for dimension 1.
-                 * @param nx2 New size for dimension 2.
-                 * @param val Value to fill in new elements.
-                 */
-                virtual void resize2d( size_t nx1, size_t nx2,
-                                       const T& val = (T)0 ) {
-                    this->reshape( { nx1, nx2 }, val );
+                return result;
+            }
+
+            template<typename Shape>
+            size_t storage_index( size_t linear_pos, size_t offset,
+                                  const Shape& shape, const Shape& strides ) {
+                size_t idx = offset;
+                size_t rem = linear_pos;
+
+                for (int d = static_cast<int>( shape.size() ) - 1; d >= 0;
+                     --d) {
+                    size_t coord  = rem % shape[ d ];
+                    rem          /= shape[ d ];
+
+                    idx += coord * strides[ d ];
                 }
 
-                /**
-                 * @brief Retrieves the current sizes of the two dimensions.
-                 * @param nx1 Reference to hold dimension 1 size.
-                 * @param nx2 Reference to hold dimension 2 size.
-                 */
-                virtual void size2d( size_t& nx1, size_t& nx2 ) const {
-                    auto dims = this->shape();
-                    nx1       = dims[ 0 ];
-                    nx2       = dims[ 1 ];
+                return idx;
+            }
+
+            template<typename ShapeIn, typename ShapeOut>
+            void remove_dimension( const ShapeIn& shape,
+                                   const ShapeIn& strides, size_t dim,
+                                   ShapeOut& new_shape,
+                                   ShapeOut& new_strides ) {
+                size_t out = 0;
+
+                for (size_t i = 0; i < shape.size(); ++i) {
+                    if (i == dim) continue;
+
+                    new_shape[ out ]   = shape[ i ];
+                    new_strides[ out ] = strides[ i ];
+                    ++out;
                 }
+            }
 
-                /**
-                 * @brief Returns the size of a specific dimension.
-                 * @param dimnum Index of the dimension (0 or 1).
-                 * @return The size of the requested dimension.
-                 */
-                virtual size_t dim( size_t dimnum ) const {
-                    return this->shape()[ dimnum ];
-                }
-
-                /**
-                 * @brief Fills the entire vector with a constant value.
-                 * @param val The value to fill.
-                 */
-                virtual void fill( T val ) { this->set( val ); }
-        };
-
-        /**
-         * @class vector3d_t
-         * @brief A resizable 3D vector class.
-         * @tparam T The type of data stored in the vector.
-         */
-        template<typename T>
-        class vector3d_t : public ndvector<3, T> {
-            public:
-                /**
-                 * @brief Default constructor.
-                 */
-                vector3d_t() : ndvector<3, T>() {}
-
-                /**
-                 * @brief Constructor that initializes dimensions and optional
-                 * default value.
-                 * @param nx1 Size of the first dimension.
-                 * @param nx2 Size of the second dimension.
-                 * @param nx3 Size of the third dimension.
-                 * @param val Initial value for all elements.
-                 */
-                vector3d_t( size_t nx1, size_t nx2, size_t nx3,
-                            const T& val = (T)0.0 ) :
-                    ndvector<3, T>() {
-                    this->resize3d( nx1, nx2, nx3, val );
-                }
-
-                /**
-                 * @brief Constructor that initializes from a raw 3D array.
-                 * @param nx1 Size of the first dimension.
-                 * @param nx2 Size of the second dimension.
-                 * @param nx3 Size of the third dimension.
-                 * @param vals Pointer to 3D array of values.
-                 */
-                vector3d_t( size_t nx1, size_t nx2, size_t nx3,
-                            const T ***vals ) :
-                    vector3d_t( nx1, nx2, nx3 ) {
-                    for (size_t i = 0; i < nx1; ++i) {
-                        for (size_t j = 0; j < nx2; ++j) {
-                            this->at( i ).at( j ).assign(
-                                vals[ i ][ j ], vals[ i ][ j ] + nx3 );
-                        }
+            template<typename ContainerA, typename ContainerB>
+            void copy_to( const ContainerA& a, ContainerB& b ) {
+                if (a.rank() == b.rank() || b.rank_mutable()) {
+                    b.resize( a.shape() );
+                    auto ait = a.begin();
+                    auto bit = b.begin();
+                    while (ait != a.end() && bit != b.end()) {
+                        *bit = *ait;
+                        ++ait;
+                        ++bit;
                     }
+                } else {
+                    throw std::out_of_range(
+                        "Cannot copy N-D containers of different ranks" );
                 }
+            }
+        }  // namespace details
 
-                /**
-                 * @brief Copy constructor.
-                 * @param other The vector to copy from.
-                 */
-                vector3d_t( const vector3d_t<T>& other ) :
-                    ndvector<3, T>( other ) {}
-
-                /**
-                 * @brief Conversion constructor from an ndvector.
-                 * @param other The base ndvector to copy.
-                 */
-                vector3d_t( const ndvector<3, T>& other ) :
-                    ndvector<3, T>( other ) {}
-
-                /**
-                 * @brief Resizes the 3D vector.
-                 * @param nx1 New size for dimension 1.
-                 * @param nx2 New size for dimension 2.
-                 * @param nx3 New size for dimension 3.
-                 * @param val Value to fill in new elements.
-                 */
-                virtual void resize3d( size_t nx1, size_t nx2, size_t nx3,
-                                       const T& val = (T)0.0 ) {
-                    this->reshape( { nx1, nx2, nx3 }, val );
-                }
-
-                /**
-                 * @brief Retrieves the current sizes of the three dimensions.
-                 * @param nx1 Reference to hold dimension 1 size.
-                 * @param nx2 Reference to hold dimension 2 size.
-                 * @param nx3 Reference to hold dimension 3 size.
-                 */
-                virtual void size3d( size_t& nx1, size_t& nx2,
-                                     size_t& nx3 ) const {
-                    auto dims = this->shape();
-                    nx1       = dims[ 0 ];
-                    nx2       = dims[ 1 ];
-                    nx3       = dims[ 2 ];
-                }
-
-                /**
-                 * @brief Returns the size of a specific dimension.
-                 * @param dimnum Index of the dimension (0, 1, or 2).
-                 * @return The size of the requested dimension.
-                 */
-                virtual size_t dim( size_t dimnum ) const {
-                    return this->shape()[ dimnum ];
-                }
-        };
-
+        //***************************************************************************/
+        // Definitions
+        //***************************************************************************/
         /**
          * @brief Returns a pointer to the underlying data of a std::vector.
          * @tparam T Element type.
@@ -382,6 +189,1130 @@ namespace NCPA {
         template<typename T>
         const T *as_array( const std::vector<T>& in ) {
             return &in[ 0 ];
+        }
+
+        template<typename T, typename ShapeContainer>
+        class NDViewIterator {
+            public:
+                typedef std::random_access_iterator_tag iterator_category;
+                typedef T value_type;
+                typedef std::ptrdiff_t difference_type;
+                typedef T *pointer_t;
+                typedef T& reference_t;
+
+                template<typename, typename>
+                friend class NDViewIterator<T, ShapeContainer>;
+
+                NDViewIterator( std::shared_ptr<details::_ndstorage<
+                                    typename std::remove_const<T>::type>>
+                                    storage,
+                                size_t offset, const ShapeContainer& shape,
+                                const ShapeContainer& strides,
+                                size_t linear_pos ) :
+                    _storage( storage ),
+                    _offset( offset ),
+                    _shape( &shape ),
+                    _strides( &strides ),
+                    _linear_pos( linear_pos ) {}
+
+                template<
+                    typename U,
+                    typename std::enable_if<
+                        std::is_const<T>::value
+                            && std::is_same<
+                                typename std::remove_const<T>::type, U>::value,
+                        int>::type = 0>
+                NDViewIterator(
+                    const NDViewIterator<U, ShapeContainer>& other ) :
+                    _storage( other._storage ),
+                    _offset( other._offset ),
+                    _shape( other._shape ),
+                    _strides( other._strides ),
+                    _linear_pos( other._linear_pos ) {}
+
+                reference_t operator*() const {
+                    return _storage->data[ storage_index() ];
+                }
+
+                pointer_t operator->() const {
+                    return &_storage->data[ storage_index() ];
+                }
+
+                NDViewIterator& operator++() {
+                    ++_linear_pos;
+                    return *this;
+                }
+
+                NDViewIterator operator++( int ) {
+                    NDViewIterator tmp( *this );
+                    ++( *this );
+                    return tmp;
+                }
+
+                NDViewIterator& operator--() {
+                    --_linear_pos;
+                    return *this;
+                }
+
+                NDViewIterator operator--( int ) {
+                    NDViewIterator tmp( *this );
+                    --( *this );
+                    return tmp;
+                }
+
+                bool operator==( const NDViewIterator& rhs ) const {
+                    return _storage.get() == rhs._storage.get()
+                        && _offset == rhs._offset
+                        && _linear_pos == rhs._linear_pos;
+                }
+
+                bool operator!=( const NDViewIterator& rhs ) const {
+                    return !( *this == rhs );
+                }
+
+                template<typename U>
+                bool operator==(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    return _storage.get() == rhs._storage.get()
+                        && _offset == rhs._offset
+                        && _linear_pos == rhs._linear_pos;
+                }
+
+                template<typename U>
+                bool operator!=(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    return !( *this == rhs );
+                }
+
+                template<typename U>
+                bool operator<(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    assert( _storage.get() == rhs._storage.get() );
+                    return _linear_pos < rhs._linear_pos;
+                }
+
+                template<typename U>
+                bool operator>(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    assert( _storage.get() == rhs._storage.get() );
+                    return rhs < *this;
+                }
+
+                template<typename U>
+                bool operator<=(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    assert( _storage.get() == rhs._storage.get() );
+                    return !( rhs < *this );
+                }
+
+                template<typename U>
+                bool operator>=(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    assert( _storage.get() == rhs._storage.get() );
+                    return !( *this < rhs );
+                }
+
+                template<typename U>
+                difference_type operator-(
+                    const NDViewIterator<U, ShapeContainer>& rhs ) const {
+                    return static_cast<difference_type>( _linear_pos )
+                         - static_cast<difference_type>( rhs._linear_pos );
+                }
+
+                reference_t operator[]( difference_type n ) const {
+                    return *( *this + n );
+                }
+
+                NDViewIterator& operator+=( difference_type n ) {
+                    _linear_pos += n;
+                    return *this;
+                }
+
+                NDViewIterator& operator-=( difference_type n ) {
+                    _linear_pos -= n;
+                    return *this;
+                }
+
+                NDViewIterator operator+( difference_type n ) const {
+                    NDViewIterator tmp( *this );
+                    tmp += n;
+                    return tmp;
+                }
+
+                NDViewIterator operator-( difference_type n ) const {
+                    NDViewIterator tmp( *this );
+                    tmp -= n;
+                    return tmp;
+                }
+
+            private:
+                std::shared_ptr<
+                    details::_ndstorage<typename std::remove_const<T>::type>>
+                    _storage;
+
+                difference_type _offset;
+                const ShapeContainer *_shape;
+                const ShapeContainer *_strides;
+                size_t _linear_pos;
+
+                size_t storage_index() const {
+                    return details::storage_index( _linear_pos, _offset,
+                                                   *_shape, *_strides );
+                }
+        };
+
+        // template<typename T, typename ShapeType, typename ViewType,
+        //          typename IteratorType, typename ConstIteratorType,
+        //          typename ReverseIteratorType,
+        //          typename ConstReverseIteratorType, typename DerivedType>
+        // class NDBase {
+        //         typedef NDBase<T, ShapeType, ViewType, IteratorType,
+        //                        ConstIteratorType, ReverseIteratorType,
+        //                        ConstReverseIteratorType, DerivedType>
+        //             base_t;
+
+        //     public:
+        //         NDBase()                      = default;
+        //         NDBase( const base_t& other ) = default;
+        //         virtual ~NDBase()             = default;
+
+        //         virtual size_t rank() const                              =
+        //         0; virtual bool rank_mutable() const = 0; virtual size_t
+        //         size() const                              = 0; virtual
+        //         ViewType slice( size_t dim, size_t fixed_index ) = 0;
+        //         virtual IteratorType begin()                             =
+        //         0; virtual ConstIteratorType begin() const = 0; virtual
+        //         ConstIteratorType cbegin() const                 = 0;
+        //         virtual IteratorType end()                               =
+        //         0; virtual ConstIteratorType end() const = 0; virtual
+        //         ConstIteratorType cend() const                   = 0;
+        //         virtual ReverseIteratorType rbegin()                     =
+        //         0; virtual ConstReverseIteratorType rbegin() const = 0;
+        //         virtual ReverseIteratorType rend()                       =
+        //         0; virtual ConstReverseIteratorType rend() const = 0;
+
+        //         DerivedType& clear() { return this->set( 0 ); }
+
+        //         size_t dim( size_t n ) const {
+        //             assert( n < rank() );
+        //             return this->shape().at( n );
+        //         }
+
+        //         DerivedType& fill( T val ) { return this->set( val ); }
+
+        //         std::vector<T> flatten() const {
+        //             std::vector<T> target;
+        //             std::copy( this->begin(), this->end(),
+        //                        std::back_inserter( target ) );
+        //             return target;
+        //         }
+
+        //         ViewType operator[]( size_t ind ) {
+        //             return this->slice( 0, ind );
+        //         }
+
+        //         DerivedType& set( T val ) {
+        //             for (auto it = begin(); it != end(); ++it) {
+        //                 *it = val;
+        //             }
+        //             return static_cast<Derived&>( *this );
+        //         }
+
+        //         const ShapeType& shape() const { return _shape; }
+
+
+        //     protected:
+        //         std::shared_ptr<details::_ndstorage<T>> _storage;
+        //         ShapeType _shape;
+        //         ShapeType _strides;
+        // };
+
+        template<size_t N, typename T>
+        class NDArray {
+            public:
+                typedef typename std::vector<T>::iterator iterator;
+                typedef typename std::vector<T>::const_iterator const_iterator;
+                typedef
+                    typename std::vector<T>::reverse_iterator reverse_iterator;
+                typedef typename std::vector<T>::const_reverse_iterator
+                    const_reverse_iterator;
+                typedef std::array<size_t, N> shape_type;
+                typedef T element_t;
+
+                template<typename... Dims>
+                explicit NDArray( Dims... dims ) {
+                    this->resize( dims... );
+                }
+
+                NDArray( std::vector<size_t> dims ) { this->resize( dims ); }
+
+                NDArray( std::array<size_t, N> dims ) { this->resize( dims ); }
+
+                NDArray( std::initializer_list<size_t> dims ) {
+                    this->resize( dims );
+                }
+
+                NDArray( const NDArray<N, T>& other ) = default;
+
+                NDArray( const NDArrayView<N, T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                NDArray( const NDVector<T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                NDArray( const NDVectorView<T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                template<typename... Indices>
+                typename std::enable_if<( sizeof...( Indices ) > 1 ), T&>::type
+                    at( Indices... indices ) {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<typename... Indices>
+                typename std::enable_if<( sizeof...( Indices ) > 1 ),
+                                        const T&>::type
+                    at( Indices... indices ) const {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, T&>::type at( size_t idx ) {
+                    return _storage->data.at( details::linear_index(
+                        shape_type { idx }, _shape, _strides ) );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, const T&>::type at(
+                    size_t idx ) const {
+                    return _storage->data.at( details::linear_index(
+                        shape_type { idx }, _shape, _strides ) );
+                }
+
+                template<typename IntType>
+                T& at( std::vector<IntType> idx ) {
+                    // shape_type idx;
+                    // for (auto i = 0; i < rank(); ++i) {
+                    //     idx[ i ] = inds[ i ];
+                    // }
+                    if (idx.size() != rank()) {
+                        throw InvalidRank(
+                            "Array rank does not match number of indices" );
+                    }
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<typename IntType>
+                const T& at( std::vector<IntType> idx ) const {
+                    // shape_type idx;
+                    // for (auto i = 0; i < rank(); ++i) {
+                    //     idx[ i ] = inds[ i ];
+                    // }
+                    if (idx.size() != rank()) {
+                        throw InvalidRank(
+                            "Array rank does not match number of indices" );
+                    }
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<typename IntType>
+                T& at( std::array<IntType, N> idx ) {
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<typename IntType>
+                const T& at( std::array<IntType, N> idx ) const {
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                NDArray<N, T>& clear() { return this->set( 0 ); }
+
+                size_t dim( size_t n ) const {
+                    assert( n < rank() );
+                    return _shape[ n ];
+                }
+
+                NDArray<N, T>& fill( T val ) { return this->set( val ); }
+
+                std::vector<T> flatten() const {
+                    std::vector<T> target;
+                    std::copy( this->begin(), this->end(),
+                               std::back_inserter( target ) );
+                    return target;
+                }
+
+                template<typename... Indices>
+                T get( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                NDArrayView<N - 1, T> operator[]( size_t ind ) {
+                    return this->slice( 0, ind );
+                }
+
+                template<typename... Indices>
+                T& operator()( Indices... indices ) {
+                    return this->at( indices... );
+                }
+
+                template<typename... Indices>
+                const T& operator()( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                size_t rank() const { return N; }
+
+                bool rank_mutable() const { return false; }
+
+                template<typename... Dims>
+                NDArray<N, T>& resize( Dims... dims ) {
+                    static_assert( sizeof...( Dims ) == N,
+                                   "Wrong number of dimensions" );
+                    return this->resize( std::vector<size_t> {
+                        static_cast<size_t>( dims )... } );
+                }
+
+                NDArray<N, T>& resize( std::initializer_list<size_t> dims ) {
+                    return this->resize( std::vector<size_t> { dims } );
+                }
+
+                NDArray<N, T>& resize( std::array<size_t, N> dims ) {
+                    // size_t total = 1;
+
+                    for (size_t i = 0; i < N; ++i) {
+                        _shape[ i ] = dims[ i ];
+                        // total *= dims[i];
+                    }
+                    size_t total = details::total_size( _shape );
+                    details::compute_strides( _shape, _strides );
+                    // compute_strides();
+
+                    _storage.reset( new details::_ndstorage<T> );
+                    _storage->data.resize( total );
+                    return *this;
+                }
+
+                NDArray<N, T>& resize( std::vector<size_t> dims ) {
+                    if (dims.size() != N) {
+                        throw std::out_of_range(
+                            "Wrong number of dimensions" );
+                    }
+                    // size_t total = 1;
+
+                    for (size_t i = 0; i < N; ++i) {
+                        _shape[ i ] = dims[ i ];
+                        // total *= dims[i];
+                    }
+                    size_t total = details::total_size( _shape );
+                    details::compute_strides( _shape, _strides );
+                    // compute_strides();
+
+                    _storage.reset( new details::_ndstorage<T> );
+                    _storage->data.resize( total );
+                    return *this;
+                }
+
+                NDArray<N, T>& set( T val ) {
+                    for (auto it = begin(); it != end(); ++it) {
+                        *it = val;
+                    }
+                    return *this;
+                }
+
+                const std::array<size_t, N>& shape() const { return _shape; }
+
+                size_t size() const { return _storage->data.size(); }
+
+                NDArrayView<N - 1, T> slice( size_t dim, size_t fixed_index ) {
+                    if (dim >= N) throw std::out_of_range( "bad dimension" );
+
+                    if (fixed_index >= _shape[ dim ])
+                        throw std::out_of_range( "bad index" );
+
+                    std::array<size_t, N - 1> shape;
+                    std::array<size_t, N - 1> strides;
+
+                    details::remove_dimension( _shape, _strides, dim, shape,
+                                               strides );
+
+
+                    size_t offset = fixed_index * _strides[ dim ];
+
+                    return NDArrayView<N - 1, T>( _storage, offset, shape,
+                                                  strides );
+                }
+
+                // iterators here
+                iterator begin() { return _storage->data.begin(); }
+
+                const_iterator begin() const { return _storage->data.begin(); }
+
+                const_iterator cbegin() const {
+                    return _storage->data.cbegin();
+                }
+
+                iterator end() { return _storage->data.end(); }
+
+                const_iterator end() const { return _storage->data.end(); }
+
+                const_iterator cend() const { return _storage->data.cend(); }
+
+                reverse_iterator rbegin() { return _storage->data.rbegin(); }
+
+                const_reverse_iterator rbegin() const {
+                    return _storage->data.rbegin();
+                }
+
+                reverse_iterator rend() { return _storage->data.rend(); }
+
+                const_reverse_iterator rend() const {
+                    return _storage->data.rend();
+                }
+
+            private:
+                friend class NDArrayView<N, T>;
+
+                std::shared_ptr<details::_ndstorage<T>> _storage;
+
+                shape_type _shape;
+                shape_type _strides;
+        };
+
+        template<size_t N, typename T>
+        class NDArrayView {
+            public:
+                using iterator = NDViewIterator<T, std::array<size_t, N>>;
+                using const_iterator
+                    = NDViewIterator<const T, std::array<size_t, N>>;
+                typedef std::reverse_iterator<iterator> reverse_iterator;
+                typedef std::reverse_iterator<const_iterator>
+                    const_reverse_iterator;
+                typedef std::array<size_t, N> shape_type;
+                typedef T element_t;
+
+                NDArrayView( std::shared_ptr<details::_ndstorage<T>> storage,
+                             size_t offset, const std::array<size_t, N>& shape,
+                             const std::array<size_t, N>& strides ) :
+                    _storage( storage ),
+                    _offset( offset ),
+                    _shape( shape ),
+                    _strides( strides ) {}
+
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, T&>::type at( size_t idx ) {
+                    return _storage->data.at( details::linear_index(
+                        shape_type { idx }, _shape, _strides, _offset ) );
+                }
+
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    static_assert( sizeof...( Indices ) == N,
+                                   "Wrong number of indices" );
+
+                    std::array<size_t, N> idx
+                        = { { static_cast<size_t>( indices )... } };
+
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, const T&>::type at(
+                    size_t idx ) const {
+                    return _storage->data.at( details::linear_index(
+                        shape_type { idx }, _shape, _strides, _offset ) );
+                }
+
+                NDArrayView<N, T>& clear() { return this->set( 0 ); }
+
+                size_t dim( size_t n ) const {
+                    assert( n < rank() );
+                    return _shape[ n ];
+                }
+
+                NDArrayView<N, T>& fill( T val ) { return this->set( val ); }
+
+                template<typename... Indices>
+                T get( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<( M > 1 ), NDArrayView<N - 1, T>>::type
+                    operator[]( size_t ind ) {
+                    return this->slice( 0, ind );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, T&>::type operator[](
+                    size_t i ) {
+                    return this->at( i );
+                }
+
+                template<size_t M = N>
+                typename std::enable_if<M == 1, const T&>::type operator[](
+                    size_t i ) const {
+                    return this->at( i );
+                }
+
+                template<typename... Indices>
+                T& operator()( Indices... indices ) {
+                    return this->at( indices... );
+                }
+
+                template<typename... Indices>
+                const T& operator()( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                size_t rank() const { return N; }
+
+                bool rank_mutable() const { return false; }
+
+                NDArrayView<N, T>& set( T val ) {
+                    for (auto it = begin(); it != end(); ++it) {
+                        *it = val;
+                    }
+                    return *this;
+                }
+
+                const std::array<size_t, N>& shape() const { return _shape; }
+
+                size_t size() const { return details::total_size( _shape ); }
+
+                template<size_t M = N>
+                typename std::enable_if<( M > 1 ), NDArrayView<N - 1, T>>::type
+                    slice( size_t dim, size_t fixed_index ) {
+                    if (dim >= N) {
+                        throw std::out_of_range( "bad dimension" );
+                    }
+
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
+                    }
+
+                    std::array<size_t, N - 1> shape;
+                    std::array<size_t, N - 1> strides;
+                    details::remove_dimension( _shape, _strides, dim, shape,
+                                               strides );
+
+                    return NDArrayView<N - 1, T>(
+                        _storage, _offset + fixed_index * _strides[ dim ],
+                        shape, strides );
+                }
+
+                iterator begin() {
+                    return iterator( _storage, _offset, _shape, _strides, 0 );
+                }
+
+                iterator end() {
+                    return iterator( _storage, _offset, _shape, _strides,
+                                     size() );
+                }
+
+                const_iterator begin() const {
+                    return const_iterator( _storage, _offset, _shape, _strides,
+                                           0 );
+                }
+
+                const_iterator end() const {
+                    return const_iterator( _storage, _offset, _shape, _strides,
+                                           size() );
+                }
+
+                const_iterator cbegin() const { return begin(); }
+
+                const_iterator cend() const { return end(); }
+
+                reverse_iterator rbegin() { return reverse_iterator( end() ); }
+
+                reverse_iterator rend() { return reverse_iterator( begin() ); }
+
+                const_reverse_iterator rbegin() const {
+                    return const_reverse_iterator( end() );
+                }
+
+                const_reverse_iterator rend() const {
+                    return const_reverse_iterator( begin() );
+                }
+
+                const_reverse_iterator crbegin() const {
+                    return const_reverse_iterator( end() );
+                }
+
+                const_reverse_iterator crend() const {
+                    return const_reverse_iterator( begin() );
+                }
+
+            private:
+                std::shared_ptr<details::_ndstorage<T>> _storage;
+
+                size_t _offset;
+
+                std::array<size_t, N> _shape;
+                std::array<size_t, N> _strides;
+        };
+
+        template<typename T>
+        class NDVectorView {
+            public:
+                using iterator = NDViewIterator<T, std::vector<size_t>>;
+                using const_iterator
+                    = NDViewIterator<const T, std::vector<size_t>>;
+                typedef std::reverse_iterator<iterator> reverse_iterator;
+                typedef std::reverse_iterator<const_iterator>
+                    const_reverse_iterator;
+                typedef T element_t;
+
+                NDVectorView( std::shared_ptr<details::_ndstorage<T>> storage,
+                              size_t offset, std::vector<size_t> shape,
+                              std::vector<size_t> strides ) :
+                    _storage( std::move( storage ) ),
+                    _offset( offset ),
+                    _shape( std::move( shape ) ),
+                    _strides( std::move( strides ) ) {}
+
+                size_t rank() const { return _shape.size(); }
+
+                bool rank_mutable() const { return false; }
+
+                T& at( std::initializer_list<size_t> idx ) {
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                const T& at( std::initializer_list<size_t> idx ) const {
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                T& at( const std::vector<size_t>& idx ) {
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                const T& at( const std::vector<size_t>& idx ) const {
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return _storage->data.at( details::linear_index(
+                        idx, _shape, _strides, _offset ) );
+                }
+
+                NDVectorView<T>& clear() { return this->set( 0 ); }
+
+                NDVectorView<T>& fill( T val ) { return this->set( val ); }
+
+                template<typename... Indices>
+                T get( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                NDVectorView<T>& set( T val ) {
+                    for (auto it = begin(); it != end(); ++it) {
+                        *it = val;
+                    }
+                    return *this;
+                }
+
+                NDVectorView slice( size_t dim, size_t fixed_index ) const {
+                    if (dim >= rank()) {
+                        throw std::out_of_range( "bad dimension" );
+                    }
+
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
+                    }
+
+                    std::vector<size_t> new_shape;
+                    std::vector<size_t> new_strides;
+
+                    new_shape.reserve( rank() - 1 );
+                    new_strides.reserve( rank() - 1 );
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (i != dim) {
+                            new_shape.push_back( _shape[ i ] );
+                            new_strides.push_back( _strides[ i ] );
+                        }
+                    }
+
+                    return NDVectorView(
+                        _storage, _offset + fixed_index * _strides[ dim ],
+                        std::move( new_shape ), std::move( new_strides ) );
+                }
+
+                const std::vector<size_t>& shape() const { return _shape; }
+
+                NDVectorView operator[]( size_t ind ) const {
+                    return this->slice( 0, ind );
+                }
+
+                template<typename... Indices>
+                T& operator()( Indices... indices ) {
+                    return this->at( indices... );
+                }
+
+                template<typename... Indices>
+                const T& operator()( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                size_t size() const { return details::total_size( _shape ); }
+
+                size_t dim( size_t n ) const {
+                    assert( n < rank() );
+                    return _shape[ n ];
+                }
+
+                iterator begin() {
+                    return iterator( _storage, _offset, _shape, _strides, 0 );
+                }
+
+                iterator end() {
+                    return iterator( _storage, _offset, _shape, _strides,
+                                     size() );
+                }
+
+                const_iterator begin() const {
+                    return const_iterator( _storage, _offset, _shape, _strides,
+                                           0 );
+                }
+
+                const_iterator end() const {
+                    return const_iterator( _storage, _offset, _shape, _strides,
+                                           size() );
+                }
+
+                const_iterator cbegin() const { return begin(); }
+
+                const_iterator cend() const { return end(); }
+
+                reverse_iterator rbegin() { return reverse_iterator( end() ); }
+
+                reverse_iterator rend() { return reverse_iterator( begin() ); }
+
+                const_reverse_iterator rbegin() const {
+                    return const_reverse_iterator( end() );
+                }
+
+                const_reverse_iterator rend() const {
+                    return const_reverse_iterator( begin() );
+                }
+
+                const_reverse_iterator crbegin() const {
+                    return const_reverse_iterator( end() );
+                }
+
+                const_reverse_iterator crend() const {
+                    return const_reverse_iterator( begin() );
+                }
+
+            private:
+                std::shared_ptr<details::_ndstorage<T>> _storage;
+
+                size_t _offset;
+
+                std::vector<size_t> _shape;
+                std::vector<size_t> _strides;
+        };
+
+        template<typename T>
+        class NDVector {
+            public:
+                typedef typename std::vector<T>::iterator iterator;
+                typedef typename std::vector<T>::const_iterator const_iterator;
+                typedef
+                    typename std::vector<T>::reverse_iterator reverse_iterator;
+                typedef typename std::vector<T>::const_reverse_iterator
+                    const_reverse_iterator;
+                typedef T element_t;
+
+                template<typename... Dims>
+                explicit NDVector( Dims... dims ) {
+                    this->resize( dims... );
+                }
+
+                NDVector( std::vector<size_t> shape ) {
+                    this->resize( shape );
+                }
+
+                NDVector( std::initializer_list<size_t> shape ) :
+                    NDVector<T>( std::vector<size_t>( shape ) ) {}
+
+                NDVector( const NDVector<T>& other ) = default;
+
+                template<size_t N>
+                NDVector( const NDArray<N, T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                template<size_t N>
+                NDVector( const NDArrayView<N, T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                NDVector( const NDVectorView<T>& other ) {
+                    details::copy_to( other, *this );
+                }
+
+                T& at( const std::vector<size_t>& idx ) {
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                const T& at( const std::vector<size_t>& idx ) const {
+                    return _storage->data.at(
+                        details::linear_index( idx, _shape, _strides ) );
+                }
+
+                T& at( std::initializer_list<size_t> idx ) {
+                    return this->at( std::vector<size_t> { idx } );
+                    // return _storage->data.at(
+                    //     details::linear_index( idx, _shape, _strides ) );
+                }
+
+                const T& at( std::initializer_list<size_t> idx ) const {
+                    return this->at( std::vector<size_t> { idx } );
+                    // return _storage->data.at(
+                    //     details::linear_index( idx, _shape, _strides ) );
+                }
+
+                // T& at( size_t idx ) { return this->at( vectorize( idx ) ); }
+
+                // const T& at( size_t idx ) const {
+                //     return this->at( vectorize( idx ) );
+                // }
+
+                template<typename... Indices>
+                T& at( Indices... indices ) {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return this->at( idx );
+                    // return _storage->data.at(
+                    //     details::linear_index( idx, _shape, _strides ) );
+                }
+
+                template<typename... Indices>
+                const T& at( Indices... indices ) const {
+                    std::vector<size_t> idx { static_cast<size_t>(
+                        indices )... };
+                    return this->at( idx );
+                    // return _storage->data.at(
+                    //     details::linear_index( idx, _shape, _strides ) );
+                }
+
+                NDVector<T>& clear() { return this->set( 0 ); }
+
+                T *data() { return _storage->data.data(); }
+
+                const T *data() const { return _storage->data.data(); }
+
+                size_t dim( size_t n ) const {
+                    assert( n < rank() );
+                    return _shape[ n ];
+                }
+
+                NDVector<T>& fill( T val ) { return this->set( val ); }
+
+                template<typename... Indices>
+                T get( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                NDVectorView<T> operator[]( size_t ind ) const {
+                    return this->slice( 0, ind );
+                }
+
+                template<typename... Indices>
+                T& operator()( Indices... indices ) {
+                    return this->at( indices... );
+                }
+
+                template<typename... Indices>
+                const T& operator()( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                size_t rank() const { return _shape.size(); }
+
+                bool rank_mutable() const { return true; }
+
+                template<typename... Dims>
+                NDVector<T>& resize( Dims... dims ) {
+                    return this->resize( std::vector<size_t> {
+                        static_cast<size_t>( dims )... } );
+                }
+
+                NDVector<T>& resize( std::vector<size_t> shape ) {
+                    if (shape.empty()) {
+                        _shape.clear();
+                        _strides.clear();
+                        _storage = std::make_shared<details::_ndstorage<T>>();
+                    } else if (_shape != shape) {
+                        _shape = std::move( shape );
+                        details::compute_strides( _shape, _strides );
+                        size_t total = details::total_size( _shape );
+                        _storage = std::make_shared<details::_ndstorage<T>>();
+                        _storage->data.resize( total );
+                    }
+
+                    return *this;
+                }
+
+                NDVector<T>& resize( std::initializer_list<size_t> shape ) {
+                    return this->resize( std::vector<size_t>( shape ) );
+                }
+
+                template<size_t N>
+                NDVector<T>& resize( const std::array<size_t, N>& shape ) {
+                    return this->resize(
+                        std::vector<size_t>( shape.begin(), shape.end() ) );
+                }
+
+                NDVector<T>& set( T val ) {
+                    for (auto it = begin(); it != end(); ++it) {
+                        *it = val;
+                    }
+                    return *this;
+                }
+
+                const std::vector<size_t>& shape() const { return _shape; }
+
+                size_t size() const { return _storage->data.size(); }
+
+                NDVectorView<T> slice( size_t dim, size_t fixed_index ) const {
+                    if (dim >= rank()) {
+                        throw std::out_of_range( "bad dimension" );
+                    }
+
+                    if (fixed_index >= _shape[ dim ]) {
+                        throw std::out_of_range( "bad index" );
+                    }
+
+                    std::vector<size_t> shape;
+                    std::vector<size_t> strides;
+
+                    shape.reserve( rank() - 1 );
+                    strides.reserve( rank() - 1 );
+
+                    for (size_t i = 0; i < rank(); ++i) {
+                        if (i != dim) {
+                            shape.push_back( _shape[ i ] );
+                            strides.push_back( _strides[ i ] );
+                        }
+                    }
+
+                    return NDVectorView<T>(
+                        _storage, fixed_index * _strides[ dim ],
+                        std::move( shape ), std::move( strides ) );
+                }
+
+                // iterators here
+                iterator begin() { return _storage->data.begin(); }
+
+                const_iterator begin() const { return _storage->data.begin(); }
+
+                const_iterator cbegin() const {
+                    return _storage->data.cbegin();
+                }
+
+                iterator end() { return _storage->data.end(); }
+
+                const_iterator end() const { return _storage->data.end(); }
+
+                const_iterator cend() const { return _storage->data.cend(); }
+
+                reverse_iterator rbegin() { return _storage->data.rbegin(); }
+
+                const_reverse_iterator rbegin() const {
+                    return _storage->data.rbegin();
+                }
+
+                reverse_iterator rend() { return _storage->data.rend(); }
+
+                const_reverse_iterator rend() const {
+                    return _storage->data.rend();
+                }
+
+            private:
+                std::shared_ptr<details::_ndstorage<T>> _storage;
+
+                std::vector<size_t> _shape;
+                std::vector<size_t> _strides;
+        };
+
+        template<typename T>
+        using vector2d_t = NDArray<2, T>;
+
+        template<typename T>
+        using vector3d_t = NDArray<3, T>;
+
+        template<typename T, typename std::enable_if<
+                                 std::is_arithmetic<T>::value, int>::type = 0>
+        size_t vector_rank( const std::vector<T>& ) {
+            return 1;
+        }
+
+        template<typename T, typename std::enable_if<
+                                 !std::is_arithmetic<T>::value, int>::type = 0>
+        size_t vector_rank( const std::vector<T>& vec ) {
+            if (vec.empty())
+                throw std::logic_error(
+                    "Can't determine rank of empty nested vector!" );
+
+            return vector_rank( vec.front() ) + 1;
+        }
+
+        template<typename T>
+        std::vector<T> vectorify( const T& val ) {
+            return std::vector<T>( 1, val );
         }
 
         /**
@@ -726,6 +1657,24 @@ namespace NCPA {
             }
             std::memcpy( out, tempvec, N * sizeof( T ) );
             delete[] tempvec;
+        }
+
+        template<typename ContainerType, typename ContainerType2>
+        bool increment_digits( ContainerType& values,
+                               const ContainerType2& sizes ) {
+            if (values.empty()) return false;
+            int ind = values.size() - 1;
+            while (ind >= 0) {
+                if (sizes.at( ind ) == 0) return false;
+                ++values.at( ind );
+                if (values.at( ind ) == sizes.at( ind )) {
+                    values.at( ind ) = 0;
+                    --ind;
+                } else {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
@@ -1196,1386 +2145,117 @@ namespace NCPA {
             return newvec;
         }
 
-        template<typename ELEMENTTYPE,typename INDEXTYPE=size_t>
-        std::vector<ELEMENTTYPE> extract_indices( const std::vector<ELEMENTTYPE>& source, const std::vector<INDEXTYPE>& indices ) {
+        template<typename ELEMENTTYPE, typename INDEXTYPE = size_t>
+        std::vector<ELEMENTTYPE> extract_indices(
+            const std::vector<ELEMENTTYPE>& source,
+            const std::vector<INDEXTYPE>& indices ) {
             std::vector<ELEMENTTYPE> result( indices.size() );
             for (size_t i = 0; i < indices.size(); ++i) {
-                result[ i ] = source.at( indices.at(i) );
+                result[ i ] = source.at( indices.at( i ) );
             }
             return result;
         }
 
         template<typename ELEMENTTYPE>
-        std::vector<ELEMENTTYPE> vectorize( const ELEMENTTYPE& val, size_t n = 1 ) {
+        std::vector<ELEMENTTYPE> vectorize( const ELEMENTTYPE& val,
+                                            size_t n = 1 ) {
             return std::vector<ELEMENTTYPE>( n, val );
         }
+
+        /**
+         * @brief Operator overload for vector-vector addition.
+         */
+        template<typename T>
+        std::vector<T> operator+( const std::vector<T>& a,
+                                  const std::vector<T>& b ) {
+            return NCPA::arrays::add_vectors<std::vector<T>>( a, b );
+        }
+
+        /**
+         * @brief Operator overload for vector-scalar addition.
+         */
+        template<typename T>
+        std::vector<T> operator+( const std::vector<T>& a, const T& b ) {
+            return NCPA::arrays::offset_vector<std::vector<T>>( a, b );
+        }
+
+        /**
+         * @brief Operator overload for vector-vector subtraction.
+         */
+        template<typename T>
+        std::vector<T> operator-( const std::vector<T>& a,
+                                  const std::vector<T>& b ) {
+            return NCPA::arrays::subtract_vectors<std::vector<T>>( a, b );
+        }
+
+        /**
+         * @brief Operator overload for vector-scalar subtraction.
+         */
+        template<typename T>
+        std::vector<T> operator-( const std::vector<T>& a, const T& b ) {
+            return NCPA::arrays::offset_vector<std::vector<T>>( a, -b );
+        }
+
+        /**
+         * @brief Operator overload for element-wise vector-vector
+         * multiplication.
+         */
+        template<typename T>
+        std::vector<T> operator*( const std::vector<T>& a,
+                                  const std::vector<T>& b ) {
+            return NCPA::arrays::multiply_vectors<std::vector<T>>( a, b );
+        }
+
+        /**
+         * @brief Operator overload for vector scaling.
+         */
+        template<typename T>
+        std::vector<T> operator*( const std::vector<T>& a, const T& b ) {
+            return NCPA::arrays::scale_vector<std::vector<T>>( a, b );
+        }
+
+        /**
+         * @brief Operator overload for vector-scalar division.
+         */
+        template<typename T>
+        std::vector<T> operator/( const std::vector<T>& a, const T& b ) {
+            return NCPA::arrays::scale_vector<std::vector<T>>(
+                a, std::pow( b, -1.0 ) );
+        }
+
+        /**
+         * @brief Operator overload for unary vector negation.
+         */
+        template<typename T>
+        std::vector<T> operator-( const std::vector<T>& a ) {
+            return NCPA::arrays::scale_vector<std::vector<T>>(
+                a, -NCPA::constants::one<T>() );
+        }
+
+        /**
+         * @brief Stream operator for std::vector.
+         */
+        template<typename T>
+        std::ostream& operator<<( std::ostream& os, const std::vector<T>& v ) {
+            os << "{ ";
+            for (auto it = v.cbegin(); it != v.cend(); ++it) {
+                if (it != v.cbegin()) {
+                    os << ", ";
+                }
+                os << *it;
+            }
+            os << " }";
+            return os;
+        }
+
+        template<typename U, typename ShapeContainer>
+        NDViewIterator<U, ShapeContainer> operator+(
+            typename NDViewIterator<U, ShapeContainer>::difference_type n,
+            NDViewIterator<U, ShapeContainer> it ) {
+            it += n;
+            return it;
+        }
+
+
     }  // namespace arrays
 }  // namespace NCPA
-
-/**
- * @brief Operator overload for vector-vector addition.
- */
-template<typename T>
-std::vector<T> operator+( const std::vector<T>& a, const std::vector<T>& b ) {
-    return NCPA::arrays::add_vectors<std::vector<T>>( a, b );
-}
-
-/**
- * @brief Operator overload for vector-scalar addition.
- */
-template<typename T>
-std::vector<T> operator+( const std::vector<T>& a, const T& b ) {
-    return NCPA::arrays::offset_vector<std::vector<T>>( a, b );
-}
-
-/**
- * @brief Operator overload for vector-vector subtraction.
- */
-template<typename T>
-std::vector<T> operator-( const std::vector<T>& a, const std::vector<T>& b ) {
-    return NCPA::arrays::subtract_vectors<std::vector<T>>( a, b );
-}
-
-/**
- * @brief Operator overload for vector-scalar subtraction.
- */
-template<typename T>
-std::vector<T> operator-( const std::vector<T>& a, const T& b ) {
-    return NCPA::arrays::offset_vector<std::vector<T>>( a, -b );
-}
-
-/**
- * @brief Operator overload for element-wise vector-vector multiplication.
- */
-template<typename T>
-std::vector<T> operator*( const std::vector<T>& a, const std::vector<T>& b ) {
-    return NCPA::arrays::multiply_vectors<std::vector<T>>( a, b );
-}
-
-/**
- * @brief Operator overload for vector scaling.
- */
-template<typename T>
-std::vector<T> operator*( const std::vector<T>& a, const T& b ) {
-    return NCPA::arrays::scale_vector<std::vector<T>>( a, b );
-}
-
-/**
- * @brief Operator overload for vector-scalar division.
- */
-template<typename T>
-std::vector<T> operator/( const std::vector<T>& a, const T& b ) {
-    return NCPA::arrays::scale_vector<std::vector<T>>( a,
-                                                       std::pow( b, -1.0 ) );
-}
-
-/**
- * @brief Operator overload for unary vector negation.
- */
-template<typename T>
-std::vector<T> operator-( const std::vector<T>& a ) {
-    return NCPA::arrays::scale_vector<std::vector<T>>(
-        a, -NCPA::constants::one<T>() );
-}
-
-/**
- * @brief Stream operator for std::vector.
- */
-template<typename T>
-std::ostream& operator<<( std::ostream& os, const std::vector<T>& v ) {
-    os << "{ ";
-    for (auto it = v.cbegin(); it != v.cend(); ++it) {
-        if (it != v.cbegin()) {
-            os << ", ";
-        }
-        os << *it;
-    }
-    os << " }";
-    return os;
-}
-
-namespace NCPA {
-    namespace arrays {
-
-        /**
-         * @class _abstract_arraylike
-         * @brief Base interface for array-like structures.
-         * @tparam T Data type.
-         * @tparam N Number of dimensions.
-         */
-        template<typename T, size_t N>
-        class _abstract_arraylike {
-            public:
-                virtual ~_abstract_arraylike() {}
-
-                friend void ::swap<>( _abstract_arraylike<T, N>& a,
-                                      _abstract_arraylike<T, N>& b ) noexcept;
-
-                virtual size_t buffer( T *b ) const            = 0;
-                virtual size_t debuffer( const T *b )          = 0;
-                virtual size_t dimension( size_t d ) const     = 0;
-                virtual std::istream& read( std::istream& is ) = 0;
-                virtual void redimension( const std::array<size_t, N>& dims )
-                    = 0;
-                virtual size_t size() const                             = 0;
-                virtual view_t<T, N>& view( size_t dim, size_t dimind ) = 0;
-                virtual const view_t<T, N>& view( size_t dim,
-                                                  size_t dimind ) const = 0;
-                virtual std::ostream& write( std::ostream& os ) const   = 0;
-
-                virtual std::array<size_t, N>& dimensions() = 0;
-
-                virtual const std::array<size_t, N>& dimensions() const = 0;
-
-                virtual view_t<T, N>& operator[]( size_t ind ) {
-                    return this->view( 0, ind );
-                }
-
-                virtual const view_t<T, N>& operator[]( size_t ind ) const {
-                    return this->view( 0, ind );
-                }
-
-            protected:
-                /**
-                 * @brief Verifies if the dimension index is within valid
-                 * range.
-                 * @param dim Dimension index to check.
-                 */
-                virtual void check_dimensions( size_t dim ) const {
-                    if (dim >= N) {
-                        std::ostringstream oss;
-                        oss << "ArrayLike: Requested dimension " << dim
-                            << " too large for " << N << "-dimensional array";
-                        throw std::range_error( oss.str() );
-                    }
-                }
-
-                /**
-                 * @brief Verifies if the element index is within the dimension
-                 * size.
-                 * @param dim Dimension index.
-                 * @param dimind Element index.
-                 */
-                virtual void check_dimension_size( size_t dim,
-                                                   size_t dimind ) const {
-                    if (dimind >= this->dimensions().at( dim )) {
-                        std::ostringstream oss;
-                        oss << "ArrayLike: Requested element " << dimind
-                            << " too large for " << dim << "th dimension of "
-                            << this->dimensions_string() << " array";
-                        throw std::range_error( oss.str() );
-                    }
-                }
-
-                /**
-                 * @brief Returns a string representation of the array
-                 * dimensions.
-                 * @return Formatted string (e.g., "10x20x30").
-                 */
-                virtual std::string dimensions_string() const {
-                    std::ostringstream dimstr;
-                    dimstr << this->dimension( 0 );
-                    for (size_t i = 1; i < N; ++i) {
-                        dimstr << "x" << this->dimension( i );
-                    }
-                    return dimstr.str();
-                }
-        };
-
-        /**
-         * Generalized interface for an N-D array that can be pointed back to a
-         * 1-D array or vector.
-         * @class ArrayLike
-         * @tparam T Data type.
-         * @tparam N Number of dimensions.
-         */
-        template<typename T, size_t N>
-        class ArrayLike : public _abstract_arraylike<T, N> {
-                static_assert( N > 0, "Dimension must be nonzero." );
-
-            public:
-                ArrayLike() {}
-
-                ArrayLike( const std::array<size_t, N>& dims ) :
-                    _dimensions { dims } {}
-
-                virtual ~ArrayLike() { deregister_parent( this ); }
-
-                ArrayLike( const ArrayLike<T, N>& other ) : ArrayLike<T, N>() {
-                    _dimensions  = other._dimensions;
-                    _local_views = other._local_views;
-                }
-
-                ArrayLike( ArrayLike<T, N>&& other ) noexcept :
-                    ArrayLike<T, N>() {
-                    ::swap( *this, other );
-                }
-
-                ArrayLike<T, N>& operator=( ArrayLike<T, N> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                friend void ::swap<>( ArrayLike<T, N>& a,
-                                      ArrayLike<T, N>& b ) noexcept;
-
-                virtual T& at( const std::array<size_t, N>& coords ) = 0;
-                virtual const T& at(
-                    const std::array<size_t, N>& coords ) const = 0;
-
-                virtual size_t buffer( T *b ) const override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        counter += this->view( 0, i ).buffer( b + counter );
-                    }
-                    return counter;
-                }
-
-                template<typename BUFFERTYPE>
-                size_t buffer_as( BUFFERTYPE *b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        counter += this->view( 0, i ).buffer_as( b + counter );
-                    }
-                    return counter;
-                }
-
-                virtual size_t debuffer( const T *b ) override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to debuffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        counter += this->view( 0, i ).debuffer( b + counter );
-                    }
-                    return counter;
-                }
-
-                template<typename BUFFERTYPE>
-                size_t debuffer_as( const BUFFERTYPE *b ) {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to debuffer()" );
-                    }
-                    size_t counter = 0;
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        counter
-                            += this->view( 0, i ).debuffer_as( b + counter );
-                    }
-                    return counter;
-                }
-
-                virtual size_t dimension( size_t d ) const override {
-                    this->check_dimensions( d );
-                    return this->dimensions().at( d );
-                }
-
-                virtual std::istream& read( std::istream& is ) override {
-                    T *b = new T[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ),
-                             this->size() * sizeof( T ) );
-                    if (is.gcount()
-                        != (std::streamsize)( this->size() * sizeof( T ) )) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Mismatch between internal size "
-                            "and buffer" );
-                    }
-                    delete[] b;
-                    return is;
-                }
-
-                template<typename BUFFERTYPE>
-                std::istream& read_as( std::istream& is ) {
-                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ),
-                             this->size() * sizeof( BUFFERTYPE ) );
-                    if (is.gcount()
-                        != (std::streamsize)( this->size() * sizeof( T ) )) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Mismatch between internal size "
-                            "and buffer" );
-                    }
-                    delete[] b;
-                    return is;
-                }
-
-                virtual void redimension(
-                    const std::array<size_t, N>& dims ) override {
-                    this->_dimensions = dims;
-                }
-
-                virtual size_t size() const override {
-                    size_t count = 1;
-                    for (auto it = this->_dimensions.begin();
-                         it != this->_dimensions.end(); ++it) {
-                        count *= ( *it );
-                    }
-                    return count;
-                }
-
-                virtual view_t<T, N>& view( size_t dim,
-                                            size_t dimind ) override {
-                    this->check_dimensions( dim );
-                    this->check_dimension_size( dim, dimind );
-                    std::pair<size_t, size_t> key { dim, dimind };
-                    auto keyview = _local_views.find( key );
-                    if (keyview == _local_views.end()) {
-                        _local_views[ key ]
-                            = view_t<T, N>( this, dim, dimind );
-                        return _local_views[ key ];
-                    } else {
-                        return keyview->second;
-                    }
-                }
-
-                virtual const view_t<T, N>& view(
-                    size_t dim, size_t dimind ) const override {
-                    this->check_dimensions( dim );
-                    this->check_dimension_size( dim, dimind );
-                    std::pair<size_t, size_t> key { dim, dimind };
-                    auto global_registry = _global_views.find( this );
-                    if (global_registry == _global_views.end()) {
-                        global_registry
-                            = _global_views
-                                  .emplace( this,
-                                            global_registry_entry_t<T, N> {} )
-                                  .first;
-                    }
-                    global_registry_entry_t<T, N>& entry
-                        = global_registry->second;
-                    entry[ key ] = view_t<T, N>( this, dim, dimind );
-                    return entry[ key ];
-                }
-
-                virtual std::ostream& write(
-                    std::ostream& os ) const override {
-                    T *b            = new T[ this->size() ];
-                    size_t elements = this->buffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.write(): Mismatch between size and "
-                            "buffer" );
-                    }
-                    os.write( reinterpret_cast<const char *>( b ),
-                              elements * sizeof( T ) );
-                    delete[] b;
-                    return os;
-                }
-
-                template<typename OUTTYPE>
-                std::ostream& write_as( std::ostream& os ) const {
-                    OUTTYPE *b      = new OUTTYPE[ this->size() ];
-                    size_t elements = this->buffer_as<OUTTYPE>( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.write_as(): Mismatch between size and "
-                            "buffer" );
-                    }
-                    os.write( reinterpret_cast<const char *>( b ),
-                              elements * sizeof( OUTTYPE ) );
-                    delete[] b;
-                    return os;
-                }
-
-                static bool global_registry_contains( ArrayLike<T, N> *key );
-
-                static global_registry_entry_t<T, N>& register_parent(
-                    ArrayLike<T, N> *key );
-
-                static void deregister_parent( ArrayLike<T, N> *key );
-
-                static void register_view( ArrayLike<T, N> *key,
-                                           const ArrayView<T, N - 1>& v );
-
-                virtual std::array<size_t, N>& dimensions() override {
-                    return _dimensions;
-                }
-
-                virtual const std::array<size_t, N>& dimensions()
-                    const override {
-                    return _dimensions;
-                }
-
-
-            private:
-                std::array<size_t, N> _dimensions;
-                local_registry_t<T, N> _local_views;
-
-                static global_registry_t<T, N> _global_views;
-        };
-
-        template<typename T, size_t N>
-        global_registry_t<T, N> ArrayLike<T, N>::_global_views;
-
-        template<typename T, size_t N>
-        void ArrayLike<T, N>::deregister_parent( ArrayLike<T, N> *key ) {
-            if (!ArrayLike<T, N>::global_registry_contains( key )) {
-                ArrayLike<T, N>::_global_views.erase( key );
-            }
-        }
-
-        template<typename T, size_t N>
-        void ArrayLike<T, N>::register_view( ArrayLike<T, N> *key,
-                                             const ArrayView<T, N - 1>& v ) {
-            ArrayLike<T, N>::register_parent( key );
-            ArrayLike<T, N>::_global_views[ key ].emplace( v.key(), v );
-        }
-
-        template<typename T, size_t N>
-        global_registry_entry_t<T, N>& ArrayLike<T, N>::register_parent(
-            ArrayLike<T, N> *key ) {
-            if (!ArrayLike<T, N>::global_registry_contains( key )) {
-                return ArrayLike<T, N>::_global_views
-                    .emplace( { key, global_registry_entry_t<T, N> {} } )
-                    .first->second;
-            } else {
-                return ArrayLike<T, N>::_global_views.find( key )->second;
-            }
-        }
-
-        template<typename T, size_t N>
-        bool ArrayLike<T, N>::global_registry_contains(
-            ArrayLike<T, N> *key ) {
-            return ( ArrayLike<T, N>::_global_views.find( key )
-                     == ArrayLike<T, N>::_global_views.end() );
-        }
-
-        /**
-         * @brief Template specialization for 1-dimensional ArrayLike.
-         * @tparam T Data type.
-         */
-        template<typename T>
-        class ArrayLike<T, 1> : public _abstract_arraylike<T, 1> {
-            public:
-                ArrayLike() {}
-
-                ArrayLike( const std::array<size_t, 1>& dims ) :
-                    _dimensions { dims } {}
-
-                ArrayLike( size_t newdim ) : _dimensions { { newdim } } {}
-
-                virtual ~ArrayLike() {}
-
-                friend void ::swap<>( ArrayLike<T, 1>& a,
-                                      ArrayLike<T, 1>& b ) noexcept;
-
-                ArrayLike( const ArrayLike<T, 1>& other ) :
-                    ArrayLike<T, 1>( other._dimensions ) {
-                    this->_dimensions = other._dimensions;
-                    _local_views      = other._local_views;
-                }
-
-                ArrayLike( ArrayLike<T, 1>&& other ) noexcept :
-                    ArrayLike<T, 1>() {
-                    ::swap( *this, other );
-                }
-
-                ArrayLike<T, 1>& operator=( ArrayLike<T, 1> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                virtual T& at( const std::array<size_t, 1>& coords ) = 0;
-                virtual const T& at(
-                    const std::array<size_t, 1>& coords ) const = 0;
-
-                virtual T& at( size_t coord ) {
-                    return this->at( std::array<size_t, 1> { coord } );
-                }
-
-                virtual const T& at( size_t coord ) const {
-                    return this->at( std::array<size_t, 1> { coord } );
-                }
-
-                virtual size_t buffer( T *b ) const override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        b[ i ] = this->at( i );
-                    }
-                    return this->_dimensions.at( 0 );
-                }
-
-                template<typename BUFFERTYPE>
-                size_t buffer_as( BUFFERTYPE *b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    for (size_t i = 0; i < this->_dimensions.at( 0 ); ++i) {
-                        b[ i ] = (BUFFERTYPE)( this->at( i ) );
-                    }
-                    return this->_dimensions.at( 0 );
-                }
-
-                virtual size_t debuffer( const T *b ) override {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to debuffer()" );
-                    }
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at( i ) = b[ i ];
-                    }
-                    return this->size();
-                }
-
-                template<typename BUFFERTYPE>
-                size_t debuffer_as( const BUFFERTYPE *b ) {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to debuffer()" );
-                    }
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        this->at( i ) = (T)( b[ i ] );
-                    }
-                    return this->size();
-                }
-
-                virtual size_t dimension( size_t d ) const override {
-                    this->check_dimensions( d );
-                    return this->dimensions().at( d );
-                }
-
-                virtual std::array<size_t, 1>& dimensions() override {
-                    return _dimensions;
-                }
-
-                virtual const std::array<size_t, 1>& dimensions()
-                    const override {
-                    return _dimensions;
-                }
-
-                virtual std::istream& read( std::istream& is ) override {
-                    T *b = new T[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ),
-                             this->size() * sizeof( T ) );
-                    if (is.gcount()
-                        != (std::streamsize)( this->size() * sizeof( T ) )) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.read(): Mismatch "
-                                                  "between size and buffer" );
-                    }
-                    delete[] b;
-                    return is;
-                }
-
-                template<typename BUFFERTYPE>
-                std::istream& read_as( std::istream& is ) {
-                    BUFFERTYPE *b = new BUFFERTYPE[ this->size() ];
-                    is.read( reinterpret_cast<char *>( b ),
-                             this->size() * sizeof( BUFFERTYPE ) );
-                    if (is.gcount()
-                        != (std::streamsize)( this->size() * sizeof( T ) )) {
-                        throw std::runtime_error(
-                            "ArrayLike.read(): Not enough samples read!" );
-                    }
-                    size_t elements = this->debuffer_as<BUFFERTYPE>( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error( "ArrayLike.read(): Mismatch "
-                                                  "between size and buffer" );
-                    }
-                    delete[] b;
-                    return is;
-                }
-
-                virtual void redimension(
-                    const std::array<size_t, 1>& dims ) override {
-                    this->_dimensions = dims;
-                }
-
-                virtual void redimension( size_t dim ) {
-                    this->_dimensions.at( 0 ) = dim;
-                }
-
-                virtual size_t size() const override {
-                    return this->_dimensions.at( 0 );
-                }
-
-                virtual view_t<T, 1>& view( size_t dim,
-                                            size_t dimind ) override {
-                    this->check_dimensions( dim );
-                    this->check_dimension_size( dim, dimind );
-                    std::pair<size_t, size_t> key { dim, dimind };
-                    auto keyview = _local_views.find( key );
-                    if (keyview == _local_views.end()) {
-                        _local_views[ key ]
-                            = view_t<T, 1>( this, dim, dimind );
-                        return _local_views[ key ];
-                    } else {
-                        return keyview->second;
-                    }
-                }
-
-                virtual const view_t<T, 1>& view(
-                    size_t dim, size_t dimind ) const override {
-                    this->check_dimensions( dim );
-                    this->check_dimension_size( dim, dimind );
-                    std::pair<size_t, size_t> key { dim, dimind };
-                    auto global_registry = _global_views.find( this );
-                    if (global_registry == _global_views.end()) {
-                        global_registry
-                            = _global_views
-                                  .emplace( this,
-                                            global_registry_entry_t<T, 1>() )
-                                  .first;
-                    }
-
-                    auto view_it = global_registry->second.find( key );
-                    if (view_it == global_registry->second.end()) {
-                        view_it = global_registry->second
-                                      .emplace( key, view_t<T, 1>( this, dim,
-                                                                   dimind ) )
-                                      .first;
-                    }
-                    return view_it->second;
-                }
-
-                virtual std::ostream& write(
-                    std::ostream& os ) const override {
-                    T *b            = new T[ this->size() ];
-                    size_t elements = this->buffer( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.write(): Mismatch between internal "
-                            "size and buffer" );
-                    }
-                    os.write( reinterpret_cast<const char *>( b ),
-                              elements * sizeof( T ) );
-                    delete[] b;
-                    return os;
-                }
-
-                template<typename OUTTYPE>
-                std::ostream& write_as( std::ostream& os ) const {
-                    OUTTYPE *b      = new OUTTYPE[ this->size() ];
-                    size_t elements = this->buffer_as<OUTTYPE>( b );
-                    if (elements != this->size()) {
-                        throw std::runtime_error(
-                            "ArrayLike.write_as(): Mismatch between size and "
-                            "buffer" );
-                    }
-                    os.write( reinterpret_cast<const char *>( b ),
-                              elements * sizeof( OUTTYPE ) );
-                    delete[] b;
-                    return os;
-                }
-
-                static bool global_registry_contains(
-                    const ArrayLike<T, 1> *key );
-
-
-                static global_registry_entry_t<T, 1>& register_parent(
-                    const ArrayLike<T, 1> *key );
-
-                static void deregister_parent( const ArrayLike<T, 1> *key );
-
-
-                static void register_view( const ArrayLike<T, 1> *key,
-                                           const ArrayView<T, 0>& v );
-
-
-            private:
-                local_registry_t<T, 1> _local_views;
-                static global_registry_t<T, 1> _global_views;
-                std::array<size_t, 1> _dimensions;
-        };
-
-        template<typename T>
-        global_registry_t<T, 1> ArrayLike<T, 1>::_global_views;
-
-        /**
-         * @class ArrayView
-         * @brief Sliced view of an existing ArrayLike object.
-         * @tparam T Data type.
-         * @tparam N Number of dimensions.
-         */
-        template<typename T, size_t N>
-        class ArrayView : public ArrayLike<T, N> {
-            public:
-                ArrayView() :
-                    ArrayLike<T, N>(),
-                    _parent { nullptr },
-                    _cparent { nullptr },
-                    _const_dim { 0 } {}
-
-                ArrayView( ArrayLike<T, N + 1> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    ArrayLike<T, N>(),
-                    _parent { parent },
-                    _cparent { parent },
-                    _const_dim { const_dim },
-                    _key { const_dim, const_dim_ind } {
-                    size_t counter = 0;
-                    std::array<size_t, N> newdims;
-                    for (size_t i = 0; i <= N; ++i) {
-                        if (i != const_dim) {
-                            _var_dims[ counter ] = i;
-                            newdims[ counter ]   = parent->dimension( i );
-                            counter++;
-                        }
-                    }
-                    _mapped_indices[ _const_dim ] = const_dim_ind;
-
-                    // this->redimension( newdims );
-                    this->_dimensions = newdims;
-                }
-
-                ArrayView( const ArrayLike<T, N + 1> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    ArrayLike<T, N>(),
-                    _parent { nullptr },
-                    _cparent { parent },
-                    _const_dim { const_dim },
-                    _key { const_dim, const_dim_ind } {
-                    size_t counter = 0;
-                    std::array<size_t, N> newdims;
-                    for (size_t i = 0; i <= N; ++i) {
-                        if (i != const_dim) {
-                            _var_dims[ counter ] = i;
-                            newdims[ counter ]   = parent->dimension( i );
-                            counter++;
-                        }
-                    }
-                    _mapped_indices[ _const_dim ] = const_dim_ind;
-                    // this->redimension( newdims );
-                    this->_dimensions = newdims;
-                }
-
-                virtual ~ArrayView() {}
-
-                ArrayView( const ArrayView<T, N>& other ) :
-                    ArrayLike<T, N>(),
-                    _parent { other._parent },
-                    _const_dim { other._const_dim },
-                    _key { other._key },
-                    _var_dims { other._var_dims },
-                    _mapped_indices { other._mapped_indices },
-                    _dimensions { other._dimensions } {}
-
-                ArrayView( ArrayView<T, N>&& other ) noexcept :
-                    ArrayLike<T, N>() {
-                    ::swap( *this, other );
-                }
-
-                ArrayView<T, N>& operator=( ArrayView<T, N> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                friend void ::swap<>( ArrayView<T, N>& a,
-                                      ArrayView<T, N>& b ) noexcept;
-
-                virtual T& at( const std::array<size_t, N>& coords ) override {
-                    if (_parent == nullptr) {
-                        throw std::logic_error(
-                            "Attempted non-const access to const view" );
-                    }
-                    for (size_t i = 0; i < N; ++i) {
-                        _mapped_indices[ _var_dims[ i ] ] = coords[ i ];
-                    }
-                    return _parent->at( _mapped_indices );
-                }
-
-                virtual const T& at(
-                    const std::array<size_t, N>& coords ) const override {
-                    std::array<size_t, N + 1> mapped = _mapped_indices;
-                    for (size_t i = 0; i < N; ++i) {
-                        mapped[ _var_dims[ i ] ] = coords[ i ];
-                    }
-                    return _cparent->at( mapped );
-                }
-
-                virtual std::array<size_t, N>& dimensions() override {
-                    return _dimensions;
-                }
-
-                virtual const std::array<size_t, N>& dimensions()
-                    const override {
-                    return _dimensions;
-                }
-
-                virtual std::pair<size_t, size_t> key() const { return _key; }
-
-                virtual ArrayLike<T, N + 1>& parent() const {
-                    return *_parent;
-                }
-
-                virtual void redimension(
-                    const std::array<size_t, N>& dims ) override {
-                    throw std::logic_error(
-                        "Cannot redimension an array view!" );
-                }
-
-            private:
-                ArrayLike<T, N + 1> *_parent;
-                const ArrayLike<T, N + 1> *_cparent;
-                size_t _const_dim;
-                std::pair<size_t, size_t> _key;
-                std::array<size_t, N> _var_dims;
-                std::array<size_t, N + 1> _mapped_indices;
-                std::array<size_t, N> _dimensions;
-        };
-
-        /**
-         * @brief Specialization of ArrayView for 1-dimensional results.
-         */
-        template<typename T>
-        class ArrayView<T, 1> : public ArrayLike<T, 1> {
-            public:
-                ArrayView() :
-                    ArrayLike<T, 1>(),
-                    _parent { nullptr },
-                    _cparent { nullptr },
-                    _const_dim { 0 } {}
-
-                ArrayView( ArrayLike<T, 2> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    ArrayLike<T, 1>(),
-                    _parent { parent },
-                    _cparent { parent },
-                    _const_dim { const_dim },
-                    _key { const_dim, const_dim_ind } {
-                    size_t counter = 0;
-                    std::array<size_t, 1> newdims;
-                    for (size_t i = 0; i <= 1; ++i) {
-                        if (i != const_dim) {
-                            _var_dims[ counter ] = i;
-                            newdims[ counter ]   = parent->dimension( i );
-                            counter++;
-                        }
-                    }
-                    _mapped_indices[ _const_dim ] = const_dim_ind;
-                    // this->redimension( newdims );
-                    this->_dimensions = newdims;
-                }
-
-                ArrayView( const ArrayLike<T, 2> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    ArrayLike<T, 1>(),
-                    _parent { nullptr },
-                    _cparent { parent },
-                    _const_dim { const_dim },
-                    _key { const_dim, const_dim_ind } {
-                    size_t counter = 0;
-                    std::array<size_t, 1> newdims;
-                    for (size_t i = 0; i <= 1; ++i) {
-                        if (i != const_dim) {
-                            _var_dims[ counter ] = i;
-                            newdims[ counter ]   = parent->dimension( i );
-                            counter++;
-                        }
-                    }
-                    _mapped_indices[ _const_dim ] = const_dim_ind;
-                    // this->redimension( newdims );
-                    this->_dimensions = newdims;
-                }
-
-                virtual ~ArrayView() {}
-
-                ArrayView( const ArrayView<T, 1>& other ) :
-                    ArrayLike<T, 1>(),
-                    _parent { other._parent },
-                    _const_dim { other._const_dim },
-                    _key { other._key },
-                    _var_dims { other._var_dims },
-                    _mapped_indices { other._mapped_indices },
-                    _dimensions { other._dimensions } {}
-
-                ArrayView( ArrayView<T, 1>&& other ) noexcept :
-                    ArrayLike<T, 1>() {
-                    ::swap( *this, other );
-                }
-
-                ArrayView<T, 1>& operator=( ArrayView<T, 1> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                friend void ::swap<>( ArrayView<T, 1>& a,
-                                      ArrayView<T, 1>& b ) noexcept;
-
-                virtual T& at( const std::array<size_t, 1>& coords ) override {
-                    if (_parent == nullptr) {
-                        throw std::logic_error(
-                            "Attempted non-const access to const view" );
-                    }
-                    _mapped_indices[ _var_dims[ 0 ] ] = coords[ 0 ];
-                    return _parent->at( _mapped_indices );
-                }
-
-                virtual const T& at(
-                    const std::array<size_t, 1>& coords ) const override {
-                    std::array<size_t, 2> mapped = _mapped_indices;
-                    mapped[ _var_dims[ 0 ] ]     = coords[ 0 ];
-                    return _cparent->at( mapped );
-                }
-
-                virtual std::array<size_t, 1>& dimensions() override {
-                    return _dimensions;
-                }
-
-                virtual const std::array<size_t, 1>& dimensions()
-                    const override {
-                    return _dimensions;
-                }
-
-                virtual std::pair<size_t, size_t> key() const { return _key; }
-
-                virtual ArrayLike<T, 2>& parent() const { return *_parent; }
-
-                virtual void redimension(
-                    const std::array<size_t, 1>& dims ) override {
-                    throw std::logic_error(
-                        "Cannot redimension an array view!" );
-                }
-
-            private:
-                ArrayLike<T, 2> *_parent;
-                const ArrayLike<T, 2> *_cparent;
-                size_t _const_dim;
-                std::pair<size_t, size_t> _key;
-                std::array<size_t, 1> _var_dims;
-                std::array<size_t, 2> _mapped_indices;
-                std::array<size_t, 1> _dimensions;
-        };
-
-        /**
-         * @brief Specialization of ArrayView for 0-dimensional results (scalar
-         * view).
-         */
-        template<typename T>
-        class ArrayView<T, 0> {
-            public:
-                ArrayView() : _parent { nullptr }, _parent_ind { 0 } {}
-
-                ArrayView( ArrayLike<T, 1> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    _parent { parent },
-                    _cparent { parent },
-                    _parent_ind { const_dim_ind },
-                    _key { const_dim, const_dim_ind } {
-                    if (const_dim != 0) {
-                        throw std::range_error(
-                            "Invalid dimension specified!" );
-                    }
-                }
-
-                ArrayView( const ArrayLike<T, 1> *parent, size_t const_dim,
-                           size_t const_dim_ind ) :
-                    _parent { nullptr },
-                    _cparent { parent },
-                    _parent_ind { const_dim_ind },
-                    _key { const_dim, const_dim_ind } {
-                    if (const_dim != 0) {
-                        throw std::range_error(
-                            "Invalid dimension specified!" );
-                    }
-                }
-
-                ArrayView( const ArrayView<T, 0>& other ) :
-                    _parent { other._parent },
-                    _cparent { other._cparent },
-                    _parent_ind { other._parent_ind },
-                    _key { other._key } {}
-
-                ArrayView( ArrayView<T, 0>&& other ) noexcept {
-                    ::swap( *this, other );
-                }
-
-                ArrayView<T, 0>& operator=( ArrayView<T, 0> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                ArrayView<T, 0>& operator=( const T& other ) {
-                    this->at() = other;
-                    return *this;
-                }
-
-                virtual ~ArrayView() {}
-
-                friend void ::swap<>( ArrayView<T, 0>& a,
-                                      ArrayView<T, 0>& b ) noexcept;
-
-                virtual T& at() {
-                    if (_parent != nullptr) {
-                        return _parent->at( { _parent_ind } );
-                    } else {
-                        throw std::logic_error(
-                            "Requested non-const reference from const view!" );
-                    }
-                }
-
-                virtual const T& at() const {
-                    return _cparent->at( { _parent_ind } );
-                }
-
-                virtual T& at( const std::array<T, 0>& ) { return this->at(); }
-
-                virtual const T& at( const std::array<T, 0>& ) const {
-                    return this->at();
-                }
-
-                virtual T& at( size_t ind ) {
-                    if (ind > 0) {
-                        throw std::range_error(
-                            "0-D array view has only one element" );
-                    }
-                    return this->at();
-                }
-
-                virtual const T& at( size_t ind ) const {
-                    if (ind > 0) {
-                        throw std::range_error(
-                            "0-D array view has only one element" );
-                    }
-                    return this->at();
-                }
-
-                virtual size_t buffer( T *b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    b[ 0 ] = this->at();
-                    return 1;
-                }
-
-                virtual size_t debuffer( T *b ) {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to debuffer()" );
-                    }
-                    this->at() = b[ 0 ];
-                    return 1;
-                }
-
-                virtual std::array<size_t, 0>& dimensions() {
-                    return _empty_dim_array;
-                }
-
-                virtual const std::array<size_t, 0>& dimensions() const {
-                    return _empty_dim_array;
-                }
-
-                virtual std::pair<size_t, size_t> key() const { return _key; }
-
-                virtual ArrayLike<T, 1>& parent() const { return *_parent; }
-
-                virtual std::istream& read( std::istream& is ) {
-                    is >> this->at();
-                    return is;
-                }
-
-                virtual size_t size() const { return 1; }
-
-                virtual std::ostream& write( std::ostream& os ) const {
-                    os << this->at();
-                    return os;
-                }
-
-            private:
-                ArrayLike<T, 1> *_parent;
-                const ArrayLike<T, 1> *_cparent;
-                size_t _parent_ind;
-                std::pair<size_t, size_t> _key;
-                std::array<size_t, 0> _empty_dim_array;
-        };
-
-        /**
-         * @class NDimensionalArray
-         * @brief Concrete implementation of ArrayLike for generic
-         * N-dimensions.
-         * @tparam T Data type.
-         * @tparam N Number of dimensions.
-         */
-        template<typename T, size_t N>
-        class NDimensionalArray : public ArrayLike<T, N> {
-            public:
-                NDimensionalArray( const std::array<size_t, N>& dims ) :
-                    ArrayLike<T, N>( dims ) {
-                    this->redimension( dims );
-                    // this->_dimensions = dims;
-                }
-
-                virtual ~NDimensionalArray() {}
-
-                NDimensionalArray( NDimensionalArray<T, N>&& other ) noexcept {
-                    ::swap( *this, other );
-                }
-
-                NDimensionalArray<T, N>& operator=(
-                    NDimensionalArray<T, N> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-
-                friend void ::swap<>( NDimensionalArray<T, N>& a,
-                                      NDimensionalArray<T, N>& b ) noexcept;
-
-                NDimensionalArray( const NDimensionalArray<T, N>& other ) :
-                    ArrayLike<T, N>( other ), _internal { other._internal } {}
-
-                virtual T& at( const std::array<size_t, N>& coords ) override {
-                    return this->internal().at( this->coords2index( coords ) );
-                }
-
-                virtual const T& at(
-                    const std::array<size_t, N>& coords ) const override {
-                    return this->internal().at( this->coords2index( coords ) );
-                }
-
-                virtual void redimension(
-                    const std::array<size_t, N>& dims ) override {
-                    size_t intsize = 1;
-                    for (auto it = dims.begin(); it != dims.end(); ++it) {
-                        intsize *= ( *it );
-                    }
-                    _internal.clear();
-                    _internal.resize( intsize );
-                }
-
-                virtual size_t size() const override {
-                    return _internal.size();
-                }
-
-                virtual std::ostream& write( std::ostream& os ) const {
-                    os.write(
-                        reinterpret_cast<const char *>( _internal.data() ),
-                        _internal.size() * sizeof( T ) );
-                    return os;
-                }
-
-                virtual size_t buffer( T *b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    std::memcpy( b, _internal.data(),
-                                 _internal.size() * sizeof( T ) );
-                    return _internal.size();
-                }
-
-                template<typename BUFFERTYPE>
-                size_t buffer_as( BUFFERTYPE *b ) const {
-                    if (b == nullptr) {
-                        throw std::invalid_argument(
-                            "Null pointer passed to buffer()" );
-                    }
-                    for (size_t i = 0; i < _internal.size(); ++i) {
-                        b[ i ] = (BUFFERTYPE)( _internal.at( i ) );
-                    }
-                    return _internal.size();
-                }
-
-            protected:
-                /**
-                 * @brief Maps multidimensional coordinates to a 1D internal
-                 * index.
-                 * @param coords The N-D coordinates.
-                 * @return The 1D index.
-                 */
-                size_t coords2index(
-                    const std::array<size_t, N>& coords ) const {
-                    if (N == 1) {
-                        return coords[ 0 ];
-                    }
-                    size_t index   = coords[ N - 1 ];
-                    size_t scale   = 1;
-                    size_t counter = N - 1;
-                    while (counter > 0) {
-                        scale *= this->dimension( counter );
-                        index += scale * coords[ --counter ];
-                    }
-                    return index;
-                }
-
-                std::vector<T>& internal() { return _internal; }
-
-                const std::vector<T>& internal() const { return _internal; }
-
-            private:
-                std::vector<T> _internal;
-        };
-
-        /**
-         * @class TwoDimensionalArray
-         * @brief Specialized container for 2-dimensional data.
-         * @tparam T Data type.
-         */
-        template<typename T>
-        class TwoDimensionalArray : public NDimensionalArray<T, 2> {
-            public:
-                TwoDimensionalArray( const std::array<size_t, 2>& dims ) :
-                    NDimensionalArray<T, 2>( dims ) {}
-
-                TwoDimensionalArray( size_t N1, size_t N2 ) :
-                    TwoDimensionalArray<T>(
-                        std::array<size_t, 2> { N1, N2 } ) {}
-
-                TwoDimensionalArray( const TwoDimensionalArray<T>& other ) :
-                    NDimensionalArray<T, 2>( other ) {}
-
-                TwoDimensionalArray(
-                    TwoDimensionalArray<T>&& other ) noexcept {
-                    ::swap( *this, other );
-                }
-
-                virtual ~TwoDimensionalArray() {}
-
-                TwoDimensionalArray<T>& operator=(
-                    TwoDimensionalArray<T> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-        };
-
-        /**
-         * @class ThreeDimensionalArray
-         * @brief Specialized container for 3-dimensional data.
-         * @tparam T Data type.
-         */
-        template<typename T>
-        class ThreeDimensionalArray : public NDimensionalArray<T, 3> {
-            public:
-                ThreeDimensionalArray( const std::array<size_t, 3>& dims ) :
-                    NDimensionalArray<T, 3>( dims ) {}
-
-                ThreeDimensionalArray( size_t N1, size_t N2, size_t N3 ) :
-                    ThreeDimensionalArray<T>(
-                        std::array<size_t, 3> { N1, N2, N3 } ) {}
-
-                ThreeDimensionalArray(
-                    const ThreeDimensionalArray<T>& other ) :
-                    NDimensionalArray<T, 3>( other ) {}
-
-                ThreeDimensionalArray(
-                    ThreeDimensionalArray<T>&& other ) noexcept {
-                    ::swap( *this, other );
-                }
-
-                virtual ~ThreeDimensionalArray() {}
-
-                ThreeDimensionalArray<T>& operator=(
-                    ThreeDimensionalArray<T> other ) {
-                    ::swap( *this, other );
-                    return *this;
-                }
-        };
-    }  // namespace arrays
-}  // namespace NCPA
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::_abstract_arraylike<T, N>& a,
-                  NCPA::arrays::_abstract_arraylike<T, N>& b ) noexcept {
-    (void)a;
-    (void)b;  // Placeholder for base swap logic if added later
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayLike<T, N>& a,
-                  NCPA::arrays::ArrayLike<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::_abstract_arraylike<T, N>&>( a ),
-            static_cast<NCPA::arrays::_abstract_arraylike<T, N>&>( b ) );
-    swap( a._dimensions, b._dimensions );
-    swap( a._local_views, b._local_views );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ArrayLike<T, 1>& a,
-                  NCPA::arrays::ArrayLike<T, 1>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::_abstract_arraylike<T, 1>&>( a ),
-            static_cast<NCPA::arrays::_abstract_arraylike<T, 1>&>( b ) );
-    swap( a._dimensions, b._dimensions );
-    swap( a._local_views, b._local_views );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, N>& a,
-                  NCPA::arrays::ArrayView<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._const_dim, b._const_dim );
-    swap( a._key, b._key );
-    swap( a._var_dims, b._var_dims );
-    swap( a._mapped_indices, b._mapped_indices );
-    swap( a._dimensions, b._dimensions );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::ArrayView<T, 1>& a,
-                  NCPA::arrays::ArrayView<T, 1>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, 1>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, 1>&>( b ) );
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._const_dim, b._const_dim );
-    swap( a._key, b._key );
-    swap( a._var_dims, b._var_dims );
-    swap( a._mapped_indices, b._mapped_indices );
-    swap( a._dimensions, b._dimensions );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ArrayView<T, 0>& a,
-                  NCPA::arrays::ArrayView<T, 0>& b ) noexcept {
-    using std::swap;
-    swap( a._parent, b._parent );
-    swap( a._cparent, b._cparent );
-    swap( a._parent_ind, b._parent_ind );
-    swap( a._key, b._key );
-}
-
-template<typename T, size_t N>
-static void swap( NCPA::arrays::NDimensionalArray<T, N>& a,
-                  NCPA::arrays::NDimensionalArray<T, N>& b ) noexcept {
-    using std::swap;
-    ::swap( static_cast<NCPA::arrays::ArrayLike<T, N>&>( a ),
-            static_cast<NCPA::arrays::ArrayLike<T, N>&>( b ) );
-    swap( a._internal, b._internal );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::TwoDimensionalArray<T>& a,
-                  NCPA::arrays::TwoDimensionalArray<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( a ),
-            static_cast<NCPA::arrays::NDimensionalArray<T, 2>&>( b ) );
-}
-
-template<typename T>
-static void swap( NCPA::arrays::ThreeDimensionalArray<T>& a,
-                  NCPA::arrays::ThreeDimensionalArray<T>& b ) noexcept {
-    ::swap( static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( a ),
-            static_cast<NCPA::arrays::NDimensionalArray<T, 3>&>( b ) );
-}

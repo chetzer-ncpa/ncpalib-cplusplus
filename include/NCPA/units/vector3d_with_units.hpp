@@ -1,7 +1,6 @@
 #pragma once
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
-#include "NCPA/ndvector.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/units/scalar_with_units.hpp"
 #include "NCPA/units/unit.hpp"
@@ -9,21 +8,8 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
-
-// forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class Vector3DWithUnits;
-    }  // namespace units
-}  // namespace NCPA
-
-template<typename T>
-void swap( NCPA::units::Vector3DWithUnits<T>&,
-           NCPA::units::Vector3DWithUnits<T>& ) noexcept;
 
 namespace NCPA {
     namespace units {
@@ -31,9 +17,7 @@ namespace NCPA {
         /**
          * Vector3DWithUnits class
          */
-        template<typename T = double,
-                 typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
+        template<typename T = double>
         class Vector3DWithUnits : public NCPA::arrays::vector3d_t<T> {
             public:
                 using NCPA::arrays::vector3d_t<T>::dim;
@@ -88,7 +72,7 @@ namespace NCPA {
                     Vector3DWithUnits<T>( values,
                                           Units::from_string( units ) ) {}
 
-                Vector3DWithUnits( const NCPA::arrays::ndvector<3, T>& values,
+                Vector3DWithUnits( const NCPA::arrays::NDVector<T>& values,
                                    const Unit *units ) :
                     NCPA::arrays::vector3d_t<T>( values ), _units { units } {}
 
@@ -133,18 +117,23 @@ namespace NCPA {
                 // move constructor
                 Vector3DWithUnits( Vector3DWithUnits<T>&& source ) noexcept :
                     Vector3DWithUnits<T>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
                 // destructor
                 virtual ~Vector3DWithUnits() {}
 
                 // assignment and swapping
-                friend void ::swap<>( Vector3DWithUnits<T>& first,
-                                      Vector3DWithUnits<T>& second ) noexcept;
+                friend void swap( Vector3DWithUnits<T>& a,
+                                  Vector3DWithUnits<T>& b ) noexcept {
+                    using std::swap;
+                    swap( static_cast<NCPA::arrays::vector3d_t<T>&>( a ),
+                          static_cast<NCPA::arrays::vector3d_t<T>&>( b ) );
+                    swap( a._units, b._units );
+                }
 
                 Vector3DWithUnits& operator=( Vector3DWithUnits<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -438,15 +427,3 @@ namespace NCPA {
         };
     }  // namespace units
 }  // namespace NCPA
-
-/*
- * Friends
- */
-template<typename T>
-void swap( NCPA::units::Vector3DWithUnits<T>& a,
-           NCPA::units::Vector3DWithUnits<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<NCPA::arrays::vector3d_t<T>&>( a ),
-          static_cast<NCPA::arrays::vector3d_t<T>&>( b ) );
-    swap( a._units, b._units );
-}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NCPA/atmosphere/abstract_atmosphere_1d.hpp"
-#include "NCPA/atmosphere/AtmosphericModel.hpp"
+// #include "NCPA/atmosphere/AtmosphericModel.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
 #include "NCPA/interpolation.hpp"
 #include "NCPA/units.hpp"

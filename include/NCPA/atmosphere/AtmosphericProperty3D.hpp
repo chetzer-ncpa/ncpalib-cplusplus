@@ -47,7 +47,7 @@ namespace NCPA {
                 AtmosphericProperty3D& set(
                     const vector_u_t& ax1, const vector_u_t ax2,
                     const vector_u_t ax3,
-                    const NCPA::arrays::ndvector<
+                    const NCPA::arrays::NDArray<
                         2, const AtmosphericProperty1D *>& props ) {
                     _check_pointer();
                     if (props.shape()[ 0 ] != ax1.size()
@@ -58,15 +58,15 @@ namespace NCPA {
                             "properties" );
                     }
                     vector3d_u_t grid( ax1.size(), ax2.size(), ax3.size(),
-                                       props[ 0 ][ 0 ]->get_units() );
+                                       props.at( 0, 0 )->get_units() );
                     for (size_t i = 0; i < ax1.size(); ++i) {
                         for (size_t j = 0; j < ax2.size(); ++j) {
-                            AtmosphericProperty1D prop( *props[ i ][ j ] );
+                            AtmosphericProperty1D prop( *props.at( i, j ) );
                             prop.convert_units( *grid.get_units() );
                             prop.convert_axis_units( *ax3.get_units() );
                             // prop.resample( ax3 );
                             for (size_t k = 0; k < ax3.size(); ++k) {
-                                grid[ i ][ j ][ k ] = prop.get( ax3[ k ] );
+                                grid.at( i, j, k ) = prop.get( ax3[ k ] );
                             }
                         }
                     }

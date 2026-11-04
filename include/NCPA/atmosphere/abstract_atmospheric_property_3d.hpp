@@ -292,7 +292,7 @@ namespace NCPA {
                     for (auto i = 0; i < v1.size(); ++i) {
                         for (auto j = 0; j < v2.size(); ++j) {
                             for (auto k = 0; k < v3.size(); ++k) {
-                                v_out[ i ][ j ][ k ]
+                                v_out.at(i,j,k)
                                     = this->get( v1[ i ], v2[ j ], v3[ k ] );
                             }
                         }

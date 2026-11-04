@@ -443,155 +443,355 @@ TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
     }
 }
 
-TEST( _TEST_TITLE_, ThreeDimensionalArrayConstructorWorks ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        for (size_t j = 0; j < dim2; ++j) {
-            for (size_t k = 0; k < dim3; ++k) {
-                EXPECT_EQ( arr.at( { i, j, k } ), 0 );
-            }
+template<typename Container>
+void make_test_array( Container& a ) {
+    a.resize( 2, 3, 4 );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+}
+
+TEST( _TEST_TITLE_, NDArrayAtWorksCorrectly ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+
+    make_test_array( a );
+
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), int( 100 * i + 10 * j + k ) );
+}
+
+TEST( _TEST_TITLE_, NDArrayShapeFunctionIsCorrect ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+    auto shape = a.shape();
+    EXPECT_EQ( shape.size(), dims.size() );
+    for (size_t i = 0; i < dims.size(); ++i) {
+        EXPECT_EQ( shape.at( i ), dims.at( i ) );
+    }
+}
+
+TEST( _TEST_TITLE_, NDArraySliceWorksCorrectly ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    NDArray<3, int> a( dims );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    for (size_t i = 0; i < 2; ++i) {
+        auto plane = a.slice( 0, i );
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( j, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t j = 0; j < 3; ++j) {
+        auto plane = a.slice( 1, j );
+        for (size_t i = 0; i < 2; ++i)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( i, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t k = 0; k < 4; ++k) {
+        auto plane = a.slice( 2, k );
+        for (size_t i = 0; i < 2; ++i)
+            for (size_t j = 0; j < 3; ++j)
+                EXPECT_EQ( plane.at( i, j ), int( 100 * i + 10 * j + k ) );
+    }
+}
+
+TEST( _TEST_TITLE_, NDArrayCopyConstructorsWork ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+
+    make_test_array( a );
+
+    NDArray<3, int> b( a );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), b.at( i, j, k ) );
+
+    NDVector<int> v;
+    make_test_array( v );
+
+    NDArray<3, int> c( v );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), c.at( i, j, k ) );
+
+    auto plane = a.slice( 1, 1 );
+    NDArray<2, int> d( plane );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t k = 0; k < 4; ++k)
+            EXPECT_EQ( a.at( i, 1, k ), d.at( i, k ) );
+
+    auto vplane = v.slice( 1, 1 );
+    NDArray<2, int> e( vplane );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t k = 0; k < 4; ++k)
+            EXPECT_EQ( v.at( i, 1, k ), e.at( i, k ) );
+}
+
+TEST( _TEST_TITLE_, NDArrayBracketOperatorWorksCorrectly ) {
+    NDArray<3, int> a( 2, 3, 4 );
+
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    for (size_t i = 0; i < 2; ++i) {
+        auto plane = a[ i ];
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( j, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t i = 0; i < 2; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            auto row = a[ i ][ j ];
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( row.at( k ), int( 100 * i + 10 * j + k ) );
         }
     }
 }
 
-TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayPassThrough ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        auto view2d = arr.view( 0, i );
-        for (size_t j = 0; j < dim2; ++j) {
-            auto view1d = view2d.view( 0, j );
-            for (size_t k = 0; k < dim3; ++k) {
-                EXPECT_EQ( view1d.at( { k } ), 0 );
-                view1d.at( { k } )    = (int)( i + j + k );
-                arr.at( { i, j, k } ) = (int)( i + j + k );
+TEST( _TEST_TITLE_, NDArrayIteratorWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+    std::vector<int> flat;
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k) {
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+                flat.push_back( a.at( i, j, k ) );
             }
+
+    auto flat_it = flat.begin();
+    auto a_it    = a.begin();
+    while (flat_it != flat.end() && a_it != a.end()) {
+        EXPECT_EQ( *flat_it, *a_it );
+        ++flat_it;
+        ++a_it;
+    }
+}
+
+TEST( _TEST_TITLE_, NDArrayReverseIteratorWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+    std::vector<int> flat;
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k) {
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+                flat.push_back( a.at( i, j, k ) );
+            }
+
+    auto flat_it = flat.rbegin();
+    auto a_it    = a.rbegin();
+    while (flat_it != flat.rend() && a_it != a.rend()) {
+        EXPECT_EQ( *flat_it, *a_it );
+        ++flat_it;
+        ++a_it;
+    }
+}
+
+TEST( _TEST_TITLE_, NDArrayClearMethodWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDArray<3, int> a( dims );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    a.clear();
+    for (auto x : a) {
+        EXPECT_EQ( x, 0 );
+    }
+}
+
+TEST( _TEST_TITLE_, NDVectorAtWorksCorrectly ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), int( 100 * i + 10 * j + k ) );
+}
+
+TEST( _TEST_TITLE_, NDVectorShapeFunctionIsCorrect ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+    auto shape = a.shape();
+    EXPECT_EQ( shape.size(), dims.size() );
+    for (size_t i = 0; i < dims.size(); ++i) {
+        EXPECT_EQ( shape.at( i ), dims.at( i ) );
+    }
+}
+
+TEST( _TEST_TITLE_, NDVectorSliceWorksCorrectly ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    NDVector<int> a( dims );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    for (size_t i = 0; i < 2; ++i) {
+        auto plane = a.slice( 0, i );
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( j, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t j = 0; j < 3; ++j) {
+        auto plane = a.slice( 1, j );
+        for (size_t i = 0; i < 2; ++i)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( i, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t k = 0; k < 4; ++k) {
+        auto plane = a.slice( 2, k );
+        for (size_t i = 0; i < 2; ++i)
+            for (size_t j = 0; j < 3; ++j)
+                EXPECT_EQ( plane.at( i, j ), int( 100 * i + 10 * j + k ) );
+    }
+}
+
+
+TEST( _TEST_TITLE_, NDVectorCopyConstructorsWork ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+
+    make_test_array( a );
+
+    NDVector<int> b( a );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), b.at( i, j, k ) );
+
+    NDArray<3,int> v( dims );
+    make_test_array( v );
+
+    NDVector<int> c( v );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( a.at( i, j, k ), c.at( i, j, k ) );
+
+    auto plane = a.slice( 1, 1 );
+    NDVector<int> d( plane );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t k = 0; k < 4; ++k)
+            EXPECT_EQ( a.at( i, 1, k ), d.at( i, k ) );
+
+    auto vplane = v.slice( 1, 1 );
+    NDVector<int> e( vplane );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t k = 0; k < 4; ++k)
+            EXPECT_EQ( v.at( i, 1, k ), e.at( i, k ) );
+}
+
+TEST( _TEST_TITLE_, NDVectorBracketOperatorWorksCorrectly ) {
+    NDVector<int> a( 2, 3, 4 );
+
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    for (size_t i = 0; i < 2; ++i) {
+        auto plane = a[ i ];
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( plane.at( j, k ), int( 100 * i + 10 * j + k ) );
+    }
+
+    for (size_t i = 0; i < 2; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            auto row = a[ i ][ j ];
+            for (size_t k = 0; k < 4; ++k)
+                EXPECT_EQ( row.at( k ), int( 100 * i + 10 * j + k ) );
         }
     }
 }
 
-TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidDimension ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_THROW( { arr.view( dim1, 0 ).dimension( 0 ); }, std::range_error );
-}
-
-TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidDimension ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_NO_THROW( { arr.view( dim1-1, 0 ).dimension( 0 ); } );
-}
-
-TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidElement ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_THROW( { arr.view( 0, dim1 ); }, std::range_error );
-}
-
-TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidElement ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_NO_THROW( { arr.view( 0, dim1-1 ); } );
-}
-
-TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    ASSERT_EQ( arr.size(), dim1 * dim2 * dim3 );
-
-    // all views along first dimension should be dim2 x dim3
-    EXPECT_EQ( arr.view( 0, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 0 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 0, 1 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 1 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 0, 2 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 2 ).dimension( 1 ), dim3 );
-
-    // all views along second dimension should be dim1 x dim3
-    EXPECT_EQ( arr.view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 0 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 1 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 1 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 2 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 2 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 3 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 3 ).dimension( 1 ), dim3 );
-
-    // all views along third dimension should be dim1 x dim2
-    EXPECT_EQ( arr.view( 2, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 0 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 1 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 1 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 2 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 2 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 3 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 3 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 4 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
-
-    // all views along first and second dimension should be 1 x dim3
-    auto view1 = arr.view(0,0);
-    auto view2 = view1.view(0,0);
-    size_t testdim = view2.dimension(0);
-    EXPECT_EQ( testdim, dim3 );
-    EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
-
-    // all views along first and third dimension should be 1 x dim2
-    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 1 ).dimension( 0 ), dim2 );
-
-    // all views along second and first dimension should be 1 x dim3
-    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
-
-    // all views along second and third dimension should be 1 x dim1
-    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
-
-    // all views along third and first dimension should be 1 x dim2
-    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 1 ).dimension( 0 ), dim2 );
-
-    // all views along third and second dimension should be 1 x dim1
-    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
-}
-
-TEST( _TEST_TITLE_, BracketOperatorsWorkCorrectly ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        auto view2d = arr[i];
-        EXPECT_EQ( view2d.dimension(0), dim2 );
-        for (size_t j = 0; j < dim2; ++j) {
-            auto view1d = view2d[j];
-            EXPECT_EQ( view1d.dimension(0), dim3 );
-            for (size_t k = 0; k < dim3; ++k) {
-                auto view0d = view1d[k];
-                EXPECT_EQ( view1d[k].at(), 0 );
-            //     view1d[k]    = (int)( i + j + k );
-            //     EXPECT_EQ( view1d[k], (int)( i + j + k ) );
+TEST( _TEST_TITLE_, NDVectorIteratorWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+    std::vector<int> flat;
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k) {
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+                flat.push_back( a.at( i, j, k ) );
             }
-        }
+
+    auto flat_it = flat.begin();
+    auto a_it    = a.begin();
+    while (flat_it != flat.end() && a_it != a.end()) {
+        EXPECT_EQ( *flat_it, *a_it );
+        ++flat_it;
+        ++a_it;
+    }
+}
+
+TEST( _TEST_TITLE_, NDVectorReverseIteratorWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+    std::vector<int> flat;
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k) {
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+                flat.push_back( a.at( i, j, k ) );
+            }
+
+    auto flat_it = flat.rbegin();
+    auto a_it    = a.rbegin();
+    while (flat_it != flat.rend() && a_it != a.rend()) {
+        EXPECT_EQ( *flat_it, *a_it );
+        ++flat_it;
+        ++a_it;
+    }
+}
+
+TEST( _TEST_TITLE_, NDVectorClearMethodWorks ) {
+    std::vector<size_t> dims { 2, 3, 4 };
+    std::vector<int> inds( 3 );
+    NDVector<int> a( dims );
+    for (size_t i = 0; i < 2; ++i)
+        for (size_t j = 0; j < 3; ++j)
+            for (size_t k = 0; k < 4; ++k)
+                a.at( i, j, k ) = int( 100 * i + 10 * j + k );
+
+    a.clear();
+    for (auto x : a) {
+        EXPECT_EQ( x, 0 );
     }
 }

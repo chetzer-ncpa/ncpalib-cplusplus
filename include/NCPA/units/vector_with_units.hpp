@@ -12,18 +12,6 @@
 #include <unordered_map>
 #include <vector>
 
-// forward declarations
-namespace NCPA {
-    namespace units {
-        template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-        class VectorWithUnits;
-    }  // namespace units
-}  // namespace NCPA
-
-template<typename T>
-void swap( NCPA::units::VectorWithUnits<T>&,
-           NCPA::units::VectorWithUnits<T>& ) noexcept;
-
 namespace NCPA {
     namespace units {
 
@@ -33,14 +21,12 @@ namespace NCPA {
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
                                          int>::type ENABLER>
-        class VectorWithUnits : public std::vector<T> {
+        class VectorWithUnits : public NCPA::arrays::NDVector<T> {
+            typedef NCPA::arrays::NDVector<T> parent_t;
             public:
                 // constructors
-                VectorWithUnits( const Unit *units = nullptr) : std::vector<T>(), _units { units } {}
-
-                // VectorWithUnits( size_t n_points ) : VectorWithUnits<T>() {
-                //     this->resize( n_points );
-                // }
+                VectorWithUnits( const Unit *units = nullptr ) :
+                    parent_t(), _units { units } {}
 
                 VectorWithUnits( const std::vector<T>& values,
                                  const Unit *units = nullptr ) :
@@ -92,15 +78,6 @@ namespace NCPA {
                         n_points, values,
                         Units::from_string( property_units ) ) {}
 
-                // VectorWithUnits( size_t n_points,
-                //                  const ScalarWithUnits<T> *scalarvalues ) :
-                //     std::vector<ScalarWithUnits<T>>( n_points ) {
-                //     for ( size_t i = 0; i < n_points; i++ ) {
-                //         this->at( i ) = scalarvalues[ i ];
-                //     }
-                //     normalize_units();
-                // }
-
                 VectorWithUnits( size_t n_points,
                                  const ScalarWithUnits<T>& singlevalue ) :
                     VectorWithUnits<T>(
@@ -133,28 +110,33 @@ namespace NCPA {
                 }
 
                 // copy constructor
-                VectorWithUnits( const VectorWithUnits<T>& source ) :
+                VectorWithUnits( const VectorWithUnits<T>& source ) = default;
                     // std::vector<T>( source ) {
-                    VectorWithUnits() {
-                    this->assign( source.cbegin(), source.cend() );
-                    _units = source._units;
-                }
+                //    : VectorWithUnits() {
+                //     this->assign( source.cbegin(), source.cend() );
+                //     _units = source._units;
+                // }
 
                 // move constructor
                 VectorWithUnits( VectorWithUnits<T>&& source ) noexcept :
-                    std::vector<T>() {
-                    ::swap( *this, source );
+                    parent_t() {
+                    swap( *this, source );
                 }
 
                 // destructor
                 virtual ~VectorWithUnits() {}
 
                 // assignment and swapping
-                friend void ::swap<>( VectorWithUnits<T>& first,
-                                      VectorWithUnits<T>& second ) noexcept;
+                friend void swap( VectorWithUnits<T>& first,
+                                  VectorWithUnits<T>& second ) noexcept {
+                    using std::swap;
+                    swap( static_cast<parent_t&>( a ),
+                          static_cast<parent_t&>( b ) );
+                    swap( a._units, b._units );
+                }
 
                 VectorWithUnits& operator=( VectorWithUnits<T> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -221,7 +203,7 @@ namespace NCPA {
 
                 // Fill the vector with identical values.  Does not resize.
                 virtual void fill( T value, const Unit *units ) {
-                    this->assign( this->size(), value );
+                    this->fill( value );
                     _units = units;
                 }
 
@@ -264,9 +246,9 @@ namespace NCPA {
                     this->get_values( n, buffer );
                 }
 
-                virtual std::vector<T> get_values() const {
-                    return std::vector<T>( *this );
-                }
+                // virtual NCPA::arrays::NDVector<T> get_values() const {
+                //     return std::vector<T>( *this );
+                // }
 
                 virtual VectorWithUnits<T> as( const Unit& units ) const {
                     VectorWithUnits<T> converted( *this );
@@ -293,14 +275,16 @@ namespace NCPA {
 
                 template<typename U>
                 VectorWithUnits<U> as() const {
-                    VectorWithUnits<U> newv( this->size(), this->get_units() );
-                    for (size_t i = 0; i < this->size(); ++i) {
-                        newv[ i ] = (U)this->get( i );
-                    }
+                    VectorWithUnits<U> newv( *this );
+                    // newv.set_units( this->get_units() );
+                    // VectorWithUnits<U> newv( this->size(), this->get_units() );
+                    // for (size_t i = 0; i < this->size(); ++i) {
+                    //     newv[ i ] = (U)this->get( i );
+                    // }
                     return newv;
                 }
 
-                virtual T get( size_t ind ) const { return this->at( ind ); }
+                // virtual T get( size_t ind ) const { return this->at( ind ); }
 
                 virtual ScalarWithUnits<T> get_scalar( size_t ind ) const {
                     return ScalarWithUnits<T>( this->get( ind ),
@@ -446,15 +430,3 @@ namespace NCPA {
         };
     }  // namespace units
 }  // namespace NCPA
-
-/*
- * Friends
- */
-template<typename T>
-void swap( NCPA::units::VectorWithUnits<T>& a,
-           NCPA::units::VectorWithUnits<T>& b ) noexcept {
-    using std::swap;
-    swap( static_cast<std::vector<T>&>( a ),
-          static_cast<std::vector<T>&>( b ) );
-    swap( a._units, b._units );
-}
