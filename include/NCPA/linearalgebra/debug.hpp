@@ -19,7 +19,7 @@ namespace NCPA {
         void print_debug_matrix( const std::string& base, size_t step,
                                  const std::vector<T>& x1,
                                  const std::vector<T>& x2,
-                                 const NCPA::arrays::ndvector<2, U>& var,
+                                 const NCPA::arrays::ndarray<2, U>& var,
                                  bool force = false,
                                  ENABLE_FUNCTION_IF_ARITHMETIC( U ) ) {
             if (force || NCPA::logging::default_level_is_debug()) {
@@ -54,7 +54,7 @@ namespace NCPA {
         void print_debug_matrix( const std::string& base, size_t step,
                                  const std::vector<T>& x1,
                                  const std::vector<T>& x2,
-                                 const NCPA::arrays::ndvector<2, U>& var,
+                                 const NCPA::arrays::ndarray<2, U>& var,
                                  bool force = false,
                                  ENABLE_FUNCTION_IF_COMPLEX( U ) ) {
             if (force || NCPA::logging::default_level_is_debug()) {

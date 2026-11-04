@@ -493,6 +493,8 @@
 //                 }
 //         };
 
+        template<typename T>
+        using vector3d_t = ndarray<3, T>;
 
 //     }  // namespace arrays
 // }  // namespace NCPA

@@ -95,7 +95,7 @@ namespace NCPA {
         }
 
         static std::vector<double> t2c(
-            const NCPA::arrays::ndvector<1, double>& t,
+            const NCPA::arrays::ndarray<1, double>& t,
             const units_ptr_t units ) {
             std::vector<double> c( t.size() );
             for (size_t i = 0; i < t.size(); ++i) {
@@ -107,19 +107,19 @@ namespace NCPA {
             return c;
         }
 
-        static double t2c( const NCPA::arrays::ndvector<0, double>& t,
+        static double t2c( const NCPA::arrays::ndarray<0, double>& t,
                            const units_ptr_t units ) {
             return t2c( scalar_u_t( t, units ) ).get();
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> t2c(
-            const NCPA::arrays::ndvector<N, double>& t,
+        NCPA::arrays::ndarray<N, double> t2c(
+            const NCPA::arrays::ndarray<N, double>& t,
             const units_ptr_t units ) {
-            NCPA::arrays::ndvector<N, double> c = t;
+            NCPA::arrays::ndarray<N, double> c = t;
 
             for (size_t i = 0; i < t.size(); ++i) {
-                c[ i ] = t2c( NCPA::arrays::ndvector<N - 1, double>( t[ i ] ),
+                c[ i ] = t2c( NCPA::arrays::ndarray<N - 1, double>( t[ i ] ),
                               units );
             }
             return c;
@@ -151,7 +151,7 @@ namespace NCPA {
         }
 
         static std::vector<double> c2t(
-            const NCPA::arrays::ndvector<1, double>& c,
+            const NCPA::arrays::ndarray<1, double>& c,
             const units_ptr_t units ) {
             std::vector<double> t( c.size() );
             for (size_t i = 0; i < c.size(); ++i) {
@@ -163,19 +163,19 @@ namespace NCPA {
             return t;
         }
 
-        static double c2t( const NCPA::arrays::ndvector<0, double>& c,
+        static double c2t( const NCPA::arrays::ndarray<0, double>& c,
                            const units_ptr_t units ) {
             return c2t( scalar_u_t( c, units ) ).get();
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> c2t(
-            const NCPA::arrays::ndvector<N, double>& c,
+        NCPA::arrays::ndarray<N, double> c2t(
+            const NCPA::arrays::ndarray<N, double>& c,
             const units_ptr_t units ) {
-            NCPA::arrays::ndvector<N, double> t = c;
+            NCPA::arrays::ndarray<N, double> t = c;
 
             for (size_t i = 0; i < c.size(); ++i) {
-                t[ i ] = c2t( NCPA::arrays::ndvector<N - 1, double>( c[ i ] ),
+                t[ i ] = c2t( NCPA::arrays::ndarray<N - 1, double>( c[ i ] ),
                               units );
             }
             return t;
@@ -229,9 +229,9 @@ namespace NCPA {
                 .get_as( units_out );
         }
 
-        static double pd2c( const NCPA::arrays::ndvector<0, double>& p,
+        static double pd2c( const NCPA::arrays::ndarray<0, double>& p,
                             const units_ptr_t p_units,
-                            const NCPA::arrays::ndvector<0, double>& d,
+                            const NCPA::arrays::ndarray<0, double>& d,
                             const units_ptr_t d_units,
                             const units_ptr_t units_out
                             = NCPA_ATMOS_PD2C_C_UNITS ) {
@@ -240,9 +240,9 @@ namespace NCPA {
         }
 
         static std::vector<double> pd2c(
-            const NCPA::arrays::ndvector<1, double>& p,
+            const NCPA::arrays::ndarray<1, double>& p,
             const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<1, double>& d,
+            const NCPA::arrays::ndarray<1, double>& d,
             const units_ptr_t d_units,
             const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
             std::vector<double> c( p.size() );
@@ -259,18 +259,18 @@ namespace NCPA {
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> pd2c(
-            const NCPA::arrays::ndvector<N, double>& p,
+        NCPA::arrays::ndarray<N, double> pd2c(
+            const NCPA::arrays::ndarray<N, double>& p,
             const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<N, double>& d,
+            const NCPA::arrays::ndarray<N, double>& d,
             const units_ptr_t d_units,
             const units_ptr_t units_out = NCPA_ATMOS_PD2C_C_UNITS ) {
-            NCPA::arrays::ndvector<N, double> c = p;
+            NCPA::arrays::ndarray<N, double> c = p;
 
             for (size_t i = 0; i < p.size(); ++i) {
-                c[ i ] = pd2c( NCPA::arrays::ndvector<N - 1, double>( p[ i ] ),
+                c[ i ] = pd2c( NCPA::arrays::ndarray<N - 1, double>( p[ i ] ),
                                p_units,
-                               NCPA::arrays::ndvector<N - 1, double>( d[ i ] ),
+                               NCPA::arrays::ndarray<N - 1, double>( d[ i ] ),
                                d_units, units_out );
             }
             return c;
@@ -281,9 +281,9 @@ namespace NCPA {
                                   = NCPA_ATMOS_PD2C_C_UNITS ) {
             return vector3d_u_t(
                 pd2c(
-                    static_cast<const NCPA::arrays::ndvector<3, double>&>( p ),
+                    static_cast<const NCPA::arrays::ndarray<3, double>&>( p ),
                     p.get_units(),
-                    static_cast<const NCPA::arrays::ndvector<3, double>&>( d ),
+                    static_cast<const NCPA::arrays::ndarray<3, double>&>( d ),
                     d.get_units(), units_out ),
                 units_out );
         }
@@ -336,9 +336,9 @@ namespace NCPA {
                           uout );
         }
 
-        static double uv2ws( const NCPA::arrays::ndvector<0, double>& u,
+        static double uv2ws( const NCPA::arrays::ndarray<0, double>& u,
                              const units_ptr_t u_units,
-                             const NCPA::arrays::ndvector<0, double>& v,
+                             const NCPA::arrays::ndarray<0, double>& v,
                              const units_ptr_t v_units,
                              const units_ptr_t units_out = nullptr ) {
             return uv2ws( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
@@ -347,9 +347,9 @@ namespace NCPA {
         }
 
         static std::vector<double> uv2ws(
-            const NCPA::arrays::ndvector<1, double>& u,
+            const NCPA::arrays::ndarray<1, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<1, double>& v,
+            const NCPA::arrays::ndarray<1, double>& v,
             const units_ptr_t v_units,
             const units_ptr_t units_out = nullptr ) {
             std::vector<double> ws( u.size() );
@@ -367,18 +367,18 @@ namespace NCPA {
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> uv2ws(
-            const NCPA::arrays::ndvector<N, double>& u,
+        NCPA::arrays::ndarray<N, double> uv2ws(
+            const NCPA::arrays::ndarray<N, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, double>& v,
+            const NCPA::arrays::ndarray<N, double>& v,
             const units_ptr_t v_units,
             const units_ptr_t units_out = nullptr ) {
-            NCPA::arrays::ndvector<N, double> ws = u;
+            NCPA::arrays::ndarray<N, double> ws = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
                 ws[ i ] = uv2ws(
-                    NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
-                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
+                    NCPA::arrays::ndarray<N - 1, double>( u[ i ] ), u_units,
+                    NCPA::arrays::ndarray<N - 1, double>( v[ i ] ), v_units,
                     units_out );
             }
             return ws;
@@ -425,9 +425,9 @@ namespace NCPA {
         }
 
         static std::vector<double> uv2wd(
-            const NCPA::arrays::ndvector<1, double>& u,
+            const NCPA::arrays::ndarray<1, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<1, double>& v,
+            const NCPA::arrays::ndarray<1, double>& v,
             const units_ptr_t v_units,
             const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
             std::vector<double> wd( u.size() );
@@ -444,9 +444,9 @@ namespace NCPA {
             return wd;
         }
 
-        static double uv2wd( const NCPA::arrays::ndvector<0, double>& u,
+        static double uv2wd( const NCPA::arrays::ndarray<0, double>& u,
                              const units_ptr_t u_units,
-                             const NCPA::arrays::ndvector<0, double>& v,
+                             const NCPA::arrays::ndarray<0, double>& v,
                              const units_ptr_t v_units,
                              const units_ptr_t units_out
                              = NCPA_ATMOS_UV2WD_WD_UNITS ) {
@@ -456,18 +456,18 @@ namespace NCPA {
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> uv2wd(
-            const NCPA::arrays::ndvector<N, double>& u,
+        NCPA::arrays::ndarray<N, double> uv2wd(
+            const NCPA::arrays::ndarray<N, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, double>& v,
+            const NCPA::arrays::ndarray<N, double>& v,
             const units_ptr_t v_units,
             const units_ptr_t units_out = NCPA_ATMOS_UV2WD_WD_UNITS ) {
-            NCPA::arrays::ndvector<N, double> wd = u;
+            NCPA::arrays::ndarray<N, double> wd = u;
 
             for (size_t i = 0; i < u.size(); ++i) {
                 wd[ i ] = uv2wd(
-                    NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
-                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
+                    NCPA::arrays::ndarray<N - 1, double>( u[ i ] ), u_units,
+                    NCPA::arrays::ndarray<N - 1, double>( v[ i ] ), v_units,
                     units_out );
             }
             return wd;
@@ -519,9 +519,9 @@ namespace NCPA {
         }
 
         static std::vector<double> w2wc(
-            const NCPA::arrays::ndvector<1, double>& u,
+            const NCPA::arrays::ndarray<1, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<1, double>& v,
+            const NCPA::arrays::ndarray<1, double>& v,
             const units_ptr_t v_units, double az,
             const units_ptr_t units_out = nullptr ) {
             std::vector<double> wc( u.size() );
@@ -538,9 +538,9 @@ namespace NCPA {
             return wc;
         }
 
-        static double w2wc( const NCPA::arrays::ndvector<0, double>& u,
+        static double w2wc( const NCPA::arrays::ndarray<0, double>& u,
                             const units_ptr_t u_units,
-                            const NCPA::arrays::ndvector<0, double>& v,
+                            const NCPA::arrays::ndarray<0, double>& v,
                             const units_ptr_t v_units, double az,
                             const units_ptr_t units_out = nullptr ) {
             return w2wc( scalar_u_t( u, u_units ), scalar_u_t( v, v_units ),
@@ -549,17 +549,17 @@ namespace NCPA {
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> w2wc(
-            const NCPA::arrays::ndvector<N, double>& u,
+        NCPA::arrays::ndarray<N, double> w2wc(
+            const NCPA::arrays::ndarray<N, double>& u,
             const units_ptr_t u_units,
-            const NCPA::arrays::ndvector<N, double>& v,
+            const NCPA::arrays::ndarray<N, double>& v,
             const units_ptr_t v_units, double az,
             const units_ptr_t units_out = nullptr ) {
-            NCPA::arrays::ndvector<N, double> wc = u;
+            NCPA::arrays::ndarray<N, double> wc = u;
             for (size_t i = 0; i < u.size(); ++i) {
                 wc[ i ] = w2wc(
-                    NCPA::arrays::ndvector<N - 1, double>( u[ i ] ), u_units,
-                    NCPA::arrays::ndvector<N - 1, double>( v[ i ] ), v_units,
+                    NCPA::arrays::ndarray<N - 1, double>( u[ i ] ), u_units,
+                    NCPA::arrays::ndarray<N - 1, double>( v[ i ] ), v_units,
                     az, units_out );
             }
             return wc;
@@ -806,13 +806,13 @@ namespace NCPA {
         }
 
         static std::vector<double> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<1, double>& z,
+            const NCPA::arrays::ndarray<1, double>& z,
             const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<1, double>& t,
+            const NCPA::arrays::ndarray<1, double>& t,
             const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<1, double>& p,
+            const NCPA::arrays::ndarray<1, double>& p,
             const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<1, double>& d,
+            const NCPA::arrays::ndarray<1, double>& d,
             const units_ptr_t d_units, double freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
@@ -830,13 +830,13 @@ namespace NCPA {
         }
 
         static double attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<0, double>& z,
+            const NCPA::arrays::ndarray<0, double>& z,
             const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<0, double>& t,
+            const NCPA::arrays::ndarray<0, double>& t,
             const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<0, double>& p,
+            const NCPA::arrays::ndarray<0, double>& p,
             const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<0, double>& d,
+            const NCPA::arrays::ndarray<0, double>& d,
             const units_ptr_t d_units, double freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
@@ -848,25 +848,25 @@ namespace NCPA {
         }
 
         template<size_t N>
-        NCPA::arrays::ndvector<N, double> attenuation_sutherland_bass(
-            const NCPA::arrays::ndvector<N, double>& z,
+        NCPA::arrays::ndarray<N, double> attenuation_sutherland_bass(
+            const NCPA::arrays::ndarray<N, double>& z,
             const units_ptr_t z_units,
-            const NCPA::arrays::ndvector<N, double>& t,
+            const NCPA::arrays::ndarray<N, double>& t,
             const units_ptr_t t_units,
-            const NCPA::arrays::ndvector<N, double>& p,
+            const NCPA::arrays::ndarray<N, double>& p,
             const units_ptr_t p_units,
-            const NCPA::arrays::ndvector<N, double>& d,
+            const NCPA::arrays::ndarray<N, double>& d,
             const units_ptr_t d_units, double freq,
             const units_ptr_t units_out
             = NCPA_ATMOS_SUTHERLAND_BASS_ATTENUATION_ALPHA_UNITS ) {
-            NCPA::arrays::ndvector<N, double> alpha = z;
+            NCPA::arrays::ndarray<N, double> alpha = z;
 
             for (size_t i = 0; i < z.size(); ++i) {
                 alpha[ i ] = attenuation_sutherland_bass(
-                    NCPA::arrays::ndvector<N - 1, double>( z[ i ] ), z_units,
-                    NCPA::arrays::ndvector<N - 1, double>( t[ i ] ), t_units,
-                    NCPA::arrays::ndvector<N - 1, double>( p[ i ] ), p_units,
-                    NCPA::arrays::ndvector<N - 1, double>( d[ i ] ), d_units,
+                    NCPA::arrays::ndarray<N - 1, double>( z[ i ] ), z_units,
+                    NCPA::arrays::ndarray<N - 1, double>( t[ i ] ), t_units,
+                    NCPA::arrays::ndarray<N - 1, double>( p[ i ] ), p_units,
+                    NCPA::arrays::ndarray<N - 1, double>( d[ i ] ), d_units,
                     freq, units_out );
             }
             return alpha;
