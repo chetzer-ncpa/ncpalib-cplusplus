@@ -8,7 +8,7 @@
 // void swap( NCPA::processing::GenericPacket<T>& a,
 //            NCPA::processing::GenericPacket<T>& b ) noexcept;
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
 
     template<typename T>
     class GenericPacket : public InputPacket {
@@ -94,3 +94,4 @@ namespace NCPA::processing {
 //             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
 //     swap( a._internal, b._internal );
 // }
+}

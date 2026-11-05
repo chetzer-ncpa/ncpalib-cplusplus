@@ -3,7 +3,7 @@
 #include "NCPA/processing/packets/InputPacket.hpp"
 #include "NCPA/processing/packets/Packet.hpp"
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class ConfigurationCompletePacket : public InputPacket {
         public:
             ConfigurationCompletePacket() :
@@ -54,3 +54,4 @@ namespace NCPA::processing {
             }
     };
 }  // namespace NCPA::processing
+}

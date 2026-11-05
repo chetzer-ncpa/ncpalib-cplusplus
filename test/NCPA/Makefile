@@ -1,13 +1,13 @@
 include test_order.make
 
 GTESTLIBS=-lgtest_main -lgtest
-LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS) -lgslcblas -lgsl -lfftw3
+LDFLAGS=${LIBRARY_PATH_FLAGS} $(GTESTLIBS) -fsanitize=address -lgslcblas -lgsl -lfftw3
 INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
-CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS)
+CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS) -fsanitize=address
 
 # SOURCES=test_extern_armadillo_fftw3.cpp
-SOURCES=test_configuration.cpp
-# SOURCES=test_linearalgebra_matrix_bdmatrix_complex.cpp
+# SOURCES=test_atmosphere.cpp
+# SOURCES=test_linearalgebra_symmetricmatrix.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite
 

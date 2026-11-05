@@ -14,12 +14,8 @@
 #include <utility>
 
 #ifndef NCPA_INTERPOLATION_DEFAULT_1D_EXTRAPOLATOR
-#define NCPA_INTERPOLATION_DEFAULT_1D_EXTRAPOLATOR FORBIDDEN
+#  define NCPA_INTERPOLATION_DEFAULT_1D_EXTRAPOLATOR FORBIDDEN
 #endif
-
-template<typename T, typename U>
-static void swap( NCPA::interpolation::Interpolator1D<T, U>& a,
-                  NCPA::interpolation::Interpolator1D<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -29,7 +25,8 @@ namespace NCPA {
             public:
                 Interpolator1D() {
                     this->set_extrapolation(
-                        extrapolator_1d_type_t::NCPA_INTERPOLATION_DEFAULT_1D_EXTRAPOLATOR );
+                        extrapolator_1d_type_t::
+                            NCPA_INTERPOLATION_DEFAULT_1D_EXTRAPOLATOR );
                 }
 
                 Interpolator1D(
@@ -41,25 +38,33 @@ namespace NCPA {
                 Interpolator1D(
                     const Interpolator1D<INDEPTYPE, DEPTYPE>& other ) :
                     Interpolator1D<INDEPTYPE, DEPTYPE>() {
-                    _engine = InterpolatorFactory<INDEPTYPE,DEPTYPE>::build( other.interptype() );
+                    _engine = InterpolatorFactory<INDEPTYPE, DEPTYPE>::build(
+                        other.interptype() );
                     std::vector<INDEPTYPE> x = other._engine->source_x();
-                    std::vector<DEPTYPE> f = other._engine->source_f();
-                    this->init(x.size()).fill( x, f ).ready();
+                    std::vector<DEPTYPE> f   = other._engine->source_f();
+                    this->init( x.size() ).fill( x, f ).ready();
+                    _singleton = other._singleton;
+                    _singleton_value = other._singleton_value;
                 }
 
                 Interpolator1D(
                     Interpolator1D<INDEPTYPE, DEPTYPE>&& source ) noexcept :
                     Interpolator1D<INDEPTYPE, DEPTYPE>() {
-                    ::swap( *this, source );
+                    swap( *this, source );
                 }
 
-                friend void ::swap<INDEPTYPE, DEPTYPE>(
+                friend void swap(
                     Interpolator1D<INDEPTYPE, DEPTYPE>& a,
-                    Interpolator1D<INDEPTYPE, DEPTYPE>& b ) noexcept;
+                    Interpolator1D<INDEPTYPE, DEPTYPE>& b ) noexcept {
+                    using std::swap;
+                    swap( a._engine, b._engine );
+                    swap( a._singleton, b._singleton );
+                    swap( a._singleton_value, b._singleton_value );
+                }
 
                 Interpolator1D<INDEPTYPE, DEPTYPE>& operator=(
                     Interpolator1D<INDEPTYPE, DEPTYPE> other ) {
-                    ::swap( *this, other );
+                    swap( *this, other );
                     return *this;
                 }
 
@@ -80,74 +85,108 @@ namespace NCPA {
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& fill(
                     size_t N, const INDEPTYPE *x, const DEPTYPE *f ) {
-                    check_engine();
-                    _engine->fill( N, x, f );
+                    if (N == 1) {
+                        _singleton       = true;
+                        _singleton_value = f[ 0 ];
+                    } else {
+                        _singleton = false;
+                        check_engine();
+                        _engine->fill( N, x, f );
+                    }
                     return *this;
                 }
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& fill(
                     const std::vector<INDEPTYPE>& x,
                     const std::vector<DEPTYPE>& f ) {
-                    check_engine();
-                    _engine->fill( x, f );
-                    return *this;
+                    return this->fill( x.size(), x.data(), f.data() );
+                    // check_engine();
+                    // _engine->fill( x, f );
+                    // return *this;
                 }
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& init( size_t N ) {
-                    check_engine();
-                    _engine->init( N );
+                    if (N > 1) {
+                        check_engine();
+                        _engine->init( N );
+                    }
                     return *this;
                 }
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& clear() {
-                    _engine->clear();
+                    if (_engine) {
+                        _engine->clear();
+                    }
                     return *this;
                 }
 
                 virtual Interpolator1D<INDEPTYPE, DEPTYPE>& ready() {
-                    check_engine();
-                    _engine->ready();
+                    if (!_singleton && _engine) {
+                        _engine->ready();
+                    }
                     return *this;
                 }
 
                 virtual DEPTYPE eval_f( INDEPTYPE x ) {
-                    check_engine();
-                    return ( this->_in_limits( x )
-                                 ? _engine->eval_f( x )
-                                 : _extrap.extrapolate( x, *this ) );
+                    if (_singleton) {
+                        return _singleton_value;
+                    } else {
+                        check_engine();
+                        return ( this->_in_limits( x )
+                                     ? _engine->eval_f( x )
+                                     : _extrap.extrapolate( x, *this ) );
+                    }
                 }
 
                 virtual DEPTYPE eval_df( INDEPTYPE x ) {
-                    check_engine();
-                    // return _engine->eval_df( x );
-                    return ( this->_in_limits( x )
-                                 ? _engine->eval_df( x )
-                                 : _extrap.extrapolate_df( x, *this ) );
+                    if (_singleton) {
+                        return 0;
+                    } else {
+                        check_engine();
+                        // return _engine->eval_df( x );
+                        return ( this->_in_limits( x )
+                                     ? _engine->eval_df( x )
+                                     : _extrap.extrapolate_df( x, *this ) );
+                    }
                 }
 
                 virtual DEPTYPE eval_ddf( INDEPTYPE x ) {
-                    check_engine();
-                    // return _engine->eval_ddf( x );
-                    return ( this->_in_limits( x )
-                                 ? _engine->eval_ddf( x )
-                                 : _extrap.extrapolate_ddf( x, *this ) );
+                    if (_singleton) {
+                        return 0;
+                    } else {
+                        check_engine();
+                        // return _engine->eval_ddf( x );
+                        return ( this->_in_limits( x )
+                                     ? _engine->eval_ddf( x )
+                                     : _extrap.extrapolate_ddf( x, *this ) );
+                    }
                 }
 
                 virtual DEPTYPE eval_dddf( INDEPTYPE x ) {
-                    check_engine();
-                    // return _engine->eval_dddf( x );
-                    return ( this->_in_limits( x )
-                                 ? _engine->eval_dddf( x )
-                                 : _extrap.extrapolate_dddf( x, *this ) );
+                    if (_singleton) {
+                        return 0;
+                    } else {
+                        check_engine();
+                        // return _engine->eval_dddf( x );
+                        return ( this->_in_limits( x )
+                                     ? _engine->eval_dddf( x )
+                                     : _extrap.extrapolate_dddf( x, *this ) );
+                    }
                 }
 
                 virtual std::pair<INDEPTYPE, INDEPTYPE> limits() const {
-                    check_engine();
-                    return _engine->limits();
+                    if (_singleton) {
+                        return std::make_pair(
+                            std::numeric_limits<INDEPTYPE>::lowest(),
+                            std::numeric_limits<INDEPTYPE>::max() );
+                    } else {
+                        check_engine();
+                        return _engine->limits();
+                    }
                 }
 
                 virtual void check_engine() const {
-                    if ( !_engine ) {
+                    if (!_engine) {
                         throw std::logic_error(
                             "Interpolator1D: no engine has been set" );
                     }
@@ -166,6 +205,9 @@ namespace NCPA {
                 spline_engine_1d_t<INDEPTYPE, DEPTYPE> _engine;
                 Extrapolator1D<INDEPTYPE, DEPTYPE> _extrap;
 
+                bool _singleton          = false;
+                DEPTYPE _singleton_value = 0;
+
                 bool _in_limits( INDEPTYPE x ) const {
                     std::pair<INDEPTYPE, INDEPTYPE> lim = this->limits();
                     return ( x >= lim.first && x <= lim.second );
@@ -175,9 +217,9 @@ namespace NCPA {
     }  // namespace interpolation
 }  // namespace NCPA
 
-template<typename T, typename U>
-static void swap( NCPA::interpolation::Interpolator1D<T, U>& a,
-                  NCPA::interpolation::Interpolator1D<T, U>& b ) noexcept {
-    using std::swap;
-    swap( a._engine, b._engine );
-}
+// template<typename T, typename U>
+// static void swap( NCPA::interpolation::Interpolator1D<T, U>& a,
+//                   NCPA::interpolation::Interpolator1D<T, U>& b ) noexcept {
+//     using std::swap;
+//     swap( a._engine, b._engine );
+// }

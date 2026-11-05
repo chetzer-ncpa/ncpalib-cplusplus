@@ -7,7 +7,7 @@
 #include <iostream>
 #include <memory>
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class InputPacket : public Packet {
         public:
             InputPacket() : Packet(), _ID { input_id_t::INVALID } {}
@@ -39,3 +39,4 @@ namespace NCPA::processing {
             input_id_t _ID;
     };
 }  // namespace NCPA::processing
+}

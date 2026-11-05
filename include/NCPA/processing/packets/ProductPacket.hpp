@@ -8,7 +8,7 @@
 #  define RESPONSEPACKET_DEFAULT_RESPONSE_TYPE response_id_t::SUCCESS_PRODUCT
 #endif
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
 
     template<typename T>
     class ProductPacket
@@ -114,3 +114,4 @@ namespace NCPA::processing {
         }
     }
 }  // namespace NCPA::processing
+}

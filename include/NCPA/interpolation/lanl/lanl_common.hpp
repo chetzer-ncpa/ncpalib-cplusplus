@@ -64,7 +64,7 @@ namespace NCPA {
             // Find k such that x[k] <= x <= x[k+1]
             template<typename T>
             size_t find_segment( T x, T *x_vals, size_t length,
-                                 size_t& prev ) {
+                                 int& prev ) {
                 bool done = false;
 
                 if ( x > x_vals[ length - 1 ] || x < x_vals[ 0 ] ) {

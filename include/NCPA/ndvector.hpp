@@ -337,15 +337,15 @@ namespace NCPA {
                 }
 
                 T& operator[]( size_t n ) {
-                    if (n > this->size()) {
-                        this->resize( n );
+                    if (n >= this->size()) {
+                        this->resize( n+1 );
                     }
-                    return ( static_cast<std::vector<T>&>( *this )[ n ] );
+                    return ( static_cast<std::vector<T>&>( *this ).at(n) );
                 }
 
                 const T& operator[]( size_t n ) const {
                     return (
-                        static_cast<const std::vector<T>&>( *this )[ n ] );
+                        static_cast<const std::vector<T>&>( *this ).at(n) );
                 }
 
                 T& operator[]( const std::vector<size_t>& inds ) {

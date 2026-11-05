@@ -6,7 +6,7 @@
 #include "NCPA/processing/declarations.hpp"
 #include "NCPA/processing/packets/RunTestsPacket.hpp"
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     template<typename intype, typename outtype>
     class ProcessingChain {
         public:
@@ -317,3 +317,4 @@ namespace NCPA::processing {
             std::unordered_map<std::string, AbstractProcessingStep *> _links;
     };
 }  // namespace NCPA::processing
+}

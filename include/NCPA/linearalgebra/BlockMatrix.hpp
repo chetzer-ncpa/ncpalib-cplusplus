@@ -657,7 +657,7 @@ namespace NCPA {
                     return ( rows() == 0 || columns() == 0 );
                 }
 
-                virtual bool is_identity() const {
+                virtual bool is_identity() const override {
                     if (this->is_empty()) {
                         return false;
                     }
@@ -1368,7 +1368,7 @@ namespace NCPA {
                     return *this;
                 }
 
-                virtual Matrix<ELEMENTTYPE>& subtract( ELEMENTTYPE other ) {
+                virtual Matrix<ELEMENTTYPE>& subtract( ELEMENTTYPE other ) override {
                     return this->add( -other );
                 }
 

@@ -46,7 +46,7 @@ namespace NCPA {
                 }
 
                 virtual HelpText& add_tokens(
-                    const std::vector<std::string>& text ) {
+                    const std::vector<std::string>& text ) override {
                     return *this;
                 }
 

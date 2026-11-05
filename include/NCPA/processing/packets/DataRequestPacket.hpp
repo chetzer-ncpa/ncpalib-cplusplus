@@ -9,7 +9,7 @@
 // void swap( NCPA::processing::DataRequestPacket& a,
 //            NCPA::processing::DataRequestPacket& b ) noexcept;
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class DataRequestPacket : public InputPacket {
         public:
             DataRequestPacket() : InputPacket( input_id_t::DATA_REQUEST ) {}
@@ -62,3 +62,4 @@ namespace NCPA::processing {
 //     swap( dynamic_cast<NCPA::processing::InputPacket&>( a ),
 //             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
 // }
+}

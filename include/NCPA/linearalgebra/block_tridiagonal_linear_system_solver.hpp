@@ -44,7 +44,7 @@ namespace NCPA {
                     Cloneable<
                   block_tridiagonal_linear_system_solver<ELEMENTTYPE>,
                   abstract_linear_system_solver<ELEMENTTYPE>>( other ) {
-                    _mat->copy( other._mat );
+                    _mat->copy( *other._mat );
                     // _lu  = other._lu;
                 }
 

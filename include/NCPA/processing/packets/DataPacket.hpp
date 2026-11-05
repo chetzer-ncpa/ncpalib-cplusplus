@@ -9,7 +9,7 @@
 // void swap( NCPA::processing::DataPacket<T>& a,
 //            NCPA::processing::DataPacket<T>& b ) noexcept;
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
 
     template<typename T>
     class DataPacket : public InputPacket,
@@ -198,3 +198,4 @@ namespace NCPA::processing {
             time_interval_t _data_time;
     };
 }  // namespace NCPA::processing
+}

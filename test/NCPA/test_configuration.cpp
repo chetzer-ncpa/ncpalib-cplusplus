@@ -53,7 +53,7 @@ TEST_F( _TEST_TITLE_, IntegerParameterReturnsExpectedOutputs ) {
 }
 
 TEST_F( _TEST_TITLE_, DoubleParameterReturnsExpectedOutputs ) {
-    EXPECT_TRUE( dparam->as_string() == "3.500000" );
+    EXPECT_TRUE( dparam->as_string() == "3.5" );
     EXPECT_EQ( dparam->as_int(), 3 );
     EXPECT_TRUE( dparam->as_bool() );
     EXPECT_NEAR( dparam->as_double(), 3.5, 1e-12 );

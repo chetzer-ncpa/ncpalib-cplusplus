@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class Packet {
         public:
             Packet() : Packet( "" ) {}
@@ -46,10 +46,4 @@ namespace NCPA::processing {
             time_point_t _packet_time;
     };
 }  // namespace NCPA::processing
-
-// void swap( NCPA::processing::Packet& a,
-//            NCPA::processing::Packet& b ) noexcept {
-//     using std::swap;
-//     swap( a._tag, b._tag );
-//     swap( a._packet_time, b._packet_time );
-// }
+}

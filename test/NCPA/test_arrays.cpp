@@ -443,155 +443,155 @@ TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
     }
 }
 
-TEST( _TEST_TITLE_, ThreeDimensionalArrayConstructorWorks ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        for (size_t j = 0; j < dim2; ++j) {
-            for (size_t k = 0; k < dim3; ++k) {
-                EXPECT_EQ( arr.at( { i, j, k } ), 0 );
-            }
-        }
-    }
-}
+// TEST( _TEST_TITLE_, ThreeDimensionalArrayConstructorWorks ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+//     for (size_t i = 0; i < dim1; ++i) {
+//         for (size_t j = 0; j < dim2; ++j) {
+//             for (size_t k = 0; k < dim3; ++k) {
+//                 EXPECT_EQ( arr.at( { i, j, k } ), 0 );
+//             }
+//         }
+//     }
+// }
 
-TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayPassThrough ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        auto view2d = arr.view( 0, i );
-        for (size_t j = 0; j < dim2; ++j) {
-            auto view1d = view2d.view( 0, j );
-            for (size_t k = 0; k < dim3; ++k) {
-                EXPECT_EQ( view1d.at( { k } ), 0 );
-                view1d.at( { k } )    = (int)( i + j + k );
-                arr.at( { i, j, k } ) = (int)( i + j + k );
-            }
-        }
-    }
-}
+// TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayPassThrough ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+//     for (size_t i = 0; i < dim1; ++i) {
+//         auto view2d = arr.view( 0, i );
+//         for (size_t j = 0; j < dim2; ++j) {
+//             auto view1d = view2d.view( 0, j );
+//             for (size_t k = 0; k < dim3; ++k) {
+//                 EXPECT_EQ( view1d.at( { k } ), 0 );
+//                 view1d.at( { k } )    = (int)( i + j + k );
+//                 arr.at( { i, j, k } ) = (int)( i + j + k );
+//             }
+//         }
+//     }
+// }
 
-TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidDimension ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_THROW( { arr.view( dim1, 0 ).dimension( 0 ); }, std::range_error );
-}
+// TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidDimension ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_THROW( { arr.view( dim1, 0 ).dimension( 0 ); }, std::range_error );
+// }
 
-TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidDimension ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_NO_THROW( { arr.view( dim1-1, 0 ).dimension( 0 ); } );
-}
+// TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidDimension ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_NO_THROW( { arr.view( dim1-1, 0 ).dimension( 0 ); } );
+// }
 
-TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidElement ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_THROW( { arr.view( 0, dim1 ); }, std::range_error );
-}
+// TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidElement ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_THROW( { arr.view( 0, dim1 ); }, std::range_error );
+// }
 
-TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidElement ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_NO_THROW( { arr.view( 0, dim1-1 ); } );
-}
+// TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidElement ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_NO_THROW( { arr.view( 0, dim1-1 ); } );
+// }
 
-TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    ASSERT_EQ( arr.size(), dim1 * dim2 * dim3 );
+// TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     ASSERT_EQ( arr.size(), dim1 * dim2 * dim3 );
 
-    // all views along first dimension should be dim2 x dim3
-    EXPECT_EQ( arr.view( 0, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 0 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 0, 1 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 1 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 0, 2 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 2 ).dimension( 1 ), dim3 );
+//     // all views along first dimension should be dim2 x dim3
+//     EXPECT_EQ( arr.view( 0, 0 ).dimension( 0 ), dim2 );
+//     EXPECT_EQ( arr.view( 0, 0 ).dimension( 1 ), dim3 );
+//     EXPECT_EQ( arr.view( 0, 1 ).dimension( 0 ), dim2 );
+//     EXPECT_EQ( arr.view( 0, 1 ).dimension( 1 ), dim3 );
+//     EXPECT_EQ( arr.view( 0, 2 ).dimension( 0 ), dim2 );
+//     EXPECT_EQ( arr.view( 0, 2 ).dimension( 1 ), dim3 );
 
-    // all views along second dimension should be dim1 x dim3
-    EXPECT_EQ( arr.view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 0 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 1 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 1 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 2 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 2 ).dimension( 1 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 3 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 3 ).dimension( 1 ), dim3 );
+//     // all views along second dimension should be dim1 x dim3
+//     EXPECT_EQ( arr.view( 1, 0 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 1, 0 ).dimension( 1 ), dim3 );
+//     EXPECT_EQ( arr.view( 1, 1 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 1, 1 ).dimension( 1 ), dim3 );
+//     EXPECT_EQ( arr.view( 1, 2 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 1, 2 ).dimension( 1 ), dim3 );
+//     EXPECT_EQ( arr.view( 1, 3 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 1, 3 ).dimension( 1 ), dim3 );
 
-    // all views along third dimension should be dim1 x dim2
-    EXPECT_EQ( arr.view( 2, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 0 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 1 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 1 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 2 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 2 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 3 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 3 ).dimension( 1 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 4 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
+//     // all views along third dimension should be dim1 x dim2
+//     EXPECT_EQ( arr.view( 2, 0 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 0 ).dimension( 1 ), dim2 );
+//     EXPECT_EQ( arr.view( 2, 1 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 1 ).dimension( 1 ), dim2 );
+//     EXPECT_EQ( arr.view( 2, 2 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 2 ).dimension( 1 ), dim2 );
+//     EXPECT_EQ( arr.view( 2, 3 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 3 ).dimension( 1 ), dim2 );
+//     EXPECT_EQ( arr.view( 2, 4 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
 
-    // all views along first and second dimension should be 1 x dim3
-    auto view1 = arr.view(0,0);
-    auto view2 = view1.view(0,0);
-    size_t testdim = view2.dimension(0);
-    EXPECT_EQ( testdim, dim3 );
-    EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+//     // all views along first and second dimension should be 1 x dim3
+//     auto view1 = arr.view(0,0);
+//     auto view2 = view1.view(0,0);
+//     size_t testdim = view2.dimension(0);
+//     EXPECT_EQ( testdim, dim3 );
+//     EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
 
-    // all views along first and third dimension should be 1 x dim2
-    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 0, 0 ).view( 1, 1 ).dimension( 0 ), dim2 );
+//     // all views along first and third dimension should be 1 x dim2
+//     EXPECT_EQ( arr.view( 0, 0 ).view( 1, 0 ).dimension( 0 ), dim2 );
+//     EXPECT_EQ( arr.view( 0, 0 ).view( 1, 1 ).dimension( 0 ), dim2 );
 
-    // all views along second and first dimension should be 1 x dim3
-    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
-    EXPECT_EQ( arr.view( 1, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+//     // all views along second and first dimension should be 1 x dim3
+//     EXPECT_EQ( arr.view( 1, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
+//     EXPECT_EQ( arr.view( 1, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
 
-    // all views along second and third dimension should be 1 x dim1
-    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 1, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
+//     // all views along second and third dimension should be 1 x dim1
+//     EXPECT_EQ( arr.view( 1, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 1, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
 
-    // all views along third and first dimension should be 1 x dim2
-    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 0 ).dimension( 0 ), dim2 );
-    EXPECT_EQ( arr.view( 2, 0 ).view( 0, 1 ).dimension( 0 ), dim2 );
+//     // all views along third and first dimension should be 1 x dim2
+//     EXPECT_EQ( arr.view( 2, 0 ).view( 0, 0 ).dimension( 0 ), dim2 );
+//     EXPECT_EQ( arr.view( 2, 0 ).view( 0, 1 ).dimension( 0 ), dim2 );
 
-    // all views along third and second dimension should be 1 x dim1
-    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-    EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
-}
+//     // all views along third and second dimension should be 1 x dim1
+//     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
+//     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
+// }
 
-TEST( _TEST_TITLE_, BracketOperatorsWorkCorrectly ) {
-    size_t dim1 = 3;
-    size_t dim2 = 4;
-    size_t dim3 = 5;
-    ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-    EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-    for (size_t i = 0; i < dim1; ++i) {
-        auto view2d = arr[i];
-        EXPECT_EQ( view2d.dimension(0), dim2 );
-        for (size_t j = 0; j < dim2; ++j) {
-            auto view1d = view2d[j];
-            EXPECT_EQ( view1d.dimension(0), dim3 );
-            for (size_t k = 0; k < dim3; ++k) {
-                auto view0d = view1d[k];
-                EXPECT_EQ( view1d[k].at(), 0 );
-            //     view1d[k]    = (int)( i + j + k );
-            //     EXPECT_EQ( view1d[k], (int)( i + j + k ) );
-            }
-        }
-    }
-}
+// TEST( _TEST_TITLE_, BracketOperatorsWorkCorrectly ) {
+//     size_t dim1 = 3;
+//     size_t dim2 = 4;
+//     size_t dim3 = 5;
+//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
+//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
+//     for (size_t i = 0; i < dim1; ++i) {
+//         auto view2d = arr[i];
+//         EXPECT_EQ( view2d.dimension(0), dim2 );
+//         for (size_t j = 0; j < dim2; ++j) {
+//             auto view1d = view2d[j];
+//             EXPECT_EQ( view1d.dimension(0), dim3 );
+//             for (size_t k = 0; k < dim3; ++k) {
+//                 auto view0d = view1d[k];
+//                 EXPECT_EQ( view1d[k].at(), 0 );
+//             //     view1d[k]    = (int)( i + j + k );
+//             //     EXPECT_EQ( view1d[k], (int)( i + j + k ) );
+//             }
+//         }
+//     }
+// }

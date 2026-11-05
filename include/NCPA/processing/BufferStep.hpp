@@ -1,11 +1,11 @@
 #pragma once
 
-#include "NCPA/DAMES/declarations.hpp"
+#include "NCPA/processing/declarations.hpp"
 
 #include <deque>
 
-namespace NCPA::DAMES {
-    using namespace NCPA::processing;
+namespace NCPA { namespace processing {
+    // using namespace NCPA::processing;
 
     template<typename contents_t>
     class BufferStep
@@ -105,3 +105,4 @@ namespace NCPA::DAMES {
 
 
 }  // namespace NCPA::DAMES
+}
