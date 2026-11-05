@@ -255,7 +255,7 @@ namespace NCPA {
                 }
 
                 virtual PARAMTYPE get( size_t n = 0 ) const override {
-                    return ( _uvalue.empty() ? this->_nullval()
+                    return ( _uvalue.size() == 0 ? this->_nullval()
                                              : _uvalue.at( n ) );
                 }
 
@@ -282,11 +282,11 @@ namespace NCPA {
                     return _uvalue;
                 }
 
-                virtual bool has_units() const {
+                virtual bool has_units() const override {
                     return ( _uvalue.get_units() != nullptr );
                 }
 
-                virtual void set_units( units_ptr_t u ) {
+                virtual void set_units( units_ptr_t u ) override  {
                     _uvalue.set_units( u );
                 }
 

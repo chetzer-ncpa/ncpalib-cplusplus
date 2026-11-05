@@ -120,14 +120,6 @@
 #include <type_traits>
 #include <utility>
 
-// #define DECLARE_HAS_FUNCTION_TRAIT( _FUNCTION_ )                \
-//     template<typename T, typename = void>                       \
-//     struct has_##_FUNCTION_ : std::false_type {};               \
-//     template<typename T>                                        \
-//     struct has_##_FUNCTION_<                                    \
-//         T, void_t<decltype( _FUNCTION_( std::declval<T>() ) )>> \
-//         : std::true_type {};
-
 #define DECLARE_CAN_USE_FUNCTION( _FUNCTION_ )                             \
     template<typename T>                                                   \
     class can_use_##_FUNCTION_ {                                           \
@@ -170,20 +162,27 @@
             static constexpr bool value = decltype( test<T>( 0 ) )::value; \
     };
 
+#define DEFINE_OPERATOR_CHECK( trait_name, expr )                          \
+    template<typename T>                                                   \
+    class trait_name {                                                     \
+            template<typename U, typename = decltype( expr )>              \
+            static std::true_type test( int );                             \
+            template<typename>                                             \
+            static std::false_type test( ... );                            \
+                                                                           \
+        public:                                                            \
+            static constexpr bool value = decltype( test<T>( 0 ) )::value; \
+    };
 
-// #define ENABLE_IF( CONDITION ) \
-//     typename std::enable_if<CONDITION::value, int>::type ENABLER = 0
-// #define ENABLE_AND( CONDITION1, CONDITION2 ) \
-//     typename std::enable_if<CONDITION1::value, int>::type ENABLER1 = 0, \
-//     typename std::enable_if<CONDITION2::value, int>::type ENABLER2 = 0
-// #define NO_DEFAULT_ENABLE_IF( CONDITION ) \
-//     typename std::enable_if<CONDITION::value, int>::type ENABLER
-// #define ENABLE_IF_T( CONDITION, T ) \
-//     typename std::enable_if<CONDITION<T>::value, int>::type ENABLER = 0
-// #define ENABLE_IF_TU( CONDITION, T, U ) \
-//     typename std::enable_if<CONDITION<T, U>::value, int>::type ENABLER = 0
+#define DEFINE_BINARY_OPERATOR_CHECK( trait_name, _expr_ ) \
+    DEFINE_OPERATOR_CHECK( trait_name,                     \
+                           std::declval<U>() _expr_ std::declval<U>() )
 
-// #define ENABLE_IF_REAL( T ) ENABLE_IF( std::is_floating_point<T> )
+#define DEFINE_PREFIX_OPERATOR_CHECK( trait_name, _expr_ ) \
+    DEFINE_OPERATOR_CHECK( trait_name, _expr_ std::declval<U&>() )
+
+#define DEFINE_SUFFIX_OPERATOR_CHECK( trait_name, _expr_ ) \
+    DEFINE_OPERATOR_CHECK( trait_name, std::declval<U&>() _expr_ )
 
 namespace NCPA {
     namespace types {
@@ -199,6 +198,35 @@ namespace NCPA {
         // declares the templated type alias
         template<typename... Ts>
         using void_t = typename make_void<Ts...>::type;
+
+        DEFINE_BINARY_OPERATOR_CHECK( has_less_than, < )
+        DEFINE_BINARY_OPERATOR_CHECK( has_less_than_or_equal, <= )
+        DEFINE_BINARY_OPERATOR_CHECK( has_greater_than, > )
+        DEFINE_BINARY_OPERATOR_CHECK( has_greater_than_or_equal, >= )
+        DEFINE_BINARY_OPERATOR_CHECK( has_equality, == )
+        DEFINE_BINARY_OPERATOR_CHECK( has_inequality, != )
+        DEFINE_BINARY_OPERATOR_CHECK( has_addition, +)
+        DEFINE_BINARY_OPERATOR_CHECK( has_subtraction, -)
+        DEFINE_BINARY_OPERATOR_CHECK( has_multiplication, * )
+        DEFINE_BINARY_OPERATOR_CHECK( has_division, / )
+        DEFINE_PREFIX_OPERATOR_CHECK( has_pre_increment, ++)
+        DEFINE_SUFFIX_OPERATOR_CHECK( has_post_increment, ++)
+        DEFINE_PREFIX_OPERATOR_CHECK( has_pre_decrement, --)
+        DEFINE_SUFFIX_OPERATOR_CHECK( has_post_decrement, --)
+
+        template<typename T, typename Index = std::size_t>
+        class has_index {
+                template<typename U,
+                         typename = decltype( std::declval<
+                                              U&>()[ std::declval<Index>() ] )>
+                static std::true_type test( int );
+
+                template<typename>
+                static std::false_type test( ... );
+
+            public:
+                static constexpr bool value = decltype( test<T>( 0 ) )::value;
+        };
 
         // decltype( *std::declval<T>() ):
         // declval<T>.method() lets you get a dummy instance of t.method()

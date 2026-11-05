@@ -57,7 +57,7 @@ namespace NCPA {
                     const std::string& tag,
                     const VectorWithUnits<PARAMTYPE>& defaultval ) :
                     ScalarParameterWithUnits(
-                        tag, defaultval.empty()
+                        tag, defaultval.size() == 0
                                  ? ScalarWithUnits<PARAMTYPE>(
                                        0, defaultval.get_units() )
                                  : defaultval.get_scalar( 0 ) ) {}
@@ -267,11 +267,11 @@ namespace NCPA {
                     }
                 }
 
-                virtual bool has_units() const {
+                virtual bool has_units() const override {
                     return ( _uvalue.get_units() != nullptr );
                 }
 
-                virtual void set_units( units_ptr_t u ) {
+                virtual void set_units( units_ptr_t u ) override {
                     _uvalue.set_units( u );
                 }
 

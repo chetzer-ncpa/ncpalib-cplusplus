@@ -18,12 +18,18 @@ namespace NCPA {
         /**
          * VectorWithUnits class
          */
-        template<typename T = double,
-                 typename std::enable_if<std::is_floating_point<T>::value,
-                                         int>::type ENABLER>
-        class VectorWithUnits : public NCPA::arrays::NDVector<T> {
-            typedef NCPA::arrays::NDVector<T> parent_t;
+        template<typename T = double
+                 // ,
+                 //          typename
+                 //          std::enable_if<std::is_floating_point<T>::value,
+                 //                                  int>::type ENABLER = 0
+                 >
+        class VectorWithUnits : public NCPA::arrays::NDArray<1, T> {
+                typedef NCPA::arrays::NDArray<1, T> parent_t;
+
             public:
+                using parent_t::set;
+
                 // constructors
                 VectorWithUnits( const Unit *units = nullptr ) :
                     parent_t(), _units { units } {}
@@ -111,24 +117,22 @@ namespace NCPA {
 
                 // copy constructor
                 VectorWithUnits( const VectorWithUnits<T>& source ) = default;
-                    // std::vector<T>( source ) {
+                // std::vector<T>( source ) {
                 //    : VectorWithUnits() {
                 //     this->assign( source.cbegin(), source.cend() );
                 //     _units = source._units;
                 // }
 
                 // move constructor
-                VectorWithUnits( VectorWithUnits<T>&& source ) noexcept :
-                    parent_t() {
-                    swap( *this, source );
-                }
+                VectorWithUnits( VectorWithUnits<T>&& source ) noexcept
+                    = default;
 
                 // destructor
-                virtual ~VectorWithUnits() {}
+                virtual ~VectorWithUnits() = default;
 
                 // assignment and swapping
-                friend void swap( VectorWithUnits<T>& first,
-                                  VectorWithUnits<T>& second ) noexcept {
+                friend void swap( VectorWithUnits<T>& a,
+                                  VectorWithUnits<T>& b ) noexcept {
                     using std::swap;
                     swap( static_cast<parent_t&>( a ),
                           static_cast<parent_t&>( b ) );
@@ -175,12 +179,10 @@ namespace NCPA {
                     _check_units_pointer();
                     const Unit *oldunits = this->get_units();
                     if (!new_units.equals( *oldunits )) {
-                        VectorWithUnits<T> buffer
-                            = oldunits->convert_to( *this, new_units );
-                        buffer.set_units( new_units );
-
-                        std::swap( *this, buffer );
-                        // *this = buffer;
+                        for (auto& val : *this) {
+                            val = oldunits->convert_to( val, new_units );
+                        }
+                        this->set_units( new_units );
                     }
                 }
 
@@ -203,7 +205,7 @@ namespace NCPA {
 
                 // Fill the vector with identical values.  Does not resize.
                 virtual void fill( T value, const Unit *units ) {
-                    this->fill( value );
+                    this->set( value );
                     _units = units;
                 }
 
@@ -277,14 +279,15 @@ namespace NCPA {
                 VectorWithUnits<U> as() const {
                     VectorWithUnits<U> newv( *this );
                     // newv.set_units( this->get_units() );
-                    // VectorWithUnits<U> newv( this->size(), this->get_units() );
-                    // for (size_t i = 0; i < this->size(); ++i) {
+                    // VectorWithUnits<U> newv( this->size(), this->get_units()
+                    // ); for (size_t i = 0; i < this->size(); ++i) {
                     //     newv[ i ] = (U)this->get( i );
                     // }
                     return newv;
                 }
 
-                // virtual T get( size_t ind ) const { return this->at( ind ); }
+                // virtual T get( size_t ind ) const { return this->at( ind );
+                // }
 
                 virtual ScalarWithUnits<T> get_scalar( size_t ind ) const {
                     return ScalarWithUnits<T>( this->get( ind ),
@@ -315,7 +318,8 @@ namespace NCPA {
 
                 virtual void set( const std::vector<T>& values,
                                   const Unit *units ) {
-                    this->assign( values.cbegin(), values.cend() );
+                    this->resize( values.size() );
+                    this->set( values );
                     _units = units;
                 }
 
@@ -372,13 +376,15 @@ namespace NCPA {
                     _units = Units::from_string( new_units );
                 }
 
-                virtual std::vector<T>& std() {
-                    return static_cast<std::vector<T>&>( *this );
-                }
+                virtual std::vector<T> std() const { return this->flatten(); }
 
-                virtual const std::vector<T>& std() const {
-                    return static_cast<const std::vector<T>&>( *this );
-                }
+                // virtual const std::vector<T> std() const {
+                //     return this->flatten();
+                // }
+
+                T& operator[]( size_t n ) { return this->at( n ); }
+
+                const T& operator[]( size_t n ) const { return this->at( n ); }
 
                 explicit operator bool() const { return !this->empty(); }
 

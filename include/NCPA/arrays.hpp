@@ -148,9 +148,8 @@ namespace NCPA {
             }
 
             template<typename ContainerA, typename ContainerB>
-            void copy_to( const ContainerA& a, ContainerB& b ) {
-                if (a.rank() == b.rank() || b.rank_mutable()) {
-                    b.resize( a.shape() );
+            void deal_into( const ContainerA& a, ContainerB& b ) {
+                if (a.size() == b.size()) {
                     auto ait = a.begin();
                     auto bit = b.begin();
                     while (ait != a.end() && bit != b.end()) {
@@ -159,9 +158,43 @@ namespace NCPA {
                         ++bit;
                     }
                 } else {
-                    throw std::out_of_range(
+                    throw std::invalid_argument(
+                        "Cannot deal N-D containers of different sizes" );
+                }
+            }
+
+            template<typename ContainerA, typename ContainerB>
+            void copy_to( const ContainerA& a, ContainerB& b ) {
+                if (a.rank() == b.rank() || b.rank_mutable()) {
+                    b.resize( a.shape() );
+                    deal_into( a, b );
+                } else {
+                    throw std::invalid_argument(
                         "Cannot copy N-D containers of different ranks" );
                 }
+            }
+
+            template<typename ContainerA, typename ContainerB>
+            bool same_shape( const ContainerA& a, const ContainerB& b ) {
+                if (a.rank() != b.rank()) return false;
+                for (auto i = 0; i < a.rank(); ++i) {
+                    if (a.dim(i) != b.dim(i)) return false;
+                }
+                return true;
+            }
+
+            template<typename Container>
+            std::vector<typename Container::shape_type> indices(const Container& c) {
+                auto shape = c.shape();
+                auto digits = shape;
+                digits.clear();
+                std::vector<typename Container::shape_type> out;
+                out.reserve( c.size() );
+                do {
+                    out.push_back( digits );
+                }
+                while (increment_digits( digits, shape ));
+                return out;
             }
         }  // namespace details
 
@@ -201,7 +234,7 @@ namespace NCPA {
                 typedef T& reference_t;
 
                 template<typename, typename>
-                friend class NDViewIterator<T, ShapeContainer>;
+                friend class NDViewIterator;
 
                 NDViewIterator( std::shared_ptr<details::_ndstorage<
                                     typename std::remove_const<T>::type>>
@@ -455,14 +488,17 @@ namespace NCPA {
                 NDArray( const NDArray<N, T>& other ) = default;
 
                 NDArray( const NDArrayView<N, T>& other ) {
-                    details::copy_to( other, *this );
+                    this->copy( other );
                 }
 
-                NDArray( const NDVector<T>& other ) {
-                    details::copy_to( other, *this );
-                }
+                NDArray( const NDVector<T>& other ) { this->copy( other ); }
 
                 NDArray( const NDVectorView<T>& other ) {
+                    this->copy( other );
+                }
+
+                template<typename FromType>
+                void copy( const FromType& other ) {
                     details::copy_to( other, *this );
                 }
 
@@ -567,6 +603,10 @@ namespace NCPA {
                     return this->at( indices... );
                 }
 
+                std::vector<shape_type> indices() const {
+                    return details::indices(*this);
+                }
+
                 NDArrayView<N - 1, T> operator[]( size_t ind ) {
                     return this->slice( 0, ind );
                 }
@@ -586,8 +626,14 @@ namespace NCPA {
                 bool rank_mutable() const { return false; }
 
                 template<typename... Dims>
+                NDArray<N, T>& reshape( Dims... dims ) {
+                    return this->resize( dims... );
+                }
+
+                template<typename... Dims>
                 NDArray<N, T>& resize( Dims... dims ) {
-                    static_assert( sizeof...( Dims ) == N,
+                    static_assert( sizeof...( Dims ) == N
+                                       || sizeof...( Dims ) == 0,
                                    "Wrong number of dimensions" );
                     return this->resize( std::vector<size_t> {
                         static_cast<size_t>( dims )... } );
@@ -614,6 +660,9 @@ namespace NCPA {
                 }
 
                 NDArray<N, T>& resize( std::vector<size_t> dims ) {
+                    if (dims.empty()) {
+                        dims.resize( N );
+                    }
                     if (dims.size() != N) {
                         throw std::out_of_range(
                             "Wrong number of dimensions" );
@@ -633,10 +682,20 @@ namespace NCPA {
                     return *this;
                 }
 
+                template<typename ContainerB>
+                bool same_shape_as( const ContainerB& b ) const {
+                    return details::same_shape( *this, b );
+                }
+
                 NDArray<N, T>& set( T val ) {
                     for (auto it = begin(); it != end(); ++it) {
                         *it = val;
                     }
+                    return *this;
+                }
+
+                NDArray<N, T>& set( const std::vector<T>& vals ) {
+                    details::deal_into( vals, *this );
                     return *this;
                 }
 
@@ -770,6 +829,10 @@ namespace NCPA {
                     return this->at( indices... );
                 }
 
+                std::vector<shape_type> indices() const {
+                    return details::indices(*this);
+                }
+
                 template<size_t M = N>
                 typename std::enable_if<( M > 1 ), NDArrayView<N - 1, T>>::type
                     operator[]( size_t ind ) {
@@ -802,10 +865,20 @@ namespace NCPA {
 
                 bool rank_mutable() const { return false; }
 
+                template<typename ContainerB>
+                bool same_shape_as( const ContainerB& b ) const {
+                    return details::same_shape( *this, b );
+                }
+
                 NDArrayView<N, T>& set( T val ) {
                     for (auto it = begin(); it != end(); ++it) {
                         *it = val;
                     }
+                    return *this;
+                }
+
+                NDArrayView<N, T>& set( const std::vector<T>& vals ) {
+                    details::deal_into( vals, *this );
                     return *this;
                 }
 
@@ -954,10 +1027,19 @@ namespace NCPA {
                     return this->at( indices... );
                 }
 
+                std::vector<shape_type> indices() const {
+                    return details::indices(*this);
+                }
+
                 NDVectorView<T>& set( T val ) {
                     for (auto it = begin(); it != end(); ++it) {
                         *it = val;
                     }
+                    return *this;
+                }
+
+                NDVectorView<T>& set( const std::vector<T>& vals ) {
+                    details::deal_into( vals, *this );
                     return *this;
                 }
 
@@ -1002,6 +1084,11 @@ namespace NCPA {
                 template<typename... Indices>
                 const T& operator()( Indices... indices ) const {
                     return this->at( indices... );
+                }
+
+                template<typename ContainerB>
+                bool same_shape_as( const ContainerB& b ) const {
+                    return details::same_shape( *this, b );
                 }
 
                 size_t size() const { return details::total_size( _shape ); }
@@ -1090,16 +1177,16 @@ namespace NCPA {
 
                 template<size_t N>
                 NDVector( const NDArray<N, T>& other ) {
-                    details::copy_to( other, *this );
+                    this->copy( other );
                 }
 
                 template<size_t N>
                 NDVector( const NDArrayView<N, T>& other ) {
-                    details::copy_to( other, *this );
+                    this->copy( other );
                 }
 
                 NDVector( const NDVectorView<T>& other ) {
-                    details::copy_to( other, *this );
+                    this->copy( other );
                 }
 
                 T& at( const std::vector<size_t>& idx ) {
@@ -1150,6 +1237,11 @@ namespace NCPA {
 
                 NDVector<T>& clear() { return this->set( 0 ); }
 
+                template<typename FromType>
+                void copy( const FromType& other ) {
+                    details::copy_to( other, *this );
+                }
+
                 T *data() { return _storage->data.data(); }
 
                 const T *data() const { return _storage->data.data(); }
@@ -1164,6 +1256,10 @@ namespace NCPA {
                 template<typename... Indices>
                 T get( Indices... indices ) const {
                     return this->at( indices... );
+                }
+
+                std::vector<shape_type> indices() const {
+                    return details::indices(*this);
                 }
 
                 NDVectorView<T> operator[]( size_t ind ) const {
@@ -1216,10 +1312,20 @@ namespace NCPA {
                         std::vector<size_t>( shape.begin(), shape.end() ) );
                 }
 
+                template<typename ContainerB>
+                bool same_shape_as( const ContainerB& b ) const {
+                    return details::same_shape( *this, b );
+                }
+
                 NDVector<T>& set( T val ) {
                     for (auto it = begin(); it != end(); ++it) {
                         *it = val;
                     }
+                    return *this;
+                }
+
+                NDVectorView<T>& set( const std::vector<T>& vals ) {
+                    details::deal_into( vals, *this );
                     return *this;
                 }
 

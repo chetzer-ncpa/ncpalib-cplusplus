@@ -620,7 +620,7 @@ TEST_F( _TEST_TITLE_, ConstructorWithConstantScalarWithUnitsWorks ) {
     EXPECT_EQ( v4.size(), 10 );
     EXPECT_TRUE( v4.get_units()->equals( CELSIUS ) );
     for ( size_t i = 0; i < v4.size(); i++ ) {
-        EXPECT_DOUBLE_EQ( v4[ i ], 10.0 );
+        EXPECT_DOUBLE_EQ( v4(i), 10.0 );
     }
 }
 
@@ -713,7 +713,7 @@ TEST_F( _TEST_TITLE_, AsArrayReturnsCorrectDoubleArray ) {
 }
 
 TEST_F( _TEST_TITLE_, AsArrayReturnsCorrectDoubleVector ) {
-    vector<double> v = v4;
+    vector<double> v = v4.flatten();
     for ( auto it = v.cbegin(); it != v.end(); ++it ) {
         EXPECT_DOUBLE_EQ( *it, 10.0 );
     }
@@ -1121,7 +1121,7 @@ TEST_F( _TEST_TITLE_, FillSetsUnitsCorrectly2D ) {
 TEST_F( _TEST_TITLE_, SetWorksCorrectly2D ) {
     ASSERT_EQ( v2d_2.dim( 0 ), 5 );
     ASSERT_EQ( v2d_2.dim( 1 ), 5 );
-    NCPA::arrays::vector2d_t<double> z( 10, 10, 0.0 );
+    NCPA::arrays::vector2d_t<double> z( 10, 10 );
     v2d_2.set( z, CELSIUS );
     EXPECT_EQ( v2d_2.dim( 0 ), 10 );
     EXPECT_EQ( v2d_2.dim( 1 ), 10 );
@@ -1309,7 +1309,7 @@ TEST_F( _TEST_TITLE_, SetWorksCorrectly3D ) {
     ASSERT_EQ( v3d_2.dim( 0 ), 5 );
     ASSERT_EQ( v3d_2.dim( 1 ), 5 );
     ASSERT_EQ( v3d_2.dim( 2 ), 5 );
-    NCPA::arrays::vector3d_t<double> z( 10, 10, 10, 0.0 );
+    NCPA::arrays::vector3d_t<double> z( 10, 10, 10 );
     v3d_2.set( z, CELSIUS );
     EXPECT_EQ( v3d_2.dim( 0 ), 10 );
     EXPECT_EQ( v3d_2.dim( 1 ), 10 );

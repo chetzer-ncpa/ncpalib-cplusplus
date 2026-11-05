@@ -11,60 +11,11 @@
 #include <unordered_map>
 #include <vector>
 
-// forward declarations
-// namespace NCPA {
-//     namespace units {
-//         template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-//         class ScalarWithUnits;
-//     }  // namespace units
-// }  // namespace NCPA
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// void swap( NCPA::units::ScalarWithUnits<T>&,
-//            NCPA::units::ScalarWithUnits<T>& ) noexcept;
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator==( const NCPA::units::ScalarWithUnits<T>& a,
-//                  const NCPA::units::ScalarWithUnits<T>& b );
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator!=( const NCPA::units::ScalarWithUnits<T>& a,
-//                  const NCPA::units::ScalarWithUnits<T>& b );
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator>=( const NCPA::units::ScalarWithUnits<T>& a,
-//                  const NCPA::units::ScalarWithUnits<T>& b );
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator<=( const NCPA::units::ScalarWithUnits<T>& a,
-//                  const NCPA::units::ScalarWithUnits<T>& b );
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator>( const NCPA::units::ScalarWithUnits<T>& a,
-//                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// // template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// bool operator<( const NCPA::units::ScalarWithUnits<T>& a,
-//                 const NCPA::units::ScalarWithUnits<T>& b );
-
-// template<typename T, ENABLE_FUNCTION_IF_REAL(T)>
-// template<typename T>
-// std::ostream& operator<<( std::ostream& output,
-//                           const NCPA::units::ScalarWithUnits<T>& D );
-
 namespace NCPA {
     namespace units {
         template<typename T = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
                                          int>::type ENABLER = 0>
-        // ENABLE_IF_REAL(T)>
         class ScalarWithUnits {
             public:
                 ScalarWithUnits() : _value { 0.0 }, _units { nullptr } {}
@@ -77,9 +28,6 @@ namespace NCPA {
 
                 ScalarWithUnits( T value, const Unit& property_units ) :
                     ScalarWithUnits( value, &property_units ) {}
-
-                // ScalarWithUnits( T value, const Unit& property_units ) :
-                //     _value { value }, _units { &property_units } {}
 
                 ScalarWithUnits( T value, const std::string& units ) :
                     _value { value },
@@ -116,26 +64,20 @@ namespace NCPA {
                 virtual T get_as( const Unit& u ) const {
                     _check_units_pointer();
                     return _units->convert_to( _value, u );
-                    // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
                 virtual T get_as( const Unit *u ) const {
                     return this->get_as( *u );
-                    // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
                 virtual T get_as( const std::string& units ) const {
                     _check_units_pointer();
                     return _units->convert_to(
                         _value, NCPA::units::Units::from_string( units ) );
-                    // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
                 virtual T get_as( const char *units ) const {
                     return this->get_as( std::string( units ) );
-                    // return _units->convert_to(
-                    //     _value, NCPA::units::Units::from_string( units ) );
-                    // return NCPA::units::Units::convert( _value, _units, u );
                 }
 
                 virtual ScalarWithUnits<T> as( const Unit& u ) const {
@@ -413,7 +355,6 @@ namespace NCPA {
 
             protected:
                 T _value;
-                // std::stack< NCPA::Units& > _units;
                 const Unit *_units = nullptr;
 
                 void _check_units_pointer() const {
@@ -429,8 +370,6 @@ namespace NCPA {
 
                     // throws invalid_conversion if conversion is undefined
                     units_buffer = fromUnits.convert_to( _value, toUnits );
-                    // units_buffer = NCPA::units::Units::convert(
-                    //     _value, fromUnits, toUnits );
 
                     // successful, so record the units change
                     _value = units_buffer;
