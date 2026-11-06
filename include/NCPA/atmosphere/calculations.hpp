@@ -2,7 +2,7 @@
 
 // #include "NCPA/atmosphere/constants.hpp"
 #include "NCPA/atmosphere/declarations.hpp"
-#include "NCPA/ndvector.hpp"
+#include "NCPA/arrays.hpp"
 #include "NCPA/units.hpp"
 
 #include <cmath>

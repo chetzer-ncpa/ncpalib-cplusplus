@@ -6,7 +6,7 @@ INCFLAGS=-I../include -I../../include ${INCLUDE_PATH_FLAGS}
 CXXFLAGS=-c -fPIC -ggdb -std=${STANDARD} $(INCFLAGS) -fsanitize=address
 
 # SOURCES=test_extern_armadillo_fftw3.cpp
-# SOURCES=test_atmosphere.cpp
+# SOURCES=test_arrays.cpp
 # SOURCES=test_linearalgebra_symmetricmatrix.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 TARGET=ncpalibTestSuite

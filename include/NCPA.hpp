@@ -10,7 +10,6 @@
 #include "NCPA/linearalgebra.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/dsp.hpp"
-#include "NCPA/ndvector.hpp"
 #include "NCPA/cloneable.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/types.hpp"
