@@ -15,7 +15,41 @@ using namespace testing;
 
 #define _TEST_TITLE_ NCPAArraysLibraryTest
 
-TEST( _TEST_TITLE_, ZerosCreatesArray ) {
+class _TEST_TITLE_ : public ::testing::Test {
+    protected:
+        void SetUp() override {
+            // cout << "Setting dims" << endl;
+            dims = { 5, 4, 3 };
+            // cout << "Setting d1" << endl;
+            d1   = vector<double> { 4.2, 3.1, 2.0 };
+            // cout << "Setting d2" << endl;
+            d2   = { d1, d1 };
+            // cout << "Setting d3" << endl;
+            d3   = { d2, d2, d2 };
+            // cout << "Done" << endl;
+            sv.resize( dims );
+            sa.resize( dims );
+
+            for (auto i = 0; i < dims[ 0 ]; ++i) {
+                for (auto j = 0; j < dims[ 1 ]; ++j) {
+                    for (auto k = 0; k < dims[ 2 ]; ++k) {
+                        sa( i, j, k ) = i * 100 + j * 10 + k;
+                        sv( i, j, k ) = i * 100 + j * 10 + k;
+                    }
+                }
+            }
+        }
+
+        ndvector<1, double> d1;
+        ndvector<2, double> d2;
+        ndvector<3, double> d3;
+        details::_dimarray dims;
+
+        SmartVector<int> sv;
+        SmartArray<3, int> sa;
+};
+
+TEST_F( _TEST_TITLE_, ZerosCreatesArray ) {
     double *testArray    = zeros<double>( 5 );
     double shouldBe[ 5 ] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
     ASSERT_ARRAY_EQ( 5, testArray, shouldBe );
@@ -25,7 +59,7 @@ TEST( _TEST_TITLE_, ZerosCreatesArray ) {
     delete[] testArray;
 }
 
-TEST( _TEST_TITLE_, ZerosCreates2DArray ) {
+TEST_F( _TEST_TITLE_, ZerosCreates2DArray ) {
     double **testArray = zeros<double>( 10, 5 );
     for (auto i = 0; i < 10; i++) {
         for (auto j = 0; j < 5; j++) {
@@ -34,13 +68,13 @@ TEST( _TEST_TITLE_, ZerosCreates2DArray ) {
     }
 }
 
-TEST( _TEST_TITLE_, FreeArray2DFreesArrayWithoutError ) {
+TEST_F( _TEST_TITLE_, FreeArray2DFreesArrayWithoutError ) {
     double **testArray = zeros<double>( 10, 5 );
     free_array( testArray, 10, 5 );
     EXPECT_EQ( testArray, nullptr );
 }
 
-TEST( _TEST_TITLE_, ZerosCreates3DArray ) {
+TEST_F( _TEST_TITLE_, ZerosCreates3DArray ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     for (auto i = 0; i < 10; i++) {
         for (auto j = 0; j < 5; j++) {
@@ -51,13 +85,13 @@ TEST( _TEST_TITLE_, ZerosCreates3DArray ) {
     }
 }
 
-TEST( _TEST_TITLE_, FreeArray3DFreesArrayWithoutError ) {
+TEST_F( _TEST_TITLE_, FreeArray3DFreesArrayWithoutError ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     free_array( testArray, 10, 5, 3 );
     ASSERT_EQ( testArray, nullptr );
 }
 
-TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectors ) {
+TEST_F( _TEST_TITLE_, IndexVectorCreatesExpectedVectors ) {
     vector<int> testArray = index_vector<int>( 5 );
     for (int i = 0; i < 5; i++) {
         EXPECT_EQ( i, testArray[ i ] );
@@ -68,7 +102,7 @@ TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectors ) {
     }
 }
 
-TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectorsWithOffset ) {
+TEST_F( _TEST_TITLE_, IndexVectorCreatesExpectedVectorsWithOffset ) {
     int offset            = 2;
     vector<int> testArray = index_vector<int>( 5, offset );
     for (int i = 0; i < 5; i++) {
@@ -80,7 +114,7 @@ TEST( _TEST_TITLE_, IndexVectorCreatesExpectedVectorsWithOffset ) {
     }
 }
 
-TEST( _TEST_TITLE_, CircShiftShiftsForward ) {
+TEST_F( _TEST_TITLE_, CircShiftShiftsForward ) {
     vector<int> inds  = index_vector<int>( 5 );
     int *testArray    = &inds[ 0 ];
     int shouldBe[ 5 ] = { 2, 3, 4, 0, 1 };
@@ -88,7 +122,7 @@ TEST( _TEST_TITLE_, CircShiftShiftsForward ) {
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( _TEST_TITLE_, CircShiftShiftsBackward ) {
+TEST_F( _TEST_TITLE_, CircShiftShiftsBackward ) {
     vector<int> inds  = index_vector<int>( 5 );
     int *testArray    = &inds[ 0 ];
     int shouldBe[ 5 ] = { 3, 4, 0, 1, 2 };
@@ -96,7 +130,7 @@ TEST( _TEST_TITLE_, CircShiftShiftsBackward ) {
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( _TEST_TITLE_, CircShiftZeroDoesNotShift ) {
+TEST_F( _TEST_TITLE_, CircShiftZeroDoesNotShift ) {
     vector<int> inds  = index_vector<int>( 5 );
     int *testArray    = &inds[ 0 ];
     int shouldBe[ 5 ] = { 0, 1, 2, 3, 4 };
@@ -104,7 +138,7 @@ TEST( _TEST_TITLE_, CircShiftZeroDoesNotShift ) {
     EXPECT_ARRAY_EQ( 5, testArray, shouldBe );
 }
 
-TEST( _TEST_TITLE_, FillArray2DSetsValuesCorrectly ) {
+TEST_F( _TEST_TITLE_, FillArray2DSetsValuesCorrectly ) {
     double **testArray = zeros<double>( 10, 5 );
     fill( testArray, 10, 5, 4.5 );
     for (auto i = 0; i < 10; i++) {
@@ -115,7 +149,7 @@ TEST( _TEST_TITLE_, FillArray2DSetsValuesCorrectly ) {
     free_array( testArray, 10, 5 );
 }
 
-TEST( _TEST_TITLE_, FillArray3DSetsValuesCorrectly ) {
+TEST_F( _TEST_TITLE_, FillArray3DSetsValuesCorrectly ) {
     double ***testArray = zeros<double>( 10, 5, 3 );
     fill( testArray, 10, 5, 3, 4.5 );
     for (auto i = 0; i < 10; i++) {
@@ -128,7 +162,7 @@ TEST( _TEST_TITLE_, FillArray3DSetsValuesCorrectly ) {
     free_array( testArray, 10, 5, 3 );
 }
 
-TEST( _TEST_TITLE_, ReverseReversesOrder ) {
+TEST_F( _TEST_TITLE_, ReverseReversesOrder ) {
     vector<double> testVector = index_vector<double>( 11 );
     double *testArray         = zeros<double>( 11 );
     std::copy( testVector.cbegin(), testVector.cend(), testArray );
@@ -137,7 +171,7 @@ TEST( _TEST_TITLE_, ReverseReversesOrder ) {
     EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
 }
 
-TEST( _TEST_TITLE_, ReverseReversesOrderPartially ) {
+TEST_F( _TEST_TITLE_, ReverseReversesOrderPartially ) {
     vector<double> testVector = index_vector<double>( 11 );
     double *testArray         = zeros<double>( 11 );
     std::copy( testVector.cbegin(), testVector.cend(), testArray );
@@ -146,7 +180,7 @@ TEST( _TEST_TITLE_, ReverseReversesOrderPartially ) {
     EXPECT_ARRAY_DOUBLE_EQ( 11, testArray, testVector );
 }
 
-TEST( _TEST_TITLE_, AsArrayLinksToVector ) {
+TEST_F( _TEST_TITLE_, AsArrayLinksToVector ) {
     std::vector<int> vi = { 0, 1, 2, 3, 4 };
     int *pi             = as_array( vi );
     for (auto i = 0; i < 5; i++) {
@@ -158,7 +192,7 @@ TEST( _TEST_TITLE_, AsArrayLinksToVector ) {
     }
 }
 
-TEST( _TEST_TITLE_, SortPermutationCreatedProperly ) {
+TEST_F( _TEST_TITLE_, SortPermutationCreatedProperly ) {
     std::vector<int> unsorted { 1, 4, 2, -1, 5, -3, -3 };
     std::vector<size_t> perm_expected { 5, 6, 3, 0, 2, 1, 4 };
     auto perm = sort_permutation(
@@ -166,21 +200,21 @@ TEST( _TEST_TITLE_, SortPermutationCreatedProperly ) {
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
 
-TEST( _TEST_TITLE_, SortPermutationIncreasingCreatedProperly ) {
+TEST_F( _TEST_TITLE_, SortPermutationIncreasingCreatedProperly ) {
     std::vector<int> unsorted { 1, 4, 2, -1, 5, -3, -3 };
     std::vector<size_t> perm_expected { 5, 6, 3, 0, 2, 1, 4 };
     auto perm = sort_permutation_increasing( unsorted );
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
 
-TEST( _TEST_TITLE_, SortPermutationDecreasingCreatedProperly ) {
+TEST_F( _TEST_TITLE_, SortPermutationDecreasingCreatedProperly ) {
     std::vector<int> unsorted { 1, 4, 2, -1, 5, -3, -3 };
     std::vector<size_t> perm_expected { 4, 1, 2, 0, 3, 5, 6 };
     auto perm = sort_permutation_decreasing( unsorted );
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
 
-TEST( _TEST_TITLE_, SortPermutationAppliedProperly ) {
+TEST_F( _TEST_TITLE_, SortPermutationAppliedProperly ) {
     std::vector<int> unsorted { 1, 4, 2, -1, 5, -3, -3 };
     std::vector<double> orig { 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
     std::vector<double> sorted_expected { 5.0, 6.0, 3.0, 0.0, 2.0, 1.0, 4.0 };
@@ -190,7 +224,7 @@ TEST( _TEST_TITLE_, SortPermutationAppliedProperly ) {
     EXPECT_ARRAY_DOUBLE_EQ( perm.size(), sorted, sorted_expected );
 }
 
-TEST( _TEST_TITLE_, SortPermutationAppliedProperlyInPlace ) {
+TEST_F( _TEST_TITLE_, SortPermutationAppliedProperlyInPlace ) {
     std::vector<int> unsorted { 1, 4, 2, -1, 5, -3, -3 };
     std::vector<double> orig { 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
     std::vector<double> sorted_expected { 5.0, 6.0, 3.0, 0.0, 2.0, 1.0, 4.0 };
@@ -200,7 +234,7 @@ TEST( _TEST_TITLE_, SortPermutationAppliedProperlyInPlace ) {
     EXPECT_ARRAY_DOUBLE_EQ( perm.size(), orig, sorted_expected );
 }
 
-TEST( _TEST_TITLE_, DoubleSortPermutationCreatedProperly ) {
+TEST_F( _TEST_TITLE_, DoubleSortPermutationCreatedProperly ) {
     std::vector<int> unsorted1 { 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5 };
     std::vector<int> unsorted2 { 2, 1, 3, 4, 0, 0, 1, 2, 4, 3, 2, 2, 1 };
     std::vector<size_t> perm_expected { 1, 0, 2, 4,  5,  3, 6,
@@ -209,7 +243,7 @@ TEST( _TEST_TITLE_, DoubleSortPermutationCreatedProperly ) {
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
 
-TEST( _TEST_TITLE_, DoubleSortPermutationDecreasingCreatedProperly ) {
+TEST_F( _TEST_TITLE_, DoubleSortPermutationDecreasingCreatedProperly ) {
     std::vector<int> unsorted1 { 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5 };
     std::vector<int> unsorted2 { 2, 1, 3, 4, 0, 0, 1, 2, 4, 3, 2, 2, 1 };
     std::vector<size_t> perm_expected { 12, 10, 11, 8, 9, 7, 6,
@@ -218,7 +252,7 @@ TEST( _TEST_TITLE_, DoubleSortPermutationDecreasingCreatedProperly ) {
     EXPECT_ARRAY_EQ( perm.size(), perm, perm_expected );
 }
 
-TEST( _TEST_TITLE_, AddVectorsWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, AddVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = add_vectors( x, y );
@@ -230,7 +264,7 @@ TEST( _TEST_TITLE_, AddVectorsWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, AddVectorsCommutesForVectors ) {
+TEST_F( _TEST_TITLE_, AddVectorsCommutesForVectors ) {
     vector<double> x  = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y  = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z1 = add_vectors( x, y );
@@ -238,7 +272,7 @@ TEST( _TEST_TITLE_, AddVectorsCommutesForVectors ) {
     EXPECT_ARRAY_DOUBLE_EQ( 8, z1, z2 );
 }
 
-TEST( _TEST_TITLE_, AddArraysWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, AddArraysWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
@@ -248,7 +282,7 @@ TEST( _TEST_TITLE_, AddArraysWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, AddArraysCommutes ) {
+TEST_F( _TEST_TITLE_, AddArraysCommutes ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z1       = NCPA::arrays::zeros<double>( 5 );
@@ -258,7 +292,7 @@ TEST( _TEST_TITLE_, AddArraysCommutes ) {
     EXPECT_ARRAY_DOUBLE_EQ( 5, z1, z2 );
 }
 
-TEST( _TEST_TITLE_, DivideVectorsWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, DivideVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.1, 1.0 );
     vector<double> z = divide_vectors( x, y );
@@ -270,7 +304,7 @@ TEST( _TEST_TITLE_, DivideVectorsWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, DivideArraysWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, DivideArraysWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, 0.1, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
@@ -280,7 +314,7 @@ TEST( _TEST_TITLE_, DivideArraysWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, MultiplyVectorsWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, MultiplyVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, -1.0, 1.0 );
     vector<double> z = multiply_vectors( x, y );
@@ -292,7 +326,7 @@ TEST( _TEST_TITLE_, MultiplyVectorsWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, MultiplyArraysWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, MultiplyArraysWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, -1.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
@@ -302,7 +336,7 @@ TEST( _TEST_TITLE_, MultiplyArraysWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, MultiplyVectorsCommutes ) {
+TEST_F( _TEST_TITLE_, MultiplyVectorsCommutes ) {
     vector<double> x  = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y  = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z1 = multiply_vectors( x, y );
@@ -310,7 +344,7 @@ TEST( _TEST_TITLE_, MultiplyVectorsCommutes ) {
     EXPECT_ARRAY_DOUBLE_EQ( 8, z1, z2 );
 }
 
-TEST( _TEST_TITLE_, MultiplyArraysCommutes ) {
+TEST_F( _TEST_TITLE_, MultiplyArraysCommutes ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z1       = NCPA::arrays::zeros<double>( 5 );
@@ -320,7 +354,7 @@ TEST( _TEST_TITLE_, MultiplyArraysCommutes ) {
     EXPECT_ARRAY_DOUBLE_EQ( 5, z1, z2 );
 }
 
-TEST( _TEST_TITLE_, ScaleVectorWorksProperly ) {
+TEST_F( _TEST_TITLE_, ScaleVectorWorksProperly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double scalar    = NCPA::math::random_number<double>( -3.0, 3.0 );
     vector<double> y = scale_vector( x, scalar );
@@ -329,7 +363,7 @@ TEST( _TEST_TITLE_, ScaleVectorWorksProperly ) {
     }
 }
 
-TEST( _TEST_TITLE_, ScaleArrayWorksProperly ) {
+TEST_F( _TEST_TITLE_, ScaleArrayWorksProperly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double scalar    = NCPA::math::random_number<double>( -3.0, 3.0 );
     double *y        = NCPA::arrays::zeros<double>( 5 );
@@ -339,7 +373,7 @@ TEST( _TEST_TITLE_, ScaleArrayWorksProperly ) {
     }
 }
 
-TEST( _TEST_TITLE_, ScaleArrayWorksProperlyInPlace ) {
+TEST_F( _TEST_TITLE_, ScaleArrayWorksProperlyInPlace ) {
     double *x         = NCPA::arrays::zeros<double>( 5 );
     vector<double> xv = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     std::copy( xv.cbegin(), xv.cend(), x );
@@ -350,7 +384,7 @@ TEST( _TEST_TITLE_, ScaleArrayWorksProperlyInPlace ) {
     }
 }
 
-TEST( _TEST_TITLE_, SubtractVectorsWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, SubtractVectorsWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = subtract_vectors( x, y );
@@ -362,7 +396,7 @@ TEST( _TEST_TITLE_, SubtractVectorsWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, SubtractArraysWorksCorrectly ) {
+TEST_F( _TEST_TITLE_, SubtractArraysWorksCorrectly ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double *z        = NCPA::arrays::zeros<double>( 5 );
@@ -372,7 +406,7 @@ TEST( _TEST_TITLE_, SubtractArraysWorksCorrectly ) {
     }
 }
 
-TEST( _TEST_TITLE_, PlusOperatorWorksForVectors ) {
+TEST_F( _TEST_TITLE_, PlusOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x + y;
@@ -384,7 +418,7 @@ TEST( _TEST_TITLE_, PlusOperatorWorksForVectors ) {
     }
 }
 
-TEST( _TEST_TITLE_, PlusOperatorWorksForVectorScalar ) {
+TEST_F( _TEST_TITLE_, PlusOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double y         = 3.5;
     vector<double> z = x + y;
@@ -393,7 +427,7 @@ TEST( _TEST_TITLE_, PlusOperatorWorksForVectorScalar ) {
     }
 }
 
-TEST( _TEST_TITLE_, MinusOperatorWorksForVectors ) {
+TEST_F( _TEST_TITLE_, MinusOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x - y;
@@ -405,7 +439,7 @@ TEST( _TEST_TITLE_, MinusOperatorWorksForVectors ) {
     }
 }
 
-TEST( _TEST_TITLE_, MinusOperatorWorksForVectorScalar ) {
+TEST_F( _TEST_TITLE_, MinusOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double y         = 3.5;
     vector<double> z = x - y;
@@ -414,7 +448,7 @@ TEST( _TEST_TITLE_, MinusOperatorWorksForVectorScalar ) {
     }
 }
 
-TEST( _TEST_TITLE_, NegationOperatorWorksForVector ) {
+TEST_F( _TEST_TITLE_, NegationOperatorWorksForVector ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     vector<double> z = -x;
     for (auto i = 0; i < 5; i++) {
@@ -422,7 +456,7 @@ TEST( _TEST_TITLE_, NegationOperatorWorksForVector ) {
     }
 }
 
-TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectors ) {
+TEST_F( _TEST_TITLE_, MultiplyOperatorWorksForVectors ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 ),
                    y = NCPA::math::random_numbers<double>( 8, 0.0, 1.0 );
     vector<double> z = x * y;
@@ -434,7 +468,7 @@ TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectors ) {
     }
 }
 
-TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
+TEST_F( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
     vector<double> x = NCPA::math::random_numbers<double>( 5, 0.0, 1.0 );
     double y         = 3.5;
     vector<double> z = x / y;
@@ -443,155 +477,453 @@ TEST( _TEST_TITLE_, MultiplyOperatorWorksForVectorScalar ) {
     }
 }
 
-// TEST( _TEST_TITLE_, ThreeDimensionalArrayConstructorWorks ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-//     for (size_t i = 0; i < dim1; ++i) {
-//         for (size_t j = 0; j < dim2; ++j) {
-//             for (size_t k = 0; k < dim3; ++k) {
-//                 EXPECT_EQ( arr.at( { i, j, k } ), 0 );
-//             }
-//         }
-//     }
-// }
+TEST_F( _TEST_TITLE_, _dimarrayAssigns ) {
+    std::vector<size_t> testdims { 5, 4, 3 };
+    for (auto i = 0; i < dims.size(); ++i) {
+        EXPECT_EQ( dims.at( i ), testdims.at( i ) );
+    }
+    // EXPECT_TRUE( dims == ( std::vector<size_t> { 5, 4, 3 } ) );
+}
 
-// TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayPassThrough ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-//     for (size_t i = 0; i < dim1; ++i) {
-//         auto view2d = arr.view( 0, i );
-//         for (size_t j = 0; j < dim2; ++j) {
-//             auto view1d = view2d.view( 0, j );
-//             for (size_t k = 0; k < dim3; ++k) {
-//                 EXPECT_EQ( view1d.at( { k } ), 0 );
-//                 view1d.at( { k } )    = (int)( i + j + k );
-//                 arr.at( { i, j, k } ) = (int)( i + j + k );
-//             }
-//         }
-//     }
-// }
+TEST_F( _TEST_TITLE_, _dimarraySubdimsIsCorrect ) {
+    auto sub = details::subdims( dims );
+    EXPECT_EQ( sub.size(), 2 );
+    for (size_t i = 0; i < 2; i++) {
+        EXPECT_EQ( sub[ i ], dims[ i + 1 ] );
+    }
+    auto subsub = details::subdims( details::subdims( dims ) );
+    EXPECT_EQ( subsub.size(), 1 );
+    EXPECT_EQ( subsub[ 0 ], dims[ 2 ] );
+}
 
-// TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidDimension ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_THROW( { arr.view( dim1, 0 ).dimension( 0 ); }, std::range_error );
-// }
+TEST_F( _TEST_TITLE_, ZeroLengthVectorIsDouble ) {
+    double d = 4.2;
+    ndvector<0, double> d0( d );
+    EXPECT_DOUBLE_EQ( d, d0 );
+}
 
-// TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidDimension ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_NO_THROW( { arr.view( dim1-1, 0 ).dimension( 0 ); } );
-// }
+TEST_F( _TEST_TITLE_, Length1ArrayIsStdVector ) {
+    std::vector<double> v { 4.2, 3.1, 2.0 };
+    EXPECT_TRUE( v == d1 );
+    EXPECT_TRUE( d1 == v );
+}
 
-// TEST( _TEST_TITLE_, ArrayLikeThrowsRangeErrorOnInvalidElement ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_THROW( { arr.view( 0, dim1 ); }, std::range_error );
-// }
+TEST_F( _TEST_TITLE_, AssignmentOperatorWorksOnSize1 ) {
+    std::vector<double> v  = d1;
+    v[ 0 ]                *= 2.0;
+    EXPECT_FALSE( v == d1 );
+    EXPECT_FALSE( d1 == v );
+    d1 = v;
+    EXPECT_TRUE( v == d1 );
+    EXPECT_TRUE( d1 == v );
+}
 
-// TEST( _TEST_TITLE_, ArrayLikeThrowsNothingOnValidElement ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_NO_THROW( { arr.view( 0, dim1-1 ); } );
-// }
+TEST_F( _TEST_TITLE_, ShapeFunctionWorksOnSize1 ) {
+    EXPECT_TRUE( d1.shape() == ( std::vector<size_t> { 3 } ) );
+}
 
-// TEST( _TEST_TITLE_, ViewsOfThreeDimensionalArrayAreDimensionedCorrectly ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     ASSERT_EQ( arr.size(), dim1 * dim2 * dim3 );
+TEST_F( _TEST_TITLE_, SquareBracketsWorkOnSize1 ) {
+    EXPECT_TRUE( d1[ 0 ] == 4.2 );
+    EXPECT_TRUE( d1[ 1 ] == 3.1 );
+    EXPECT_TRUE(( d1[ 2 ] == 2.0 ));
+    d1[ 0 ] = 10.0;
+    EXPECT_TRUE( d1[ 0 ] == 10.0 );
+    d1[ 4 ] = 10.0;
+    EXPECT_TRUE( d1[ 4 ] == 10.0 );
+    EXPECT_EQ( d1.size(), 5 );
+}
 
-//     // all views along first dimension should be dim2 x dim3
-//     EXPECT_EQ( arr.view( 0, 0 ).dimension( 0 ), dim2 );
-//     EXPECT_EQ( arr.view( 0, 0 ).dimension( 1 ), dim3 );
-//     EXPECT_EQ( arr.view( 0, 1 ).dimension( 0 ), dim2 );
-//     EXPECT_EQ( arr.view( 0, 1 ).dimension( 1 ), dim3 );
-//     EXPECT_EQ( arr.view( 0, 2 ).dimension( 0 ), dim2 );
-//     EXPECT_EQ( arr.view( 0, 2 ).dimension( 1 ), dim3 );
+TEST_F( _TEST_TITLE_, ResizeWorksOnSize1 ) {
+    d1.reshape( { 4 } );
+    EXPECT_TRUE( d1[ 0 ] == 4.2 );
+    EXPECT_TRUE( d1[ 1 ] == 3.1 );
+    EXPECT_TRUE( d1[ 2 ] == 2.0 );
+    EXPECT_TRUE( d1[ 3 ] == 0.0 );
+    d1.reshape( { 2 } );
+    EXPECT_EQ( d1.size(), 2 );
+    EXPECT_TRUE( d1[ 0 ] == 4.2 );
+    EXPECT_TRUE( d1[ 1 ] == 3.1 );
+}
 
-//     // all views along second dimension should be dim1 x dim3
-//     EXPECT_EQ( arr.view( 1, 0 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 1, 0 ).dimension( 1 ), dim3 );
-//     EXPECT_EQ( arr.view( 1, 1 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 1, 1 ).dimension( 1 ), dim3 );
-//     EXPECT_EQ( arr.view( 1, 2 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 1, 2 ).dimension( 1 ), dim3 );
-//     EXPECT_EQ( arr.view( 1, 3 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 1, 3 ).dimension( 1 ), dim3 );
+TEST_F( _TEST_TITLE_, ShapeFunctionWorksOnSize2 ) {
+    EXPECT_TRUE( d2.shape() == ( std::vector<size_t> { 2, 3 } ) );
+}
 
-//     // all views along third dimension should be dim1 x dim2
-//     EXPECT_EQ( arr.view( 2, 0 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 0 ).dimension( 1 ), dim2 );
-//     EXPECT_EQ( arr.view( 2, 1 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 1 ).dimension( 1 ), dim2 );
-//     EXPECT_EQ( arr.view( 2, 2 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 2 ).dimension( 1 ), dim2 );
-//     EXPECT_EQ( arr.view( 2, 3 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 3 ).dimension( 1 ), dim2 );
-//     EXPECT_EQ( arr.view( 2, 4 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 4 ).dimension( 1 ), dim2 );
+TEST_F( _TEST_TITLE_, Length2ArrayIsVectorOfVectors ) {
+    std::vector<double> v { 4.2, 3.1, 2.0 };
+    EXPECT_TRUE( v == d2[ 0 ] );
+    EXPECT_TRUE( d2[ 1 ] == v );
+}
 
-//     // all views along first and second dimension should be 1 x dim3
-//     auto view1 = arr.view(0,0);
-//     auto view2 = view1.view(0,0);
-//     size_t testdim = view2.dimension(0);
-//     EXPECT_EQ( testdim, dim3 );
-//     EXPECT_EQ( arr.view( 0, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+TEST_F( _TEST_TITLE_, SquareBracketsWorkOnSize2 ) {
+    EXPECT_TRUE( d2[ 0 ][ 0 ] == 4.2 );
+    EXPECT_TRUE( d2[ 1 ][ 1 ] == 3.1 );
+    EXPECT_TRUE( d2[ 0 ][ 2 ] == 2.0 );
+    d2[ 0 ][ 0 ] = 10.0;
+    EXPECT_TRUE( d2[ 0 ][ 0 ] == 10.0 );
+}
 
-//     // all views along first and third dimension should be 1 x dim2
-//     EXPECT_EQ( arr.view( 0, 0 ).view( 1, 0 ).dimension( 0 ), dim2 );
-//     EXPECT_EQ( arr.view( 0, 0 ).view( 1, 1 ).dimension( 0 ), dim2 );
+TEST_F( _TEST_TITLE_, SquareBracketsWithArrayWorkOnSize2 ) {
+    EXPECT_TRUE(( d2[ { 0, 0 } ] == 4.2 ));
+    EXPECT_TRUE(( d2[ { 1, 1 } ] == 3.1 ));
+    EXPECT_TRUE(( d2[ { 0, 2 } ] == 2.0 ));
+    d2[ { 0, 0 } ] = 10.0;
+    EXPECT_TRUE(( d2[ { 0, 0 } ] == 10.0 ));
+}
 
-//     // all views along second and first dimension should be 1 x dim3
-//     EXPECT_EQ( arr.view( 1, 0 ).view( 0, 0 ).dimension( 0 ), dim3 );
-//     EXPECT_EQ( arr.view( 1, 0 ).view( 0, 1 ).dimension( 0 ), dim3 );
+TEST_F( _TEST_TITLE_, ReshapeWorksOnSize2 ) {
+    d2.reshape( { 3, 3 } );
+    EXPECT_TRUE( d2.shape() == ( std::vector<size_t> { 3, 3 } ) );
+    EXPECT_TRUE(( d2[ { 0, 0 } ] == 4.2 ));
+    EXPECT_TRUE(( d2[ { 1, 1 } ] == 3.1 ));
+    EXPECT_TRUE(( d2[ { 2, 2 } ] == 0.0 ));
+}
 
-//     // all views along second and third dimension should be 1 x dim1
-//     EXPECT_EQ( arr.view( 1, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 1, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
+TEST_F( _TEST_TITLE_, ShapeFunctionWorksOnSize3 ) {
+    EXPECT_TRUE( d3.shape() == ( std::vector<size_t> { 3, 2, 3 } ) );
+}
 
-//     // all views along third and first dimension should be 1 x dim2
-//     EXPECT_EQ( arr.view( 2, 0 ).view( 0, 0 ).dimension( 0 ), dim2 );
-//     EXPECT_EQ( arr.view( 2, 0 ).view( 0, 1 ).dimension( 0 ), dim2 );
+TEST_F( _TEST_TITLE_, Length3ArrayIsVectorOfVectorOfVectorss ) {
+    std::vector<double> v { 4.2, 3.1, 2.0 };
+    EXPECT_TRUE( v == d3[ 0 ][ 0 ] );
+    EXPECT_TRUE( d3[ 1 ][ 1 ] == v );
+}
 
-//     // all views along third and second dimension should be 1 x dim1
-//     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 0 ).dimension( 0 ), dim1 );
-//     EXPECT_EQ( arr.view( 2, 0 ).view( 1, 1 ).dimension( 0 ), dim1 );
-// }
+TEST_F( _TEST_TITLE_, SquareBracketsWorkOnSize3 ) {
+    EXPECT_TRUE( d3[ 0 ][ 0 ][ 0 ] == 4.2 );
+    EXPECT_TRUE( d3[ 1 ][ 1 ][ 1 ] == 3.1 );
+    EXPECT_TRUE( d3[ 2 ][ 0 ][ 2 ] == 2.0 );
+    d3[ 0 ][ 0 ][ 0 ] = 10.0;
+    EXPECT_TRUE( d3[ 0 ][ 0 ][ 0 ] == 10.0 );
+}
 
-// TEST( _TEST_TITLE_, BracketOperatorsWorkCorrectly ) {
-//     size_t dim1 = 3;
-//     size_t dim2 = 4;
-//     size_t dim3 = 5;
-//     ThreeDimensionalArray<int> arr( dim1, dim2, dim3 );
-//     EXPECT_EQ( arr.size(), dim1 * dim2 * dim3 );
-//     for (size_t i = 0; i < dim1; ++i) {
-//         auto view2d = arr[i];
-//         EXPECT_EQ( view2d.dimension(0), dim2 );
-//         for (size_t j = 0; j < dim2; ++j) {
-//             auto view1d = view2d[j];
-//             EXPECT_EQ( view1d.dimension(0), dim3 );
-//             for (size_t k = 0; k < dim3; ++k) {
-//                 auto view0d = view1d[k];
-//                 EXPECT_EQ( view1d[k].at(), 0 );
-//             //     view1d[k]    = (int)( i + j + k );
-//             //     EXPECT_EQ( view1d[k], (int)( i + j + k ) );
-//             }
-//         }
-//     }
-// }
+TEST_F( _TEST_TITLE_, SquareBracketsWithArrayWorksOnSize3 ) {
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 4.2 ));
+    EXPECT_TRUE(( d3[ { 1, 1, 1 } ] == 3.1 ));
+    EXPECT_TRUE(( d3[ { 2, 0, 2 } ] == 2.0 ));
+    d3[ { 0, 0, 0 } ] = 10.0;
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 10.0 ));
+}
+
+TEST_F( _TEST_TITLE_, ReshapeWorksOnSize3 ) {
+    d3.reshape( { 3, 3, 3 } );
+    EXPECT_TRUE( d3.shape() == ( std::vector<size_t> { 3, 3, 3 } ) );
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 4.2 ));
+    EXPECT_TRUE(( d3[ { 1, 1, 1 } ] == 3.1 ));
+    EXPECT_TRUE(( d3[ { 2, 2, 2 } ] == 0.0 ));
+    d3.reshape( { 1, 3, 3 } );
+    EXPECT_TRUE(( d3[ { 0, 0, 0 } ] == 4.2 ));
+}
+
+TEST_F( _TEST_TITLE_, ConstructorWorksWithDimarray ) {
+    d3 = ndvector<3, double>( dims );
+    EXPECT_TRUE( d3.shape() == dims );
+}
+
+TEST_F( _TEST_TITLE_, ImplicitConversionCopyConstructorWorks ) {
+    ndvector<1, float> fvec1( d1 );
+    for (size_t i = 0; i < d1.size(); ++i) {
+        EXPECT_FLOAT_EQ( fvec1[ i ], d1[ i ] );
+    }
+
+    ndvector<2, float> fvec2( d2 );
+    for (size_t i = 0; i < d2.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d2.shape()[ 1 ]; ++j) {
+            EXPECT_FLOAT_EQ( fvec2[ i ][ j ], d2[ i ][ j ] );
+        }
+    }
+
+    ndvector<3, float> fvec3( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_FLOAT_EQ( fvec3[ i ][ j ][ k ], d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+
+    ndvector<3, int> ivec3( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_EQ( ivec3[ i ][ j ][ k ], (int)d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, CopyMethodWorks ) {
+    ndvector<1, float> fvec1;
+    ndvector<2, float> fvec2;
+    ndvector<3, float> fvec3;
+    ndvector<3, int> ivec3;
+
+    fvec1.copy( d1 );
+    for (size_t i = 0; i < d1.size(); ++i) {
+        EXPECT_FLOAT_EQ( fvec1[ i ], d1[ i ] );
+    }
+
+    fvec2.copy( d2 );
+    for (size_t i = 0; i < d2.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d2.shape()[ 1 ]; ++j) {
+            EXPECT_FLOAT_EQ( fvec2[ i ][ j ], d2[ i ][ j ] );
+        }
+    }
+
+    fvec3.copy( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_FLOAT_EQ( fvec3[ i ][ j ][ k ], d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+
+    ivec3.copy( d3 );
+    for (size_t i = 0; i < d3.shape()[ 0 ]; ++i) {
+        for (size_t j = 0; j < d3.shape()[ 1 ]; ++j) {
+            for (size_t k = 0; k < d3.shape()[ 2 ]; ++k) {
+                EXPECT_EQ( ivec3[ i ][ j ][ k ], (int)d3[ i ][ j ][ k ] );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_values( T& container, details::_dimarray dims ) {
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( container( i, j, k ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+}
+
+template<typename T>
+void assert_values( T& container, details::_dimarray dims ) {
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                ASSERT_EQ( container( i, j, k ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_slices( T& container, details::_dimarray dims ) {
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        auto sav = container.slice( 0, i );
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( sav( j, k ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+
+    for (auto j = 0; j < dims[ 1 ]; ++j) {
+        auto sav = container.slice( 1, j );
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( sav( i, k ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+
+    for (auto k = 0; k < dims[ 2 ]; ++k) {
+        auto sav = container.slice( 2, k );
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto j = 0; j < dims[ 1 ]; ++j) {
+                EXPECT_EQ( sav( i, j ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_iterators( T& container, details::_dimarray dims ) {
+    auto it = container.begin();
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( *( it++ ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_iterators_negative( T& container, details::_dimarray dims ) {
+    auto it = container.begin();
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( *( it++ ), -( i * 100 + j * 10 + k ) );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_iterators_writeable( T& container, details::_dimarray dims ) {
+    auto it = container.begin();
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                *it *= -1;
+                ++it;
+            }
+        }
+    }
+
+    check_iterators_negative( container, dims );
+}
+
+template<typename T>
+void check_slices_writeable( T& container0, details::_dimarray dims ) {
+    check_slices( container0, dims );
+
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        auto container( container0 );
+        assert_values( container, dims );
+        auto sav = container.slice( 0, i );
+        // cout << "Slicing at i=" << i << endl;
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                sav( j, k ) *= -1;
+                // cout << "container(" << i << "," << j << "," << k
+                //      << ") = " << container( i, j, k ) << endl;
+            }
+        }
+
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                // cout << "checking: container(" << i << "," << j << "," << k
+                //      << ") = " << container( i, j, k ) << endl;
+                EXPECT_EQ( container( i, j, k ), -( i * 100 + j * 10 + k ) );
+            }
+        }
+        // cout << endl;
+    }
+
+    for (auto j = 0; j < dims[ 1 ]; ++j) {
+        auto container( container0 );
+        assert_values( container, dims );
+        auto sav = container.slice( 1, j );
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                sav( i, k ) *= -1;
+            }
+        }
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( container( i, j, k ), -( i * 100 + j * 10 + k ) );
+            }
+        }
+    }
+
+    for (auto k = 0; k < dims[ 2 ]; ++k) {
+        auto container = container0;
+        assert_values( container, dims );
+        auto sav = container.slice( 2, k );
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto j = 0; j < dims[ 1 ]; ++j) {
+                sav( i, j ) *= -1;
+            }
+        }
+
+        for (auto i = 0; i < dims[ 0 ]; ++i) {
+            for (auto j = 0; j < dims[ 1 ]; ++j) {
+                EXPECT_EQ( container( i, j, k ), -( i * 100 + j * 10 + k ) );
+            }
+        }
+    }
+}
+
+template<typename T>
+void check_indexing( T& container, details::_dimarray dims ) {
+    for (auto i = 0; i < dims[ 0 ]; ++i) {
+        auto sav = container[ i ];
+        for (auto j = 0; j < dims[ 1 ]; ++j) {
+            for (auto k = 0; k < dims[ 2 ]; ++k) {
+                EXPECT_EQ( sav( j, k ), i * 100 + j * 10 + k );
+            }
+        }
+    }
+}
+
+TEST_F( _TEST_TITLE_, SmartArraySetCorrectly ) {
+    check_values( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArraySlicesCorrectly ) {
+    check_slices( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArraySlicesWriteable ) {
+    check_slices_writeable( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArrayIndexesCorrectly ) {
+    check_indexing( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArrayIteratorsReadCorrectly ) {
+    check_iterators( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArrayIteratorsWriteCorrectly ) {
+    check_iterators_writeable( sa, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartArrayResizesCorrectly ) {
+    assert_values( sa, dims );
+    sa.resize( 2, 3, 4 );
+    EXPECT_EQ( sa.size(), 2*3*4 );
+    for (auto val : sa) {
+        EXPECT_EQ( val, 0 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorSetCorrectly ) {
+    check_values( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorSlicesCorrectly ) {
+    check_slices( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorIndexesCorrectly ) {
+    check_indexing( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorIteratorsReadCorrectly ) {
+    check_iterators( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorIteratorsWriteCorrectly ) {
+    check_iterators_writeable( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorSlicesWriteable ) {
+    check_slices_writeable( sv, dims );
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorResizesCorrectly ) {
+    assert_values( sv, dims );
+    sv.resize( 2, 3, 4 );
+    EXPECT_EQ( sv.size(), 2*3*4 );
+    for (auto val : sv) {
+        EXPECT_EQ( val, 0 );
+    }
+}
+
+TEST_F( _TEST_TITLE_, SmartVectorCanRerank ) {
+    assert_values( sa, dims );
+    EXPECT_NO_THROW( { sv.resize(2,3); } );
+    EXPECT_EQ( sv.size(), 2*3 );
+    for (auto val : sv) {
+        EXPECT_EQ( val, 0 );
+    }
+}
