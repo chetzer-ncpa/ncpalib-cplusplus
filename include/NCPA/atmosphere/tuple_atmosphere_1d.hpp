@@ -373,11 +373,7 @@ namespace NCPA {
                 std::unordered_map<std::string, scalar_u_t> _scalar_properties;
                 vector_u_t _z;
                 NCPA::interpolation::interpolator_1d_type_t _interpolator_type
-                    = ( NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
-                            ? NCPA::interpolation::interpolator_1d_type_t::
-                                  GSL_STEFFEN
-                            : NCPA::interpolation::interpolator_1d_type_t::
-                                  LANL_CUBIC );
+                    = NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR;
         };
     }  // namespace atmos
 }  // namespace NCPA

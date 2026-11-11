@@ -223,6 +223,12 @@ namespace NCPA {
                     this->resize( shape );
                 }
 
+                template<typename Iterator, typename... Dims>
+                SmartVector( Iterator istart, Iterator iend, Dims... dims ) {
+                    this->resize( dims... );
+                    details::iterate_into( istart, iend, this->begin(), this->end() );
+                }
+
                 SmartVector( std::initializer_list<size_t> shape ) :
                     SmartVector<T>( std::vector<size_t>( shape ) ) {}
 

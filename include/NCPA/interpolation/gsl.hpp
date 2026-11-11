@@ -1,19 +1,13 @@
 #pragma once
 
+#include "NCPA/extern.hpp"
 
-#if __has_include( "gsl/gsl_spline.h" )
-#  ifndef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-#    define NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
+#if NCPA_HAVE_GSL && NCPA_USE_GSL
+#  ifndef NCPA_USE_GSL_INTERPOLATION
+#    define NCPA_USE_GSL_INTERPOLATION 1
 #  endif
-#  if GSL_MAJOR_VERSION >= 2
-#    define NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE true
-#  else
-#    define NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE false
+#  if NCPA_USE_GSL_INTERPOLATION
+#    include "NCPA/interpolation/gsl/declarations.hpp"
+#    include "NCPA/interpolation/gsl/gsl_interpolators.hpp"
 #  endif
-#  include "NCPA/interpolation/gsl/gsl_interpolators.hpp"
-#else
-#  ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-#    undef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-#  endif
-#  define NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE false
 #endif

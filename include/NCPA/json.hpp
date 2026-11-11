@@ -1,12 +1,7 @@
 #pragma once
+#include "NCPA/extern.hpp"
 
-#ifdef HAVE_NCPA_JSON
-#  undef HAVE_NCPA_JSON
-#endif
-
-#if __has_include( "nlohmann/json.hpp" )
-#  define HAVE_NCPA_JSON true
-
+#if NCPA_USE_NLOHMANN_JSON
 #  include "NCPA/cloneable.hpp"
 #  include "nlohmann/json.hpp"
 
@@ -68,6 +63,4 @@ namespace NCPA {
         };
     }  // namespace json
 }  // namespace NCPA
-#else
-#  define HAVE_NCPA_JSON false
 #endif

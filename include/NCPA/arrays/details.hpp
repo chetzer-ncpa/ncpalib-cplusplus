@@ -2,12 +2,13 @@
 
 #include "NCPA/arrays/declarations.hpp"
 #include "NCPA/arrays/exceptions.hpp"
+
 #include <vector>
 
 namespace NCPA {
     namespace arrays {
         namespace details {
-            
+
             template<typename T>
             struct _ndstorage {
                     std::vector<T> data;
@@ -39,7 +40,7 @@ namespace NCPA {
                 size_t result = offset;
 
                 if (indices.size() != shape.size()) {
-                    throw InvalidRank( "wrong number of indices");
+                    throw InvalidRank( "wrong number of indices" );
                 }
 
                 for (size_t i = 0; i < shape.size(); ++i) {
@@ -89,13 +90,14 @@ namespace NCPA {
             template<typename ContainerA, typename ContainerB>
             void deal_into( const ContainerA& a, ContainerB& b ) {
                 if (a.size() == b.size()) {
-                    auto ait = a.begin();
-                    auto bit = b.begin();
-                    while (ait != a.end() && bit != b.end()) {
-                        *bit = *ait;
-                        ++ait;
-                        ++bit;
-                    }
+                    iterate_into( a.begin(), a.end(), b.begin(), b.end() );
+                    // auto ait = a.begin();
+                    // auto bit = b.begin();
+                    // while (ait != a.end() && bit != b.end()) {
+                    //     *bit = *ait;
+                    //     ++ait;
+                    //     ++bit;
+                    // }
                 } else {
                     throw ShapesDoNotMatch(
                         "Cannot deal N-D containers of different sizes" );
@@ -113,28 +115,40 @@ namespace NCPA {
                 }
             }
 
+            template<typename IteratorFrom, typename IteratorTo>
+            void iterate_into( IteratorFrom abegin, IteratorFrom aend,
+                               IteratorTo bbegin, IteratorTo bend ) {
+                IteratorFrom ait = abegin;
+                IteratorTo bit   = bbegin;
+                while (ait != aend && bit != bend) {
+                    *bit = *ait;
+                    ++ait;
+                    ++bit;
+                }
+            }
+
             template<typename ContainerA, typename ContainerB>
             bool same_shape( const ContainerA& a, const ContainerB& b ) {
                 if (a.rank() != b.rank()) return false;
                 for (auto i = 0; i < a.rank(); ++i) {
-                    if (a.dim(i) != b.dim(i)) return false;
+                    if (a.dim( i ) != b.dim( i )) return false;
                 }
                 return true;
             }
 
             template<typename Container>
-            std::vector<typename Container::shape_type> indices(const Container& c) {
-                auto shape = c.shape();
+            std::vector<typename Container::shape_type> indices(
+                const Container& c ) {
+                auto shape  = c.shape();
                 auto digits = shape;
                 digits.clear();
                 std::vector<typename Container::shape_type> out;
                 out.reserve( c.size() );
                 do {
                     out.push_back( digits );
-                }
-                while (increment_digits( digits, shape ));
+                } while (increment_digits( digits, shape ));
                 return out;
             }
-        }
-    }
-}
+        }  // namespace details
+    }  // namespace arrays
+}  // namespace NCPA

@@ -2,6 +2,8 @@
 #include "NCPA/defines.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/strings.hpp"
+#include "NCPA/units/declarations.hpp"
+#include "NCPA/units/exceptions.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -10,50 +12,13 @@
 #include <unordered_map>
 #include <vector>
 
-// namespace NCPA {
-//     namespace units {
-//         class Unit;
-//     }
-// }
-
-// std::ostream& operator<<( std::ostream& output,
-//                           const NCPA::units::Unit& U );
-
 namespace NCPA {
     namespace units {
-        class Unit;
-
-        template<typename T = NCPA::units::Unit>
-        class invalid_conversion : public std::out_of_range {
-            public:
-                invalid_conversion() :
-                    std::out_of_range( "Invalid conversion" ) {}
-
-                invalid_conversion( const std::string& msg ) :
-                    std::out_of_range( msg ) {}
-
-                invalid_conversion( const T& from, const T& to ) :
-                    std::out_of_range( "Invalid conversion from " + from.name()
-                                       + " to " + to.name() ) {}
-
-                invalid_conversion( const T *from, const T *to ) :
-                    invalid_conversion( *from, *to ) {}
-        };
-
         class Unit {
             public:
-                Unit( const std::string& name                 = "",
-                      const std::vector<std::string>& aliases = {},
-                      const Unit *reference = nullptr, double scale = 1.0,
-                      double prescale = 0.0, double postscale = 0.0 ) :
-                    _name { name },
-                    _aliases { aliases },
-                    _scale { scale },
-                    _prescale_offset { prescale },
-                    _postscale_offset { postscale },
-                    _reference { reference } {}
+                Unit() = default;
 
-                Unit( const char *name,
+                Unit( std::string name,
                       const std::vector<std::string>& aliases = {},
                       const Unit *reference = nullptr, double scale = 1.0,
                       double prescale = 0.0, double postscale = 0.0 ) :
@@ -66,7 +31,7 @@ namespace NCPA {
 
                 virtual ~Unit() {}
 
-                virtual const std::string& name() const { return _name; }
+                virtual std::string name() const { return _name; }
 
                 virtual const std::vector<std::string>& aliases() const {
                     return _aliases;
@@ -118,87 +83,104 @@ namespace NCPA {
                     return ( _reference == nullptr );
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                //  ENABLE_FUNCTION_IF_REAL(T)>
-                T convert_to( T value, const Unit& target ) const {
+                InvalidConversion invalid_conversion(
+                    const Unit& target ) const {
+                    return InvalidConversion( "Cannot convert from "
+                                              + this->to_string() + " to "
+                                              + target.to_string() );
+                }
+
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double convert_to( double value, const Unit& target ) const {
                     if (!this->is_convertible_to( target )) {
-                        throw invalid_conversion<>( *this, target );
+                        throw this->invalid_conversion( target );
                     }
                     if (target.equals( this )) {
                         return value;
                     } else if (target.equals( reference() )) {
-                        return this->to_reference<T>( value );
+                        return this->to_reference( value );
                     } else {
-                        return target.from_base_reference<T>(
-                            this->to_base_reference<T>( value ) );
+                        return target.from_base_reference(
+                            this->to_base_reference( value ) );
                     }
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                //  ENABLE_FUNCTION_IF_REAL(T)>
-                T convert_to( T value, const Unit *target ) const {
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double convert_to( double value, const Unit *target ) const {
                     return this->convert_to( value, *target );
                 }
 
                 // template<typename T, ENABLE_IF( NCPA::types::is_iterable<T>
                 // )>
-                template<typename T, ENABLE_FUNCTION_IF_ITERABLE( T )>
-                T convert_to( const T& values, const Unit& target ) const {
-                    T converted;
-                    converted.reserve( values.size() );
-                    for (auto it = values.cbegin(); it != values.cend();
-                         ++it) {
-                        converted.push_back( this->convert_to( *it, target ) );
+                template<typename InputIterator, typename OutputIterator>
+                void convert_to( InputIterator ibegin, InputIterator iend,
+                                 OutputIterator out,
+                                 const Unit& target ) const {
+                    for (auto it = ibegin; it != iend; ++it) {
+                        *out = this->convert_to( *it, target );
                     }
+                }
+
+                template<typename T, typename UnitType,
+                         ENABLE_FUNCTION_IF_ITERABLE( T )>
+                T convert_to( const T& values, UnitType target ) const {
+                    T converted;
+                    this->convert_to( values.begin(), values.end(),
+                                std::back_inserter( converted ), target );
+                    // for (auto it = values.cbegin(); it != values.cend();
+                    //      ++it) {
+                    //         this->convert_
+                    //     converted.push_back( this->convert_to( *it,
+                    //     target ) );
+                    // }
                     return converted;
                 }
 
-                // template<typename T, ENABLE_IF( NCPA::types::is_iterable<T>
-                // )>
-                template<typename T, ENABLE_FUNCTION_IF_ITERABLE( T )>
-                T convert_to( const T& values, const Unit *target ) const {
-                    return this->convert_to( values, *target );
-                }
+                //    template<typename T, ENABLE_FUNCTION_IF_ITERABLE( T )>
+                //     T convert_to( const T& values, const Unit *target )
+                //     const {
+                //         return this->convert_to( values, *target );
+                //     }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                void convert_to( size_t N, T *values, const Unit& target,
-                                 T *& converted ) const {
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                void convert_to( size_t N, double *values, const Unit& target,
+                                 double *& converted ) const {
                     for (size_t i = 0; i < N; i++) {
                         converted[ i ]
-                            = this->convert_to<T>( values[ i ], target );
+                            = this->convert_to( values[ i ], target );
                     }
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                void convert_to( size_t N, T *values, const Unit *target,
-                                 T *& converted ) const {
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                void convert_to( size_t N, double *values, const Unit *target,
+                                 double *& converted ) const {
                     this->convert_to( N, values, *target, converted );
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                T to_reference( T value ) const {
-                    return ( value + (T)_prescale_offset ) * (T)_scale
-                         + (T)_postscale_offset;
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double to_reference( double value ) const {
+                    return ( value + _prescale_offset ) * _scale
+                         + _postscale_offset;
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                T to_base_reference( T value ) const {
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double to_base_reference( double value ) const {
                     if (is_base_reference()) {
                         return value;
                     } else {
-                        return _reference->to_base_reference<T>(
-                            this->to_reference<T>( value ) );
+                        return _reference->to_base_reference(
+                            this->to_reference( value ) );
                     }
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                T from_reference( T value ) const {
-                    return ( ( value - (T)_postscale_offset ) / (T)_scale )
-                         - (T)_prescale_offset;
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double from_reference( double value ) const {
+                    return ( ( value - _postscale_offset ) / _scale )
+                         - _prescale_offset;
                 }
 
-                template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
-                T from_base_reference( T value ) const {
+                // template<typename T = double, ENABLE_FUNCTION_IF_REAL( T )>
+                double from_base_reference( double value ) const {
                     if (is_base_reference()) {
                         return value;
                     } else {
@@ -213,9 +195,7 @@ namespace NCPA {
                     return output;
                 }
 
-                std::string to_string() const {
-                    return _name;
-                }
+                std::string to_string() const { return _name; }
 
             private:
                 std::string _name;
@@ -264,7 +244,8 @@ namespace NCPA {
                                       1000.0 );
         const static Unit MILLIMETERS( "mm", { "millimeters" }, &METERS,
                                        0.001 );
-        const static Unit CENTIMETERS( "cm", { "centimeters" }, &METERS, 0.01 );
+        const static Unit CENTIMETERS( "cm", { "centimeters" }, &METERS,
+                                       0.01 );
         const static Unit CELSIUS( "C", { "Celsius", "degrees C", "degC" },
                                    &KELVIN, 1.0, 273.15 );
         const static Unit FAHRENHEIT( "F",
@@ -305,9 +286,7 @@ namespace NCPA {
             class units_map_t
                 : public std::unordered_map<std::string, const Unit *> {
                 public:
-                    units_map_t()  {
-                        this->init_units();
-                    }
+                    units_map_t() { this->init_units(); }
 
                     void init_units() {
                         if (this->size() == 0) {
@@ -346,7 +325,7 @@ namespace NCPA {
                         }
                     }
 
-                    void register_unit(const Unit& u) {
+                    void register_unit( const Unit& u ) {
                         this->_add_unit_to_map( u.name(), &u );
                         for (auto it = u.aliases().cbegin();
                              it != u.aliases().cend(); ++it) {
@@ -354,7 +333,7 @@ namespace NCPA {
                         }
                     }
 
-                    void _add_unit_to_map( const std::string& key,
+                    void _add_unit_to_map( std::string key,
                                            const Unit *u ) {
                         std::string capskey = NCPA::strings::to_upper( key );
                         if (this->find( capskey ) == this->end()) {
@@ -375,30 +354,39 @@ namespace NCPA {
 
         class Units {
             public:
-                // iterable version, string lookup
-                // template<typename T, ENABLE_IF( NCPA::types::is_iterable<T>
-                // )>
                 template<typename T, ENABLE_FUNCTION_IF_ITERABLE( T )>
-                static T convert( T values, const std::string& from,
-                                  const std::string& to ) {
+                static T convert( T values, std::string from,
+                                  std::string to ) {
                     return Units::from_string( from )->convert_to<T>(
                         values, *( Units::from_string( to ) ) );
                 }
 
+                template<typename InputIterator, typename OutputIterator>
+                static void convert( InputIterator ibegin, InputIterator iend,
+                                     OutputIterator iout,
+                                     std::string from,
+                                     std::string to ) {
+                    for (auto it = ibegin; it != iend; ++it) {
+                        *iout = Units::from_string( from )->convert_to(
+                            *it, *( Units::from_string( to ) ) );
+                    }
+                }
+
                 // scalar version, string lookup
-                template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-                static T convert( T value, const std::string& from,
-                                  const std::string& to ) {
-                    return Units::from_string( from )->convert_to<T>(
+                // template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
+                static double convert( double value, std::string from,
+                                       std::string to ) {
+                    return Units::from_string( from )->convert_to(
                         value, *( Units::from_string( to ) ) );
                 }
 
                 // array version, string lookup
-                template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
-                static void convert( size_t N, T *values,
-                                     const std::string& from,
-                                     const std::string& to, T *& converted ) {
-                    Units::from_string( from )->convert_to<T>(
+                // template<typename T, ENABLE_FUNCTION_IF_REAL( T )>
+                static void convert( size_t N, double *values,
+                                     std::string from,
+                                     std::string to,
+                                     double *& converted ) {
+                    Units::from_string( from )->convert_to(
                         N, values, *( Units::from_string( to ) ), converted );
                 }
 
@@ -406,64 +394,20 @@ namespace NCPA {
                     NCPA::units::details::_units_map.register_unit( u );
                 }
 
-                // static void register_unit( const Unit& u ) {
-                //     _add_unit_to_map( u.name(), &u );
-                //     for (auto it = u.aliases().cbegin();
-                //          it != u.aliases().cend(); ++it) {
-                //         _add_unit_to_map( *it, &u );
-                //     }
-                // }
-
-                static const Unit *from_string( const std::string& key ) {
+                static const Unit *from_string( std::string key ) {
                     // init_map();
                     return NCPA::units::details::_units_map.at(
                         NCPA::strings::to_upper( key ) );
                 }
 
-                static bool can_convert( const std::string& u1,
-                                         const std::string& u2 ) {
+                static bool can_convert( std::string u1,
+                                         std::string u2 ) {
                     return from_string( u1 )->is_convertible_to(
                         *from_string( u2 ) );
                 }
 
-                // static void init_map() {
-                //     if (NCPA::units::details::_units_map.size() == 0) {
-                //         // register_unit( UNITLESS );
-                //         register_unit( METERS );
-                //         register_unit( KELVIN );
-                //         register_unit( METERS_PER_SECOND );
-                //         register_unit( PASCALS );
-                //         register_unit( KILOGRAMS_PER_CUBIC_METER );
-                //         register_unit( DECIBELS_PER_METER );
-                //         register_unit( KILOGRAMS );
-                //         register_unit( SECONDS );
-                //         register_unit( RADIANS );
-                //         // register_unit( HERTZ);
-
-                //         register_unit( KILOMETERS );
-                //         register_unit( MILLIMETERS );
-                //         register_unit( CELSIUS );
-                //         register_unit( FAHRENHEIT );
-                //         register_unit( KILOMETERS_PER_SECOND );
-                //         register_unit( HECTOPASCALS );
-                //         register_unit( MILLIBARS );
-                //         register_unit( ATMOSPHERES );
-                //         register_unit( GRAMS_PER_CUBIC_CENTIMETER );
-                //         register_unit( NEPERS_PER_METER );
-                //         register_unit( DECIBELS_PER_KILOMETER );
-                //         register_unit( GRAMS );
-                //         register_unit( DAYS );
-                //         register_unit( MINUTES );
-                //         register_unit( HOURS );
-                //         register_unit( DEGREES );
-                //         // register_unit( AZIMUTH );
-                //         // register_unit( AZIMUTH_RADIANS );
-                //         // register_unit( ANGULAR_FREQUENCY );
-                //     }
-                // }
-
             private:
-                static void _add_unit_to_map( const std::string& key,
+                static void _add_unit_to_map( std::string key,
                                               const Unit *u ) {
                     std::string capskey = NCPA::strings::to_upper( key );
                     if (NCPA::units::details::_units_map.find( capskey )
