@@ -240,8 +240,7 @@ namespace NCPA {
                    std::is_convertible<decltype( std::declval<std::ostream&>()
                                                  << std::declval<const T&>() ),
                                        std::ostream&>::value>::type>
-            : std::true_type {
-        };
+            : std::true_type {};
 
         // Tester for deleteable: destructible and not a fundamental type.
         // Good example of a simple compound trait.
@@ -316,6 +315,15 @@ namespace NCPA {
         DECLARE_CAN_USE_STD_FUNCTION( to_string )
         DECLARE_HAS_METHOD( to_string )
 
+        template<typename...>
+        struct all_arithmetic : std::true_type {};
+
+        template<typename First, typename... Rest>
+        struct all_arithmetic<First, Rest...>
+            : std::integral_constant<
+                  bool,
+                  std::is_arithmetic<typename std::decay<First>::type>::value
+                      && all_arithmetic<Rest...>::value> {};
 
     }  // namespace types
 }  // namespace NCPA

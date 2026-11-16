@@ -48,7 +48,7 @@ claus@olemiss.edu
 #include "NCPA/interpolation/abstract_spline_2d.hpp"
 #include "NCPA/interpolation/defines.hpp"
 #include "NCPA/interpolation/lanl/lanl_common.hpp"
-#include "NCPA/interpolation/lanl/lanl_declarations.hpp"
+#include "NCPA/interpolation/lanl/declarations.hpp"
 #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
@@ -56,8 +56,8 @@ claus@olemiss.edu
 
 template<typename T, typename U>
 static void swap(
-    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& a,
-    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& b ) noexcept;
+    NCPA::interpolation::LANL::BicubicSpline2D<T, U>& a,
+    NCPA::interpolation::LANL::BicubicSpline2D<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -67,20 +67,20 @@ namespace NCPA {
              * 2D INTERPOLATORS
              */
             // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE(
-            //     bicubic_spline_2d, NCPA::interpolation::_spline_2d );
+            //     BicubicSpline2D, NCPA::interpolation::_spline_2d );
 
             template<typename INDEPTYPE, typename DEPTYPE>
-            class bicubic_spline_2d<INDEPTYPE, DEPTYPE, void,
+            class BicubicSpline2D<INDEPTYPE, DEPTYPE, void,
                                     ENABLE_IF_REAL( INDEPTYPE ),
                                     ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE> {
                 public:
-                    bicubic_spline_2d() : _length_x { 0 }, _length_y { 0 } {}
+                    BicubicSpline2D() : _length_x { 0 }, _length_y { 0 } {}
 
-                    virtual ~bicubic_spline_2d() { this->clear(); }
+                    virtual ~BicubicSpline2D() { this->clear(); }
 
-                    bicubic_spline_2d(
-                        const bicubic_spline_2d<INDEPTYPE, DEPTYPE>& other ) :
+                    BicubicSpline2D(
+                        const BicubicSpline2D<INDEPTYPE, DEPTYPE>& other ) :
                         NCPA::interpolation::_spline_2d<INDEPTYPE, DEPTYPE>(
                             other ) {
                         _length_x   = other._length_x;
@@ -109,18 +109,18 @@ namespace NCPA {
                         }
                     }
 
-                    bicubic_spline_2d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                    BicubicSpline2D( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
                                            source ) noexcept :
-                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>() {
+                        BicubicSpline2D<INDEPTYPE, DEPTYPE>() {
                         ::swap( *this, source );
                     }
 
                     friend void ::swap<INDEPTYPE, DEPTYPE>(
-                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>& a,
-                        bicubic_spline_2d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+                        BicubicSpline2D<INDEPTYPE, DEPTYPE>& a,
+                        BicubicSpline2D<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
-                    bicubic_spline_2d<INDEPTYPE, DEPTYPE>& operator=(
-                        bicubic_spline_2d<INDEPTYPE, DEPTYPE> other ) {
+                    BicubicSpline2D<INDEPTYPE, DEPTYPE>& operator=(
+                        BicubicSpline2D<INDEPTYPE, DEPTYPE> other ) {
                         ::swap( *this, other );
                         return *this;
                     }
@@ -461,7 +461,7 @@ namespace NCPA {
                             A[ j ] = 0.0;
                             for ( int k = 0; k < 16; k++ ) {
                                 // A[ j ] +=
-                                // bicubic_spline_2d<INDEPTYPE,DEPTYPE>::_bicubic_mat[
+                                // BicubicSpline2D<INDEPTYPE,DEPTYPE>::_bicubic_mat[
                                 // j ][ k ] * X[ k ];
                                 A[ j ]
                                     += constants<DEPTYPE>::
@@ -507,7 +507,7 @@ namespace NCPA {
             };
 
             DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
-                bicubic_spline_2d, NCPA::interpolation::_spline_2d );
+                BicubicSpline2D, NCPA::interpolation::_spline_2d );
 
         }  // namespace LANL
     }  // namespace interpolation
@@ -515,8 +515,8 @@ namespace NCPA {
 
 template<typename T, typename U>
 static void swap(
-    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& a,
-    NCPA::interpolation::LANL::bicubic_spline_2d<T, U>& b ) noexcept {
+    NCPA::interpolation::LANL::BicubicSpline2D<T, U>& a,
+    NCPA::interpolation::LANL::BicubicSpline2D<T, U>& b ) noexcept {
     using std::swap;
     ::swap( dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( a ),
             dynamic_cast<NCPA::interpolation::_spline_2d<T, U>&>( b ) );

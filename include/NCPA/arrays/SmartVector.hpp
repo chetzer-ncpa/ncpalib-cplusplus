@@ -5,8 +5,8 @@
 #include "NCPA/arrays/exceptions.hpp"
 #include "NCPA/arrays/SmartViewIterator.hpp"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace NCPA {
     namespace arrays {
@@ -22,17 +22,14 @@ namespace NCPA {
                 typedef T element_t;
                 typedef std::vector<size_t> shape_type;
 
-                SmartVectorView( std::shared_ptr<details::_ndstorage<T>> storage,
-                              size_t offset, std::vector<size_t> shape,
-                              std::vector<size_t> strides ) :
+                SmartVectorView(
+                    std::shared_ptr<details::_ndstorage<T>> storage,
+                    size_t offset, std::vector<size_t> shape,
+                    std::vector<size_t> strides ) :
                     _storage( std::move( storage ) ),
                     _offset( offset ),
                     _shape( std::move( shape ) ),
                     _strides( std::move( strides ) ) {}
-
-                size_t rank() const { return _shape.size(); }
-
-                bool rank_mutable() const { return false; }
 
                 T& at( std::initializer_list<size_t> idx ) {
                     return _storage->data.at( details::linear_index(
@@ -70,9 +67,29 @@ namespace NCPA {
                         idx, _shape, _strides, _offset ) );
                 }
 
+                T& back() { return *( this->rbegin() ); }
+
+                const T& back() const { return *( this->rbegin() ); }
+
                 SmartVectorView<T>& clear() { return this->set( 0 ); }
 
+                size_t dim( size_t n ) const {
+                    assert( n < rank() );
+                    return _shape[ n ];
+                }
+
                 SmartVectorView<T>& fill( T val ) { return this->set( val ); }
+
+                std::vector<T> flatten() const {
+                    std::vector<T> target;
+                    std::copy( this->begin(), this->end(),
+                               std::back_inserter( target ) );
+                    return target;
+                }
+
+                T& front() { return *( this->begin() ); }
+
+                const T& front() const { return *( this->begin() ); }
 
                 template<typename... Indices>
                 T get( Indices... indices ) const {
@@ -80,7 +97,30 @@ namespace NCPA {
                 }
 
                 std::vector<shape_type> indices() const {
-                    return details::indices(*this);
+                    return details::indices( *this );
+                }
+
+                SmartVectorView operator[]( size_t ind ) const {
+                    return this->slice( 0, ind );
+                }
+
+                template<typename... Indices>
+                T& operator()( Indices... indices ) {
+                    return this->at( indices... );
+                }
+
+                template<typename... Indices>
+                const T& operator()( Indices... indices ) const {
+                    return this->at( indices... );
+                }
+
+                size_t rank() const { return _shape.size(); }
+
+                bool rank_mutable() const { return false; }
+
+                template<typename ContainerB>
+                bool same_shape_as( const ContainerB& b ) const {
+                    return details::same_shape( *this, b );
                 }
 
                 SmartVectorView<T>& set( T val ) {
@@ -95,9 +135,14 @@ namespace NCPA {
                     return *this;
                 }
 
+                const std::vector<size_t>& shape() const { return _shape; }
+
+                size_t size() const { return details::total_size( _shape ); }
+
                 SmartVectorView slice( size_t dim, size_t fixed_index ) const {
                     if (dim >= rank()) {
-                        throw DimensionOutOfRange( "Dimension too high to slice" );
+                        throw DimensionOutOfRange(
+                            "Dimension too high to slice" );
                     }
 
                     if (fixed_index >= _shape[ dim ]) {
@@ -120,34 +165,6 @@ namespace NCPA {
                     return SmartVectorView(
                         _storage, _offset + fixed_index * _strides[ dim ],
                         std::move( new_shape ), std::move( new_strides ) );
-                }
-
-                const std::vector<size_t>& shape() const { return _shape; }
-
-                SmartVectorView operator[]( size_t ind ) const {
-                    return this->slice( 0, ind );
-                }
-
-                template<typename... Indices>
-                T& operator()( Indices... indices ) {
-                    return this->at( indices... );
-                }
-
-                template<typename... Indices>
-                const T& operator()( Indices... indices ) const {
-                    return this->at( indices... );
-                }
-
-                template<typename ContainerB>
-                bool same_shape_as( const ContainerB& b ) const {
-                    return details::same_shape( *this, b );
-                }
-
-                size_t size() const { return details::total_size( _shape ); }
-
-                size_t dim( size_t n ) const {
-                    assert( n < rank() );
-                    return _shape[ n ];
                 }
 
                 iterator begin() {
@@ -226,7 +243,8 @@ namespace NCPA {
                 template<typename Iterator, typename... Dims>
                 SmartVector( Iterator istart, Iterator iend, Dims... dims ) {
                     this->resize( dims... );
-                    details::iterate_into( istart, iend, this->begin(), this->end() );
+                    details::iterate_into( istart, iend, this->begin(),
+                                           this->end() );
                 }
 
                 SmartVector( std::initializer_list<size_t> shape ) :
@@ -296,6 +314,10 @@ namespace NCPA {
                     //     details::linear_index( idx, _shape, _strides ) );
                 }
 
+                T& back() { return *( this->rbegin() ); }
+
+                const T& back() const { return *( this->rbegin() ); }
+
                 SmartVector<T>& clear() { return this->set( 0 ); }
 
                 template<typename FromType>
@@ -314,13 +336,24 @@ namespace NCPA {
 
                 SmartVector<T>& fill( T val ) { return this->set( val ); }
 
+                std::vector<T> flatten() const {
+                    std::vector<T> target;
+                    std::copy( this->begin(), this->end(),
+                               std::back_inserter( target ) );
+                    return target;
+                }
+
+                T& front() { return *( this->begin() ); }
+
+                const T& front() const { return *( this->begin() ); }
+
                 template<typename... Indices>
                 T get( Indices... indices ) const {
                     return this->at( indices... );
                 }
 
                 std::vector<shape_type> indices() const {
-                    return details::indices(*this);
+                    return details::indices( *this );
                 }
 
                 SmartVectorView<T> operator[]( size_t ind ) const {
@@ -354,12 +387,14 @@ namespace NCPA {
                         _storage = std::make_shared<details::_ndstorage<T>>();
                     } else if (_shape != shape) {
                         size_t oldsize = this->size();
-                        _shape = std::move( shape );
+                        _shape         = std::move( shape );
                         details::compute_strides( _shape, _strides );
                         size_t total = details::total_size( _shape );
-                        if (total != oldsize)
-                       { _storage = std::make_shared<details::_ndstorage<T>>();
-                        _storage->data.resize( total );}
+                        if (total != oldsize) {
+                            _storage
+                                = std::make_shared<details::_ndstorage<T>>();
+                            _storage->data.resize( total );
+                        }
                     }
 
                     return *this;
@@ -387,18 +422,22 @@ namespace NCPA {
                     return *this;
                 }
 
-                SmartVectorView<T>& set( const std::vector<T>& vals ) {
+                SmartVector<T>& set( const std::vector<T>& vals ) {
                     details::deal_into( vals, *this );
                     return *this;
                 }
 
                 const std::vector<size_t>& shape() const { return _shape; }
 
-                size_t size() const { return _storage ? _storage->data.size() : 0; }
+                size_t size() const {
+                    return _storage ? _storage->data.size() : 0;
+                }
 
-                SmartVectorView<T> slice( size_t dim, size_t fixed_index ) const {
+                SmartVectorView<T> slice( size_t dim,
+                                          size_t fixed_index ) const {
                     if (dim >= rank()) {
-                        throw DimensionOutOfRange( "Dimension too high to slice" );
+                        throw DimensionOutOfRange(
+                            "Dimension too high to slice" );
                     }
 
                     if (fixed_index >= _shape[ dim ]) {
@@ -456,5 +495,5 @@ namespace NCPA {
                 std::vector<size_t> _shape;
                 std::vector<size_t> _strides;
         };
-    }
-}
+    }  // namespace arrays
+}  // namespace NCPA

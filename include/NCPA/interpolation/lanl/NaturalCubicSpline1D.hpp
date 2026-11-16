@@ -43,69 +43,77 @@ claus@olemiss.edu
 #pragma once
 
 #include "NCPA/arrays.hpp"
+#include "NCPA/cloneable.hpp"
 #include "NCPA/defines.hpp"
-#include "NCPA/interpolation/abstract_spline_1d.hpp"
-#include "NCPA/interpolation/defines.hpp"
+#include "NCPA/interpolation/abstract_spline.hpp"
+#include "NCPA/interpolation/declarations.hpp"
+#include "NCPA/interpolation/lanl/declarations.hpp"
 #include "NCPA/interpolation/lanl/lanl_common.hpp"
 #include "NCPA/interpolation/lanl/lanl_spline_1d.hpp"
-#include "NCPA/interpolation/types.hpp"
+// #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
-template<typename T, typename U>
-static void swap(
-    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& a,
-    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& b ) noexcept;
+// template<typename T, typename U>
+// static void swap(
+//     NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>& a,
+//     NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
         namespace LANL {
-            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( natural_cubic_spline_1d,
+            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( NaturalCubicSpline1D,
             //                                        _lanl_spline_1d );
 
-            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-                class natural_cubic_spline_1d<INDEPTYPE, DEPTYPE, void,
-                                              ENABLE_IF_REAL( INDEPTYPE ),
-                                              ENABLE_IF_REAL( DEPTYPE )>
-                : public _lanl_spline_1d<INDEPTYPE, DEPTYPE> {
+            template<typename FloatType>
+            class NaturalCubicSpline1D
+                : public Cloneable<NaturalCubicSpline1D<FloatType>,
+                                   _lanl_spline_1d<FloatType>> {
+                    typedef Cloneable<NaturalCubicSpline1D<FloatType>,
+                                      _lanl_spline_1d<FloatType>>
+                        parent_t;
+
                 public:
-                    natural_cubic_spline_1d() :
-                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>() {}
+                using parent_t::eval_f;
+                using parent_t::eval_df;
+                using parent_t::eval_ddf;
+                using parent_t::eval_dddf;
+                using parent_t::init;
+                    NaturalCubicSpline1D()          = default;
+                    virtual ~NaturalCubicSpline1D() = default;
+                    NaturalCubicSpline1D(
+                        const NaturalCubicSpline1D<FloatType>& other )
+                        = default;
 
-                    virtual ~natural_cubic_spline_1d() {}
-
-                    natural_cubic_spline_1d(
-                        const natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&
-                            other ) :
-                        _lanl_spline_1d<INDEPTYPE, DEPTYPE>( other ) {}
-
-                    natural_cubic_spline_1d(
-                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&&
-                            source ) noexcept :
-                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>() {
-                        ::swap( *this, source );
+                    NaturalCubicSpline1D(
+                        NaturalCubicSpline1D<FloatType>&& source ) noexcept
+                        :
+                        NaturalCubicSpline1D<FloatType>() {
+                        swap( *this, source );
                     }
 
-                    friend void ::swap<INDEPTYPE, DEPTYPE>(
-                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>& a,
-                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>&
-                            b ) noexcept;
+                    friend void swap(
+                        NaturalCubicSpline1D<FloatType>& a,
+                        NaturalCubicSpline1D<FloatType>& b ) noexcept {
+                        swap( dynamic_cast<parent_t&>( a ),
+                              dynamic_cast<parent_t&>( b ) );
+                    }
 
-                    natural_cubic_spline_1d<INDEPTYPE, DEPTYPE>& operator=(
-                        natural_cubic_spline_1d<INDEPTYPE, DEPTYPE> other ) {
-                        ::swap( *this, other );
+                    NaturalCubicSpline1D<FloatType>& operator=(
+                        NaturalCubicSpline1D<FloatType> other ) {
+                        swap( *this, other );
                         return *this;
                     }
 
                     virtual void ready() override {
-                        DEPTYPE *_f_vals   = this->_get_f_vals();
-                        INDEPTYPE *_x_vals = this->_get_x_vals();
-                        DEPTYPE *_slopes   = this->_get_slopes();
+                        FloatType *_f_vals = this->_get_f_vals();
+                        FloatType *_x_vals = this->_get_x_vals();
+                        FloatType *_slopes = this->_get_slopes();
 
-                        INDEPTYPE ai, bi, ci;
-                        DEPTYPE di;
-                        INDEPTYPE new_c[ this->_get_length() - 1 ];
-                        DEPTYPE new_d[ this->_get_length() ];
+                        FloatType ai, bi, ci;
+                        FloatType di;
+                        FloatType new_c[ this->_get_length() - 1 ];
+                        FloatType new_d[ this->_get_length() ];
 
                         bi = 2.0 / ( _x_vals[ 1 ] - _x_vals[ 0 ] );
                         ci = 1.0 / ( _x_vals[ 1 ] - _x_vals[ 0 ] );
@@ -115,9 +123,8 @@ namespace NCPA {
                         new_c[ 0 ] = ci / bi;
                         new_d[ 0 ] = di / bi;
 
-                        for ( size_t i = 1; i < this->_get_length() - 1;
-                              i++ ) {
-                            INDEPTYPE dx1 = _x_vals[ i ] - _x_vals[ i - 1 ],
+                        for (size_t i = 1; i < this->_get_length() - 1; i++) {
+                            FloatType dx1 = _x_vals[ i ] - _x_vals[ i - 1 ],
                                       dx2 = _x_vals[ i + 1 ] - _x_vals[ i ];
 
                             ai = 1.0 / dx1;
@@ -154,25 +161,30 @@ namespace NCPA {
 
                         _slopes[ this->_get_length() - 1 ]
                             = new_d[ this->_get_length() - 1 ];
-                        for ( int i = this->_get_length() - 2; i > -1; i-- ) {
+                        for (int i = this->_get_length() - 2; i > -1; i--) {
                             _slopes[ i ]
                                 = new_d[ i ] - new_c[ i ] * _slopes[ i + 1 ];
                         }
+                        _ready = true;
                     }
 
-                    DEPTYPE eval_f( INDEPTYPE x ) override {
-                        DEPTYPE *_f_vals   = this->_get_f_vals();
-                        INDEPTYPE *_x_vals = this->_get_x_vals();
-                        DEPTYPE *_slopes   = this->_get_slopes();
+                    FloatType eval_f(
+                        const std::vector<FloatType>& x ) override {
+                        this->_check_dimensions( x );
+                        _make_ready();
+                        FloatType *_f_vals = this->_get_f_vals();
+                        FloatType *_x_vals = this->_get_x_vals();
+                        FloatType *_slopes = this->_get_slopes();
                         size_t k;
-                        INDEPTYPE dx, X;
-                        DEPTYPE df, A, B;
+                        FloatType dx, X;
+                        FloatType df, A, B;
 
-                        k = find_segment( x, _x_vals, this->_get_length(),
+                        k = find_segment( x.front(), _x_vals,
+                                          this->_get_length(),
                                           this->_get_accel() );
 
                         dx = _x_vals[ k + 1 ] - _x_vals[ k ];
-                        X  = ( x - _x_vals[ k ] ) / dx;
+                        X  = ( x.front() - _x_vals[ k ] ) / dx;
 
                         df = _f_vals[ k + 1 ] - _f_vals[ k ];
                         A  = _slopes[ k ] * dx - df;
@@ -185,19 +197,24 @@ namespace NCPA {
                                              * ( A * ( 1.0 - X ) + B * X ) );
                     }
 
-                    DEPTYPE eval_df( INDEPTYPE x ) override {
-                        DEPTYPE *_f_vals   = this->_get_f_vals();
-                        INDEPTYPE *_x_vals = this->_get_x_vals();
-                        DEPTYPE *_slopes   = this->_get_slopes();
+                    FloatType eval_df( const std::vector<FloatType>& x,
+                                       size_t wrt ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt );
+                        _make_ready();
+                        FloatType *_f_vals = this->_get_f_vals();
+                        FloatType *_x_vals = this->_get_x_vals();
+                        FloatType *_slopes = this->_get_slopes();
                         size_t k;
-                        INDEPTYPE dx, X;
-                        DEPTYPE df, A, B;
+                        FloatType dx, X;
+                        FloatType df, A, B;
 
-                        k = find_segment( x, _x_vals, this->_get_length(),
+                        k = find_segment( x.front(), _x_vals,
+                                          this->_get_length(),
                                           this->_get_accel() );
 
                         dx = _x_vals[ k + 1 ] - _x_vals[ k ];
-                        X  = ( x - _x_vals[ k ] ) / dx;
+                        X  = ( x.front() - _x_vals[ k ] ) / dx;
 
                         df = _f_vals[ k + 1 ] - _f_vals[ k ];
                         A  = _slopes[ k ] * dx - df;
@@ -209,19 +226,25 @@ namespace NCPA {
                              + X * ( 1.0 - X ) * ( B - A ) / dx;
                     }
 
-                    DEPTYPE eval_ddf( INDEPTYPE x ) override {
-                        DEPTYPE *_f_vals   = this->_get_f_vals();
-                        INDEPTYPE *_x_vals = this->_get_x_vals();
-                        DEPTYPE *_slopes   = this->_get_slopes();
+                    FloatType eval_ddf( const std::vector<double>& x,
+                                        size_t wrt1, size_t wrt2 ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt1 );
+                        this->_check_wrt( wrt2 );
+                        _make_ready();
+                        FloatType *_f_vals = this->_get_f_vals();
+                        FloatType *_x_vals = this->_get_x_vals();
+                        FloatType *_slopes = this->_get_slopes();
                         size_t k;
-                        INDEPTYPE dx, X;
-                        DEPTYPE df, A, B;
+                        FloatType dx, X;
+                        FloatType df, A, B;
 
-                        k = find_segment( x, _x_vals, this->_get_length(),
+                        k = find_segment( x.front(), _x_vals,
+                                          this->_get_length(),
                                           this->_get_accel() );
 
                         dx = _x_vals[ k + 1 ] - _x_vals[ k ];
-                        X  = ( x - _x_vals[ k ] ) / dx;
+                        X  = ( x.front() - _x_vals[ k ] ) / dx;
 
                         df = _f_vals[ k + 1 ] - _f_vals[ k ];
                         A  = _slopes[ k ] * dx - df;
@@ -231,19 +254,27 @@ namespace NCPA {
                              / std::pow( dx, 2 );
                     }
 
-                    DEPTYPE eval_dddf( INDEPTYPE x ) override {
-                        DEPTYPE *_f_vals   = this->_get_f_vals();
-                        INDEPTYPE *_x_vals = this->_get_x_vals();
-                        DEPTYPE *_slopes   = this->_get_slopes();
+                    FloatType eval_dddf( const std::vector<double>& x,
+                                         size_t wrt1, size_t wrt2,
+                                         size_t wrt3 ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt1 );
+                        this->_check_wrt( wrt2 );
+                        this->_check_wrt( wrt3 );
+                        _make_ready();
+                        FloatType *_f_vals = this->_get_f_vals();
+                        FloatType *_x_vals = this->_get_x_vals();
+                        FloatType *_slopes = this->_get_slopes();
                         size_t k;
-                        INDEPTYPE dx, X;
-                        DEPTYPE df, A, B;
+                        FloatType dx, X;
+                        FloatType df, A, B;
 
-                        k = find_segment( x, _x_vals, this->_get_length(),
+                        k = find_segment( x.front(), _x_vals,
+                                          this->_get_length(),
                                           this->_get_accel() );
 
                         dx = _x_vals[ k + 1 ] - _x_vals[ k ];
-                        X  = ( x - _x_vals[ k ] ) / dx;
+                        X  = ( x.front() - _x_vals[ k ] ) / dx;
 
                         df = _f_vals[ k + 1 ] - _f_vals[ k ];
                         A  = _slopes[ k ] * dx - df;
@@ -252,26 +283,37 @@ namespace NCPA {
                         return 6.0 * ( A - B ) / std::pow( dx, 3 );
                     }
 
-                    virtual interpolator_1d_type_t interptype() const override {
-                        return interpolator_1d_type_t::LANL_CUBIC;
-                    } 
+                    virtual interpolator_type_t interptype()
+                        const override {
+                        return interpolator_type_t::LANL_CUBIC;
+                    }
+
+                protected:
+                    bool _ready = false;
+
+                    void _make_ready() {
+                        if (!_ready) {
+                            this->ready();
+                        }
+                    }
             };
 
-            DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( natural_cubic_spline_1d,
-                                                    _lanl_spline_1d );
+            // DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( NaturalCubicSpline1D,
+            //                                         _lanl_spline_1d );
 
 
         }  // namespace LANL
     }  // namespace interpolation
 }  // namespace NCPA
 
-template<typename T, typename U>
-static void swap(
-    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& a,
-    NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>& b ) noexcept {
-    ::swap(
-        dynamic_cast<
-            NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>&>( a ),
-        dynamic_cast<
-            NCPA::interpolation::LANL::natural_cubic_spline_1d<T, U>&>( b ) );
-}
+// template<typename T, typename U>
+// static void swap(
+//     NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>& a,
+//     NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>& b ) noexcept {
+//     ::swap(
+//         dynamic_cast<
+//             NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>&>( a ),
+//         dynamic_cast<
+//             NCPA::interpolation::LANL::NaturalCubicSpline1D<T, U>&>( b )
+//             );
+// }

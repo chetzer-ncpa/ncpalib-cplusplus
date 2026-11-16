@@ -304,6 +304,25 @@ namespace NCPA {
             return tmpind;
         }
 
+        template<typename IteratorType, typename T>
+        size_t find_closest_index( IteratorType ibegin, IteratorType iend,
+                                   const T& target ) {
+            auto it = std::lower_bound( ibegin, iend, target );
+
+            if (it == ibegin) {
+                return 0;
+            }
+            if (it == iend) {
+                return std::distance( ibegin, iend ) - 1;
+            }
+
+            auto prev_it = std::prev( it );
+            if (std::abs( *prev_it - target ) <= std::abs( *it - target )) {
+                return std::distance( ibegin, prev_it );
+            }
+            return std::distance( ibegin, it );
+        }
+
         /**
         Finds and returns the index of the vector element that is closest
         in value to a supplied reference value.  Minimizes abs( z - zref ).

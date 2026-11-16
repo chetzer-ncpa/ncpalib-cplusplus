@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NCPA/extern.hpp"
+#include "NCPA/interpolation/declarations.hpp"
 
 #if NCPA_HAVE_GSL && NCPA_USE_GSL
 #  ifndef NCPA_USE_GSL_INTERPOLATION
@@ -8,6 +9,8 @@
 #  endif
 #  if NCPA_USE_GSL_INTERPOLATION
 #    include "NCPA/interpolation/gsl/declarations.hpp"
-#    include "NCPA/interpolation/gsl/gsl_interpolators.hpp"
+#    include "NCPA/interpolation/gsl/GSLSpline.hpp"
+#include "NCPA/interpolation/gsl/functions.hpp"
+// #    include "NCPA/interpolation/gsl/gsl_interpolators.hpp"
 #  endif
 #endif

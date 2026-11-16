@@ -9,6 +9,8 @@ namespace NCPA {
     namespace arrays {
         namespace details {
 
+
+
             template<typename T>
             struct _ndstorage {
                     std::vector<T> data;
@@ -87,6 +89,18 @@ namespace NCPA {
                 }
             }
 
+            template<typename IteratorFrom, typename IteratorTo>
+            void iterate_into( IteratorFrom abegin, IteratorFrom aend,
+                               IteratorTo bbegin, IteratorTo bend ) {
+                IteratorFrom ait = abegin;
+                IteratorTo bit   = bbegin;
+                while (ait != aend && bit != bend) {
+                    *bit = *ait;
+                    ++ait;
+                    ++bit;
+                }
+            }
+
             template<typename ContainerA, typename ContainerB>
             void deal_into( const ContainerA& a, ContainerB& b ) {
                 if (a.size() == b.size()) {
@@ -115,17 +129,7 @@ namespace NCPA {
                 }
             }
 
-            template<typename IteratorFrom, typename IteratorTo>
-            void iterate_into( IteratorFrom abegin, IteratorFrom aend,
-                               IteratorTo bbegin, IteratorTo bend ) {
-                IteratorFrom ait = abegin;
-                IteratorTo bit   = bbegin;
-                while (ait != aend && bit != bend) {
-                    *bit = *ait;
-                    ++ait;
-                    ++bit;
-                }
-            }
+            
 
             template<typename ContainerA, typename ContainerB>
             bool same_shape( const ContainerA& a, const ContainerB& b ) {
