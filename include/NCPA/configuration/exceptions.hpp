@@ -22,5 +22,6 @@ namespace NCPA {
         NCPA_DEFINE_EXCEPTION( UnknownMarker, std::out_of_range )
         NCPA_DEFINE_EXCEPTION( UnknownMarkerType, std::out_of_range )
         NCPA_DEFINE_EXCEPTION( ValidationFailed, std::out_of_range )
+        NCPA_DEFINE_EXCEPTION( FormattingError, std::logic_error )
     }  // namespace config
 }  // namespace NCPA

@@ -173,6 +173,7 @@ namespace NCPA {
                             case token_t::TAG:
                                 return std::make_pair( tagstr, valuestrs );
                             case token_t::VALUE:
+                            case token_t::VALUE_WITH_UNITS:
                                 valuestrs.push_back( t.text );
                                 break;
                             default:
