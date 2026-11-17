@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class CommandPacket : public InputPacket {
         public:
             CommandPacket() : InputPacket( input_id_t::COMMAND ) {}
@@ -63,3 +63,4 @@ namespace NCPA::processing {
             int _code;
     };
 }  // namespace NCPA::processing
+}

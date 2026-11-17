@@ -1377,7 +1377,7 @@ namespace NCPA {
                     size_t _length_x;              // Number of x nodes
                     size_t _length_y;              // Number of y nodes
                     size_t _length_z;              // Number of z nodes
-                    size_t _accel[ 3 ];            // Indices of x,y,z point
+                    int _accel[ 3 ];            // Indices of x,y,z point
 
                     INDEPTYPE *_x_vals = nullptr;  // 1D array of x values
                     INDEPTYPE *_y_vals = nullptr;  // 1D array of y values

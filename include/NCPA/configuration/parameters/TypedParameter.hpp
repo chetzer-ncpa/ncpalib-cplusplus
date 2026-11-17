@@ -59,11 +59,11 @@ namespace NCPA {
                     swap( *this, other );
                 }
 
-                TypedParameter<PARAMTYPE>& operator=(
-                    TypedParameter<PARAMTYPE> other ) {
-                    swap( *this, other );
-                    return *this;
-                }
+                // TypedParameter<PARAMTYPE>& operator=(
+                //     TypedParameter<PARAMTYPE> other ) {
+                //     swap( *this, other );
+                //     return *this;
+                // }
 
                 friend void swap( TypedParameter<PARAMTYPE>& a,
                                   TypedParameter<PARAMTYPE>& b ) noexcept {

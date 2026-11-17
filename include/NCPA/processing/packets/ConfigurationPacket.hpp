@@ -7,7 +7,7 @@
 // void swap( NCPA::processing::ConfigurationPacket& a,
 //            NCPA::processing::ConfigurationPacket& b ) noexcept;
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class ConfigurationPacket : public InputPacket {
         public:
             ConfigurationPacket() : InputPacket( input_id_t::CONFIGURATION ) {}
@@ -98,3 +98,4 @@ namespace NCPA::processing {
 //             dynamic_cast<NCPA::processing::InputPacket&>( b ) );
 //     swap( a._parameter, b._parameter );
 // }
+}

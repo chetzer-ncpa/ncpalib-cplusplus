@@ -120,11 +120,11 @@ namespace NCPA {
                         swap( *this, other );
                     }
 
-                    _base_vector_parameter<PARAMTYPE>& operator=(
-                        _base_vector_parameter<PARAMTYPE> other ) {
-                        swap( *this, other );
-                        return *this;
-                    }
+                    // _base_vector_parameter<PARAMTYPE>& operator=(
+                    //     _base_vector_parameter<PARAMTYPE> other ) {
+                    //     swap( *this, other );
+                    //     return *this;
+                    // }
 
                     friend void swap(
                         _base_vector_parameter<PARAMTYPE>& a,
@@ -158,7 +158,7 @@ namespace NCPA {
                         return _value.size();
                     }
 
-                    virtual PARAMTYPE get( size_t n = 0 ) const override {
+                    virtual PARAMTYPE get( size_t n = 0) const override {
                         return ( _value.empty() ? this->_nullval()
                                                 : _value.at( n ) );
                     }
@@ -432,14 +432,14 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n  ) const override {
                     return static_cast<long long>(
                         this->get( n )
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n  ) const override {
                     return static_cast<unsigned long long>(
                         this->get( n )
                         + std::numeric_limits<PARAMTYPE>::epsilon() );
@@ -691,16 +691,16 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     return ( this->get( n ) != 0 );
                 }
 
@@ -717,12 +717,12 @@ namespace NCPA {
                     return this->_as_string( n, throw_on_error );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     return static_cast<double>( this->get( n ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
@@ -947,16 +947,16 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     return ( this->get( n ) != 0 );
                 }
 
@@ -973,12 +973,12 @@ namespace NCPA {
                     return this->_as_string( n, throw_on_error );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     return static_cast<double>( this->get( n ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
@@ -1199,7 +1199,7 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     return this->get( n );
                 }
 
@@ -1216,21 +1216,21 @@ namespace NCPA {
                     return this->_as_string( n, throw_on_error );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     return static_cast<long long>( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     return static_cast<unsigned long long>( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     return static_cast<double>( this->get( n ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
@@ -1460,7 +1460,7 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     std::string s = this->get( n );
                     std::transform( s.begin(), s.end(), s.begin(),
                                     []( unsigned char c ) {
@@ -1483,21 +1483,21 @@ namespace NCPA {
                     return this->_as_string( n, throw_on_error );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     return std::stoll( this->get( n ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     return std::stoull( this->get( n ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     return std::stod( this->get( n ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     return std::complex<double>( this->as_double( n ), 0.0 );
                 }
 
@@ -1727,7 +1727,7 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     return ( std::abs( this->get( n ) ) != 0.0 );
                 }
 
@@ -1747,23 +1747,23 @@ namespace NCPA {
                     return oss.str();
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     return static_cast<long long>(
                         std::abs( this->get( n ) ) );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     return static_cast<unsigned long long>(
                         std::abs( this->get( n ) ) );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     return static_cast<double>( std::abs( this->get( n ) ) );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     return std::complex<double>( this->get( n ).real(),
                                                  this->get( n ).imag() );
                 }
@@ -2004,7 +2004,7 @@ namespace NCPA {
                             b ) );
                 }
 
-                virtual bool as_bool( size_t n = 0 ) const override {
+                virtual bool as_bool( size_t n) const override {
                     throw std::out_of_range(
                         "No as_bool() conversion defined!" );
                 }
@@ -2022,24 +2022,24 @@ namespace NCPA {
                     return this->_as_string( n, throw_on_error );
                 }
 
-                virtual long long as_int( size_t n = 0 ) const override {
+                virtual long long as_int( size_t n) const override {
                     throw std::out_of_range(
                         "No as_int() conversion defined!" );
                 }
 
                 virtual unsigned long long as_unsigned_int(
-                    size_t n = 0 ) const override {
+                    size_t n) const override {
                     throw std::out_of_range(
                         "No as_unsigned_int() conversion defined!" );
                 }
 
-                virtual double as_double( size_t n = 0 ) const override {
+                virtual double as_double( size_t n) const override {
                     throw std::out_of_range(
                         "No as_double() conversion defined!" );
                 }
 
                 virtual std::complex<double> as_complex( size_t n
-                                                         = 0 ) const override {
+                                                        ) const override {
                     throw std::out_of_range(
                         "No as_complex() conversion defined!" );
                 }

@@ -191,9 +191,9 @@ namespace NCPA {
 
                     const size_t& _get_length() const { return _length; }
 
-                    size_t& _get_accel() { return _accel; }
+                    int& _get_accel() { return _accel; }
 
-                    const size_t& _get_accel() const { return _accel; }
+                    const int& _get_accel() const { return _accel; }
 
                     INDEPTYPE *_get_x_vals() { return _x_vals; }
 
@@ -213,7 +213,7 @@ namespace NCPA {
                     }
 
                     size_t _length;  // Number of base points
-                    size_t _accel;   // Index of previous table look up;
+                    int _accel;   // Index of previous table look up;
                                      // used to increase spline speed
                     INDEPTYPE *_x_vals = nullptr;  // 1D array of x values
                     DEPTYPE *_f_vals   = nullptr;  // 1D array of f(x) values,

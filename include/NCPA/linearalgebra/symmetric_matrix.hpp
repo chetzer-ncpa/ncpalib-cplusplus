@@ -744,7 +744,8 @@ namespace NCPA {
 
                 size_t _max_ind2( size_t ind1 ) const {
                     return (size_t)std::min(
-                        this->rows(), this->rows() + _n_offdiag - ind1 );
+                        this->rows(), this->rows() - ind1 );
+                        // this->rows(), this->rows() + _n_offdiag - ind1 );
                 }
 
                 virtual symmetric_matrix<ELEMENTTYPE>& _add(

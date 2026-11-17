@@ -1,10 +1,10 @@
 #pragma once
 
+#include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/linearalgebra/Matrix.hpp"
 #include "NCPA/linearalgebra/Vector.hpp"
 #include "NCPA/logging.hpp"
-#include "NCPA/ndvector.hpp"
 
 #include <complex>
 #include <fstream>

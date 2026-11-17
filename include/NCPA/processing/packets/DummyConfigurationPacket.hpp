@@ -12,7 +12,7 @@
 // void swap( NCPA::processing::DummyConfigurationPacket& a,
 //            NCPA::processing::DummyConfigurationPacket& b ) noexcept;
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class DummyConfigurationPacket : public ResponsePacket {
         public:
             DummyConfigurationPacket() :
@@ -74,3 +74,4 @@ namespace NCPA::processing {
 //             dynamic_cast<NCPA::processing::ResponsePacket&>( b ) );
 //     swap( a._parameters, b._parameters );
 // }
+}

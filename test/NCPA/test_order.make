@@ -3,7 +3,6 @@ test_gtest.cpp \
 test_logging.cpp \
 test_types.cpp \
 test_arrays.cpp \
-test_ndvector.cpp \
 test_math.cpp \
 test_dsp.cpp \
 test_geographic.cpp \

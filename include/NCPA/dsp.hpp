@@ -25,49 +25,129 @@
 namespace NCPA {
     namespace dsp {
 
+        /**
+         * @brief Direction of a Fourier transform.
+         *
+         * FFT packages do not always agree as to whether a "forward" transform
+         * uses a positive or negative exponential, and likewise for "inverse"
+         * transforms.  We eliminate ambiguity by specifying the desired
+         * sign, and leave any necessary translations to the implementation of
+         * the interface.
+         */
         enum class fft_sign_t { NEGATIVE, POSITIVE };
+
+        /**
+         * @brief Desired back-end package.
+         */
         enum class fft_t { FFTW, FFTW3, POCKETFFT };
+
+        /**
+         * @brief Scaling to apply to transform output.
+         *
+         * @todo Make each interface smart enough to use its own default
+         * scaling
+         */
         enum class fft_scaling_t { NONE, HALF, FULL };
 
+        /**
+         * @class FFT
+         * @brief Abstract base class interface for FFT calculators
+         *
+         * Provides a common interface for FFTW and PocketFFT backends.
+         */
         class FFT : public CloneBase<FFT> {
             public:
+                /**
+                 * @brief Computes a complex-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from complex input.
+                 *
+                 * @param in A pointer to the complex input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 virtual void compute( std::complex<double> *in,
                                       std::complex<double> *out, size_t NFFT,
                                       fft_sign_t sign,
                                       fft_scaling_t scaling
                                       = fft_scaling_t::NONE ) = 0;
 
+                /**
+                 * @brief Computes a real-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from real input.
+                 *
+                 * @param in A pointer to the real input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 virtual void compute( double *in, std::complex<double> *out,
                                       size_t NFFT, fft_sign_t sign,
                                       fft_scaling_t scaling
                                       = fft_scaling_t::NONE ) = 0;
 
             public:
-                FFT() {}
+                /**
+                 * @brief Default constructor.
+                 */
+                FFT() = default;
 
+                /**
+                 * @brief Complex input constructor.
+                 *
+                 * @param input Complex input data to store.
+                 */
                 FFT( const std::vector<std::complex<double>>& input ) {
                     this->set( input );
                 }
 
+                /**
+                 * @brief Real input constructor.
+                 *
+                 * @param input Real input data to store.
+                 */
                 FFT( const std::vector<double>& input ) { this->set( input ); }
 
-                FFT( const FFT& other ) { _input = other._input; }
+                /**
+                 * @brief Copy constructor.
+                 */
+                FFT( const FFT& other ) = default;
 
-                FFT( FFT&& other ) noexcept { swap( *this, other ); }
+                /**
+                 * @brief Move constructor.
+                 */
+                FFT( FFT&& other ) noexcept = default;
 
-                virtual ~FFT() {}
+                /**
+                 * @brief Destructor.
+                 */
+                virtual ~FFT() = default;
 
                 friend void swap( FFT& a, FFT& b ) noexcept {
                     using std::swap;
                     swap( a._input, b._input );
                 }
 
+                /**
+                 * @brief Sets the internal stored input vector.
+                 * @param in The vector to copy and store.
+                 */
                 virtual FFT& set(
                     const std::vector<std::complex<double>>& in ) {
                     _input = in;
                     return *this;
                 }
 
+                /**
+                 * @brief Sets the internal stored input vector.
+                 * @param in The vector to copy and store.
+                 */
                 virtual FFT& set( const std::vector<double>& in ) {
                     _input.resize( in.size() );
                     for (size_t i = 0; i < in.size(); ++i) {
@@ -76,6 +156,18 @@ namespace NCPA {
                     return *this;
                 }
 
+                /**
+                 * @brief Computes a complex-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from complex input.
+                 *
+                 * @param in The complex input data, which is not stored.
+                 * @param out The output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 virtual void compute( std::vector<std::complex<double>>& in,
                                       std::vector<std::complex<double>>& out,
                                       fft_sign_t sign,
@@ -86,6 +178,18 @@ namespace NCPA {
                                    scaling );
                 }
 
+                /**
+                 * @brief Computes a real-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from real input.
+                 *
+                 * @param in The real input data, which is not stored.
+                 * @param out The output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 virtual void compute( std::vector<double>& in,
                                       std::vector<std::complex<double>>& out,
                                       fft_sign_t sign,
@@ -96,6 +200,19 @@ namespace NCPA {
                                    scaling );
                 }
 
+                /**
+                 * @brief Computes and returns a complex-to-complex FFT using
+                 * stored input data.
+                 *
+                 * Calculates a complex FFT from complex input stored
+                 * previously.  NFFT is assumed to be the size of the input
+                 * data.
+                 *
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 * @return The complex transform.
+                 */
                 virtual std::vector<std::complex<double>> compute(
                     fft_sign_t sign,
                     fft_scaling_t scaling = fft_scaling_t::NONE ) {
@@ -105,6 +222,18 @@ namespace NCPA {
                     return out;
                 }
 
+                /**
+                 * @brief Computes and returns a complex-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from complex input.  NFFT
+                 * is assumed to be the size of the input data.
+                 *
+                 * @param in The complex input data, which is not stored.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 * @return The complex transform.
+                 */
                 virtual std::vector<std::complex<double>> compute(
                     std::vector<std::complex<double>>& in, fft_sign_t sign,
                     fft_scaling_t scaling = fft_scaling_t::NONE ) {
@@ -114,6 +243,18 @@ namespace NCPA {
                     return out;
                 }
 
+                /**
+                 * @brief Computes and returns a real-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from real input.  NFFT
+                 * is assumed to be the size of the input data.
+                 *
+                 * @param in The real input data, which is not stored.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 * @return The complex transform.
+                 */
                 virtual std::vector<std::complex<double>> compute(
                     std::vector<double>& in, fft_sign_t sign,
                     fft_scaling_t scaling = fft_scaling_t::NONE ) {
@@ -123,6 +264,15 @@ namespace NCPA {
                     return out;
                 }
 
+                /**
+                 * @brief Computes the scaling factor from the scaling type and
+                 * transform size.
+                 *
+                 * @param scaling_type The type of scaling to be applied.
+                 * @param NFFT The transform size from which to calculate
+                 * scaling.
+                 * @return The calculated scaling factor as a double.
+                 */
                 static double scaling_factor( fft_scaling_t scaling_type,
                                               size_t NFFT ) {
                     if (scaling_type == fft_scaling_t::NONE) {
@@ -137,10 +287,32 @@ namespace NCPA {
                     }
                 }
 
+                /**
+                 * @brief Computes the mirrored (f > Nyquist) half of the input
+                 * spectrum.
+                 *
+                 * Overwrites the second half (f > Nyquist) of the
+                 * input spectrum with the conjugate of the mirrored first-half
+                 * element.
+                 *
+                 * @param in The spectrum to mirror.  The second half will be
+                 * overwritten.
+                 */
                 static void mirror( std::vector<std::complex<double>>& in ) {
                     mirror( in.data(), in.size() );
                 }
 
+                /**
+                 * @brief Computes the mirrored (f > Nyquist) half of the input
+                 * spectrum.
+                 *
+                 * Overwrites the second half (f > Nyquist) of the
+                 * input spectrum with the conjugate of the mirrored first-half
+                 * element.
+                 *
+                 * @param in The spectrum to mirror.  The second half will be
+                 * overwritten.
+                 */
                 static void mirror( std::complex<double> *in, size_t nfft ) {
                     for (size_t i = 1; i < nfft / 2; ++i) {
                         in[ nfft - i ] = std::conj( in[ i ] );
@@ -149,31 +321,54 @@ namespace NCPA {
 
             protected:
                 std::vector<std::complex<double>> _input;
-                // std::vector<std::complex<double>> _output;
         };
 
         typedef std::unique_ptr<FFT> fft_ptr_t;
 
 #ifdef NCPA_HAVE_POCKETFFT
+        /**
+         * @class PocketFFT
+         * @brief Implementation of FFT interface for PocketFFT backend.
+         */
         class PocketFFT : public Cloneable<PocketFFT, FFT> {
             public:
                 using FFT::compute;
 
+                /**
+                 * @brief Default constructor.
+                 */
                 PocketFFT() = default;
 
+                /**
+                 * @brief Complex input constructor.
+                 *
+                 * @param input Complex input data to store.
+                 */
                 PocketFFT( const std::vector<std::complex<double>>& input ) {
                     set( input );
                 }
 
+                /**
+                 * @brief Real input constructor.
+                 *
+                 * @param input Real input data to store.
+                 */
                 PocketFFT( const std::vector<double>& input ) { set( input ); }
 
+                /**
+                 * @brief Copy constructor.
+                 */
                 PocketFFT( const PocketFFT& other ) = default;
 
-                PocketFFT( PocketFFT&& other ) noexcept {
-                    swap( *this, other );
-                }
+                /**
+                 * @brief Move constructor.
+                 */
+                PocketFFT( PocketFFT&& other ) noexcept = default;
 
-                virtual ~PocketFFT() {}
+                /**
+                 * @brief Destructor.
+                 */
+                virtual ~PocketFFT() = default;
 
                 friend void swap( PocketFFT& a, PocketFFT& b ) noexcept {
                     using std::swap;
@@ -181,8 +376,18 @@ namespace NCPA {
                           static_cast<Cloneable<PocketFFT, FFT>&>( b ) );
                 }
 
-                // NCPA_CLONE_METHOD( PocketFFT, FFT )
-
+                /**
+                 * @brief Computes a complex-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from complex input.
+                 *
+                 * @param in A pointer to the complex input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 void compute( std::complex<double> *in,
                               std::complex<double> *out, size_t NFFT,
                               fft_sign_t sign,
@@ -197,6 +402,18 @@ namespace NCPA {
                          FFT::scaling_factor( scaling, NFFT ), 1 );
                 }
 
+                /**
+                 * @brief Computes a real-to-complex FFT.
+                 *
+                 * Calculates a real FFT from complex input.
+                 *
+                 * @param in A pointer to the real input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 void compute( double *in, std::complex<double> *out,
                               size_t NFFT, fft_sign_t sign,
                               fft_scaling_t scaling
@@ -215,23 +432,46 @@ namespace NCPA {
 #endif
 
 #ifdef NCPA_HAVE_FFTW3
+
         class FFTW : public Cloneable<FFTW, FFT> {
             public:
                 using FFT::compute;
 
+                /**
+                 * @brief Default constructor.
+                 */
                 FFTW() = default;
 
+                /**
+                 * @brief Complex input constructor.
+                 *
+                 * @param input Complex input data to store.
+                 */
                 FFTW( const std::vector<std::complex<double>>& input ) {
                     set( input );
                 }
 
+                /**
+                 * @brief Real input constructor.
+                 *
+                 * @param input Real input data to store.
+                 */
                 FFTW( const std::vector<double>& input ) { set( input ); }
 
+                /**
+                 * @brief Copy constructor.
+                 */
                 FFTW( const FFTW& other ) = default;
 
-                FFTW( FFTW&& other ) noexcept { swap( *this, other ); }
+                /**
+                 * @brief Move constructor.
+                 */
+                FFTW( FFTW&& other ) noexcept = default;
 
-                virtual ~FFTW() {}
+                /**
+                 * @brief Destructor.
+                 */
+                virtual ~FFTW() = default;
 
                 friend void swap( FFTW& a, FFTW& b ) noexcept {
                     using std::swap;
@@ -239,6 +479,18 @@ namespace NCPA {
                           static_cast<Cloneable<FFTW, FFT>&>( b ) );
                 }
 
+                /**
+                 * @brief Computes a complex-to-complex FFT.
+                 *
+                 * Calculates a complex FFT from complex input.
+                 *
+                 * @param in A pointer to the complex input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 void compute( std::complex<double> *in,
                               std::complex<double> *out, size_t NFFT,
                               fft_sign_t sign,
@@ -260,6 +512,18 @@ namespace NCPA {
                     }
                 }
 
+                /**
+                 * @brief Computes a real-to-complex FFT.
+                 *
+                 * Calculates a real FFT from complex input.
+                 *
+                 * @param in A pointer to the real input data.
+                 * @param out A pointer to write the output transform.
+                 * @param NFFT The number of points to use for the transform.
+                 * @param sign The sign to use for the exponential in the
+                 * transform.
+                 * @param scaling Scaling to apply to the transform.
+                 */
                 virtual void compute( double *in, std::complex<double> *out,
                                       size_t NFFT, fft_sign_t sign,
                                       fft_scaling_t scaling
@@ -268,10 +532,6 @@ namespace NCPA {
                         (int)NFFT, in, reinterpret_cast<fftw_complex *>( out ),
                         FFTW_ESTIMATE );
                     fftw_execute( p );
-
-                    // for (size_t i = 1; i < NFFT / 2; ++i) {
-                    //     out[ NFFT - i ] = std::conj( out[ i ] );
-                    // }
                     fftw_destroy_plan( p );
                     if (scaling != fft_scaling_t::NONE) {
                         double scale = FFT::scaling_factor( scaling, NFFT );
@@ -284,8 +544,21 @@ namespace NCPA {
         };
 #endif
 
+        /**
+         * @class Builder class for FFT calculators.
+         */
         class FFTFactory {
             public:
+                /**
+                 * @brief Returns a generic FFT pointer using the specified
+                 * backend.
+                 *
+                 * @param fft_type The desired backend.
+                 * @return A generic pointer to an instance using the desired
+                 * backend.
+                 * @throws std::out_of_range if the requested backend is
+                 * unknown or unavailable.
+                 */
                 static fft_ptr_t build( fft_t fft_type ) {
                     switch (fft_type) {
 #ifdef NCPA_HAVE_FFTW3
@@ -306,6 +579,16 @@ namespace NCPA {
                     }
                 }
 
+                /**
+                 * @brief Returns a generic FFT pointer using the specified
+                 * backend, with input prepopulated.
+                 *
+                 * @param fft_type The desired backend.
+                 * @return A generic pointer to an instance using the desired
+                 * backend.
+                 * @throws std::out_of_range if the requested backend is
+                 * unknown or unavailable.
+                 */
                 static fft_ptr_t build(
                     fft_t fft_type,
                     const std::vector<std::complex<double>>& input ) {
@@ -314,6 +597,16 @@ namespace NCPA {
                     return fft;
                 }
 
+                /**
+                 * @brief Returns a generic FFT pointer using the specified
+                 * backend, with input prepopulated.
+                 *
+                 * @param fft_type The desired backend.
+                 * @return A generic pointer to an instance using the desired
+                 * backend.
+                 * @throws std::out_of_range if the requested backend is
+                 * unknown or unavailable.
+                 */
                 static fft_ptr_t build( fft_t fft_type,
                                         const std::vector<double>& input ) {
                     fft_ptr_t fft = build( fft_type );

@@ -39,7 +39,7 @@ namespace NCPA {
 
             protected:
                 virtual response_ptr_t _build_state_packet() const override {
-                    return response_ptr_t( new StatePacket( this ) );
+                    return response_ptr_t( new StatePacket<state_t>( this ) );
                 }
 
                 virtual packet_processing_result_t

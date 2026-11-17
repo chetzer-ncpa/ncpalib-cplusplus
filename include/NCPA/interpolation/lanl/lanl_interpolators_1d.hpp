@@ -56,153 +56,6 @@ namespace NCPA {
     namespace interpolation {
         namespace LANL {
 
-            /**
-             * 1D INTERPOLATORS
-             */
-            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE(
-            //     _lanl_spline_1d, NCPA::interpolation::_spline_1d );
-
-            // template<typename INDEPTYPE, typename DEPTYPE>
-            // class _lanl_spline_1d<INDEPTYPE, DEPTYPE, void,
-            //                       ENABLE_IF_REAL( INDEPTYPE ),
-            //                       ENABLE_IF_REAL( DEPTYPE )>
-            //     : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
-            //     public:
-            //         virtual ~_lanl_spline_1d() { clear(); }
-
-            //         virtual void fill( size_t N, const INDEPTYPE *x,
-            //                            const DEPTYPE *f ) override {
-            //             if ( !_initialized() || _length != N ) {
-            //                 init( N );
-            //             }
-            //             std::memcpy( _x_vals, x, N * sizeof( INDEPTYPE ) );
-            //             std::memcpy( _f_vals, f, N * sizeof( DEPTYPE ) );
-            //         }
-
-            //         virtual void fill(
-            //             const std::vector<INDEPTYPE>& x,
-            //             const std::vector<DEPTYPE>& f ) override {
-            //             size_t N = x.size();
-            //             if ( N != f.size() ) {
-            //                 throw std::invalid_argument(
-            //                     "Vectors must be same size" );
-            //             }
-            //             fill( N, &x[ 0 ], &f[ 0 ] );
-            //         }
-
-            //         virtual void init( size_t N ) override {
-            //             clear();
-            //             _length = N;
-            //             _accel  = 0;
-            //             _x_vals = NCPA::arrays::zeros<DEPTYPE>( N );
-            //             _f_vals = NCPA::arrays::zeros<INDEPTYPE>( N );
-            //             _slopes = NCPA::arrays::zeros<INDEPTYPE>( N );
-            //         }
-
-            //         virtual void clear() override {
-            //             if ( _x_vals != nullptr ) {
-            //                 delete[] _x_vals;
-            //                 _x_vals = nullptr;
-            //             }
-            //             if ( _f_vals != nullptr ) {
-            //                 delete[] _f_vals;
-            //                 _f_vals = nullptr;
-            //             }
-            //             if ( _slopes != nullptr ) {
-            //                 delete[] _slopes;
-            //                 _slopes = nullptr;
-            //             }
-            //         }
-
-
-            //     protected:
-            //         size_t& _get_length() { return _length; }
-
-            //         size_t& _get_accel() { return _accel; }
-
-            //         INDEPTYPE *_get_x_vals() { return _x_vals; }
-
-            //         DEPTYPE *_get_f_vals() { return _f_vals; }
-
-            //         DEPTYPE *_get_slopes() { return _slopes; }
-
-            //         bool _initialized() const {
-            //             return ( _length > 0 && _x_vals != nullptr
-            //                      && _f_vals != nullptr && _slopes != nullptr );
-            //         }
-
-            //     private:
-            //         size_t _length;  // Number of base points
-            //         size_t _accel;   // Index of previous table look up;
-            //                          // used to increase spline speed
-            //         INDEPTYPE *_x_vals = nullptr;  // 1D array of x values
-            //         DEPTYPE *_f_vals   = nullptr;  // 1D array of f(x) values,
-            //                                        // f_vals[i] = f(x[i])
-            //         DEPTYPE *_slopes
-            //             = nullptr;                 // Slopes used to generate
-            //                         // natural cubic spline solution
-            // };
-
-            // DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
-            //     _lanl_spline_1d, NCPA::interpolation::_spline_1d );
-
-
-            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( linear_spline_1d,
-            //                                        _lanl_spline_1d );
-
-            // _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION  //
-            //     class linear_spline_1d<INDEPTYPE, DEPTYPE, void,
-            //                            ENABLE_IF_REAL( INDEPTYPE ),
-            //                            ENABLE_IF_REAL( DEPTYPE )>
-            //     : public _lanl_spline_1d<INDEPTYPE, DEPTYPE> {
-            //     public:
-            //         virtual ~linear_spline_1d() {}
-
-            //         virtual void ready() override {
-            //             DEPTYPE *slopes   = this->_get_slopes();
-            //             INDEPTYPE *x_vals = this->_get_x_vals();
-            //             DEPTYPE *f_vals   = this->_get_f_vals();
-            //             for ( int i = 0; i < this->_get_length() - 1; i++ ) {
-            //                 slopes[ i ] = ( f_vals[ i + 1 ] - f_vals[ i ] )
-            //                             / ( x_vals[ i + 1 ] - x_vals[ i ] );
-            //             }
-            //             slopes[ this->_get_length() - 1 ]
-            //                 = slopes[ this->_get_length() - 2 ];
-            //         }
-
-            //         virtual DEPTYPE eval_f( INDEPTYPE x ) override {
-            //             DEPTYPE *f_vals   = this->_get_f_vals();
-            //             INDEPTYPE *x_vals = this->_get_x_vals();
-            //             DEPTYPE *slopes   = this->_get_slopes();
-            //             size_t k
-            //                 = find_segment( x, x_vals, this->_get_length(),
-            //                                 this->_get_accel() );
-            //             return f_vals[ k ] + ( x - x_vals[ k ] ) * slopes[ k ];
-            //         }
-
-            //         virtual DEPTYPE eval_df( INDEPTYPE x ) override {
-            //             DEPTYPE *f_vals   = this->_get_f_vals();
-            //             INDEPTYPE *x_vals = this->_get_x_vals();
-            //             DEPTYPE *slopes   = this->_get_slopes();
-            //             size_t k
-            //                 = find_segment( x, x_vals, this->_get_length(),
-            //                                 this->_get_accel() );
-            //             return slopes[ k ];
-            //         }
-
-            //         virtual DEPTYPE eval_ddf( INDEPTYPE x ) override {
-            //             return 0.0;
-            //         }
-
-            //         virtual DEPTYPE eval_dddf( INDEPTYPE x ) override {
-            //             return 0.0;
-            //         }
-            // };
-
-            // DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR( linear_spline_1d,
-            //                                         _lanl_spline_1d );
-
-
             DECLARE_GENERIC_INTERPOLATOR_TEMPLATE( natural_cubic_spline_1d,
                                                    _lanl_spline_1d );
 
@@ -232,8 +85,7 @@ namespace NCPA {
                         new_c[ 0 ] = ci / bi;
                         new_d[ 0 ] = di / bi;
 
-                        for ( size_t i = 1; i < this->_get_length() - 1;
-                              i++ ) {
+                        for (size_t i = 1; i < this->_get_length() - 1; i++) {
                             INDEPTYPE dx1 = _x_vals[ i ] - _x_vals[ i - 1 ],
                                       dx2 = _x_vals[ i + 1 ] - _x_vals[ i ];
 
@@ -271,7 +123,7 @@ namespace NCPA {
 
                         _slopes[ this->_get_length() - 1 ]
                             = new_d[ this->_get_length() - 1 ];
-                        for ( int i = this->_get_length() - 2; i > -1; i-- ) {
+                        for (int i = this->_get_length() - 2; i > -1; i--) {
                             _slopes[ i ]
                                 = new_d[ i ] - new_c[ i ] * _slopes[ i + 1 ];
                         }

@@ -1,6 +1,5 @@
 #include "NCPA/atmosphere.hpp"
 #include "NCPA/gtest.hpp"
-#include "NCPA/ndvector.hpp"
 #include "NCPA/units.hpp"
 
 #include <gmock/gmock.h>

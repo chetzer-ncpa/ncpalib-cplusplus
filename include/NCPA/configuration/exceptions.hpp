@@ -1,14 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-
-#define NCPA_DEFINE_EXCEPTION( _EXCEPTION_NAME_, _EXCEPTION_BASE_ )       \
-    class _EXCEPTION_NAME_ : public _EXCEPTION_BASE_ {                    \
-        public:                                                           \
-            _EXCEPTION_NAME_( const std::string& msg = "" ) :             \
-                _EXCEPTION_BASE_( std::string( #_EXCEPTION_NAME_ ) + ": " \
-                                  + msg ) {}                              \
-    };
+#include "NCPA/exceptions.hpp"
 
 namespace NCPA {
     namespace config {

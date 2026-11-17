@@ -87,7 +87,7 @@ TEST_F( _TEST_TITLE_, SquareBracketsWorkOnSize1 ) {
     EXPECT_TRUE( d1[ 0 ] == 10.0 );
     d1[ 4 ] = 10.0;
     EXPECT_TRUE( d1[ 4 ] == 10.0 );
-    EXPECT_EQ( d1.size(), 4 );
+    EXPECT_EQ( d1.size(), 5 );
 }
 
 TEST_F( _TEST_TITLE_, ResizeWorksOnSize1 ) {

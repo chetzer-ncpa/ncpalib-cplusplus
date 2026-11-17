@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-namespace NCPA::processing {
+namespace NCPA { namespace processing {
     class RunTestsPacket : public InputPacket {
         public:
             RunTestsPacket() : InputPacket( input_id_t::RUN_TESTS ) {}
@@ -49,3 +49,4 @@ namespace NCPA::processing {
             }
     };
 }  // namespace NCPA::processing
+}
