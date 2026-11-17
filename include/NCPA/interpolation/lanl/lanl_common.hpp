@@ -44,9 +44,11 @@ claus@olemiss.edu
 
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
-#include "NCPA/interpolation/abstract_spline_1d.hpp"
-#include "NCPA/interpolation/defines.hpp"
-#include "NCPA/interpolation/types.hpp"
+// #include "NCPA/interpolation/abstract_spline_1d.hpp"
+// #include "NCPA/interpolation/defines.hpp"
+// #include "NCPA/interpolation/types.hpp"
+#include "NCPA/interpolation/declarations.hpp"
+#include "NCPA/interpolation/exceptions.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
@@ -74,7 +76,7 @@ namespace NCPA {
                            "x = "
                         << x << " is outside of bounds (" << x_vals[ 0 ]
                         << ", " << x_vals[ length - 1 ] << ")." << std::endl;
-                    throw std::range_error( oss.str() );
+                    throw RequestedPointOutOfBounds( oss.str() );
                 }
                 if ( x >= x_vals[ prev ] && x <= x_vals[ prev + 1 ] ) {
                     done = true;

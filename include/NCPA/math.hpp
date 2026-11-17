@@ -13,7 +13,9 @@
 #include <functional>
 #include <limits>
 #include <random>
+#include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -25,6 +27,27 @@ namespace NCPA {
         using NCPA::constants::one;
         using NCPA::constants::PI;
         using NCPA::constants::zero;
+
+        enum class axis_t { X, Y, Z, R, THETA, PHI };
+
+        static std::unordered_map<std::string, axis_t> _axis_map() {
+            return std::unordered_map<std::string, axis_t> {
+                {     "x",     axis_t::X },
+                {     "y",     axis_t::Y },
+                {     "z",     axis_t::Z },
+                {     "r",     axis_t::R },
+                { "theta", axis_t::THETA },
+                {   "phi",   axis_t::PHI }
+            };
+        }
+
+        static axis_t axis( const std::string& ax ) {
+            std::string a;
+            std::transform(
+                ax.begin(), ax.end(), a.begin(),
+                []( unsigned char c ) { return std::tolower( c ); } );
+            return _axis_map().at( a );
+        }
 
         // template<typename T, ENABLE_FUNCTION_IF_ARITHMETIC( T )>
         // bool is_zero( T val ) {
@@ -95,11 +118,13 @@ namespace NCPA {
         }
 
         static int sigfigs( double d, int maxfigs = 12 ) {
-            double start = std::log10(d);
+            double start = std::log10( d );
             if (start >= 0) {
-                return decimal_places( d * std::pow(10.0,-std::ceil(start)), maxfigs );
+                return decimal_places(
+                    d * std::pow( 10.0, -std::ceil( start ) ), maxfigs );
             } else {
-                return decimal_places( d * std::pow(10.0,-std::ceil(start)), maxfigs );
+                return decimal_places(
+                    d * std::pow( 10.0, -std::ceil( start ) ), maxfigs );
             }
         }
 
@@ -277,6 +302,25 @@ namespace NCPA {
             }
 
             return tmpind;
+        }
+
+        template<typename IteratorType, typename T>
+        size_t find_closest_index( IteratorType ibegin, IteratorType iend,
+                                   const T& target ) {
+            auto it = std::lower_bound( ibegin, iend, target );
+
+            if (it == ibegin) {
+                return 0;
+            }
+            if (it == iend) {
+                return std::distance( ibegin, iend ) - 1;
+            }
+
+            auto prev_it = std::prev( it );
+            if (std::abs( *prev_it - target ) <= std::abs( *it - target )) {
+                return std::distance( ibegin, prev_it );
+            }
+            return std::distance( ibegin, it );
         }
 
         /**

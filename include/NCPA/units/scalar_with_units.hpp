@@ -61,7 +61,7 @@
 
 namespace NCPA {
     namespace units {
-        template<typename T = double,
+        template<typename T                                 = double,
                  typename std::enable_if<std::is_floating_point<T>::value,
                                          int>::type ENABLER = 0>
         // ENABLE_IF_REAL(T)>
@@ -274,10 +274,8 @@ namespace NCPA {
                             *( second._units ) )) {
                         this->_value += second.get_as( *( this->_units ) );
                         return *this;
-                    } else {
-                        throw invalid_conversion<>( this->_units,
-                                                    second._units );
                     }
+                    throw this->_units->invalid_conversion( *second._units );
                 }
 
                 ScalarWithUnits operator+=( T val ) {
@@ -344,8 +342,7 @@ namespace NCPA {
                 friend bool operator==( const ScalarWithUnits<T>& a,
                                         const ScalarWithUnits<T>& b ) {
                     if (a.get_units() == nullptr || b.get_units() == nullptr) {
-                        throw NCPA::units::invalid_conversion<>(
-                            "One or both units is null" );
+                        throw InvalidConversion( "One or both units is null" );
                     } else if (a.get_units()->is_convertible_to(
                                    *( b.get_units() ) )) {
                         NCPA::units::ScalarWithUnits<T> bb = b;
@@ -374,33 +371,27 @@ namespace NCPA {
                 friend bool operator>( const ScalarWithUnits<T>& a,
                                        const ScalarWithUnits<T>& b ) {
                     if (a.get_units() == nullptr || b.get_units() == nullptr) {
-                        throw NCPA::units::invalid_conversion<>(
-                            "One or both units is null" );
+                        throw InvalidConversion( "One or both units is null" );
                     } else if (a.get_units()->is_convertible_to(
                                    *( b.get_units() ) )) {
                         NCPA::units::ScalarWithUnits<T> bb = b;
                         bb.convert_units( a._units );
                         return ( a._value > b._value );
-                    } else {
-                        throw NCPA::units::invalid_conversion<>( a._units,
-                                                                 b._units );
                     }
+                    throw a._units->invalid_conversion( *b._units );
                 }
 
                 friend bool operator<( const ScalarWithUnits<T>& a,
                                        const ScalarWithUnits<T>& b ) {
                     if (a.get_units() == nullptr || b.get_units() == nullptr) {
-                        throw NCPA::units::invalid_conversion<>(
-                            "One or both units is null" );
+                        throw InvalidConversion( "One or both units is null" );
                     } else if (a.get_units()->is_convertible_to(
                                    *( b.get_units() ) )) {
                         NCPA::units::ScalarWithUnits<T> bb = b;
                         bb.convert_units( a._units );
                         return ( a._value < b._value );
-                    } else {
-                        throw NCPA::units::invalid_conversion<>( a._units,
-                                                                 b._units );
                     }
+                    throw a._units->invalid_conversion( *b._units );
                 }
 
                 friend std::ostream& operator<<(

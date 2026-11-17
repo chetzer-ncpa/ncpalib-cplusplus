@@ -55,8 +55,8 @@ claus@olemiss.edu
 
 template<typename T, typename U>
 static void swap(
-    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& a,
-    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& b ) noexcept;
+    NCPA::interpolation::LANL::HybridSpline3D<T, U>& a,
+    NCPA::interpolation::LANL::HybridSpline3D<T, U>& b ) noexcept;
 
 namespace NCPA {
     namespace interpolation {
@@ -66,21 +66,21 @@ namespace NCPA {
              * 3D INTERPOLATORS
              */
             // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE(
-            //     hybrid_spline_3d, NCPA::interpolation::_spline_2d );
+            //     HybridSpline3D, NCPA::interpolation::_spline_2d );
 
             template<typename INDEPTYPE, typename DEPTYPE>
-            class hybrid_spline_3d<INDEPTYPE, DEPTYPE, void,
+            class HybridSpline3D<INDEPTYPE, DEPTYPE, void,
                                    ENABLE_IF_REAL( INDEPTYPE ),
                                    ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_3d<INDEPTYPE, DEPTYPE> {
                 public:
-                    hybrid_spline_3d() :
+                    HybridSpline3D() :
                         _length_x { 0 }, _length_y { 0 }, _length_z { 0 } {}
 
-                    virtual ~hybrid_spline_3d() { clear(); }
+                    virtual ~HybridSpline3D() { clear(); }
 
-                    hybrid_spline_3d(
-                        const hybrid_spline_3d<INDEPTYPE, DEPTYPE>& other ) :
+                    HybridSpline3D(
+                        const HybridSpline3D<INDEPTYPE, DEPTYPE>& other ) :
                         NCPA::interpolation::_spline_3d<INDEPTYPE, DEPTYPE>(
                             other ) {
                         _length_x   = other._length_x;
@@ -107,18 +107,18 @@ namespace NCPA {
                                             _dfdy_slopes );
                     }
 
-                    hybrid_spline_3d( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
+                    HybridSpline3D( linear_spline_1d<INDEPTYPE, DEPTYPE>&&
                                           source ) noexcept :
-                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>() {
+                        HybridSpline3D<INDEPTYPE, DEPTYPE>() {
                         ::swap( *this, source );
                     }
 
                     friend void ::swap<INDEPTYPE, DEPTYPE>(
-                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>& a,
-                        hybrid_spline_3d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+                        HybridSpline3D<INDEPTYPE, DEPTYPE>& a,
+                        HybridSpline3D<INDEPTYPE, DEPTYPE>& b ) noexcept;
 
-                    hybrid_spline_3d<INDEPTYPE, DEPTYPE>& operator=(
-                        hybrid_spline_3d<INDEPTYPE, DEPTYPE> other ) {
+                    HybridSpline3D<INDEPTYPE, DEPTYPE>& operator=(
+                        HybridSpline3D<INDEPTYPE, DEPTYPE> other ) {
                         ::swap( *this, other );
                         return *this;
                     }
@@ -1406,7 +1406,7 @@ namespace NCPA {
             };
 
             DEFINE_PURE_VIRTUAL_COMPLEX_VERSION_OF_INTERPOLATOR(
-                hybrid_spline_3d, NCPA::interpolation::_spline_3d );
+                HybridSpline3D, NCPA::interpolation::_spline_3d );
 
         }  // namespace LANL
     }  // namespace interpolation
@@ -1414,8 +1414,8 @@ namespace NCPA {
 
 template<typename T, typename U>
 static void swap(
-    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& a,
-    NCPA::interpolation::LANL::hybrid_spline_3d<T, U>& b ) noexcept {
+    NCPA::interpolation::LANL::HybridSpline3D<T, U>& a,
+    NCPA::interpolation::LANL::HybridSpline3D<T, U>& b ) noexcept {
     using std::swap;
     ::swap( dynamic_cast<NCPA::interpolation::_spline_3d<T, U>&>( a ),
             dynamic_cast<NCPA::interpolation::_spline_3d<T, U>&>( b ) );

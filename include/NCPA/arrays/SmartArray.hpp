@@ -56,9 +56,27 @@ namespace NCPA {
                     this->copy( other );
                 }
 
-                template<typename FromType>
-                void copy( const FromType& other ) {
-                    details::copy_to( other, *this );
+                SmartArray( SmartArray<N, T>&& other ) noexcept = default;
+
+                SmartArray<N, T>& operator=( SmartArray<N, T> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                SmartArray<N, T>& operator=( const std::vector<T>& other ) {
+                    if (other.size() == this->size()) {
+                        details::iterate_into( other.begin(), other.end(),
+                                                this->begin() );
+                    } else if (this->empty() && this->rank() == 1) {
+                        this->resize( other.size() );
+                        details::iterate_into( other.begin(), other.end(),
+                                                this->begin() );
+                    } else {
+                        throw ShapesDoNotMatch(
+                            "Dimensions of input vector not compatible with "
+                            "SmartArray" );
+                    }
+                    return *this;
                 }
 
                 template<typename... Indices>
@@ -137,12 +155,24 @@ namespace NCPA {
                         details::linear_index( idx, _shape, _strides ) );
                 }
 
-                SmartArray<N, T>& clear() { return this->set( 0 ); }
+                SmartArray<N, T>& clear() {
+                    if (_storage) {
+                        _storage->clear();
+                    }
+                    return *this;
+                }
+
+                template<typename FromType>
+                void copy( const FromType& other ) {
+                    details::copy_to( other, *this );
+                }
 
                 size_t dim( size_t n ) const {
                     assert( n < rank() );
                     return _shape[ n ];
                 }
+
+                bool empty() const { return ( this->size() == 0 ); }
 
                 SmartArray<N, T>& fill( T val ) { return this->set( val ); }
 
@@ -247,8 +277,10 @@ namespace NCPA {
                 }
 
                 SmartArray<N, T>& set( T val ) {
-                    for (auto it = begin(); it != end(); ++it) {
-                        *it = val;
+                    if (this->size() > 0) {
+                        for (auto it = begin(); it != end(); ++it) {
+                            *it = val;
+                        }
                     }
                     return *this;
                 }
@@ -260,7 +292,9 @@ namespace NCPA {
 
                 const std::array<size_t, N>& shape() const { return _shape; }
 
-                size_t size() const { return (_storage ? _storage->data.size() : 0); }
+                size_t size() const {
+                    return ( _storage ? _storage->data.size() : 0 );
+                }
 
                 SmartArrayView<N - 1, T> slice( size_t dim,
                                                 size_t fixed_index ) {
@@ -280,6 +314,14 @@ namespace NCPA {
 
                     return SmartArrayView<N - 1, T>( _storage, offset, shape,
                                                      strides );
+                }
+
+                friend void swap( SmartArray<N, T>& a,
+                                  SmartArray<N, T>& b ) noexcept {
+                    using std::swap;
+                    swap( a._storage, b._storage );
+                    swap( a._shape, b._shape );
+                    swap( a._strides, b._strides );
                 }
 
                 // iterators here
@@ -308,6 +350,7 @@ namespace NCPA {
                 const_reverse_iterator rend() const {
                     return _storage->data.rend();
                 }
+
 
             private:
                 friend class SmartArrayView<N, T>;
@@ -338,6 +381,27 @@ namespace NCPA {
                     _offset( offset ),
                     _shape( shape ),
                     _strides( strides ) {}
+
+                SmartArrayView( SmartArrayView<N, T>&& other ) noexcept
+                    = default;
+
+                SmartArrayView<N, T>& operator=( SmartArrayView<N, T> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                SmartArrayView<N, T>& operator=(
+                    const std::vector<T>& other ) {
+                    if (other.size() == this->size()) {
+                        details::iterate_into( other.begin(), other.end(),
+                                                this->begin() );
+                    } else {
+                        throw ShapesDoNotMatch(
+                            "Dimensions of input vector not compatible with "
+                            "SmartArrayView" );
+                    }
+                    return *this;
+                }
 
                 template<typename... Indices>
                 T& at( Indices... indices ) {
@@ -376,12 +440,16 @@ namespace NCPA {
                         shape_type { idx }, _shape, _strides, _offset ) );
                 }
 
-                SmartArrayView<N, T>& clear() { return this->set( 0 ); }
+                SmartArrayView<N, T>& clear() {
+                    return _storage ? this->set( 0 ) : *this;
+                }
 
                 size_t dim( size_t n ) const {
                     assert( n < rank() );
                     return _shape[ n ];
                 }
+
+                bool empty() const { return ( this->size() == 0 ); }
 
                 SmartArrayView<N, T>& fill( T val ) {
                     return this->set( val );
@@ -473,6 +541,15 @@ namespace NCPA {
                         shape, strides );
                 }
 
+                friend void swap( SmartArrayView<N, T>& a,
+                                  SmartArrayView<N, T>& b ) noexcept {
+                    using std::swap;
+                    swap( a._storage, b._storage );
+                    swap( a._shape, b._shape );
+                    swap( a._strides, b._strides );
+                    swap( a._offset, b._offset );
+                }
+
                 iterator begin() {
                     return iterator( _storage, _offset, _shape, _strides, 0 );
                 }
@@ -515,6 +592,7 @@ namespace NCPA {
                 const_reverse_iterator crend() const {
                     return const_reverse_iterator( begin() );
                 }
+
 
             private:
                 std::shared_ptr<details::_ndstorage<T>> _storage;

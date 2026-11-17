@@ -4,6 +4,8 @@
 #include "NCPA/defines.hpp"
 #include "NCPA/strings.hpp"
 #include "NCPA/units/scalar_with_units.hpp"
+#include "NCPA/units/declarations.hpp"
+#include "NCPA/units/exceptions.hpp"
 #include "NCPA/units/unit.hpp"
 
 #include <iostream>
@@ -402,7 +404,7 @@ namespace NCPA {
                         }
                         return *this;
                     } else {
-                        throw invalid_conversion<>( this->_units,
+                        throw this->_units->invalid_conversion(
                                                     second._units );
                     }
                 }

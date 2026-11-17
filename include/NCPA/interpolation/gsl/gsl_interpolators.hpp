@@ -1,38 +1,28 @@
 #pragma once
 
-#ifndef NCPA_INTERPOLATION_IGNORE_GSL
+#include "NCPA/interpolation/gsl/declarations.hpp"
 
+#if NCPA_USE_GSL
+
+#  include "gsl/gsl_interp.h"
+#  include "gsl/gsl_spline.h"
+#  include "gsl/gsl_version.h"
+#  include "NCPA/arrays.hpp"
+#  include "NCPA/defines.hpp"
+#  include "NCPA/interpolation/abstract_spline_1d.hpp"
 #  include "NCPA/interpolation/defines.hpp"
-
-#  ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
-
-#    include "gsl/gsl_interp.h"
-#    include "gsl/gsl_spline.h"
-#    include "gsl/gsl_version.h"
-#    include "NCPA/arrays.hpp"
-#    include "NCPA/defines.hpp"
-#    include "NCPA/interpolation/abstract_spline_1d.hpp"
-#    include "NCPA/interpolation/gsl/gsl_declarations.hpp"
-#    include "NCPA/interpolation/types.hpp"
-#    include "NCPA/math.hpp"
-#    include "NCPA/types.hpp"
-
-template<typename T, typename U>
-static void swap( NCPA::interpolation::GSL::gsl_spline_1d<T, U>& a,
-                  NCPA::interpolation::GSL::gsl_spline_1d<T, U>& b ) noexcept;
+#  include "NCPA/interpolation/types.hpp"
+#  include "NCPA/math.hpp"
+#  include "NCPA/types.hpp"
 
 namespace NCPA {
     namespace interpolation {
         namespace GSL {
 
-            // DECLARE_GENERIC_INTERPOLATOR_TEMPLATE_WITH_PARAM(
-            //     gsl_spline_1d, NCPA::interpolation::_spline_1d,
-            //     const gsl_interp_type * );
-
-            _INTERPOLATOR_SPECIALIZED_TEMPLATE_DECLARATION_WITH_PARAM  //
-                class gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE,
-                                    ENABLE_IF_REAL( INDEPTYPE ),
-                                    ENABLE_IF_REAL( DEPTYPE )>
+            template<typename INDEPTYPE, typename DEPTYPE, typename PARAMTYPE>
+            class gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE,
+                                ENABLE_IF_REAL( INDEPTYPE ),
+                                ENABLE_IF_REAL( DEPTYPE )>
                 : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
                 public:
                     gsl_spline_1d() :
@@ -52,8 +42,8 @@ namespace NCPA {
                         const gsl_spline_1d<INDEPTYPE, DEPTYPE>& other ) :
                         gsl_spline_1d<INDEPTYPE, DEPTYPE>() {
                         _interptype = other._interptype;
-                        if ( _interptype != nullptr && other._x.size() > 0
-                             && other._f.size() > 0 ) {
+                        if (_interptype != nullptr && other._x.size() > 0
+                            && other._f.size() > 0) {
                             this->init( other._x.size() );
                             this->fill( other._x, other._f );
                         }
@@ -62,16 +52,25 @@ namespace NCPA {
                     gsl_spline_1d(
                         gsl_spline_1d<INDEPTYPE, DEPTYPE>&& source ) noexcept :
                         gsl_spline_1d<INDEPTYPE, DEPTYPE>() {
-                        ::swap( *this, source );
+                        swap( *this, source );
                     }
 
-                    friend void ::swap<INDEPTYPE, DEPTYPE>(
+                    friend void swap(
                         gsl_spline_1d<INDEPTYPE, DEPTYPE>& a,
-                        gsl_spline_1d<INDEPTYPE, DEPTYPE>& b ) noexcept;
+                        gsl_spline_1d<INDEPTYPE, DEPTYPE>& b ) noexcept {
+                        using std::swap;
+                        swap( a._interptype, b._interptype );
+                        swap( a._spline, b._spline );
+                        swap( a._accel, b._accel );
+                        swap( a._ready, b._ready );
+                        swap( a._spline_size, b._spline_size );
+                        swap( a._x, b._x );
+                        swap( a._f, b._f );
+                    }
 
                     gsl_spline_1d<INDEPTYPE, DEPTYPE>& operator=(
                         gsl_spline_1d<INDEPTYPE, DEPTYPE> other ) {
-                        ::swap( *this, other );
+                        swap( *this, other );
                         return *this;
                     }
 
@@ -85,7 +84,7 @@ namespace NCPA {
                     virtual void fill(
                         const std::vector<INDEPTYPE>& x,
                         const std::vector<DEPTYPE>& f ) override {
-                        if ( x.size() != f.size() ) {
+                        if (x.size() != f.size()) {
                             throw std::range_error(
                                 "gsl_spline_1d.fill(): Input vectors not the "
                                 "same size!" );
@@ -95,7 +94,7 @@ namespace NCPA {
 
                     virtual void fill( size_t N, const INDEPTYPE *x,
                                        const DEPTYPE *f ) override {
-                        if ( N != _spline_size ) {
+                        if (N != _spline_size) {
                             init( N );
                         }
                         _set_spline( N, x, f );
@@ -148,29 +147,30 @@ namespace NCPA {
                             { _x.front(), _x.back() } );
                     }
 
-                    virtual interpolator_1d_type_t interptype() const override {
+                    virtual interpolator_1d_type_t interptype()
+                        const override {
                         if (_interptype == gsl_interp_linear) {
                             return interpolator_1d_type_t::GSL_LINEAR;
                         } else if (_interptype == gsl_interp_cspline) {
                             return interpolator_1d_type_t::GSL_CUBIC;
                         } else if (_interptype == gsl_interp_polynomial) {
                             return interpolator_1d_type_t::GSL_POLYNOMIAL;
-                        } else if (_interptype == gsl_interp_cspline_periodic) {
+                        } else if (_interptype
+                                   == gsl_interp_cspline_periodic) {
                             return interpolator_1d_type_t::GSL_CUBIC_PERIODIC;
                         } else if (_interptype == gsl_interp_akima) {
                             return interpolator_1d_type_t::GSL_AKIMA;
                         } else if (_interptype == gsl_interp_akima_periodic) {
                             return interpolator_1d_type_t::GSL_AKIMA_PERIODIC;
-                        } 
-#ifdef NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
-#if NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
+                        }
+#  if NCPA_INTERPOLATION_HAVE_GSL_STEFFEN_SPLINE
                         else if (_interptype == gsl_interp_steffen) {
                             return interpolator_1d_type_t::GSL_STEFFEN;
                         }
-#endif
-#endif
-                        throw std::range_error( "Unknown or unimplemented interpolator" );
-                    } 
+#  endif
+                        throw std::range_error(
+                            "Unknown or unimplemented interpolator" );
+                    }
 
                     virtual const std::vector<INDEPTYPE> source_x()
                         const override {
@@ -185,7 +185,7 @@ namespace NCPA {
                 protected:
                     void _allocate_spline( size_t n ) {
                         _check_interptype();
-                        if ( n < _interptype->min_size ) {
+                        if (n < _interptype->min_size) {
                             std::ostringstream oss;
                             oss << "GSL interpolation type "
                                 << _interptype->name << " requires at least "
@@ -214,7 +214,7 @@ namespace NCPA {
                     template<typename T>
                     void _to_double( size_t n, const T *input,
                                      double *& output ) {
-                        for ( auto i = 0; i < n; i++ ) {
+                        for (auto i = 0; i < n; i++) {
                             output[ i ] = (double)( input[ i ] );
                         }
                     }
@@ -222,7 +222,7 @@ namespace NCPA {
                     void _free_interptype() { _interptype = nullptr; }
 
                     void _free_spline() {
-                        if ( _spline != nullptr ) {
+                        if (_spline != nullptr) {
                             gsl_spline_free( _spline );
                             _spline = nullptr;
                         }
@@ -231,7 +231,7 @@ namespace NCPA {
                     }
 
                     void _free_accel() {
-                        if ( _accel != nullptr ) {
+                        if (_accel != nullptr) {
                             gsl_interp_accel_free( _accel );
                             _accel = nullptr;
                         }
@@ -239,27 +239,27 @@ namespace NCPA {
                     }
 
                     void _check_ready() const {
-                        if ( !_ready ) {
+                        if (!_ready) {
                             throw std::logic_error( "Spline not ready" );
                         }
                     }
 
                     void _check_interptype() const {
-                        if ( _interptype == nullptr ) {
+                        if (_interptype == nullptr) {
                             throw std::logic_error(
                                 "GSL Spline type has not been set!" );
                         }
                     }
 
                     void _check_spline() const {
-                        if ( _spline == nullptr ) {
+                        if (_spline == nullptr) {
                             throw std::logic_error(
                                 "Spline has not been initialized!" );
                         }
                     }
 
                     void _check_accel() const {
-                        if ( _accel == nullptr ) {
+                        if (_accel == nullptr) {
                             throw std::logic_error(
                                 "Spline accelerator has not been "
                                 "initialized" );
@@ -275,27 +275,72 @@ namespace NCPA {
                     std::vector<DEPTYPE> _f;
             };
 
-            DEFINE_COMPLEX_VERSION_OF_INTERPOLATOR_WITH_PARAM(
-                gsl_spline_1d, NCPA::interpolation::_spline_1d,
-                const gsl_interp_type * );
+            template<typename INDEPTYPE, typename DEPTYPE, typename PARAMTYPE>
+            class gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE,
+                                ENABLE_IF_REAL( INDEPTYPE ),
+                                ENABLE_IF_COMPLEX( DEPTYPE )>
+                : public NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE> {
+                public:
+                    gsl_spline_1d() :
+                        NCPA::interpolation::_spline_1d<INDEPTYPE, DEPTYPE>() {
+                    }
+
+                    gsl_spline_1d( PARAMTYPE param ) :
+                        gsl_spline_1d<INDEPTYPE, DEPTYPE, PARAMTYPE>() {
+                        _real_spline
+                            = gsl_spline_1d<INDEPTYPE,
+                                            typename DEPTYPE::value_type,
+                                            PARAMTYPE>( param );
+                        _imag_spline
+                            = gsl_spline_1d<INDEPTYPE,
+                                            typename DEPTYPE::value_type,
+                                            PARAMTYPE>( param );
+                    }
+
+                    virtual ~gsl_spline_1d() { this->clear(); }
+
+                    virtual NCPA::interpolation::_spline_1d<
+                        INDEPTYPE, typename DEPTYPE::value_type> *
+                        real() override {
+                        return static_cast<NCPA::interpolation::_spline_1d<
+                            INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            &_real_spline );
+                    }
+
+                    virtual NCPA::interpolation::_spline_1d<
+                        INDEPTYPE, typename DEPTYPE::value_type> *
+                        imag() override {
+                        return static_cast<NCPA::interpolation::_spline_1d<
+                            INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            &_imag_spline );
+                    }
+
+                    virtual const NCPA::interpolation::_spline_1d<
+                        INDEPTYPE, typename DEPTYPE::value_type> *
+                        real() const override {
+                        return static_cast<
+                            const NCPA::interpolation::_spline_1d<
+                                INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            &_real_spline );
+                    }
+
+                    virtual const NCPA::interpolation::_spline_1d<
+                        INDEPTYPE, typename DEPTYPE::value_type> *
+                        imag() const override {
+                        return static_cast<
+                            const NCPA::interpolation::_spline_1d<
+                                INDEPTYPE, typename DEPTYPE::value_type> *>(
+                            &_imag_spline );
+                    }
+
+                protected:
+                    gsl_spline_1d<INDEPTYPE, typename DEPTYPE::value_type,
+                                  PARAMTYPE>
+                        _real_spline, _imag_spline;
+            };
 
         }  // namespace GSL
     }  // namespace interpolation
 }  // namespace NCPA
-
-template<typename T, typename U>
-static void swap( NCPA::interpolation::GSL::gsl_spline_1d<T, U>& a,
-                  NCPA::interpolation::GSL::gsl_spline_1d<T, U>& b ) noexcept {
-    using std::swap;
-    swap( a._interptype, b._interptype );
-    swap( a._spline, b._spline );
-    swap( a._accel, b._accel );
-    swap( a._ready, b._ready );
-    swap( a._spline_size, b._spline_size );
-    swap( a._x, b._x );
-    swap( a._f, b._f );
-}
-
-#  endif
 
 #endif

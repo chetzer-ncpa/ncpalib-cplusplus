@@ -7,14 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
-#ifdef NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
-#  if NCPA_INTERPOLATION_GSL_STEFFEN_SPLINE_AVAILABLE
-#    define NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR \
-        NCPA::interpolation::interpolator_1d_type_t::GSL_STEFFEN
-#  else
-#    define NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR \
-        NCPA::interpolation::interpolator_1d_type_t::LANL_CUBIC
-#  endif
+
+// default 1D interpolator
+#if NCPA_INTERPOLATION_HAVE_GSL_STEFFEN_SPLINE
+#  define NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR \
+      NCPA::interpolation::interpolator_1d_type_t::GSL_STEFFEN
 #else
 #  define NCPA_ATMOSPHERE_DEFAULT_1D_INTERPOLATOR \
       NCPA::interpolation::interpolator_1d_type_t::LANL_CUBIC
@@ -59,6 +56,7 @@ namespace NCPA {
         class AtmosphericProperty1D;
         class AtmosphericProperty2D;
         class AtmosphericProperty3D;
+        // class AtmosphericProperty;
         class AtmosphericModel;
         class Atmosphere1D;
         class Atmosphere2D;
