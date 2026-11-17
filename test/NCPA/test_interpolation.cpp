@@ -88,26 +88,30 @@ class _TEST_TITLE_ : public ::testing::Test {
             x2 = { 0, 1, 2, 3, 4 };
             y2 = { 0, 1, 2, 3, 4 };
             z2 = { 0, 1, 2, 3, 4 };
+            f2d_y.resize( 5, 5 );
+            f2d_x.resize( 5, 5 );
             // f2d_x.resize2d( 5, 5 );
             // f2d_y.resize2d( 5, 5 );
             // f3d.resize3d( 5, 5, 5 );
 
-            // for (size_t i = 0; i < 5; i++) {
-            //     double di = (double)i;
-            //     vector<double> xrow { di, di, di, di, di };
-            //     f2d_x[ i ] = xrow;
-            //     f2d_y[ i ] = x2;
-            //     for (size_t j = 0; j < 5; j++) {
-            //         f3d[ i ][ j ] = z2;
-            //     }
-            // }
+            for (size_t i = 0; i < 5; i++) {
+                double di = (double)i;
+                vector<double> xrow { di, di, di, di, di };
+                f2d_x[ i ] = xrow;
+                f2d_y[ i ] = x2;
+                //     for (size_t j = 0; j < 5; j++) {
+                //         f3d[ i ][ j ] = z2;
+                //     }
+            }
 
-            // lanl_natural_2d.init( 5, 5 );
+            lanl_natural_2d.init( 5, 5 );
+            lanl_natural_2d.fill( x2, y2, f2d_x );
+            lanl_natural_2d.ready();
             // lanl_natural_2d.fill( x2, y2, f2d_x );
             // lanl_natural_2d.ready();
-            // lanl_bicubic_2d.init( 5, 5 );
-            // lanl_bicubic_2d.fill( x2, y2, f2d_x );
-            // lanl_bicubic_2d.ready();
+            lanl_bicubic_2d.init( 5, 5 );
+            lanl_bicubic_2d.fill( x2, y2, f2d_x );
+            lanl_bicubic_2d.ready();
             // lanl_hybrid_3d.init( 5, 5, 5 );
             // lanl_hybrid_3d.fill( x2, y2, z2, f3d );
             // lanl_hybrid_3d.ready();
@@ -129,9 +133,11 @@ class _TEST_TITLE_ : public ::testing::Test {
 
         // NCPA::arrays::vector2d_t<double> f2d_x, f2d_y;
         // NCPA::arrays::vector3d_t<double> f3d;
+        NCPA::arrays::SmartArray<2, double> f2d_x, f2d_y;
         vector<double> x2, y2, z2;
+        LANL::NaturalSpline2D<double> lanl_natural_2d;
         // LANL::natural_spline_2d<double> lanl_natural_2d;
-        // LANL::bicubic_spline_2d<double> lanl_bicubic_2d;
+        LANL::BicubicSpline2D<double> lanl_bicubic_2d;
         // LANL::hybrid_spline_3d<double> lanl_hybrid_3d;
 
         // stratified_spline_2d<double, double> strat;
@@ -512,7 +518,6 @@ TEST_F( _TEST_TITLE_, ComplexRealOnlyLANLLinearWrapperAgreesWithComponents ) {
     }
 }
 
-
 TEST_F( _TEST_TITLE_, LANLCubicSplineInterpolationAgreesWithinTolerance ) {
     for (size_t i = 0; i < x_cub.size(); i++) {
         EXPECT_DOUBLE_EQ( lanl_cub_spline_1d.eval_f( x_cub[ i ] ),
@@ -548,24 +553,82 @@ TEST_F( _TEST_TITLE_, LANLCubicSplineInterpolationAgreesWithinTolerance ) {
 //     }
 // }
 
-// TEST_F( _TEST_TITLE_, LANL2DIsCorrect ) {
-//     EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
-//     EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
-//     EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
-//     EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
-//     lanl_natural_2d.clear();
-//     lanl_natural_2d.init( 5, 5 );
-//     lanl_natural_2d.fill( x2, y2, f2d_y );
-//     lanl_natural_2d.ready();
-//     lanl_bicubic_2d.clear();
-//     lanl_bicubic_2d.init( 5, 5 );
-//     lanl_bicubic_2d.fill( x2, y2, f2d_y );
-//     lanl_bicubic_2d.ready();
-//     EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
-//     EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.3 ), 3.3, cub_tol );
-//     EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
-//     EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.9 ), 3.9, cub_tol );
-// }
+TEST_F( _TEST_TITLE_, LANLNatural2DIsCorrect ) {
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
+    // EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    // EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
+    lanl_natural_2d.clear();
+    lanl_natural_2d.init( 5, 5 );
+    lanl_natural_2d.fill( x2, y2, f2d_y );
+    lanl_natural_2d.ready();
+    // lanl_bicubic_2d.clear();
+    // lanl_bicubic_2d.init( 5, 5 );
+    // lanl_bicubic_2d.fill( x2, y2, f2d_y );
+    // lanl_bicubic_2d.ready();
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
+    EXPECT_NEAR( lanl_natural_2d.eval_f( 1.5, 3.3 ), 3.3, cub_tol );
+    // EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
+    // EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.9 ), 3.9, cub_tol );
+}
+
+TEST_F( _TEST_TITLE_, LANLBicubic2DIsCorrect ) {
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, nat_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.5 ), 1.5, nat_tol );
+    lanl_bicubic_2d.clear();
+    lanl_bicubic_2d.init( 5, 5 );
+    lanl_bicubic_2d.fill( x2, y2, f2d_y );
+    lanl_bicubic_2d.ready();
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 2.5, 2.5 ), 2.5, cub_tol );
+    EXPECT_NEAR( lanl_bicubic_2d.eval_f( 1.5, 3.9 ), 3.9, cub_tol );
+}
+
+TEST_F( _TEST_TITLE_, LANLNaturalWorksForParaboloid ) {
+    // lanl_bicubic_2d.clear();
+    // lanl_bicubic_2d.init( 6, 6 );
+    f2d_y.clear().resize( 6, 6 );
+    std::vector<double> xvals { 0, 1, 2, 3, 4, 5 }, yvals { 0, 1, 2, 3, 4, 5 };
+    for (size_t i = 0; i <= 5; ++i) {
+        for (size_t j = 0; j <= 5; ++j) {
+            double x = (double)i;
+            double y = (double)j;
+            double z
+                = -0.4
+                    * ( ( x - 2.5 ) * ( x - 2.5 ) + ( y - 2.5 ) * ( y - 2.5 ) )
+                + 5.0;
+            f2d_y.at( i, j ) = z;
+        }
+    }
+    // lanl_bicubic_2d.fill( xvals, yvals, f2d_y );
+    // lanl_bicubic_2d.ready();
+
+    std::vector<double> xtest { 0.5, 1.5, 2.5, 3.5, 4.5 },
+        ytest { 0, 1, 2, 3, 4, 5 };
+    NCPA::arrays::SmartVector<double> ztest( xtest.size(), ytest.size() );
+    ztest = std::vector<double> { 0.9000, 2.5000, 3.3000, 3.3000, 2.5000,
+                                  0.9000, 2.1000, 3.7000, 4.5000, 4.5000,
+                                  3.7000, 2.1000, 2.5000, 4.1000, 4.9000,
+                                  4.9000, 4.1000, 2.5000, 2.1000, 3.7000,
+                                  4.5000, 4.5000, 3.7000, 2.1000, 0.9000,
+                                  2.5000, 3.3000, 3.3000, 2.5000, 0.9000 };
+
+    lanl_natural_2d.clear();
+    lanl_natural_2d.init( 6, 6 );
+    lanl_natural_2d.fill( xvals, yvals, f2d_y );
+    lanl_natural_2d.ready();
+
+    
+
+    for (size_t i = 0; i < xtest.size(); ++i) {
+        for (size_t j = 0; j < ytest.size(); ++j) {
+            // double d = lanl_natural_2d.eval_f( xtest[ i ], ytest[ j ] );
+            // cout << "z(" << xtest[ i ] << "," << ytest[ j ] << ") = " << d
+            //      << endl;
+            EXPECT_NEAR( lanl_natural_2d.eval_f( xtest[ i ], ytest[ j ] ),
+                         ztest.at( i, j ), 0.05 );
+        }
+    }
+}
 
 // TEST_F( _TEST_TITLE_, Stratified2DIsCorrect ) {
 //     // strat = InterpolatorFactory<double,double>::build(
@@ -600,10 +663,12 @@ TEST_F( _TEST_TITLE_, GSLLinearInterpolationIsCorrect ) {
 
 TEST_F( _TEST_TITLE_, GSLLinearInterpolationAgreesWithLANL ) {
     for (size_t i = 0; i < 6; i++) {
-        EXPECT_DOUBLE_EQ( gsl_lin_spline_1d.eval_f( x_lin[ i ] ), lanl_lin_spline_1d.eval_f( x_lin[ i ] ) );
+        EXPECT_DOUBLE_EQ( gsl_lin_spline_1d.eval_f( x_lin[ i ] ),
+                          lanl_lin_spline_1d.eval_f( x_lin[ i ] ) );
     }
     for (double d = 0.5; d < 5.0; d += 1.0) {
-        EXPECT_DOUBLE_EQ( gsl_lin_spline_1d.eval_f( d ), lanl_lin_spline_1d.eval_f( d ) );
+        EXPECT_DOUBLE_EQ( gsl_lin_spline_1d.eval_f( d ),
+                          lanl_lin_spline_1d.eval_f( d ) );
     }
 }
 

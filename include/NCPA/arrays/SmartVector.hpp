@@ -31,6 +31,25 @@ namespace NCPA {
                     _shape( std::move( shape ) ),
                     _strides( std::move( strides ) ) {}
 
+                SmartVectorView( SmartVectorView<T>&& other ) noexcept = default;
+
+                SmartVectorView<T>& operator=( SmartVectorView<T> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                SmartVectorView<T>& operator=( const std::vector<T>& other ) {
+                    if (other.size() == this->size()) {
+                        details::iterate_into( other.begin(), other.end(),
+                                                this->begin() );
+                    } else {
+                        throw ShapesDoNotMatch(
+                            "Dimensions of input vector not compatible with "
+                            "SmartVectorView" );
+                    }
+                    return *this;
+                }
+
                 T& at( std::initializer_list<size_t> idx ) {
                     return _storage->data.at( details::linear_index(
                         idx, _shape, _strides, _offset ) );
@@ -77,6 +96,8 @@ namespace NCPA {
                     assert( n < rank() );
                     return _shape[ n ];
                 }
+
+                bool empty() const { return ( this->size() == 0 ); }
 
                 SmartVectorView<T>& fill( T val ) { return this->set( val ); }
 
@@ -210,6 +231,14 @@ namespace NCPA {
                     return const_reverse_iterator( begin() );
                 }
 
+                friend void swap( SmartVectorView<T> &a, SmartVectorView<T> &b ) noexcept {
+                    using std::swap;
+                    swap( a._storage, b._storage );
+                    swap( a._offset, b._offset );
+                    swap( a._shape, b._shape );
+                    swap( a._strides, b._strides );
+                }
+
             private:
                 std::shared_ptr<details::_ndstorage<T>> _storage;
 
@@ -240,12 +269,11 @@ namespace NCPA {
                     this->resize( shape );
                 }
 
-                template<typename Iterator, typename... Dims>
-                SmartVector( Iterator istart, Iterator iend, Dims... dims ) {
-                    this->resize( dims... );
-                    details::iterate_into( istart, iend, this->begin(),
-                                           this->end() );
-                }
+                // template<typename Iterator, typename... Dims>
+                // SmartVector( Iterator istart, Iterator iend, Dims... dims ) {
+                //     this->resize( dims... );
+                //     details::iterate_into( istart, iend, this->begin() );
+                // }
 
                 SmartVector( std::initializer_list<size_t> shape ) :
                     SmartVector<T>( std::vector<size_t>( shape ) ) {}
@@ -266,6 +294,22 @@ namespace NCPA {
 
                 SmartVector( const SmartVectorView<T>& other ) {
                     this->copy( other );
+                }
+
+                SmartVector( SmartVector<T>&& other ) noexcept = default;
+
+                SmartVector<T>& operator=( SmartVector<T> other ) {
+                    swap( *this, other );
+                    return *this;
+                }
+
+                SmartVector<T>& operator=( const std::vector<T>& other ) {
+                    if (this->size() != other.size()) {
+                        this->resize( other.size() );
+                    }
+                    details::iterate_into( other.begin(), other.end(),
+                                            this->begin() );
+                    return *this;
                 }
 
                 T& at( const std::vector<size_t>& idx ) {
@@ -333,6 +377,8 @@ namespace NCPA {
                     assert( n < rank() );
                     return _shape[ n ];
                 }
+
+                bool empty() const { return ( this->size() == 0 ); }
 
                 SmartVector<T>& fill( T val ) { return this->set( val ); }
 
@@ -460,6 +506,13 @@ namespace NCPA {
                     return SmartVectorView<T>(
                         _storage, fixed_index * _strides[ dim ],
                         std::move( shape ), std::move( strides ) );
+                }
+
+                friend void swap( SmartVector<T> &a, SmartVector<T> &b ) noexcept {
+                    using std::swap;
+                    swap( a._storage, b._storage );
+                    swap( a._shape, b._shape );
+                    swap( a._strides, b._strides );
                 }
 
                 // iterators here

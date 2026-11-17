@@ -14,6 +14,12 @@ namespace NCPA {
             template<typename T>
             struct _ndstorage {
                     std::vector<T> data;
+                    void clear() {
+                        data.clear();
+                    }
+                    bool empty() const {
+                        return data.empty();
+                    }
             };
 
             template<typename Shape>
@@ -91,10 +97,12 @@ namespace NCPA {
 
             template<typename IteratorFrom, typename IteratorTo>
             void iterate_into( IteratorFrom abegin, IteratorFrom aend,
-                               IteratorTo bbegin, IteratorTo bend ) {
+                               IteratorTo bbegin
+                            //    , IteratorTo bend 
+                            ) {
                 IteratorFrom ait = abegin;
                 IteratorTo bit   = bbegin;
-                while (ait != aend && bit != bend) {
+                while (ait != aend) {
                     *bit = *ait;
                     ++ait;
                     ++bit;
@@ -104,7 +112,7 @@ namespace NCPA {
             template<typename ContainerA, typename ContainerB>
             void deal_into( const ContainerA& a, ContainerB& b ) {
                 if (a.size() == b.size()) {
-                    iterate_into( a.begin(), a.end(), b.begin(), b.end() );
+                    iterate_into( a.begin(), a.end(), b.begin() );
                     // auto ait = a.begin();
                     // auto bit = b.begin();
                     // while (ait != a.end() && bit != b.end()) {

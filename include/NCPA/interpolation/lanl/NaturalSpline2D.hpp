@@ -75,8 +75,11 @@ namespace NCPA {
                     typedef Cloneable<NaturalSpline2D<FloatType>,
                                       spline2d<FloatType>>
                         parent_t;
+                    typedef spline2d<FloatType> clone_t;
 
                 public:
+                    using clone_t::init;
+
                     NaturalSpline2D() = default;
 
                     virtual ~NaturalSpline2D() { this->clear(); }
@@ -110,7 +113,7 @@ namespace NCPA {
                     // }
 
                     NaturalSpline2D(
-                        linear_spline_1d<FloatType>&& source ) noexcept
+                        NaturalSpline2D<FloatType>&& source ) noexcept
                         = default;
 
                     friend void swap(
@@ -119,12 +122,12 @@ namespace NCPA {
                         using std::swap;
                         swap( dynamic_cast<parent_t&>( a ),
                               dynamic_cast<parent_t&>( b ) );
-                        swap( a._length_x, b._length_x );
-                        swap( a._length_y, b._length_y );
+                        // swap( a._length_x, b._length_x );
+                        // swap( a._length_y, b._length_y );
                         swap( a._accel, b._accel );
-                        swap( a._x_vals, b._x_vals );
-                        swap( a._y_vals, b._y_vals );
-                        swap( a._f_vals, b._f_vals );
+                        // swap( a._x_vals, b._x_vals );
+                        // swap( a._y_vals, b._y_vals );
+                        // swap( a._f_vals, b._f_vals );
                         swap( a._f_slopes, b._f_slopes );
                         swap( a._new_c, b._new_c );
                         swap( a._new_d, b._new_d );
@@ -143,12 +146,17 @@ namespace NCPA {
                             LANL_NATURAL_2D;
                     }
 
-                    void init( size_t nx, size_t ny ) override {
+                    void init( std::vector<size_t> dims ) override {
+                        // void init( size_t nx, size_t ny ) override {
+                        this->_check_dimensions( dims );
+                        size_t nx = dims.at( 0 );
+                        size_t ny = dims.at( 1 );
                         this->clear();
+                        clone_t::init( {nx, ny });
                         if (nx > 0 && ny > 0) {
-                            _x_vals.resize( nx );
-                            _y_vals.resize( ny );
-                            _f_vals.resize( nx, ny );
+                            // this->axes( 0 ).resize( nx );
+                            // this->axes( 1 ).resize( ny );
+                            // this->f().resize( nx, ny );
                             _f_slopes.resize( nx, ny );
                             _new_c.resize( ny - 1 );
                             _new_d.resize( ny );
@@ -161,104 +169,77 @@ namespace NCPA {
                         // _accel[ 1 ] = 0;
                         // _x_vals = NCPA::arrays::zeros<FloatType>( _length_x
                         // ); _y_vals = NCPA::arrays::zeros<FloatType>(
-                        // _length_y ); _f_vals = NCPA::arrays::zeros<FloatType>(
-                        // _length_x,
+                        // _length_y ); _f_vals =
+                        // NCPA::arrays::zeros<FloatType>( _length_x,
                         //                                         _length_y );
-                        // _f_slopes = NCPA::arrays::zeros<FloatType>( _length_x,
+                        // _f_slopes = NCPA::arrays::zeros<FloatType>(
+                        // _length_x,
                         //                                           _length_y
                         //                                           );
-                        // _new_c = NCPA::arrays::zeros<FloatType>( _length_y - 1
-                        // ); _new_d = NCPA::arrays::zeros<FloatType>( _length_y
+                        // _new_c = NCPA::arrays::zeros<FloatType>( _length_y -
+                        // 1
+                        // ); _new_d = NCPA::arrays::zeros<FloatType>(
+                        // _length_y
                         // ); _node_vals = NCPA::arrays::zeros<FloatType>(
                         // _length_x ); _node_slopes
                         //     = NCPA::arrays::zeros<FloatType>( _length_x );
                     }
 
-                    virtual void fill( size_t N1, size_t N2,
-                                       const FloatType *x1,
-                                       const FloatType *x2,
-                                       const FloatType **f ) override {
-                        if (!_initialized() || _x_vals.size() != N1
-                            || _y_vals.size() != N2) {
-                            init( N1, N2 );
-                        }
-                        std::memcpy( _x_vals.data(), x1,
-                                     N1 * sizeof( FloatType ) );
-                        std::memcpy( _y_vals.data(), x2,
-                                     N2 * sizeof( FloatType ) );
-                        for (size_t i = 0; i < N1; ++i) {
-                            for (size_t j = 0; j < N2; ++j) {
-                                _f_vals( i, j ) = f[ i ][ j ];
-                            }
-                        }
-                    }
+                    // virtual void fill( size_t N1, size_t N2,
+                    //                    const FloatType *x1,
+                    //                    const FloatType *x2,
+                    //                    const FloatType **f ) override {
+                    //     if (!_initialized() || _x_vals.size() != N1
+                    //         || _y_vals.size() != N2) {
+                    //         init( N1, N2 );
+                    //     }
+                    //     std::memcpy( _x_vals.data(), x1,
+                    //                  N1 * sizeof( FloatType ) );
+                    //     std::memcpy( _y_vals.data(), x2,
+                    //                  N2 * sizeof( FloatType ) );
+                    //     for (size_t i = 0; i < N1; ++i) {
+                    //         for (size_t j = 0; j < N2; ++j) {
+                    //             _f_vals( i, j ) = f[ i ][ j ];
+                    //         }
+                    //     }
+                    // }
 
-                    void fill(
-                        const std::vector<FloatType>& x1,
-                        const std::vector<FloatType>& x2,
-                        const NCPA::arrays::SmartVector<FloatType>& f ) override {
-                        size_t N1 = x1.size(), N2 = x2.size();
-                        if (N1 != f.dim( 0 ) || N2 != f.dim(1)) {
-                            throw InputSizesDoNotMatch(
-                                "Input axis sizes do not match data dimensions" );
-                        }
-                        if (!_initialized() || _x_vals.size() != N1
-                            || _y_vals.size() != N2) {
-                            init( N1, N2 );
-                        }
-                       
-                        _x_vals = x1;
-                        _y_vals = x2;
-                        _f_vals = f;
-                        // std::memcpy( _x_vals, &x1[ 0 ],
-                        //              N1 * sizeof( FloatType ) );
-                        // std::memcpy( _y_vals, &x2[ 0 ],
-                        //              N2 * sizeof( FloatType ) );
-                        // for (size_t i = 0; i < N1; ++i) {
-                        //     std::memcpy( _f_vals[ i ], &f[ i ][ 0 ],
-                        //                  N2 * sizeof( FloatType ) );
-                        // }
-                    }
+                    // void fill( const std::vector<FloatType>& x1,
+                    //            const std::vector<FloatType>& x2,
+                    //            const NCPA::arrays::SmartVector<FloatType>& f
+                    //            )
+                    //     override {
+                    //     size_t N1 = x1.size(), N2 = x2.size();
+                    //     if (N1 != f.dim( 0 ) || N2 != f.dim( 1 )) {
+                    //         throw InputSizesDoNotMatch(
+                    //             "Input axis sizes do not match data "
+                    //             "dimensions" );
+                    //     }
+                    //     if (!_initialized() || _x_vals.size() != N1
+                    //         || _y_vals.size() != N2) {
+                    //         init( N1, N2 );
+                    //     }
 
-
+                    //     _x_vals = x1;
+                    //     _y_vals = x2;
+                    //     _f_vals = f;
+                    //     // std::memcpy( _x_vals, &x1[ 0 ],
+                    //     //              N1 * sizeof( FloatType ) );
+                    //     // std::memcpy( _y_vals, &x2[ 0 ],
+                    //     //              N2 * sizeof( FloatType ) );
+                    //     // for (size_t i = 0; i < N1; ++i) {
+                    //     //     std::memcpy( _f_vals[ i ], &f[ i ][ 0 ],
+                    //     //                  N2 * sizeof( FloatType ) );
+                    //     // }
+                    // }
 
                     virtual void clear() override {
-                        if (_x_vals != nullptr) {
-                            delete[] _x_vals;
-                            _x_vals = nullptr;
-                        }
-                        if (_y_vals != nullptr) {
-                            delete[] _y_vals;
-                            _y_vals = nullptr;
-                        }
-                        if (_f_vals != nullptr) {
-                            NCPA::arrays::free_array( _f_vals, _length_x,
-                                                      _length_y );
-                            _f_vals = nullptr;
-                        }
-                        if (_f_slopes != nullptr) {
-                            NCPA::arrays::free_array( _f_slopes, _length_x,
-                                                      _length_y );
-                            _f_slopes = nullptr;
-                        }
-                        if (_new_c != nullptr) {
-                            delete[] _new_c;
-                            _new_c = nullptr;
-                        }
-                        if (_new_d != nullptr) {
-                            delete[] _new_d;
-                            _new_d = nullptr;
-                        }
-                        if (_node_vals != nullptr) {
-                            delete[] _node_vals;
-                            _node_vals = nullptr;
-                        }
-                        if (_node_slopes != nullptr) {
-                            delete[] _node_slopes;
-                            _node_slopes = nullptr;
-                        }
-                        _length_x   = 0;
-                        _length_y   = 0;
+                        parent_t::clear();
+                        _f_slopes.clear();
+                        _new_c.clear();
+                        _new_d.clear();
+                        _node_slopes.clear();
+                        _node_vals.clear();
                         _accel[ 0 ] = 0;
                         _accel[ 1 ] = 0;
                     }
@@ -266,12 +247,19 @@ namespace NCPA {
                     void ready() override {
                         FloatType dy1, dy2, ai, bi, ci;
                         FloatType di;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         for (int nx = 0; nx < _length_x; ++nx) {
                             bi = 2.0 / ( _y_vals[ 1 ] - _y_vals[ 0 ] );
                             ci = 1.0 / ( _y_vals[ 1 ] - _y_vals[ 0 ] );
                             di = 3.0
-                               * ( _f_vals[ nx ][ 1 ] - _f_vals[ nx ][ 0 ] )
+                               * ( this->f().at( nx, 1 )
+                                   - this->f().at( nx, 0 ) )
+                               //    * ( _f_vals[ nx ][ 1 ] - _f_vals[ nx ][ 0
+                               //    ] )
                                / std::pow( _y_vals[ 1 ] - _y_vals[ 0 ], 2 );
 
                             _new_c[ 0 ] = ci / bi;
@@ -285,12 +273,19 @@ namespace NCPA {
                                 bi = 2.0 * ( 1.0 / dy1 + 1.0 / dy2 );
                                 ci = 1.0 / dy2;
                                 di = 3.0
-                                   * ( ( _f_vals[ nx ][ ny ]
-                                         - _f_vals[ nx ][ ny - 1 ] )
+                                   * ( ( this->f().at( nx, ny )
+                                         - this->f().at( nx, ny - 1 ) )
                                            / std::pow( dy1, 2 )
-                                       + ( _f_vals[ nx ][ ny + 1 ]
-                                           - _f_vals[ nx ][ ny ] )
+                                       + ( this->f().at( nx, ny + 1 )
+                                           - this->f().at( nx, ny ) )
                                              / std::pow( dy2, 2 ) );
+                                // di = 3.0
+                                //        * ( ( _f_vals[ nx ][ ny ]
+                                //              - _f_vals[ nx ][ ny - 1 ] )
+                                //                / std::pow( dy1, 2 )
+                                //            + ( _f_vals[ nx ][ ny + 1 ]
+                                //                - _f_vals[ nx ][ ny ] )
+                                //                  / std::pow( dy2, 2 ) );
 
                                 _new_c[ ny ]
                                     = ci / ( bi - _new_c[ ny - 1 ] * ai );
@@ -305,30 +300,77 @@ namespace NCPA {
                                / ( _y_vals[ _length_y - 1 ]
                                    - _y_vals[ _length_y - 2 ] );
                             di = 3.0
-                               * ( _f_vals[ nx ][ _length_y - 1 ]
-                                   - _f_vals[ nx ][ _length_y - 2 ] )
+                               * ( this->f().at( nx, _length_y - 1 )
+                                   - this->f().at( nx, _length_y - 2 ) )
                                / std::pow( _y_vals[ _length_y - 1 ]
                                                - _y_vals[ _length_y - 2 ],
                                            2 );
+                            // di = 3.0
+                            //    * ( _f_vals[ nx ][ _length_y - 1 ]
+                            //        - _f_vals[ nx ][ _length_y - 2 ] )
+                            //    / std::pow( _y_vals[ _length_y - 1 ]
+                            //                    - _y_vals[ _length_y - 2 ],
+                            //                2 );
 
                             _new_d[ _length_y - 1 ]
                                 = ( di - _new_d[ _length_y - 2 ] * ai )
                                 / ( bi - _new_c[ _length_y - 2 ] * ai );
 
-                            _f_slopes[ nx ][ _length_y - 1 ]
+                            _f_slopes.at( nx, _length_y - 1 )
+                                // _f_slopes[ nx ][ _length_y - 1 ]
                                 = _new_d[ _length_y - 1 ];
                             for (int ny = _length_y - 2; ny >= 0; ny--) {
-                                _f_slopes[ nx ][ ny ]
+                                // _f_slopes[ nx ][ ny ]
+                                _f_slopes.at( nx, ny )
                                     = _new_d[ ny ]
-                                    - _new_c[ ny ] * _f_slopes[ nx ][ ny + 1 ];
+                                    - _new_c[ ny ]
+                                          * _f_slopes.at( nx, ny + 1 );
+                                // * _f_slopes[ nx ][ ny + 1 ];
                             }
                         }
                     }
 
-                    FloatType eval_f( FloatType x, FloatType y ) override {
+                    FloatType eval_f(
+                        const std::vector<FloatType>& x ) override {
+                        this->_check_dimensions( x );
+                        return this->eval_f( x.at( 0 ), x.at( 1 ) );
+                    }
+
+                    FloatType eval_df( const std::vector<FloatType>& x,
+                                       size_t wrt ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt );
+                        return this->eval_df( x.at( 0 ), x.at( 1 ), wrt );
+                    }
+
+                    FloatType eval_ddf( const std::vector<FloatType>& x,
+                                        size_t wrt1, size_t wrt2 ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt1 );
+                        this->_check_wrt( wrt2 );
+                        return this->eval_ddf( x.at( 0 ), x.at( 1 ), wrt1,
+                                               wrt2 );
+                    }
+
+                    FloatType eval_dddf( const std::vector<FloatType>& x,
+                                         size_t wrt1, size_t wrt2,
+                                         size_t wrt3 ) override {
+                        this->_check_dimensions( x );
+                        this->_check_wrt( wrt1 );
+                        this->_check_wrt( wrt2 );
+                        this->_check_wrt( wrt3 );
+                        return this->eval_dddf( x.at( 0 ), x.at( 1 ), wrt1,
+                                                wrt2, wrt3 );
+                    }
+
+                    FloatType eval_f( FloatType x, FloatType y ) {
                         int kx, ky;
                         FloatType dx, X, A, B;
                         FloatType df;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         kx = find_segment( x, _x_vals, _length_x,
                                            _accel[ 0 ] );
@@ -354,11 +396,14 @@ namespace NCPA {
                                              * ( A * ( 1.0 - X ) + B * X ) );
                     }
 
-                    FloatType eval_df( FloatType x, FloatType y,
-                                     size_t n ) override {
+                    FloatType eval_df( FloatType x, FloatType y, size_t n ) {
                         size_t kx, ky;
                         FloatType df, A, B;
                         FloatType dx, X;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         kx = find_segment( x, _x_vals, _length_x,
                                            _accel[ 0 ] );
@@ -398,10 +443,14 @@ namespace NCPA {
                     }
 
                     FloatType eval_ddf( FloatType x, FloatType y, size_t n1,
-                                      size_t n2 ) override {
+                                        size_t n2 ) {
                         size_t kx, ky;
                         FloatType df, A, B;
                         FloatType dx, X;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         kx = find_segment( x, _x_vals, _length_x,
                                            _accel[ 0 ] );
@@ -447,10 +496,14 @@ namespace NCPA {
                     }
 
                     FloatType eval_dddf( FloatType x, FloatType y, size_t n1,
-                                       size_t n2, size_t n3 ) override {
+                                         size_t n2, size_t n3 ) {
                         size_t kx, ky;
                         FloatType X, dx;
                         FloatType df, A, B;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         kx = find_segment( x, _x_vals, _length_x,
                                            _accel[ 0 ] );
@@ -500,33 +553,49 @@ namespace NCPA {
                         }
                     }
 
-                    virtual std::array<FloatType, 4> limits() const override {
-                        return std::array<FloatType, 4> {
-                            _x_vals[ 0 ], _x_vals[ _length_x - 1 ],
-                            _y_vals[ 0 ], _y_vals[ _length_y - 1 ]
-                        };
-                    }
+                    // virtual std::array<FloatType, 4> limits() const override {
+                    //     return std::array<FloatType, 4> {
+                    //         this->axes( 0 ).front(), this->axes( 0 ).back(),
+                    //         this->axes( 1 ).front(), this->axes( 1 ).back()
+                    //         // _x_vals[ 0 ], _x_vals[ _length_x - 1 ],
+                    //         // _y_vals[ 0 ], _y_vals[ _length_y - 1 ]
+                    //     };
+                    // }
 
                 protected:
                     bool _initialized() const {
-                        return ( _length_x > 0 && _length_y > 0
-                                 && _x_vals != nullptr && _y_vals != nullptr
-                                 && _f_vals != nullptr
-                                 && _f_slopes != nullptr );
+                        return !( this->axes( 0 ).empty()
+                                  || this->axes( 1 ).empty()
+                                  || this->f().empty() || _f_slopes.empty() );
+                        // return ( _length_x > 0 && _length_y > 0
+                        //          && _x_vals != nullptr && _y_vals != nullptr
+                        //          && _f_vals != nullptr
+                        //          && _f_slopes != nullptr );
                     }
 
-                    FloatType _eval_node_f( FloatType y, size_t nx, size_t ny ) {
+                    FloatType _eval_node_f( FloatType y, size_t nx,
+                                            size_t ny ) {
                         FloatType df, A, B;
                         FloatType dy, X;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
-                        df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        df = this->f().at( nx, ny + 1 )
+                           - this->f().at( nx, ny );
                         dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        X  = ( y - _y_vals[ ny ] ) / dy;
+                        A  = _f_slopes.at( nx, ny ) * dy - df;
+                        B  = -_f_slopes.at( nx, ny + 1 ) * dy + df;
+                        // df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        // dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        // X = ( y - _y_vals[ ny ] ) / dy;
+                        // A = _f_slopes[ nx ][ ny ] * dy - df;
+                        // B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
 
-                        X = ( y - _y_vals[ ny ] ) / dy;
-                        A = _f_slopes[ nx ][ ny ] * dy - df;
-                        B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
-
-                        return _f_vals[ nx ][ ny ]
+                        // return _f_vals[ nx ][ ny ]
+                        return this->f().at( nx, ny )
                              + X
                                    * ( df
                                        + ( 1.0 - X )
@@ -534,16 +603,26 @@ namespace NCPA {
                     }
 
                     FloatType _eval_node_dfdy( FloatType y, size_t nx,
-                                             size_t ny ) {
+                                               size_t ny ) {
                         FloatType df, A, B;
                         FloatType dy, X;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
-                        df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        df = this->f().at( nx, ny + 1 )
+                           - this->f().at( nx, ny );
                         dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        X  = ( y - _y_vals[ ny ] ) / dy;
+                        A  = _f_slopes.at( nx, ny ) * dy - df;
+                        B  = -_f_slopes.at( nx, ny + 1 ) * dy + df;
 
-                        X = ( y - _y_vals[ ny ] ) / dy;
-                        A = _f_slopes[ nx ][ ny ] * dy - df;
-                        B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
+                        // df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        // dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        // X = ( y - _y_vals[ ny ] ) / dy;
+                        // A = _f_slopes[ nx ][ ny ] * dy - df;
+                        // B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
 
                         return df / dy
                              + ( 1.0 - 2.0 * X ) * ( A * ( 1.0 - X ) + B * X )
@@ -552,32 +631,48 @@ namespace NCPA {
                     }
 
                     FloatType _eval_node_ddfdydy( FloatType y, size_t nx,
-                                                size_t ny ) {
+                                                  size_t ny ) {
                         FloatType df, A, B;
                         FloatType dy, X;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
-                        df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        df = this->f().at( nx, ny + 1 )
+                           - this->f().at( nx, ny );
                         dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        X  = ( y - _y_vals[ ny ] ) / dy;
+                        A  = _f_slopes.at( nx, ny ) * dy - df;
+                        B  = -_f_slopes.at( nx, ny + 1 ) * dy + df;
 
-                        X = ( y - _y_vals[ ny ] ) / dy;
-                        A = _f_slopes[ nx ][ ny ] * dy - df;
-                        B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
+
+                        // df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        // dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
+                        // X = ( y - _y_vals[ ny ] ) / dy;
+                        // A = _f_slopes[ nx ][ ny ] * dy - df;
+                        // B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
 
                         return 2.0 * ( B - 2.0 * A + ( A - B ) * 3.0 * X )
                              / std::pow( dy, 2 );
                     }
 
                     FloatType _eval_node_dddfdydydy( FloatType y, size_t nx,
-                                                   size_t ny ) {
+                                                     size_t ny ) {
                         FloatType df, A, B;
                         FloatType dy, X;
+                        FloatType *_y_vals = this->axes( 1 ).data();
 
-                        df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
+                        df = this->f().at( nx, ny + 1 )
+                           - this->f().at( nx, ny );
+                        // df = _f_vals[ nx ][ ny + 1 ] - _f_vals[ nx ][ ny ];
                         dy = _y_vals[ ny + 1 ] - _y_vals[ ny ];
 
                         X = ( y - _y_vals[ ny ] ) / dy;
-                        A = _f_slopes[ nx ][ ny ] * dy - df;
-                        B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
+                        A = _f_slopes.at( nx, ny ) * dy - df;
+                        // A = _f_slopes[ nx ][ ny ] * dy - df;
+                        B = -_f_slopes.at( nx, ny + 1 ) * dy + df;
+                        // B = -_f_slopes[ nx ][ ny + 1 ] * dy + df;
 
                         return 6.0 * ( A - B ) / std::pow( dy, 3 );
                     }
@@ -585,6 +680,10 @@ namespace NCPA {
                     void _set_node_slopes() {
                         FloatType dx1, dx2, ai, bi, ci;
                         FloatType di;
+                        FloatType *_x_vals = this->axes( 0 ).data();
+                        FloatType *_y_vals = this->axes( 1 ).data();
+                        size_t _length_x   = this->axes( 0 ).size();
+                        size_t _length_y   = this->axes( 1 ).size();
 
                         bi = 2.0 / ( _x_vals[ 1 ] - _x_vals[ 0 ] );
                         ci = 1.0 / ( _x_vals[ 1 ] - _x_vals[ 0 ] );

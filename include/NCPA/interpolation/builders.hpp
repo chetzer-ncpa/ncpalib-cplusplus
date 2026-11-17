@@ -3,15 +3,10 @@
 #include "NCPA/arrays.hpp"
 #include "NCPA/defines.hpp"
 #include "NCPA/interpolation/abstract_spline.hpp"
-// #include "NCPA/interpolation/defines.hpp"
-// #include "NCPA/interpolation/Extrapolator1D.hpp"
 #include "NCPA/interpolation/exceptions.hpp"
 #include "NCPA/interpolation/gsl.hpp"
-// #include "NCPA/interpolation/Interpolator.hpp"
 #include "NCPA/interpolation/lanl.hpp"
 #include "NCPA/interpolation/NearestNeighborSpline.hpp"
-// #include "NCPA/interpolation/stratified_spline_2d.hpp"
-// #include "NCPA/interpolation/types.hpp"
 #include "NCPA/math.hpp"
 #include "NCPA/types.hpp"
 
@@ -32,7 +27,7 @@ namespace NCPA {
                         case interpolator_type_t::LANL_CUBIC:
                         case interpolator_type_t::LANL_NATURAL_2D:
                         case interpolator_type_t::LANL_BICUBIC_2D:
-                        case interpolator_type_t::LANL_HYBRID_3D:
+                        // case interpolator_type_t::LANL_HYBRID_3D:
 #ifdef NCPA_INTERPOLATION_GSL_INTERPOLATION_AVAILABLE
                         case interpolator_type_t::GSL_LINEAR:
                         case interpolator_type_t::GSL_POLYNOMIAL:
@@ -84,8 +79,14 @@ namespace NCPA {
                                 new LANL::LinearSpline1D<FloatType>() );
                         case interpolator_type_t::LANL_CUBIC:
                             return spline_ptr_t<FloatType>(
-                                new LANL::NaturalCubicSpline1D<
-                                    FloatType>() );
+                                new LANL::NaturalCubicSpline1D<FloatType>() );
+                        case interpolator_type_t::LANL_NATURAL_2D:
+                            return spline_ptr_t<FloatType>(
+                                new LANL::NaturalSpline2D<FloatType>() );
+                        case interpolator_type_t::LANL_BICUBIC_2D:
+                            return spline_ptr_t<FloatType>(
+                                new LANL::BicubicSpline2D<FloatType>() );
+
 #if NCPA_USE_GSL_INTERPOLATION
                         case interpolator_type_t::GSL_LINEAR:
                         case interpolator_type_t::GSL_AKIMA:
@@ -96,7 +97,8 @@ namespace NCPA {
                         case interpolator_type_t::GSL_STEFFEN:
                             return spline_ptr_t<FloatType>(
                                 new GSL::GSLSpline<FloatType>(
-                                    GSL::gsl_interpolator_type( interptype ) ) );
+                                    GSL::gsl_interpolator_type(
+                                        interptype ) ) );
 #endif
                         default:
                             throw UnsupportedInterpolator(

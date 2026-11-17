@@ -280,8 +280,6 @@ namespace NCPA {
                     const typed_spline<FloatType, AxesType, FType>& other )
                     = default;
 
-                    
-
                 AxesType& axes( size_t n ) {
                     if (n >= this->dimensions()) {
                         throw InvalidDimensions(
@@ -302,7 +300,9 @@ namespace NCPA {
                             + std::to_string( this->dimensions() )
                             + "-D interpolator" );
                     }
-                    this->init_axes();
+                    if (_axes.empty()) {
+                        throw InterpolatorNotReady( "Axes have not been defined!" );
+                    }
                     return _axes.at( n );
                 }
 
@@ -531,6 +531,13 @@ namespace NCPA {
         class spline1d : public typed_spline<FloatType, std::vector<FloatType>,
                                              std::vector<FloatType>> {
             public:
+                using parent_t
+                    = typed_spline<FloatType, std::vector<FloatType>,
+                                   std::vector<FloatType>>;
+                using AxesType = std::vector<FloatType>;
+                using FType    = std::vector<FloatType>;
+
+                using parent_t::init;
                 spline1d()          = default;
                 virtual ~spline1d() = default;
 
@@ -538,13 +545,10 @@ namespace NCPA {
 
                 void init( std::vector<size_t> dims ) override {
                     this->_check_dimensions( dims );
-                    this->axes(0).resize(dims.front());
-                    
+                    this->axes( 0 ).resize( dims.front() );
+
                     this->f().resize( dims.front() );
                 }
-
-                 
-                
 
                 void set_f_value( std::vector<size_t> offsets,
                                   FloatType val ) override {
@@ -558,6 +562,13 @@ namespace NCPA {
             : public typed_spline<FloatType, std::vector<FloatType>,
                                   NCPA::arrays::SmartArray<2, FloatType>> {
             public:
+                using parent_t
+                    = typed_spline<FloatType, std::vector<FloatType>,
+                                   NCPA::arrays::SmartArray<2, FloatType>>;
+                using AxesType = std::vector<FloatType>;
+                using FType    = NCPA::arrays::SmartArray<2, FloatType>;
+
+                using parent_t::init;
                 spline2d()          = default;
                 virtual ~spline2d() = default;
 
@@ -566,7 +577,7 @@ namespace NCPA {
                 void init( std::vector<size_t> dims ) override {
                     this->_check_dimensions( dims );
                     for (size_t i = 0; i < this->dimensions(); ++i) {
-                        this->axes(i).resize( dims.at(i));
+                        this->axes( i ).resize( dims.at( i ) );
                     }
                     this->f().resize( dims );
                 }
@@ -583,6 +594,13 @@ namespace NCPA {
             : public typed_spline<FloatType, std::vector<FloatType>,
                                   NCPA::arrays::SmartArray<3, FloatType>> {
             public:
+                using parent_t
+                    = typed_spline<FloatType, std::vector<FloatType>,
+                                   NCPA::arrays::SmartArray<3, FloatType>>;
+                using AxesType = std::vector<FloatType>;
+                using FType    = NCPA::arrays::SmartArray<3, FloatType>;
+                using parent_t::init;
+
                 spline3d()          = default;
                 virtual ~spline3d() = default;
 
@@ -591,7 +609,7 @@ namespace NCPA {
                 void init( std::vector<size_t> dims ) override {
                     this->_check_dimensions( dims );
                     for (size_t i = 0; i < this->dimensions(); ++i) {
-                        this->axes(i).resize( dims.at(i));
+                        this->axes( i ).resize( dims.at( i ) );
                     }
                     this->f().resize( dims );
                 }
