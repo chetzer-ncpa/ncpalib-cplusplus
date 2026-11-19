@@ -75,6 +75,8 @@ namespace NCPA {
                     }
                 }
 
+                virtual void mark_set() { _was_set = true; }
+
                 virtual void set_value_count( value_count_t count ) {
                     _value_count = count;
                 }

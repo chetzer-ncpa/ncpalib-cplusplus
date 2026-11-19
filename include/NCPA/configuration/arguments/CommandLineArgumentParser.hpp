@@ -129,7 +129,19 @@ namespace NCPA {
                         argset.argument( valset.first )
                             .from_string( valset.second );
                     }
-                    return ArgumentParseResult( parse_result_t::SUCCESS );
+                    std::vector<std::string> missing;
+                    for (auto& arg : argset.arguments()) {
+                        if (arg.second->required() && !arg.second->was_set()) {
+                            missing.push_back( arg.first + " missing" );
+                        }
+                    }
+                    if (missing.empty()) {
+                        return ArgumentParseResult( parse_result_t::SUCCESS );
+                    } else {
+                        return ArgumentParseResult(
+                            parse_result_t::REQUIRED_ARGUMENT_MISSING,
+                            missing );
+                    }
                 }
 
 

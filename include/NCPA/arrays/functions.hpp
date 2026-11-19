@@ -1,12 +1,14 @@
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <numeric>
-#include "NCPA/types.hpp"
+#include "NCPA/arrays/declarations.hpp"
 #include "NCPA/constants.hpp"
 #include "NCPA/defines.hpp"
-#include "NCPA/arrays/declarations.hpp"
+#include "NCPA/types.hpp"
+
+#include <cstring>
+#include <iostream>
+#include <numeric>
+#include <vector>
 
 namespace NCPA {
     namespace arrays {
@@ -38,7 +40,7 @@ namespace NCPA {
             return std::vector<T>( 1, val );
         }
 
-         /**
+        /**
          * Dynamically allocates a new array and sets all elements to zero
          * before returning it.
          * @brief Returns a new array of all zeros.
@@ -850,18 +852,21 @@ namespace NCPA {
             return newvec;
         }
 
-        template<typename ELEMENTTYPE,typename INDEXTYPE=size_t>
-        std::vector<ELEMENTTYPE> extract_indices( const std::vector<ELEMENTTYPE>& source, const std::vector<INDEXTYPE>& indices ) {
+        template<typename ELEMENTTYPE, typename INDEXTYPE = size_t>
+        std::vector<ELEMENTTYPE> extract_indices(
+            const std::vector<ELEMENTTYPE>& source,
+            const std::vector<INDEXTYPE>& indices ) {
             std::vector<ELEMENTTYPE> result( indices.size() );
             for (size_t i = 0; i < indices.size(); ++i) {
-                result[ i ] = source.at( indices.at(i) );
+                result[ i ] = source.at( indices.at( i ) );
             }
             return result;
         }
 
         template<typename ELEMENTTYPE>
-        std::vector<ELEMENTTYPE> vectorize( const ELEMENTTYPE& val, size_t n = 1 ) {
+        std::vector<ELEMENTTYPE> vectorize( const ELEMENTTYPE& val,
+                                            size_t n = 1 ) {
             return std::vector<ELEMENTTYPE>( n, val );
         }
-    }
-}
+    }  // namespace arrays
+}  // namespace NCPA

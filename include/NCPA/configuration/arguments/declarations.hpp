@@ -15,6 +15,7 @@ namespace NCPA {
             SUCCESS,
             BARE_VALUES,
             PARSE_ERROR,
+            REQUIRED_ARGUMENT_MISSING,
             HELP_REQUESTED
         };
 

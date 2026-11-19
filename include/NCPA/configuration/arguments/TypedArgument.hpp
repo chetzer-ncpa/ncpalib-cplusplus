@@ -274,11 +274,13 @@ namespace NCPA {
 
                 virtual void from_string( const std::string& val ) override {
                     _underlying.from_string( val );
+                    this->mark_set();
                 }
 
                 virtual void from_string(
                     const std::vector<std::string>& val ) override {
                     _underlying.from_string( val );
+                    this->mark_set();
                 }
 
                 virtual bool has_default_value() const override {
@@ -287,12 +289,12 @@ namespace NCPA {
 
                 virtual void set_value( const BASETYPE& val ) {
                     _underlying.set_value( val );
-                    _was_set = true;
+                    this->mark_set();
                 }
 
                 virtual void set_value( const std::vector<BASETYPE>& val ) {
                     _underlying.set_value( val );
-                    _was_set = true;
+                    this->mark_set();
                 }
 
                 virtual TypedArgument<BASETYPE>& add_test(
